@@ -1,5 +1,5 @@
 # La Réserve des Gourmands
-*Cahier de projet — Version 14 — Février 2026*
+*Cahier de projet — Version 15 — Février 2026*
 *À partager à chaque nouvelle session de travail*
 
 ---
@@ -24,7 +24,7 @@ Application web hébergée sur GitHub Pages. Deux utilisateurs partageant le mê
 - Zone tactile minimum --taille-tactile (44px) sur tous les boutons
 - Toujours joindre styles.css à chaque demande de développement
 - Jamais coder sans accord explicite du client
-- Quand un bout de code est envoyé avec l'instruction 'réécrit' — réécrire le bloc complet, prêt pour copier-coller, sans explication technique
+- Quand un bout de code est envoyé avec l'instruction "réécrit" — réécrire le bloc complet, prêt pour copier-coller, sans explication technique
 - Expliquer ce qui va être fait AVANT de le faire — le client valide, ensuite on code
 - Les explications sont claires et fonctionnelles — pas de jargon technique, pas de références à des lignes de code
 
@@ -82,7 +82,7 @@ Application web hébergée sur GitHub Pages. Deux utilisateurs partageant le mê
 
 ### 4.1 Fichiers GitHub
 - **index.html** — Structure HTML de toutes les pages
-- **scripts-config.js** — Variables globales, lireOnglet, ecrireOnglet, auth OAuth2, afficherToast
+- **scripts-config.js** — Variables globales, lireOnglet, ecrireOnglet, mettreAJourLigne, auth OAuth2, afficherToast
 - **scripts-nav.js** — Navigation, menu burger, accordéons
 - **scripts-accueil.js** — Chargement et affichage données accueil
 - **scripts-scanner.js** — Scanner, Quagga, Open Food Facts, formulaire Ajouter
@@ -96,13 +96,17 @@ Application web hébergée sur GitHub Pages. Deux utilisateurs partageant le mê
 
 ### 4.3 Données — Google Sheets API
 - ID Sheet : ***retiré***
-- Clé API lecture : dans scripts-config.js — ⚠️ À régénérer et sécuriser avant production
+- Clé API lecture : dans scripts-config.js — ⚠️ À régénérer avant production
 - Client ID OAuth2 : 1052424777819-vipdir50gal3d6ht1ob4bd1tmbk6v5hv.apps.googleusercontent.com
-- Lecture : clé API simple ✅ fonctionnelle
-- Écriture : OAuth2 Google Identity Services ✅ configuré
+- Origine JavaScript autorisée : https://ngjcpvino.github.io
+- Lecture : clé API simple ✅
+- Écriture : OAuth2 Google Identity Services ✅
+- Mode publication OAuth : Test — 2 utilisateurs à ajouter dans la liste
 
-### 4.4 Onglets Google Sheet
-- **Produits** — ID, Nom, Marque, CodeBarre, Categorie, Emplacement, QteStock, QteReserve, QteMinimum, DateExpiration, Notes, Photo, Actif
+### 4.4 Entêtes réelles onglet Produits (ordre exact dans la Sheet)
+A: code_barres / B: Nom / C: Catégorie / D: Sous-Cat / E: Lieu (D) / F: Espace (E) / G: Unité / H: Qté / I: Seuil Alerte / J: magasin_habituel / K: magasins_alternatifs / L: meilleur_prix_actuel / M: Photo / N: notes / O: Marque
+
+### 4.5 Autres onglets Google Sheet
 - **Emplacements** — ID, Nom, Zone, Description, Actif
 - **Categories** — ID, Nom, DureeConservation, Actif
 - **Magasins** — ID, Nom, Type, Actif
@@ -112,18 +116,27 @@ Application web hébergée sur GitHub Pages. Deux utilisateurs partageant le mê
 - **Configuration** — Cle, Valeur
 - **Utilisateurs** — ID, Nom, Email, Actif
 
-### 4.5 Librairies externes
-- Cabinet Grotesk — Fontshare
-- Quagga 0.12.1 — scan code-barres (cdnjs)
-- Google Identity Services — OAuth2 écriture Sheet
-
-### 4.6 Ordre des scripts dans index.html
+### 4.6 Librairies externes (ordre dans index.html)
 ```html
+<link href="https://api.fontshare.com/v2/css?f[]=cabinet-grotesk@100,200,300,400,500&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/quagga/0.12.1/quagga.min.js"></script>
 <script src="https://accounts.google.com/gsi/client" async defer></script>
+<link rel="stylesheet" href="styles.css">
+```
+
+### 4.7 Ordre des scripts dans index.html
+```html
 <script src="scripts-config.js"></script>
 <script src="scripts-nav.js"></script>
 <script src="scripts-accueil.js"></script>
 <script src="scripts-scanner.js"></script>
+<script>
+  window.addEventListener('load', function() {
+    initialiserAccordeons();
+    initialiserMenuAccordeons();
+    chargerAccueil();
+  });
+</script>
 ```
 
 ---
@@ -161,7 +174,7 @@ Application web hébergée sur GitHub Pages. Deux utilisateurs partageant le mê
 
 ### 6.1 Accueil — COMPLÉTÉE ✅
 - Photo 80vh, titre clamp, 4 boutons principaux
-- 5 accordéons : Stock épuisé, Réserve vide, À consommer bientôt, En spécial, Listes en attente
+- 5 accordéons branchés Sheet : Stock épuisé, Réserve vide, À consommer bientôt, En spécial, Listes en attente
 - Données en temps réel depuis la Sheet
 
 ### 6.2 Scanner — EN COURS 🔄
@@ -174,12 +187,14 @@ Application web hébergée sur GitHub Pages. Deux utilisateurs partageant le mê
 - Affichage résultat avec photo, nom, marque, code
 
 **Étape 2 — EN COURS 🔄**
-- Formulaire Ajouter codé — à tester
-- OAuth2 configuré — à tester
+- OAuth2 fonctionnel ✅
+- Écriture dans Sheet fonctionnelle ✅
+- ⚠️ Colonnes décalées dans sauvegarderProduit() — à corriger
+- ⚠️ Listes déroulantes Catégories/Emplacements ne se chargent pas — à corriger
 - Bouton Consommer — à faire
 - Bouton Trouver — à faire
 
-**PROCHAINE ÉTAPE : Tester le formulaire Ajouter + OAuth2, puis coder Consommer**
+**PROCHAINE ÉTAPE : Corriger l'ordre des colonnes dans sauvegarderProduit() pour correspondre aux entêtes réelles (section 4.4), corriger le chargement des listes déroulantes, puis tester un scan complet**
 
 ### 6.3 Trouver — À FAIRE
 ### 6.4 Consommer — À FAIRE
@@ -225,9 +240,8 @@ Application web hébergée sur GitHub Pages. Deux utilisateurs partageant le mê
 ---
 
 ## 10. Sécurité — Points à régler
-
 - ⚠️ Clé API Google visible dans scripts-config.js — à sécuriser avant production
-- ⚠️ Client ID OAuth2 visible dans scripts-config.js — acceptable pour usage personnel
+- ⚠️ Ajouter le 2e utilisateur dans la liste des utilisateurs test OAuth
 - Dépôt GitHub public — ne jamais mettre mots de passe dans les fichiers
 - ⚠️ Sauvegarde automatique à reconfigurer hors GAS
 
@@ -248,6 +262,12 @@ Application web hébergée sur GitHub Pages. Deux utilisateurs partageant le mê
 ### Session Février 2026 — restructuration et OAuth2 (v14)
 - Scripts séparés en 4 fichiers modulaires
 - OAuth2 configuré dans Google Cloud Console
-- Formulaire Ajouter codé dans scripts-scanner.js
-- Écriture Sheet via ecrireOnglet() dans scripts-config.js
-- PROCHAINE SESSION : tester formulaire Ajouter, puis coder Consommer et Trouver
+- Formulaire Ajouter codé
+
+### Session Février 2026 — OAuth2 fonctionnel, écriture Sheet validée (v15)
+- OAuth2 testé et fonctionnel sur iPhone
+- Écriture dans Sheet confirmée
+- Origines JavaScript autorisées ajoutées dans Google Cloud
+- Problème identifié : colonnes décalées dans sauvegarderProduit()
+- Problème identifié : listes déroulantes ne se chargent pas
+- Prochaine session : corriger colonnes + listes, puis coder Consommer et Trouver
