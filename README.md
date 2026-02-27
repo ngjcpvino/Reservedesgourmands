@@ -7,7 +7,7 @@
 
 ## 1. Description du Projet
 
-Application web Google Apps Script. Deux utilisateurs partageant le même inventaire en temps réel. Mémoire augmentée pour les stocks de la maison, livre de recettes intelligent et surveillance des circulaires.
+Deux utilisateurs partageant le même inventaire en temps réel. Mémoire augmentée pour les stocks de la maison, livre de recettes intelligent et surveillance des circulaires.
 
 **Architecture modulaire :** Même moteur, style et configuration différents selon le projet. Déploiements futurs : Réserve des Bricoleurs, Réserve des Jardiniers.
 
