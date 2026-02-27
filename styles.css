@@ -1,0 +1,846 @@
+  /* ============================================================
+     VARIABLES — Tout est ici. On ne met rien en dur ailleurs.
+  ============================================================ */
+  :root {
+    --couleur-fond:               #ffffff;
+    --couleur-blanc:              #ffffff;
+    --couleur-creme:              #f5efe6;
+    --couleur-beige:              #e8ddd0;
+    --couleur-beige-moyen:        #d4c4b0;
+    --couleur-brun-clair:         #a08060;
+    --couleur-brun:               #6b4f3a;
+    --couleur-brun-fonce:         #3d2b1f;
+    --couleur-accent-rouge:       #c0392b;
+    --couleur-accent-orange:      #d4820a;
+    --couleur-accent-vert:        #2e7d52;
+    --couleur-accent-bleu:        #4e679c;
+
+    --couleur-verre:              rgba(255, 252, 248, 0.18);
+    --couleur-verre-fort:         rgba(255, 252, 248, 0.28);
+    --couleur-verre-header:       rgba(232, 221, 208, 0.22);
+
+    --couleur-ombre:              rgba(61, 43, 31, 0.15);
+    --couleur-ombre-forte:        rgba(61, 43, 31, 0.28);
+    --couleur-separateur:         rgba(212, 196, 176, 0.4);
+    --couleur-hover:              rgba(245, 239, 230, 0.5);
+
+    --couleur-badge-haute-fond:   rgba(192, 57, 43, 0.12);
+    --couleur-badge-haute-bord:   rgba(192, 57, 43, 0.30);
+    --couleur-badge-moyenne-fond: rgba(212, 130, 10, 0.12);
+    --couleur-badge-moyenne-bord: rgba(212, 130, 10, 0.30);
+    --couleur-badge-info-fond:    rgba(46, 125, 82, 0.12);
+    --couleur-badge-info-bord:    rgba(46, 125, 82, 0.30);
+
+    --couleur-toast-succes:       rgba(46, 125, 82, 0.92);
+    --couleur-toast-erreur:       rgba(192, 57, 43, 0.92);
+    --couleur-toast-avert:        rgba(212, 130, 10, 0.92);
+
+    --couleur-champ-fond:         #ffffff;
+    --couleur-champ-bord:         #d4c4b0;
+    --couleur-champ-focus-bord:   #6b4f3a;
+    --couleur-champ-focus-ombre:  rgba(107, 79, 58, 0.12);
+    --couleur-placeholder:        #a08060;
+
+    --couleur-toggle-inactif:     #d4c4b0;
+    --couleur-toggle-actif:       #6b4f3a;
+    --couleur-toggle-bouton:      #ffffff;
+
+    --couleur-etoile-inactif:     #d4c4b0;
+    --couleur-etoile-actif:       #f0a500;
+
+    --police-corps:               'Cabinet Grotesk', system-ui, sans-serif;
+    --taille-logo:                22px;
+    --taille-titre-page:          20px;
+    --taille-texte:               14px;
+    --taille-petit:               15px;
+    --taille-micro:               11px;
+    --taille-label:               10px;
+    --taille-accordeon-header:    16px;
+    --taille-item-liste:          15px;
+
+    --rayon:                      2px;
+    --taille-tactile:             44px;
+    --burger-top:                 28px;
+    --burger-left:                var(--espace-l);
+
+    --espace-xs:                  4px;
+    --espace-s:                   8px;
+    --espace-m:                   12px;
+    --espace-l:                   16px;
+    --espace-xl:                  20px;
+
+    --transition:                 0.2s ease;
+    --ombre-carte:                0 2px 12px rgba(61, 43, 31, 0.10);
+    --ombre-bouton:               0 1px 6px rgba(61, 43, 31, 0.10);
+    --ombre-toast:                0 6px 24px rgba(61, 43, 31, 0.28);
+  }
+
+  /* ============================================================
+     BASE
+  ============================================================ */
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    font-family: var(--police-corps);
+    font-size: var(--taille-item-liste);
+    color: var(--couleur-brun-fonce);
+    background: var(--couleur-fond);
+    min-height: 100vh;
+    overflow-x: hidden;
+  }
+
+  /* ============================================================
+     1 — STYLE-LOGO
+  ============================================================ */
+  .style-logo {
+    font-size: var(--taille-logo);
+    font-weight: 500;
+    color: var(--couleur-brun-fonce);
+  }
+  .style-logo-sous {
+    font-size: var(--taille-micro);
+    font-weight: 300;
+    color: var(--couleur-brun-clair);
+    display: block;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+  }
+
+  /* ============================================================
+     2 — BOUTON-BURGER
+  ============================================================ */
+  .bouton-burger {
+    width: var(--taille-tactile);
+    height: var(--taille-tactile);
+    background: var(--couleur-blanc);
+    border: none;
+    border-radius: var(--rayon);
+    cursor: pointer;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 5px;
+    transition: var(--transition);
+    box-shadow: var(--ombre-bouton);
+  }
+  .bouton-burger:hover { background: var(--couleur-beige); }
+  .bouton-burger-trait {
+    display: block;
+    width: 18px;
+    height: 2px;
+    background: var(--couleur-brun);
+    border-radius: 1px;
+  }
+  .bouton-burger-fixe {
+    position: fixed;
+    top: var(--burger-top);
+    left: var(--burger-left);
+    z-index: 100;
+  }
+
+  /* ============================================================
+     3 — TITRE-PAGE
+  ============================================================ */
+  .titre-page {
+    font-size: var(--taille-titre-page);
+    font-weight: 400;
+    color: var(--couleur-brun-fonce);
+    padding-bottom: var(--espace-s);
+    border-bottom: 1.5px solid var(--couleur-beige-moyen);
+    margin-bottom: var(--espace-l);
+  }
+
+  /* ============================================================
+     4 — BOUTON-PRINCIPAL
+  ============================================================ */
+  .bouton-principal {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    padding: var(--espace-l) var(--espace-m);
+    background: var(--couleur-blanc);
+    border: none;
+    border-radius: var(--rayon);
+    cursor: pointer;
+    font-family: var(--police-corps);
+    font-size: var(--taille-micro);
+    font-weight: 500;
+    color: var(--couleur-brun);
+    transition: var(--transition);
+    min-height: 80px;
+    box-shadow: var(--ombre-bouton);
+  }
+  .bouton-principal:hover {
+    box-shadow: var(--ombre-carte);
+  }
+  .bouton-principal-icone { font-size: 22px; }
+
+  /* ============================================================
+     5 — BOUTON-CONFIRMER
+  ============================================================ */
+  .bouton-confirmer {
+    display: block;
+    width: 100%;
+    padding: var(--espace-m);
+    background: var(--couleur-brun);
+    color: var(--couleur-creme);
+    border: none;
+    border-radius: var(--rayon);
+    font-family: var(--police-corps);
+    font-size: var(--taille-texte);
+    font-weight: 500;
+    cursor: pointer;
+    transition: var(--transition);
+    min-height: var(--taille-tactile);
+  }
+  .bouton-confirmer:hover { background: var(--couleur-brun-fonce); }
+
+  /* ============================================================
+     6 — BOUTON-SECONDAIRE
+  ============================================================ */
+  .bouton-secondaire {
+    padding: var(--espace-s) var(--espace-l);
+    background: var(--couleur-blanc);
+    color: var(--couleur-brun-clair);
+    border: none;
+    border-radius: var(--rayon);
+    font-family: var(--police-corps);
+    font-size: var(--taille-micro);
+    font-weight: 500;
+    cursor: pointer;
+    transition: var(--transition);
+    min-height: var(--taille-tactile);
+    box-shadow: var(--ombre-bouton);
+  }
+  .bouton-secondaire:hover {
+    background: var(--couleur-creme);
+    color: var(--couleur-brun);
+    box-shadow: var(--ombre-carte);
+  }
+  .bouton-secondaire-danger { color: var(--couleur-accent-rouge); }
+  .bouton-secondaire-danger:hover { background: var(--couleur-creme); }
+
+  /* ============================================================
+     7 — ACCORDEON-CONTAINER
+  ============================================================ */
+  .accordeon-container {
+    background: var(--couleur-blanc);
+    border: none;
+    border-radius: var(--rayon);
+    overflow: hidden;
+    margin-bottom: var(--espace-s);
+  }
+
+  /* ============================================================
+     8 — ACCORDEON-HEADER
+  ============================================================ */
+  .accordeon-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: var(--espace-m) var(--espace-l);
+    cursor: pointer;
+    background: var(--couleur-brun);
+    font-weight: 500;
+    font-size: var(--taille-accordeon-header);
+    color: var(--couleur-creme);
+    transition: var(--transition);
+    user-select: none;
+    min-height: var(--taille-tactile);
+  }
+  .accordeon-header:hover { background: var(--couleur-brun-fonce); }
+  .accordeon-fleche {
+    font-size: var(--taille-label);
+    color: var(--couleur-beige-moyen);
+    transition: transform 0.25s ease;
+  }
+  .accordeon-header.ouvert .accordeon-fleche { transform: rotate(180deg); }
+
+  /* ============================================================
+     9 — ACCORDEON-ITEM
+  ============================================================ */
+  .accordeon-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: var(--espace-s) var(--espace-l);
+    font-size: var(--taille-item-liste);
+    transition: background var(--transition);
+    min-height: var(--taille-tactile);
+  }
+  .accordeon-item:hover { background: var(--couleur-hover); }
+
+  /* ============================================================
+     10 — BADGE-PRIORITE-HAUTE
+     11 — BADGE-PRIORITE-MOYENNE
+     12 — BADGE-INFO
+  ============================================================ */
+  .badge {
+    display: inline-flex;
+    align-items: center;
+    padding: 3px var(--espace-s);
+    border-radius: var(--rayon);
+    font-size: var(--taille-label);
+    font-weight: 500;
+    letter-spacing: 0.5px;
+  }
+  .badge-priorite-haute {
+    background: var(--couleur-badge-haute-fond);
+    color: var(--couleur-accent-rouge);
+    border: 1px solid var(--couleur-badge-haute-bord);
+  }
+  .badge-priorite-moyenne {
+    background: var(--couleur-badge-moyenne-fond);
+    color: var(--couleur-accent-orange);
+    border: 1px solid var(--couleur-badge-moyenne-bord);
+  }
+  .badge-info {
+    background: var(--couleur-badge-info-fond);
+    color: var(--couleur-accent-vert);
+    border: 1px solid var(--couleur-badge-info-bord);
+  }
+
+  /* ============================================================
+     13 — TOAST-CONFIRMATION
+  ============================================================ */
+  .toast-confirmation {
+    display: flex;
+    align-items: center;
+    gap: var(--espace-s);
+    padding: var(--espace-m) var(--espace-l);
+    border-radius: var(--rayon);
+    font-size: var(--taille-petit);
+    font-weight: 400;
+    box-shadow: var(--ombre-toast);
+    color: var(--couleur-blanc);
+    width: 100%;
+    margin-bottom: var(--espace-s);
+  }
+  .toast-succes { background: var(--couleur-toast-succes); }
+  .toast-erreur { background: var(--couleur-toast-erreur); }
+  .toast-avert  { background: var(--couleur-toast-avert); }
+
+  /* ============================================================
+     14 — CHAMP-TEXTE
+  ============================================================ */
+  .champ-texte {
+    width: 100%;
+    padding: var(--espace-s) var(--espace-m);
+    background: var(--couleur-champ-fond);
+    border: 1px solid var(--couleur-champ-bord);
+    border-radius: var(--rayon);
+    font-family: var(--police-corps);
+    font-size: var(--taille-texte);
+    font-weight: 300;
+    color: var(--couleur-brun-fonce);
+    outline: none;
+    transition: var(--transition);
+    min-height: var(--taille-tactile);
+  }
+  .champ-texte:focus {
+    border-color: var(--couleur-champ-focus-bord);
+    box-shadow: 0 0 0 3px var(--couleur-champ-focus-ombre);
+  }
+  .champ-texte::placeholder {
+    color: var(--couleur-placeholder);
+    opacity: 0.6;
+  }
+
+  /* ============================================================
+     15 — LISTE-DEROULANTE
+  ============================================================ */
+  .liste-deroulante {
+    width: 100%;
+    padding: var(--espace-s) var(--espace-m);
+    background: var(--couleur-champ-fond);
+    border: 1px solid var(--couleur-champ-bord);
+    border-radius: var(--rayon);
+    font-family: var(--police-corps);
+    font-size: var(--taille-texte);
+    font-weight: 300;
+    color: var(--couleur-brun-fonce);
+    outline: none;
+    appearance: none;
+    cursor: pointer;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath d='M1 1l5 5 5-5' stroke='%236b4f3a' stroke-width='1.5' fill='none'/%3E%3C/svg%3E");
+    background-repeat: no-repeat;
+    background-position: right var(--espace-m) center;
+    min-height: var(--taille-tactile);
+  }
+
+  /* ============================================================
+     16 — COMPTEUR-QUANTITE
+  ============================================================ */
+  .compteur-quantite {
+    display: inline-flex;
+    align-items: center;
+    background: var(--couleur-champ-fond);
+    border: 1px solid var(--couleur-champ-bord);
+    border-radius: var(--rayon);
+    overflow: hidden;
+  }
+  .compteur-btn {
+    width: var(--taille-tactile);
+    height: var(--taille-tactile);
+    background: transparent;
+    border: none;
+    font-size: 18px;
+    color: var(--couleur-brun);
+    cursor: pointer;
+    transition: var(--transition);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  .compteur-btn:hover { background: var(--couleur-beige); }
+  .compteur-valeur {
+    width: var(--taille-tactile);
+    text-align: center;
+    font-size: var(--taille-texte);
+    font-weight: 500;
+    color: var(--couleur-brun-fonce);
+    border-left: 1px solid var(--couleur-champ-bord);
+    border-right: 1px solid var(--couleur-champ-bord);
+    height: var(--taille-tactile);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  /* ============================================================
+     17 — CASE-A-COCHER
+  ============================================================ */
+  .case-a-cocher {
+    display: flex;
+    align-items: center;
+    gap: var(--espace-s);
+    cursor: pointer;
+    font-size: var(--taille-texte);
+    font-weight: 300;
+    color: var(--couleur-brun-fonce);
+    min-height: var(--taille-tactile);
+  }
+  .case-a-cocher input[type="checkbox"] {
+    appearance: none;
+    width: 22px;
+    height: 22px;
+    border: 1.5px solid var(--couleur-champ-bord);
+    border-radius: var(--rayon);
+    background: var(--couleur-champ-fond);
+    cursor: pointer;
+    transition: var(--transition);
+    flex-shrink: 0;
+    background-repeat: no-repeat;
+    background-position: center;
+  }
+  .case-a-cocher input[type="checkbox"]:checked {
+    background-color: var(--couleur-brun);
+    border-color: var(--couleur-brun);
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='10' viewBox='0 0 12 10'%3E%3Cpath d='M1 5l3.5 3.5L11 1' stroke='white' stroke-width='2' fill='none' stroke-linecap='round'/%3E%3C/svg%3E");
+  }
+
+  /* ============================================================
+     18 — TOGGLE
+  ============================================================ */
+  .toggle-conteneur {
+    display: flex;
+    align-items: center;
+    gap: var(--espace-s);
+    font-size: var(--taille-petit);
+    font-weight: 300;
+    color: var(--couleur-brun-fonce);
+    min-height: var(--taille-tactile);
+  }
+  .toggle {
+    position: relative;
+    width: 46px;
+    height: 26px;
+    background: var(--couleur-toggle-inactif);
+    border-radius: 13px;
+    cursor: pointer;
+    transition: background 0.25s ease;
+    flex-shrink: 0;
+  }
+  .toggle.actif { background: var(--couleur-toggle-actif); }
+  .toggle::after {
+    content: '';
+    position: absolute;
+    top: 3px;
+    left: 3px;
+    width: 20px;
+    height: 20px;
+    background: var(--couleur-toggle-bouton);
+    border-radius: 50%;
+    transition: transform 0.25s ease;
+    box-shadow: 0 1px 4px rgba(0,0,0,0.2);
+  }
+  .toggle.actif::after { transform: translateX(20px); }
+
+  /* ============================================================
+     19 — FILTRE-RECHERCHE
+  ============================================================ */
+  .filtre-recherche {
+    display: flex;
+    gap: var(--espace-s);
+    align-items: center;
+  }
+  .filtre-input {
+    flex: 1;
+    padding: var(--espace-s) var(--espace-m);
+    background: var(--couleur-champ-fond);
+    border: 1px solid var(--couleur-champ-bord);
+    border-radius: var(--rayon);
+    font-family: var(--police-corps);
+    font-size: var(--taille-petit);
+    font-weight: 300;
+    color: var(--couleur-brun-fonce);
+    outline: none;
+    min-height: var(--taille-tactile);
+  }
+  .filtre-input::placeholder {
+    color: var(--couleur-placeholder);
+    opacity: 0.6;
+  }
+  .filtre-bouton {
+    padding: var(--espace-s) var(--espace-m);
+    background: var(--couleur-blanc);
+    border: none;
+    border-radius: var(--rayon);
+    font-family: var(--police-corps);
+    font-size: var(--taille-micro);
+    color: var(--couleur-brun);
+    cursor: pointer;
+    font-weight: 500;
+    white-space: nowrap;
+    transition: var(--transition);
+    min-height: var(--taille-tactile);
+    box-shadow: var(--ombre-bouton);
+  }
+  .filtre-bouton.actif {
+    background: var(--couleur-brun);
+    color: var(--couleur-creme);
+  }
+
+  /* ============================================================
+     20 — FENETRE-CAMERA
+  ============================================================ */
+  .fenetre-camera {
+    width: 100%;
+    aspect-ratio: 4/3;
+    background: #1a1a1a;
+    border-radius: var(--rayon);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: var(--espace-m);
+  }
+  .fenetre-camera-viseur {
+    width: 55%;
+    aspect-ratio: 1;
+    border: 2px solid rgba(255,255,255,0.4);
+    border-radius: var(--rayon);
+  }
+  .fenetre-camera-texte {
+    font-size: var(--taille-micro);
+    font-weight: 300;
+    color: rgba(255,255,255,0.55);
+  }
+
+  /* ============================================================
+     21 — ZONE-PHOTO
+  ============================================================ */
+  .zone-photo {
+    width: 100%;
+    aspect-ratio: 16/9;
+    background: var(--couleur-beige);
+    border-radius: var(--rayon);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: var(--espace-s);
+    border: 2px dashed var(--couleur-beige-moyen);
+    cursor: pointer;
+    transition: var(--transition);
+  }
+  .zone-photo:hover {
+    border-color: var(--couleur-brun-clair);
+    background: var(--couleur-beige-moyen);
+  }
+  .zone-photo-icone { font-size: 28px; opacity: 0.45; }
+  .zone-photo-texte {
+    font-size: var(--taille-micro);
+    font-weight: 300;
+    color: var(--couleur-brun-clair);
+  }
+
+  /* ============================================================
+     22 — ZONE-SVG
+  ============================================================ */
+  .zone-svg {
+    background: var(--couleur-blanc);
+    border: none;
+    border-radius: var(--rayon);
+    padding: var(--espace-l);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: var(--ombre-carte);
+  }
+
+  /* ============================================================
+     23 — CARTE-RECETTE
+  ============================================================ */
+  .carte-recette {
+    display: flex;
+    gap: var(--espace-m);
+    padding: var(--espace-m);
+    background: var(--couleur-blanc);
+    border: none;
+    border-radius: var(--rayon);
+    cursor: pointer;
+    transition: var(--transition);
+    align-items: center;
+    margin-bottom: var(--espace-s);
+    box-shadow: var(--ombre-bouton);
+  }
+  .carte-recette:hover {
+    background: var(--couleur-creme);
+    box-shadow: var(--ombre-carte);
+  }
+  .carte-recette-photo {
+    width: 68px;
+    height: 68px;
+    background: var(--couleur-beige);
+    border-radius: var(--rayon);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 28px;
+    flex-shrink: 0;
+  }
+  .carte-recette-info { flex: 1; }
+  .carte-recette-titre {
+    font-size: var(--taille-texte);
+    font-weight: 400;
+    color: var(--couleur-brun-fonce);
+    margin-bottom: var(--espace-xs);
+  }
+  .carte-recette-meta {
+    font-size: var(--taille-micro);
+    font-weight: 300;
+    color: var(--couleur-brun-clair);
+    display: flex;
+    gap: var(--espace-m);
+  }
+
+  /* ============================================================
+     24 — ITEM-LISTE-ACHAT
+  ============================================================ */
+  .item-liste-achat {
+    display: flex;
+    align-items: center;
+    gap: var(--espace-m);
+    padding: var(--espace-s) var(--espace-l);
+    border-top: 1px solid var(--couleur-separateur);
+    transition: background var(--transition);
+    min-height: var(--taille-tactile);
+  }
+  .item-liste-achat:hover { background: var(--couleur-hover); }
+  .item-liste-info { flex: 1; }
+  .item-liste-nom {
+    font-size: var(--taille-petit);
+    font-weight: 400;
+    color: var(--couleur-brun-fonce);
+  }
+  .item-liste-marque {
+    font-size: var(--taille-micro);
+    font-weight: 300;
+    color: var(--couleur-brun-clair);
+  }
+  .item-liste-quantite {
+    font-size: var(--taille-micro);
+    font-weight: 500;
+    color: var(--couleur-brun);
+    background: var(--couleur-beige);
+    padding: 3px var(--espace-s);
+    border-radius: var(--rayon);
+  }
+
+  /* ============================================================
+     25 — ITEM-MODIFIABLE
+  ============================================================ */
+  .item-modifiable {
+    display: flex;
+    align-items: center;
+    gap: var(--espace-s);
+    padding: var(--espace-s) var(--espace-l);
+    border-top: 1px solid var(--couleur-separateur);
+    min-height: var(--taille-tactile);
+  }
+  .item-modifiable-nom {
+    flex: 1;
+    font-size: var(--taille-petit);
+    font-weight: 300;
+    color: var(--couleur-brun-fonce);
+  }
+  .item-modifiable-actions {
+    display: flex;
+    gap: var(--espace-s);
+  }
+
+  /* ============================================================
+     26 — ETOILE-FAVORI
+  ============================================================ */
+  .etoile-favori {
+    font-size: 22px;
+    color: var(--couleur-etoile-inactif);
+    cursor: pointer;
+    transition: var(--transition);
+    user-select: none;
+    line-height: 1;
+    min-width: var(--taille-tactile);
+    min-height: var(--taille-tactile);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  .etoile-favori:hover {
+    color: var(--couleur-etoile-actif);
+    transform: scale(1.15);
+  }
+  .etoile-favori.actif { color: var(--couleur-etoile-actif); }
+
+  /* ============================================================
+     MISE EN PAGE GÉNÉRALE
+  ============================================================ */
+  .app-conteneur {
+    max-width: 700px;
+    margin: 0 auto;
+    background: var(--couleur-blanc);
+    min-height: 100vh;
+  }
+
+  /* ============================================================
+     EN-TÊTE PHOTO
+  ============================================================ */
+  .entete-wrapper {
+    padding: var(--espace-xl) var(--espace-l) 0;
+  }
+  .entete-photo {
+    width: 100%;
+    height: 80vh;
+    position: relative;
+    overflow: hidden;
+    border-radius: var(--rayon);
+  }
+  .entete-photo img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+  }
+  .entete-titre {
+    position: absolute;
+    bottom: var(--espace-xl);
+    left: var(--espace-xl);
+    right: var(--espace-xl);
+    font-size: clamp(40px, 12vw, 70px);
+    font-weight: 400;
+    color: var(--couleur-blanc);
+    letter-spacing: 3px;
+    text-transform: uppercase;
+    text-shadow: 0 2px 16px rgba(61, 43, 31, 0.6);
+    line-height: 1.2;
+  }
+
+  /* ============================================================
+     MENU GLISSANT
+  ============================================================ */
+  .menu-overlay {
+    position: fixed;
+    top: 0; left: 0; bottom: 0;
+    background: var(--couleur-brun-fonce);
+    z-index: 99;
+    overflow-y: auto;
+    min-width: 220px;
+    transform: translateX(-100%);
+    transition: transform 0.3s ease;
+  }
+  .menu-overlay.ouvert { transform: translateX(0); }
+  .menu-contenu {
+    padding: 80px var(--espace-xl) var(--espace-xl);
+    white-space: nowrap;
+  }
+  .menu-accordeon-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: var(--espace-m) var(--espace-l);
+    cursor: pointer;
+    background: rgba(255, 252, 248, 0.08);
+    font-weight: 500;
+    font-size: var(--taille-item-liste);
+    color: var(--couleur-creme);
+    transition: var(--transition);
+    user-select: none;
+    min-height: var(--taille-tactile);
+    border-top: 1px solid rgba(255, 252, 248, 0.08);
+  }
+  .menu-accordeon-header:hover { background: rgba(255, 252, 248, 0.13); }
+  .menu-accordeon-header .accordeon-fleche { color: var(--couleur-beige-moyen); }
+  .menu-accordeon-item {
+    display: flex;
+    align-items: center;
+    padding: var(--espace-s) var(--espace-l);
+    font-size: var(--taille-item-liste);
+    font-weight: 300;
+    color: var(--couleur-beige);
+    border-top: 1px solid rgba(255, 252, 248, 0.06);
+    min-height: var(--taille-tactile);
+    cursor: pointer;
+    transition: var(--transition);
+  }
+  .menu-accordeon-item:hover { background: rgba(255, 252, 248, 0.06); }
+
+  /* ============================================================
+     CONTENU ACCUEIL
+  ============================================================ */
+  .accueil-contenu {
+    padding: var(--espace-xl) var(--espace-l);
+  }
+  .accueil-grille {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: var(--espace-s);
+    margin-bottom: var(--espace-xl);
+  }
+  .bouton-principal-icone img {
+    width: 75px;
+    height: 75px;
+    object-fit: contain;
+  }
+  .bouton-principal-brun {
+    color: var(--couleur-brun);
+    background: rgba(107, 79, 58, 0.75);
+  }
+  .bouton-principal-brun:hover { background: rgba(107, 79, 58, 0.90); }
+  .bouton-principal-vert {
+    color: var(--couleur-accent-vert);
+    background: rgba(46, 125, 82, 0.75);
+  }
+  .bouton-principal-vert:hover { background: rgba(46, 125, 82, 0.90); }
+  .bouton-principal-orange {
+    color: var(--couleur-accent-orange);
+    background: rgba(212, 130, 10, 0.75);
+  }
+  .bouton-principal-orange:hover { background: rgba(212, 130, 10, 0.90); }
+  .bouton-principal-bleu {
+    color: var(--couleur-accent-bleu);
+    background: rgba(78, 103, 156, 0.75);
+  }
+  .bouton-principal-bleu:hover { background: rgba(78, 103, 156, 0.90); }
