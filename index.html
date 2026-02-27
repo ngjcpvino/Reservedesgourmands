@@ -194,7 +194,86 @@
       </div>
 
     </div>
+
+
+    <!-- FORMULAIRE AJOUTER -->
+      <div id="scanner-formulaire" style="display:none;">
+
+        <div class="accordeon-container" style="margin-bottom:var(--espace-m);">
+          <div class="accordeon-header ouvert">
+            <span id="form-titre">Nouveau produit</span>
+          </div>
+          <div style="display:block; padding:var(--espace-m) var(--espace-l);">
+
+            <div id="form-photo-preview" style="margin-bottom:var(--espace-m);"></div>
+
+            <div style="margin-bottom:var(--espace-m);">
+              <input class="champ-texte" type="text" id="form-nom" placeholder="Nom du produit *">
+            </div>
+            <div style="margin-bottom:var(--espace-m);">
+              <input class="champ-texte" type="text" id="form-marque" placeholder="Marque">
+            </div>
+            <div style="margin-bottom:var(--espace-m);">
+              <input class="champ-texte" type="text" id="form-code" placeholder="Code-barres" readonly>
+            </div>
+
+            <div style="margin-bottom:var(--espace-m);">
+              <select class="liste-deroulante" id="form-categorie">
+                <option value="">-- Catégorie --</option>
+              </select>
+            </div>
+            <div style="margin-bottom:var(--espace-m);">
+              <select class="liste-deroulante" id="form-emplacement">
+                <option value="">-- Emplacement --</option>
+              </select>
+            </div>
+
+            <div style="margin-bottom:var(--espace-m);">
+              <div style="font-size:var(--taille-micro); color:var(--couleur-brun-clair); margin-bottom:var(--espace-xs);">Stock</div>
+              <div class="compteur-quantite">
+                <button class="compteur-btn" onclick="changerCompteur('form-stock', -1)">−</button>
+                <div class="compteur-valeur" id="form-stock">1</div>
+                <button class="compteur-btn" onclick="changerCompteur('form-stock', 1)">+</button>
+              </div>
+            </div>
+
+            <div style="margin-bottom:var(--espace-m);">
+              <div style="font-size:var(--taille-micro); color:var(--couleur-brun-clair); margin-bottom:var(--espace-xs);">Réserve</div>
+              <div class="compteur-quantite">
+                <button class="compteur-btn" onclick="changerCompteur('form-reserve', -1)">−</button>
+                <div class="compteur-valeur" id="form-reserve">0</div>
+                <button class="compteur-btn" onclick="changerCompteur('form-reserve', 1)">+</button>
+              </div>
+            </div>
+
+            <div style="margin-bottom:var(--espace-m);">
+              <div style="font-size:var(--taille-micro); color:var(--couleur-brun-clair); margin-bottom:var(--espace-xs);">Seuil d'alerte</div>
+              <div class="compteur-quantite">
+                <button class="compteur-btn" onclick="changerCompteur('form-seuil', -1)">−</button>
+                <div class="compteur-valeur" id="form-seuil">1</div>
+                <button class="compteur-btn" onclick="changerCompteur('form-seuil', 1)">+</button>
+              </div>
+            </div>
+
+            <div style="margin-bottom:var(--espace-m);">
+              <input class="champ-texte" type="date" id="form-expiration" placeholder="Date d'expiration">
+            </div>
+            <div style="margin-bottom:var(--espace-m);">
+              <input class="champ-texte" type="text" id="form-notes" placeholder="Notes (optionnel)">
+            </div>
+
+          </div>
+        </div>
+
+        <button class="bouton-confirmer" id="btn-sauvegarder" style="margin-bottom:var(--espace-s);" onclick="sauvegarderProduit()">Sauvegarder</button>
+        <button class="bouton-secondaire" style="width:100%;" onclick="recommencerScan()">Annuler</button>
+
+      </div>
   </div>
+
+  <!-- ============================================================
+       fin PAGE SCANNER
+  ============================================================ -->
 <script src="scripts-config.js"></script>
 <script src="scripts-nav.js"></script>
 <script src="scripts-accueil.js"></script>
