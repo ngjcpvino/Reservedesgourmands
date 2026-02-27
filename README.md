@@ -1,4 +1,5 @@
 # La Réserve des Gourmands
+AIzaSyBuennUE5SMN1YkV_38JObgGYj6_aAmTSc
 
 *Cahier de projet — Version 12 — Février 2026*
 *À partager à chaque nouvelle session de travail*
