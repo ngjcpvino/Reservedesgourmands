@@ -1,0 +1,141 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>La Réserve des Gourmands</title>
+  <link href="https://api.fontshare.com/v2/css?f[]=cabinet-grotesk@100,200,300,400,500&display=swap" rel="stylesheet">
+  <?!= include('styles'); ?>
+</head>
+<body>
+
+  <!-- ============================================================
+       BURGER — fixe en haut à gauche
+  ============================================================ -->
+  <button class="bouton-burger bouton-burger-fixe" id="btn-burger" onclick="toggleMenu()">
+    <span class="bouton-burger-trait"></span>
+    <span class="bouton-burger-trait"></span>
+    <span class="bouton-burger-trait"></span>
+  </button>
+
+  <!-- ============================================================
+       MENU PLEIN ÉCRAN
+  ============================================================ -->
+  <div id="menu-principal" class="menu-overlay">
+    <div class="menu-contenu">
+
+      <div class="menu-accordeon-header" onclick="toggleMenuAccordeon(this)">
+        Inventaire <span class="accordeon-fleche">▼</span>
+      </div>
+      <div class="menu-accordeon-items">
+        <div class="menu-accordeon-item">Scanner</div>
+        <div class="menu-accordeon-item">Trouver</div>
+        <div class="menu-accordeon-item">Consommer</div>
+      </div>
+
+      <div class="menu-accordeon-header" onclick="toggleMenuAccordeon(this)">
+        Listes <span class="accordeon-fleche">▼</span>
+      </div>
+      <div class="menu-accordeon-items">
+        <div class="menu-accordeon-item">Liste d'épicerie</div>
+        <div class="menu-accordeon-item">Liste de pharmacie</div>
+      </div>
+
+      <div class="menu-accordeon-header" onclick="toggleMenuAccordeon(this)">
+        Recettes <span class="accordeon-fleche">▼</span>
+      </div>
+      <div class="menu-accordeon-items">
+        <div class="menu-accordeon-item">Toutes les recettes</div>
+        <div class="menu-accordeon-item">Favoris</div>
+      </div>
+
+      <div class="menu-accordeon-header" onclick="toggleMenuAccordeon(this)">
+        Configuration <span class="accordeon-fleche">▼</span>
+      </div>
+      <div class="menu-accordeon-items">
+        <div class="menu-accordeon-item">Emplacements</div>
+        <div class="menu-accordeon-item">Catégories</div>
+        <div class="menu-accordeon-item">Magasins</div>
+        <div class="menu-accordeon-item">Alertes</div>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- ============================================================
+       PAGE ACCUEIL
+  ============================================================ -->
+  <div class="app-conteneur" id="page-accueil">
+
+    <!-- EN-TÊTE PHOTO -->
+    <div class="entete-wrapper">
+      <div class="entete-photo">
+        <img
+          src="https://images.unsplash.com/photo-1514237487632-b60bc844a47d?q=80&w=1920&auto=format&fit=crop"
+          alt="La Réserve des Gourmands"
+        >
+        <div class="entete-titre">Réserve des<br>Gourmands</div>
+      </div>
+    </div>
+
+    <!-- CONTENU -->
+    <div class="accueil-contenu">
+
+      <!-- BOUTONS PRINCIPAUX 2x2 -->
+      <div class="accueil-grille">
+        <button class="bouton-principal bouton-principal-brun">
+          <span class="bouton-principal-icone"><img src="https://i.ibb.co/SDD5JZfq/scan.png" alt="Scanner"></span>
+        </button>
+        <button class="bouton-principal bouton-principal-vert">
+          <span class="bouton-principal-icone"><img src="https://i.ibb.co/xqZ284dg/loupe2.png" alt="Trouver"></span>
+        </button>
+        <button class="bouton-principal bouton-principal-orange">
+          <span class="bouton-principal-icone">✓</span>
+        </button>
+        <button class="bouton-principal bouton-principal-bleu">
+          <span class="bouton-principal-icone"><img src="https://i.ibb.co/dwxHdy6v/cards.png" alt="Listes"></span>
+        </button>
+      </div>
+
+      <div class="accordeon-container">
+        <div class="accordeon-header ouvert" onclick="toggleAccordeon(this)">
+          Stock épuisé <span class="accordeon-fleche">▼</span>
+        </div>
+        <div id="accordeon-stock"></div>
+      </div>
+
+      <div class="accordeon-container">
+        <div class="accordeon-header" onclick="toggleAccordeon(this)">
+          Réserve vide <span class="accordeon-fleche">▼</span>
+        </div>
+        <div id="accordeon-reserve"></div>
+      </div>
+
+      <div class="accordeon-container">
+        <div class="accordeon-header" onclick="toggleAccordeon(this)">
+          À consommer bientôt <span class="accordeon-fleche">▼</span>
+        </div>
+        <div id="accordeon-consommer"></div>
+      </div>
+
+      <div class="accordeon-container">
+        <div class="accordeon-header" onclick="toggleAccordeon(this)">
+          En spécial cette semaine <span class="accordeon-fleche">▼</span>
+        </div>
+        <div id="accordeon-special"></div>
+      </div>
+
+      <div class="accordeon-container">
+        <div class="accordeon-header" onclick="toggleAccordeon(this)">
+          Listes en attente <span class="accordeon-fleche">▼</span>
+        </div>
+        <div id="accordeon-listes"></div>
+      </div>
+
+    </div>
+  </div>
+
+  <?!= include('scripts'); ?>
+
+</body>
+</html>
