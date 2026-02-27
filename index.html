@@ -5,6 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>La Réserve des Gourmands</title>
   <link href="https://api.fontshare.com/v2/css?f[]=cabinet-grotesk@100,200,300,400,500&display=swap" rel="stylesheet">
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/quagga/0.12.1/quagga.min.js"></script>
 <link rel="stylesheet" href="styles.css">
 </head>
 <body> 
@@ -160,10 +161,21 @@
 
       <!-- FENÊTRE CAMÉRA -->
       <div id="scanner-camera" style="display:none;">
-        <div class="fenetre-camera">
-          <video id="scanner-video" style="width:100%; height:100%; object-fit:cover; border-radius:var(--rayon);" autoplay playsinline muted></video>
+        <div class="fenetre-camera" style="position:relative; overflow:hidden;">
+          <div id="interactive" style="width:100%; height:100%;"></div>
+          <div class="fenetre-camera-viseur"></div>
+          <div class="fenetre-camera-texte" id="scanner-feedback" style="position:absolute; bottom:var(--espace-m); left:0; right:0; text-align:center;">
+            Alignez le code-barres avec le cadre
+          </div>
         </div>
         <button class="bouton-secondaire" style="margin-top:var(--espace-m); width:100%;" onclick="arreterScan()">Annuler</button>
+        <button class="bouton-secondaire" style="margin-top:var(--espace-s); width:100%;" onclick="toggleSaisieManuelle()">Saisir manuellement</button>
+        <div id="saisie-manuelle" style="display:none; margin-top:var(--espace-s); display:none;">
+          <div class="filtre-recherche">
+            <input class="filtre-input" type="number" id="input-code-manuel" placeholder="Code-barres (8-13 chiffres)">
+            <button class="filtre-bouton actif" onclick="soumettreCodeManuel()">OK</button>
+          </div>
+        </div>
       </div>
 
       <!-- RÉSULTAT -->
