@@ -5,7 +5,10 @@
   var API_KEY  = 'AIzaSyBuennUE5SMN1YkV_38JObgGYj6_aAmTSc';
   var API_BASE = 'https://sheets.googleapis.com/v4/spreadsheets/';
 
-  var actionCourante = null;
+  var actionCourante    = null;
+  var estEnScan         = false;
+  var confirmations     = {};
+  var SEUIL_CONFIRMATION = 3;
 
   function lireOnglet(nomOnglet, callback) {
     var url = API_BASE + SHEET_ID + '/values/' + encodeURIComponent(nomOnglet) + '?key=' + API_KEY;
@@ -26,7 +29,7 @@
   }
 
   // ============================================================
-  //  NAVIGATION ENTRE PAGES
+  //  NAVIGATION
   // ============================================================
   function afficherPage(id) {
     document.querySelectorAll('.app-conteneur').forEach(function(p) {
@@ -108,83 +111,102 @@
   // ============================================================
   function choisirAction(action) {
     actionCourante = action;
-    document.getElementById('scanner-choix').style.display  = 'none';
-    document.getElementById('scanner-camera').style.display = 'block';
+    document.getElementById('scanner-choix').style.display    = 'none';
+    document.getElementById('scanner-camera').style.display   = 'block';
     document.getElementById('scanner-resultat').style.display = 'none';
-    demarrerCamera();
+    demarrerQuagga();
   }
 
   function arreterScan() {
-    arreterCamera();
-    document.getElementById('scanner-choix').style.display  = 'grid';
-    document.getElementById('scanner-camera').style.display = 'none';
+    arreterQuagga();
+    document.getElementById('scanner-choix').style.display    = 'grid';
+    document.getElementById('scanner-camera').style.display   = 'none';
     document.getElementById('scanner-resultat').style.display = 'none';
+    document.getElementById('saisie-manuelle').style.display  = 'none';
   }
 
   function recommencerScan() {
     document.getElementById('scanner-resultat').style.display = 'none';
-    document.getElementById('scanner-choix').style.display   = 'grid';
+    document.getElementById('scanner-choix').style.display    = 'grid';
   }
 
-  // ============================================================
-  //  SCANNER — CAMÉRA
-  // ============================================================
-  var streamCamera = null;
-  var intervalScan = null;
-
-  function demarrerCamera() {
-    navigator.mediaDevices.getUserMedia({ video: { facingMode: 'environment' } })
-      .then(function(stream) {
-        streamCamera = stream;
-        var video = document.getElementById('scanner-video');
-        video.srcObject = stream;
-        video.play();
-        intervalScan = setInterval(function() { analyserImage(); }, 300);
-      })
-      .catch(function(err) {
-        console.error('Caméra inaccessible', err);
-        afficherToast('Caméra inaccessible — vérifiez les permissions', 'erreur');
-        arreterScan();
-      });
-  }
-
-  function arreterCamera() {
-    clearInterval(intervalScan);
-    intervalScan = null;
-    if (streamCamera) {
-      streamCamera.getTracks().forEach(function(t) { t.stop(); });
-      streamCamera = null;
+  function toggleSaisieManuelle() {
+    var zone = document.getElementById('saisie-manuelle');
+    zone.style.display = zone.style.display === 'none' ? 'block' : 'none';
+    if (zone.style.display === 'block') {
+      document.getElementById('input-code-manuel').focus();
     }
   }
 
-  // ============================================================
-  //  SCANNER — ANALYSE IMAGE (BarcodeDetector)
-  // ============================================================
-  function analyserImage() {
-    if (!streamCamera) return;
-    var video = document.getElementById('scanner-video');
-    if (video.readyState !== video.HAVE_ENOUGH_DATA) return;
-
-    if (!('BarcodeDetector' in window)) {
-      clearInterval(intervalScan);
-      afficherToast('Scan non supporté sur ce navigateur', 'erreur');
+  function soumettreCodeManuel() {
+    var input = document.getElementById('input-code-manuel');
+    var code  = input.value.replace(/\D/g, '').trim();
+    if (!code || code.length < 8) {
+      afficherToast('Code-barres invalide — minimum 8 chiffres', 'erreur');
       return;
     }
-
-    var detector = new BarcodeDetector({ formats: ['ean_13', 'ean_8', 'upc_a', 'upc_e', 'code_128', 'code_39'] });
-    detector.detect(video)
-      .then(function(codes) {
-        if (codes.length > 0) {
-          var code = codes[0].rawValue;
-          arreterCamera();
-          traiterCode(code);
-        }
-      })
-      .catch(function() {});
+    input.value = '';
+    arreterQuagga();
+    traiterCode(code);
   }
 
   // ============================================================
-  //  SCANNER — TRAITEMENT DU CODE
+  //  SCANNER — QUAGGA
+  // ============================================================
+  function demarrerQuagga() {
+    estEnScan     = true;
+    confirmations = {};
+
+    Quagga.init({
+      numOfWorkers: 0,
+      inputStream: {
+        name: 'Live',
+        type: 'LiveStream',
+        target: document.getElementById('interactive'),
+        constraints: { facingMode: 'environment', width: { ideal: 1280 }, height: { ideal: 720 } }
+      },
+      locator: { patchSize: 'medium', halfSample: true },
+      decoder: { readers: ['ean_reader', 'code_128_reader', 'upc_reader'] }
+    }, function(err) {
+      if (err) {
+        afficherToast('Caméra inaccessible — vérifiez les permissions', 'erreur');
+        arreterScan();
+        return;
+      }
+      Quagga.start();
+    });
+
+    Quagga.onDetected(function(result) {
+      if (!estEnScan) return;
+      var code = result.codeResult.code;
+      if (!code || !/^\d{8,13}$/.test(code)) return;
+
+      if (!confirmations[code]) confirmations[code] = 0;
+      confirmations[code]++;
+
+      var feedback = document.getElementById('scanner-feedback');
+      if (feedback) {
+        feedback.textContent = 'Code détecté : ' + code + ' (' + confirmations[code] + '/' + SEUIL_CONFIRMATION + ')';
+      }
+
+      if (confirmations[code] >= SEUIL_CONFIRMATION) {
+        arreterQuagga();
+        traiterCode(code);
+      }
+    });
+  }
+
+  function arreterQuagga() {
+    estEnScan = false;
+    if (typeof Quagga !== 'undefined' && Quagga.stop) {
+      try { Quagga.stop(); } catch(e) {}
+    }
+    var feedback = document.getElementById('scanner-feedback');
+    if (feedback) feedback.textContent = 'Alignez le code-barres avec le cadre';
+  }
+
+  // ============================================================
+  //  TRAITEMENT DU CODE
   // ============================================================
   function traiterCode(code) {
     lireOnglet('Produits', function(produits) {
@@ -195,7 +217,6 @@
           break;
         }
       }
-
       if (trouve) {
         afficherResultat(trouve, code, false);
       } else {
@@ -229,14 +250,13 @@
   }
 
   // ============================================================
-  //  SCANNER — AFFICHAGE RÉSULTAT
+  //  AFFICHAGE RÉSULTAT
   // ============================================================
   function afficherResultat(produit, code, estNouveau) {
     document.getElementById('scanner-camera').style.display   = 'none';
     document.getElementById('scanner-resultat').style.display = 'block';
 
-    var titre = estNouveau ? 'Nouveau produit trouvé' : 'Produit connu';
-    document.getElementById('resultat-titre').textContent = titre;
+    document.getElementById('resultat-titre').textContent = estNouveau ? 'Nouveau produit trouvé' : 'Produit connu';
 
     var html = '';
     if (produit['Photo']) {
@@ -250,7 +270,7 @@
 
     document.getElementById('resultat-contenu').innerHTML = html;
 
-    var labels = { ajouter: 'Ajouter', consommer: 'Consommer', trouver: 'Emplacement' };
+    var labels = { ajouter: 'Ajouter', consommer: 'Consommer', trouver: 'Voir emplacement' };
     document.getElementById('resultat-btn-action').textContent = labels[actionCourante] || 'Confirmer';
   }
 
@@ -258,9 +278,9 @@
     document.getElementById('scanner-camera').style.display   = 'none';
     document.getElementById('scanner-resultat').style.display = 'block';
     document.getElementById('resultat-titre').textContent     = 'Produit inconnu';
-    document.getElementById('resultat-contenu').innerHTML     =
+    document.getElementById('resultat-contenu').innerHTML =
       '<div style="font-size:var(--taille-item-liste); color:var(--couleur-brun-clair);">Code : ' + code + '</div>' +
-      '<div style="font-size:var(--taille-micro); color:var(--couleur-brun-clair); margin-top:var(--espace-xs);">Ce produit n\'existe pas dans votre inventaire ni dans Open Food Facts.</div>';
+      '<div style="font-size:var(--taille-micro); color:var(--couleur-brun-clair); margin-top:var(--espace-xs);">Introuvable dans votre inventaire et dans Open Food Facts.</div>';
     document.getElementById('resultat-btn-action').textContent = 'Saisir manuellement';
   }
 
@@ -358,9 +378,4 @@
     initialiserAccordeons();
     initialiserMenuAccordeons();
     chargerAccueil();
-
-    // Bouton Scanner sur l'accueil
-    document.querySelectorAll('.bouton-principal-brun')[0].addEventListener('click', function() {
-      afficherPage('page-scanner');
-    });
   });
