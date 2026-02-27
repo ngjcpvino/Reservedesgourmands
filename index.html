@@ -134,7 +134,54 @@
 
     </div>
   </div>
+<!-- ============================================================
+       PAGE SCANNER
+  ============================================================ -->
+  <div class="app-conteneur" id="page-scanner" style="display:none;">
 
+    <div class="entete-wrapper">
+      <div class="titre-page" style="padding-top: var(--espace-xl);">Scanner</div>
+    </div>
+
+    <div class="accueil-contenu">
+
+      <!-- CHOIX ACTION -->
+      <div id="scanner-choix" class="accueil-grille" style="grid-template-columns: 1fr 1fr 1fr; margin-bottom: var(--espace-xl);">
+        <button class="bouton-principal bouton-principal-brun" onclick="choisirAction('ajouter')">
+          <span class="bouton-principal-icone">＋</span>
+        </button>
+        <button class="bouton-principal bouton-principal-orange" onclick="choisirAction('consommer')">
+          <span class="bouton-principal-icone">✓</span>
+        </button>
+        <button class="bouton-principal bouton-principal-vert" onclick="choisirAction('trouver')">
+          <span class="bouton-principal-icone"><img src="https://i.ibb.co/xqZ284dg/loupe2.png" alt="Trouver"></span>
+        </button>
+      </div>
+
+      <!-- FENÊTRE CAMÉRA -->
+      <div id="scanner-camera" style="display:none;">
+        <div class="fenetre-camera">
+          <video id="scanner-video" style="width:100%; height:100%; object-fit:cover; border-radius:var(--rayon);" autoplay playsinline muted></video>
+        </div>
+        <button class="bouton-secondaire" style="margin-top:var(--espace-m); width:100%;" onclick="arreterScan()">Annuler</button>
+      </div>
+
+      <!-- RÉSULTAT -->
+      <div id="scanner-resultat" style="display:none;">
+        <div class="accordeon-container" style="margin-bottom:var(--espace-m);">
+          <div class="accordeon-header ouvert">
+            <span id="resultat-titre">Produit trouvé</span>
+          </div>
+          <div style="display:block; padding:var(--espace-m) var(--espace-l);">
+            <div id="resultat-contenu"></div>
+          </div>
+        </div>
+        <button class="bouton-confirmer" id="resultat-btn-action" style="margin-bottom:var(--espace-s);">Confirmer</button>
+        <button class="bouton-secondaire" style="width:100%;" onclick="recommencerScan()">Scanner un autre</button>
+      </div>
+
+    </div>
+  </div>
 <script src="scripts.js"></script>
 
 </body>
