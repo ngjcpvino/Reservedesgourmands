@@ -49,16 +49,16 @@
     --couleur-etoile-actif:       #f0a500;
 
     --police-corps:               'Cabinet Grotesk', system-ui, sans-serif;
-    --taille-logo:                22px;
-    --taille-titre-page:          20px;
-    --taille-texte:               14px;
-    --taille-petit:               15px;
-    --taille-micro:               11px;
-    --taille-label:               10px;
-    --taille-accordeon-header:    16px;
-    --taille-item-liste:          15px;
+    --taille-logo:                24px;
+    --taille-titre-page:          22px;
+    --taille-texte:               16px;
+    --taille-petit:               17px;
+    --taille-micro:               13px;
+    --taille-label:               12px;
+    --taille-accordeon-header:    18px;
+    --taille-item-liste:          17px;
 
-    --rayon:                      2px;
+    --rayon:                      1px;
     --taille-tactile:             44px;
     --burger-top:                 28px;
     --burger-left:                var(--espace-l);
