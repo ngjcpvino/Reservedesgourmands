@@ -129,7 +129,7 @@
     display: block;
     width: 18px;
     height: 2px;
-    background: var(--couleur-brun);
+    background: var(--couleur-brun); 
     border-radius: 1px;
   }
  .bouton-burger-fixe {
