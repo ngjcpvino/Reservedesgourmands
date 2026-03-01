@@ -26,6 +26,23 @@ document.addEventListener('click', function(e) {
   }
 });
 
+
+(function() {
+  let dernierScroll = 0;
+  window.addEventListener('scroll', function() {
+    const scrollActuel = window.scrollY;
+    const burger = document.getElementById('btn-burger');
+    if (scrollActuel <= 10) {
+      burger.classList.remove('burger-cache');
+    } else if (scrollActuel > dernierScroll) {
+      burger.classList.add('burger-cache');
+    } else {
+      burger.classList.remove('burger-cache');
+    }
+    dernierScroll = scrollActuel;
+  });
+})();
+
 // ============================================================
 //  ACCORDÉONS ACCUEIL
 // ============================================================
