@@ -4,7 +4,7 @@
 
 ---
 
-## 1. Description du Projet
+## 1. Description du Projetc
 
 Application web hébergée sur GitHub Pages. Deux utilisateurs partageant le même inventaire en temps réel. Mémoire augmentée pour les stocks de la maison, livre de recettes intelligent et surveillance des circulaires.
 
