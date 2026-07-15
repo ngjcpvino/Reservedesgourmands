@@ -1,0 +1,326 @@
+/* =========================
+   Thème quincaillerie
+   ========================= */
+:root{
+ --couleur-bleu-acier:      #4A6D8F;
+--couleur-vert-bouteille:  #3E8069;
+--couleur-bois-chaud:      #D9A468;
+--couleur-rouge-oxyde:    #C41E30;
+--couleur-jaune:           #F0CB63;
+
+  --couleur-texte-foncée:  #1F2933;
+  --couleur-texte-claire: #F3F1EA;
+
+  --voile-blanc: rgba(255,255,255,.18);
+
+  --ombre-douce:  0 10px 30px rgba(0,0,0,.25);
+  --ombre-forte:  0 6px 18px rgba(0,0,0,.28);
+
+  --rayon-petit: 4px;
+  --rayon-moyen: 5px;
+  --rayon-grand: 6px;
+
+  --espace-1: 8px;
+  --espace-2: 12px;
+  --espace-3: 16px;
+  --espace-4: 24px;
+
+  --police-titres: "Oswald", system-ui, sans-serif;
+  --police-texte: "Source Sans 3", system-ui, sans-serif;
+  
+  --voile-blanc: rgba(255,255,255,.22);
+}
+
+/* =========================
+   Réglages de base
+   ========================= */
+html, body{
+  height: 100%;
+}
+
+body{
+  margin: 0;
+  font-family: var(--police-texte);
+  color: var(--couleur-texte-foncée);
+  background: #0f1216;
+}
+
+.page{
+  min-height: 100vh;
+
+  /* Image de fond plein écran */
+background-image:
+  linear-gradient(rgba(0,0,0,.25), rgba(0,0,0,.25)),
+    url(https://res.cloudinary.com/dym93w23h/image/upload/v1784036118/Quincaillerie.jpg);
+  background-size: cover;
+  background-position: center;
+  background-attachment: fixed;
+
+  padding: var(--espace-4);
+}
+
+/* =========================
+   En-tête
+   ========================= */
+.en-tete{
+  max-width: 1100px;
+  margin: 0 auto var(--espace-4) auto;
+  padding: var(--espace-4);
+  background: rgba(255,255,255,.06);
+  border-radius: var(--rayon-grand);
+  box-shadow: var(--ombre-douce);
+  backdrop-filter: blur(2px);
+}
+
+.titre-principale{
+  margin: 0 0 var(--espace-2) 0;
+  font-family: var(--police-titres);
+  letter-spacing: .2px;
+  color: var(--couleur-texte-claire);
+  font-weight: 600;
+}
+
+.texte-leger{
+  margin: 0 0 var(--espace-3) 0;
+  color: rgba(243,241,234,.95);
+  line-height: 1.45;
+}
+
+.boutons{
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--espace-2);
+}
+
+/* =========================
+   Bandeau avec voile blanc
+   ========================= */
+.bandeau-voile{
+  max-width: 1100px;
+  margin: 0 auto var(--espace-4) auto;
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--espace-2);
+  align-items: center;
+}
+
+.tag{
+  background: var(--voile-blanc);
+  color: var(--couleur-texte-claire);
+  padding: 10px 14px;
+  border-radius: 999px;
+  box-shadow: var(--ombre-douce);
+  font-weight: 700;
+  letter-spacing: .2px;
+}
+
+/* =========================
+   Grille de 8 sections
+   ========================= */
+.grille-sections{
+  max-width: 1100px;
+  margin: 0 auto;
+  display: grid;
+  grid-template-columns: repeat(12, 1fr);
+  gap: var(--espace-3);
+}
+
+.bloc{
+  grid-column: span 12;
+  padding: var(--espace-4);
+  border-radius: var(--rayon-grand);
+  box-shadow: var(--ombre-forte);
+  border: 1px solid rgba(255,255,255,.10);
+}
+
+@media (min-width: 900px){
+  .bloc{
+    grid-column: span 6; /* 2 colonnes sur écran large */
+  }
+}
+
+/* Couleurs des blocs */
+.bloc-base{
+  background: var(--couleur-bleu-acier);
+  color: var(--couleur-texte-claire);
+}
+
+.bloc-punch{
+  background: var(--couleur-vert-bouteille);
+  color: var(--couleur-texte-claire);
+}
+
+.bloc-focus{
+  background: var(--couleur-bois-chaud);
+  color: var(--couleur-texte-foncée);
+}
+
+/* Titres et texte dans les blocs */
+.titre-bloc{
+  margin: 0 0 var(--espace-2) 0;
+  font-family: var(--police-titres);
+  letter-spacing: .2px;
+  font-weight: 600;
+  font-size: 1.35rem;
+}
+
+.texte-bloc{
+  margin: 0 0 var(--espace-3) 0;
+  line-height: 1.5;
+  opacity: .95;
+}
+
+/* =========================
+   Boutons
+   ========================= */
+.bouton{
+  appearance: none;
+  border: 0;
+  cursor: pointer;
+
+  font-weight: 700;
+  letter-spacing: .2px;
+
+  padding: 12px 16px;
+  border-radius: var(--rayon-moyen);
+
+  transition: transform .08s ease, filter .15s ease, background-color .15s ease, color .15s ease, box-shadow .15s ease;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  text-decoration: none;
+  gap: 10px;
+}
+
+.bouton:active{
+  transform: translateY(1px);
+}
+
+.bouton-principal{
+  background: var(--couleur-jaune);
+  color: #1a1a1a;
+  box-shadow: 0 10px 30px rgba(216,178,76,.25);
+}
+
+.bouton-principal:hover{
+  filter: brightness(1.03);
+}
+
+.bouton-principal-focus{
+  background: var(--couleur-rouge-oxyde);
+  color: #ffffff;
+  box-shadow: 0 10px 30px rgba(185,74,58,.25);
+}
+
+.bouton-principal-focus:hover{
+  filter: brightness(1.03);
+}
+
+/* Secondaire pour garder le punch sans être agressif */
+.bouton-secondaire{
+  background: transparent;
+  border: 2px solid rgba(243,241,234,.9);
+  color: var(--couleur-texte-claire);
+}
+
+.bouton-secondaire:hover{
+  background: rgba(243,241,234,.08);
+}
+
+.bouton-secondaire-sur-bloc{
+  background: transparent;
+  border: 2px solid rgba(243,241,234,.55);
+  color: var(--couleur-texte-claire);
+}
+
+.bloc-focus .bouton-secondaire-sur-bloc{
+  border-color: rgba(31,41,51,.35);
+  color: var(--couleur-texte-foncée);
+}
+
+.bloc-focus .bouton-secondaire-sur-bloc:hover{
+  background: rgba(31,41,51,.06);
+}
+
+/* =========================
+   Accordéon
+   ========================= */
+.accordeon-wrapper{
+  max-width: 1100px;
+  margin: var(--espace-4) auto 0 auto;
+}
+
+.accordeon{
+  background: rgba(255,255,255,.06);
+  border-radius: var(--rayon-grand);
+  box-shadow: var(--ombre-douce);
+  overflow: hidden;
+}
+
+.accordeon-item{
+  border-top: 1px solid rgba(255,255,255,.12);
+}
+
+.accordeon-item:first-child{
+  border-top: 0;
+}
+
+.accordeon-bouton{
+  width: 100%;
+  text-align: left;
+  cursor: pointer;
+
+  background: transparent;
+  border: 0;
+  color: var(--couleur-texte-claire);
+
+  padding: 16px 18px;
+
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 14px;
+}
+
+.accordeon-bouton:focus{
+  outline: 2px solid rgba(216,178,76,.55);
+  outline-offset: 2px;
+}
+
+.icone-accordeon{
+  width: 34px;
+  height: 34px;
+  border-radius: 12px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+
+  background: rgba(255,255,255,.10);
+}
+
+.accordeon-panneau{
+  padding: 0 18px 18px 18px;
+  color: rgba(243,241,234,.92);
+  line-height: 1.55;
+}
+
+.texte-accordeon{
+  margin: 0;
+}
+
+/* =========================
+   Pied
+   ========================= */
+.pied{
+  max-width: 1100px;
+  margin: var(--espace-4) auto 0 auto;
+  text-align: center;
+  padding: var(--espace-3) 0 0 0;
+}
+
+@media (prefers-reduced-motion: reduce){
+  .bouton{
+    transition: none;
+  }
+}
