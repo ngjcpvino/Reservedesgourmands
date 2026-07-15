@@ -1,0 +1,133 @@
+<!doctype html>
+<html lang="fr">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Oswald:wght@400;500;600&family=Source+Sans+3:wght@400;600;700&display=swap" rel="stylesheet">
+
+  <link rel="stylesheet" href="./styleq.css">
+  <title>Quincaillerie — Maquette</title>
+</head>
+ 
+<body>
+  <main class="page">
+    <header class="en-tete">
+      <h1 class="titre-principale">Quincaillerie 42</h1>
+      <p class="texte-leger">
+        Des repères visuels nets, des boutons qui claquent, et une ambiance matière.
+      </p>
+
+      <div class="boutons">
+        <a class="bouton bouton-principal" href="#sections">Découvrir</a>
+        <a class="bouton bouton-secondaire" href="#catalogue">Catalogue</a>
+      </div>
+    </header>
+
+    <!-- Texte directement sur la photo avec voile blanc -->
+    <section class="bandeau-voile">
+      <span class="tag">Soudure • Visserie • Outils</span>
+      <span class="tag">Livraison locale</span>
+    </section>
+
+    <!-- 8 sections -->
+    <section id="sections" class="grille-sections">
+      <article class="bloc bloc-base">
+        <h2 class="titre-bloc">Section 01</h2>
+        <p class="texte-bloc">Base de repère : contenu clair et boutons secondaires.</p>
+        <a class="bouton bouton-secondaire-sur-bloc" href="#">Voir</a>
+      </article>
+
+      <article class="bloc bloc-punch">
+        <h2 class="titre-bloc">Section 02</h2>
+        <p class="texte-bloc">Bloc punch : un bouton principal jaune pour attirer l’œil.</p>
+        <a class="bouton bouton-principal" href="#">Action</a>
+      </article>
+
+      <article class="bloc bloc-focus">
+        <h2 class="titre-bloc">Section 03</h2>
+        <p class="texte-bloc">Bloc focus : ton bois, texte foncé, bouton rouge oxyde.</p>
+        <a class="bouton bouton-principal-focus" href="#">Obtenir</a>
+      </article>
+
+      <article class="bloc bloc-base">
+        <h2 class="titre-bloc">Section 04</h2>
+        <p class="texte-bloc">Transition propre entre les blocs forts.</p>
+        <a class="bouton bouton-secondaire-sur-bloc" href="#">Détails</a>
+      </article>
+
+      <article class="bloc bloc-punch">
+        <h2 class="titre-bloc">Section 05</h2>
+        <p class="texte-bloc">Encore un moment punch pour créer un rythme.</p>
+        <a class="bouton bouton-principal" href="#">Réserver</a>
+      </article>
+
+      <article class="bloc bloc-focus">
+        <h2 class="titre-bloc">Section 06</h2>
+        <p class="texte-bloc">Focus : rappel “atelier chaleureux”, CTA rouge.</p>
+        <a class="bouton bouton-principal-focus" href="#">Commander</a>
+      </article>
+
+      <article class="bloc bloc-base">
+        <h2 class="titre-bloc">Section 07</h2>
+        <p class="texte-bloc">Encore base : rappel de cohérence et respiration.</p>
+        <a class="bouton bouton-secondaire-sur-bloc" href="#">Explorer</a>
+      </article>
+
+      <article class="bloc bloc-punch">
+        <h2 class="titre-bloc">Section 08</h2>
+        <p class="texte-bloc">Dernier punch : petit coup de projecteur.</p>
+        <a class="bouton bouton-principal" href="#">Essayer</a>
+      </article>
+    </section>
+
+    <!-- Accordéon -->
+    <section class="accordeon-wrapper" id="catalogue">
+      <div class="accordeon">
+        <div class="accordeon-item">
+          <button class="accordeon-bouton" type="button" aria-expanded="false">
+            Quels produits trouvez-vous ?
+            <span class="icone-accordeon" aria-hidden="true">⌄</span>
+          </button>
+          <div class="accordeon-panneau" hidden>
+            <p class="texte-accordeon">
+              Visserie, outils, quincaillerie, accessoires atelier et pièces de fixation.
+            </p>
+          </div>
+        </div>
+
+        <div class="accordeon-item">
+          <button class="accordeon-bouton" type="button" aria-expanded="false">
+            Délais et livraison
+            <span class="icone-accordeon" aria-hidden="true">⌄</span>
+          </button>
+          <div class="accordeon-panneau" hidden>
+            <p class="texte-accordeon">
+              Délais variables selon les références. Livraison locale lorsque possible.
+            </p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <footer class="pied">
+      <p class="texte-leger">© Atelier — Maquette de thème quincaillerie</p>
+    </footer>
+  </main>
+
+  <script>
+    // Petit JS pour ouvrir/fermer l’accordéon (simple)
+    document.querySelectorAll(".accordeon-bouton").forEach((bouton) => {
+      bouton.addEventListener("click", () => {
+        const panneau = bouton.parentElement.querySelector(".accordeon-panneau");
+        const ouvert = bouton.getAttribute("aria-expanded") === "true";
+
+        bouton.setAttribute("aria-expanded", String(!ouvert));
+        panneau.hidden = ouvert;
+      });
+    });
+  </script>
+</body>
+</html>
