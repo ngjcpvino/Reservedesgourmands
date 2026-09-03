@@ -51,7 +51,7 @@ body{
   /* Image de fond plein écran */
 background-image:
   linear-gradient(rgba(0,0,0,.25), rgba(0,0,0,.25)),
-    url(https://res.cloudinary.com/dym93w23h/image/upload/v1784036118/Quincaillerie.jpg);
+    url(https://res.cloudinary.com/dym93w23h/image/upload/v1784036118/Quincaillerie.jpg); center center / cover no-repeat;
   background-size: cover;
   background-position: center;
   background-attachment: fixed;
