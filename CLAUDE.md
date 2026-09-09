@@ -27,6 +27,10 @@ Phase actuelle = **étape 1 du plan de construction : finir la réflexion (les 1
 
 Brainstorm des 12 actions : **faits 1, 2, 3** · **partiel 8** (le geste du prêt est réglé; le retour à creuser) · **restent 4, 5, 6, 7, 11, 12**. C'est Jean-Claude qui choisit le prochain sujet.
 
+## Git — à ne jamais pousser
+
+Le dépôt GitHub est **public**. Les fichiers **`.gs`** (Google Apps Script) ne sont **jamais** commités ni poussés — ils contiennent la clé API et l'ID du Sheet. Ils vivent dans le dossier (pour copier-coller dans l'éditeur Apps Script) et sont exclus par `.gitignore`.
+
 ## Les documents (source de vérité, à lire)
 
 - **`RdG-00-le-projet-fondations.md`** — « Le Projet » : le pourquoi, les principes, l'ordre de construction.

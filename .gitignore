@@ -1,0 +1,4 @@
+# Code Google Apps Script — JAMAIS sur GitHub.
+# Contient la clé API + l'ID du Sheet. Vit dans le dossier pour copier-coller
+# dans l'éditeur Apps Script. Le dépôt GitHub est public.
+*.gs
