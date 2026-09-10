@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<title>Mes Recettes</title>
+<style>
+  body { font-family: Arial, sans-serif; max-width: 600px; margin: 40px auto; padding: 0 20px; }
+  h1 { text-align: center; }
+  ul { list-style: none; padding: 0; }
+  li { margin: 10px 0; }
+  a {
+    display: block;
+    padding: 12px 16px;
+    background: #f2f2f2;
+    border-radius: 8px;
+    text-decoration: none;
+    color: #333;
+    font-size: 18px;
+  }
+  a:hover { background: #e0e0e0; }
+</style>
+</head>
+<body>
+<h1>Mes Recettes</h1>
+<ul id="liste"></ul>
+
+<script>
+const owner = "ngjcpvino";
+const repo = "Reservedesgourmands";
+const dossier = "Recettes";
+
+fetch(`https://api.github.com/repos/${owner}/${repo}/contents/${dossier}`)
+  .then(res => res.json())
+  .then(fichiers => {
+    const ul = document.getElementById("liste");
+    fichiers
+      .filter(f => f.name.endsWith(".html"))
+      .forEach(f => {
+        const nom = f.name.replace(".html", "").replace(/[-_]/g, " ");
+        const li = document.createElement("li");
+        li.innerHTML = `<a href="${dossier}/${f.name}">${nom}</a>`;
+        ul.appendChild(li);
+      });
+  });
+</script>
+</body>
+</html>
