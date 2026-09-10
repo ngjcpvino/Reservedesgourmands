@@ -38,7 +38,7 @@ fetch(`https://api.github.com/repos/${owner}/${repo}/contents/${dossier}`)
       .forEach(f => {
         const nom = f.name.replace(".html", "").replace(/[-_]/g, " ");
         const li = document.createElement("li");
-        li.innerHTML = `<a href="${dossier}/${f.name}">${nom}</a>`;
+        li.innerHTML = `<a href="${f.name}">${nom}</a>`;
         ul.appendChild(li);
       });
   });
