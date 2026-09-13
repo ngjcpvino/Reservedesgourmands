@@ -324,3 +324,36 @@ select.champ {
 .message { font-size: var(--texte-petit); font-weight: var(--poids-leger); margin-top: var(--espace-s); min-height: 18px; }
 .message-erreur { color: var(--rouge); }
 .message-succes { color: var(--vert); }
+
+/* ============================================================
+   GRILLE — disposition en colonnes (2 par défaut, ou 3)
+============================================================ */
+.grille   { display: grid; grid-template-columns: 1fr 1fr; gap: var(--espace-s); }
+.grille-3 { grid-template-columns: 1fr 1fr 1fr; }
+
+/* icône au centre d'un bouton (image ou symbole) */
+.bouton .icone { font-size: 30px; line-height: 1; }
+.bouton .icone img { width: 56px; height: 56px; object-fit: contain; display: block; }
+
+/* ============================================================
+   TOAST — petit avis flottant (confirmation / à venir)
+============================================================ */
+.toast {
+  position: fixed;
+  left: 50%;
+  bottom: var(--espace-xl);
+  transform: translateX(-50%);
+  padding: var(--espace-m) var(--espace-l);
+  border-radius: var(--rayon);
+  color: var(--blanc);
+  box-shadow: var(--ombre-forte);
+  font-size: var(--texte-petit);
+  z-index: 200;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity var(--transition);
+}
+.toast.visible { opacity: 1; }
+.toast-avis   { background: var(--brun-fonce); }
+.toast-succes { background: var(--vert); }
+.toast-erreur { background: var(--rouge); }

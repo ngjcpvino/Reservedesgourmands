@@ -32,6 +32,12 @@ Brainstorm des 12 actions : **faits 1, 2, 3, 4** · **partiel 8** · restent 5, 
 
 Fait ✅ (testé de bout en bout le 2026-09-13) : (1) Sheet monté, 6 onglets (`gas/setup.gs`); (2) **coffre-fort déployé et en ligne** — accès par **mot de passe** gardé dans les Propriétés du script, coffre-fort lié à la Sheet donc aucun ID, aucune clé/mot de passe dans le code public (`gas/api.gs`); (3) **`reserve.html` en ligne** (GitHub Pages) : connexion + ajout d'un produit → arrive « en transit » dans la Sheet. Prochain morceau naturel : le **rangement** (donner une place aux « en transit »).
 
+## Conventions de l'app (à respecter, ne pas régresser)
+
+- **Style** : tout dans **`base.css`**, générique — une base + variantes (`bouton` + `bouton-vert` + `bouton-grand`), noms **français**, **toute valeur au root** (changer une fois = partout). On réutilise; on n'ajoute un style que si aucun existant ne fait la job. (L'ancien `styles.css` ne sert QUE l'ancienne app.)
+- **Logique** : la communication avec le coffre-fort vit dans **`coffre.js`** (partagé : `Coffre.lire / ajouter / modifier / connexion`). **Aucun script inline** dans le HTML — chaque page = structure + `coffre.js` + son propre `.js`.
+- **App en ligne** : `reserve.html` (GitHub Pages) parle au coffre-fort par **mot de passe** (Propriété du script `MOT_DE_PASSE`). URL du coffre-fort dans `coffre.js`.
+
 ## Git — à ne jamais pousser
 
 Le dépôt GitHub est **public**. Les fichiers **`.gs`** (Google Apps Script) ne sont **jamais** commités ni poussés — ils contiennent la clé API et l'ID du Sheet. Ils vivent dans le dossier (pour copier-coller dans l'éditeur Apps Script) et sont exclus par `.gitignore`.
