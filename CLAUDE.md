@@ -28,7 +28,9 @@ Principes structurels non négociables (détail dans `RdG-00`) : rien de fixe (l
 Brainstorm des 12 actions : **faits 1, 2, 3, 4** · **partiel 8** · restent 5, 6, 7, 11, 12.
 - Point 4 « trouver » = la MÊME fiche-consultation que le point 3, appelée de la maison. La fiche montre *où + quantité* en « X sur total », une ligne « en transit » à part, le statut « déjà dans la liste d'achats » (le rachat est automatique au manque). Depuis la fiche on peut lancer un **déplacement** (point 7 : change la place, jamais le total).
 
-**Construction du point 1** — structure des données définie dans **`RdG-structure-donnees.md`** (6 tables : cœur Produits / Emplacements / Stock · support Secteurs / Catégories / Codes). Nouveau Sheet propre + coffre-fort Apps Script remplacent l'ancien OAuth/clé API. Prochaines étapes : (1) script qui monte la Sheet, (2) le coffre-fort, (3) le code du parcours d'entrée.
+**Construction du point 1** — structure dans **`RdG-structure-donnees.md`** (6 tables : cœur Produits / Emplacements / Stock · support Secteurs / Catégories / Codes). Nouveau Sheet propre + coffre-fort Apps Script remplacent l'ancien OAuth/clé API.
+
+Fait ✅ (testé de bout en bout le 2026-09-13) : (1) Sheet monté, 6 onglets (`gas/setup.gs`); (2) **coffre-fort déployé et en ligne** — accès par **mot de passe** gardé dans les Propriétés du script, coffre-fort lié à la Sheet donc aucun ID, aucune clé/mot de passe dans le code public (`gas/api.gs`); (3) **`reserve.html` en ligne** (GitHub Pages) : connexion + ajout d'un produit → arrive « en transit » dans la Sheet. Prochain morceau naturel : le **rangement** (donner une place aux « en transit »).
 
 ## Git — à ne jamais pousser
 
