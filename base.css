@@ -1,0 +1,326 @@
+/* ============================================================
+   LA RÉSERVE — FEUILLE DE STYLE GÉNÉRIQUE
+   Une seule règle : rien en dur. Tout vient du root ci-dessous.
+   Un composant = une base + des variantes qui se posent par-dessus.
+   Pour ajouter une page : on réutilise. On n'ajoute un style que si
+   vraiment aucun existant ne fait la job.
+============================================================ */
+
+:root {
+  /* ---- Couleurs ---- */
+  --blanc:            #ffffff;
+  --creme:            #f5efe6;
+  --beige:            #e8ddd0;
+  --beige-moyen:      #d4c4b0;
+  --brun-clair:       #a08060;
+  --brun:             #6b4f3a;
+  --brun-fonce:       #3d2b1f;
+  --rouge:            #c0392b;
+  --orange:           #d4820a;
+  --vert:             #2e7d52;
+  --bleu:             #4e679c;
+  --fond:             #ffffff;
+
+  /* ---- Couleurs de service (dérivées des couleurs ci-dessus) ---- */
+  --separateur:       rgba(212, 196, 176, 0.4);
+  --survol:           rgba(245, 239, 230, 0.5);
+  --champ-bord:       #d4c4b0;
+  --champ-focus:      #6b4f3a;
+  --champ-focus-halo: rgba(107, 79, 58, 0.12);
+  --placeholder:      #a08060;
+
+  /* ---- Tailles de texte (échelle neutre : change la valeur, tout suit) ---- */
+  --texte-micro:      12px;
+  --texte-petit:      14px;
+  --texte-normal:     16px;
+  --texte-moyen:      18px;
+  --texte-grand:      22px;
+  --texte-enorme:     24px;
+
+  /* ---- Poids de police (jamais gras : max 500) ---- */
+  --poids-leger:      300;
+  --poids-normal:     400;
+  --poids-fort:       500;
+
+  /* ---- Espacements ---- */
+  --espace-xs:        4px;
+  --espace-s:         8px;
+  --espace-m:         12px;
+  --espace-l:         16px;
+  --espace-xl:        20px;
+
+  /* ---- Divers ---- */
+  --rayon:            1px;
+  --tactile:          44px;
+  --transition:       0.2s ease;
+  --police:           'Cabinet Grotesk', system-ui, sans-serif;
+  --ombre-carte:      0 2px 12px rgba(61, 43, 31, 0.10);
+  --ombre-bouton:     0 1px 6px rgba(61, 43, 31, 0.10);
+  --ombre-forte:      0 6px 24px rgba(61, 43, 31, 0.28);
+}
+
+/* ============================================================
+   BASE
+============================================================ */
+* { box-sizing: border-box; margin: 0; padding: 0; }
+
+body {
+  font-family: var(--police);
+  font-size: var(--texte-normal);
+  font-weight: var(--poids-normal);
+  color: var(--brun-fonce);
+  background: var(--fond);
+  min-height: 100vh;
+  overflow-x: hidden;
+}
+
+[hidden] { display: none !important; }
+
+/* ============================================================
+   CONTENEUR — le cadre d'une page
+============================================================ */
+.conteneur {
+  max-width: 700px;
+  margin: 0 auto;
+  background: var(--blanc);
+  min-height: 100vh;
+}
+.contenu { padding: var(--espace-xl) var(--espace-l); }
+
+/* espaceur vertical réutilisable entre deux champs/blocs */
+.bloc { margin-bottom: var(--espace-m); }
+
+/* ============================================================
+   EN-TÊTE PHOTO (le grand visuel d'accueil)
+============================================================ */
+.entete { padding: var(--espace-xl) var(--espace-l) 0; }
+.entete-photo {
+  width: 100%;
+  height: 80vh;
+  position: relative;
+  overflow: hidden;
+  border-radius: var(--rayon);
+}
+.entete-photo img { width: 100%; height: 100%; object-fit: cover; display: block; }
+.entete-titre {
+  position: absolute;
+  bottom: var(--espace-xl);
+  left: var(--espace-xl);
+  right: var(--espace-xl);
+  font-size: clamp(40px, 12vw, 70px);
+  font-weight: var(--poids-normal);
+  color: var(--blanc);
+  letter-spacing: 3px;
+  text-transform: uppercase;
+  text-shadow: 0 2px 16px rgba(61, 43, 31, 0.6);
+  line-height: 1.2;
+}
+
+/* ============================================================
+   TEXTE — base + variantes de taille / ton / poids
+============================================================ */
+.texte { font-size: var(--texte-normal); font-weight: var(--poids-normal); color: var(--brun-fonce); line-height: 1.4; }
+.texte-micro  { font-size: var(--texte-micro); }
+.texte-petit  { font-size: var(--texte-petit); }
+.texte-grand  { font-size: var(--texte-grand); }
+.texte-pale   { color: var(--brun-clair); }
+.texte-leger  { font-weight: var(--poids-leger); }
+.texte-fort   { font-weight: var(--poids-fort); }
+
+/* petit intitulé au-dessus d'un champ */
+.label { font-size: var(--texte-micro); color: var(--brun-clair); margin-bottom: var(--espace-xs); }
+
+/* ============================================================
+   TITRE — un titre de section/page (base + variante nue)
+============================================================ */
+.titre {
+  font-size: var(--texte-grand);
+  font-weight: var(--poids-normal);
+  color: var(--brun-fonce);
+  padding-bottom: var(--espace-s);
+  border-bottom: 1.5px solid var(--beige-moyen);
+  margin-bottom: var(--espace-l);
+}
+.titre-nu { border-bottom: none; padding-bottom: 0; }
+
+/* ============================================================
+   BOUTON — UNE base, puis couleur / taille / forme par-dessus
+   ex. class="bouton bouton-brun bouton-pleine"
+============================================================ */
+.bouton {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--espace-s);
+  padding: var(--espace-m) var(--espace-l);
+  background: var(--blanc);
+  color: var(--brun);
+  border: none;
+  border-radius: var(--rayon);
+  cursor: pointer;
+  font-family: var(--police);
+  font-size: var(--texte-normal);
+  font-weight: var(--poids-fort);
+  min-height: var(--tactile);
+  box-shadow: var(--ombre-bouton);
+  transition: var(--transition);
+  text-align: center;
+}
+.bouton:hover { box-shadow: var(--ombre-carte); }
+
+/* forme */
+.bouton-pleine { display: flex; width: 100%; }
+
+/* couleur (le fond change, la base reste pareille) */
+.bouton-brun   { background: var(--brun);   color: var(--creme); }
+.bouton-brun:hover   { background: var(--brun-fonce); }
+.bouton-vert   { background: var(--vert);   color: var(--blanc); }
+.bouton-orange { background: var(--orange); color: var(--blanc); }
+.bouton-bleu   { background: var(--bleu);   color: var(--blanc); }
+.bouton-rouge  { background: var(--rouge);  color: var(--blanc); }
+.bouton-vert:hover, .bouton-orange:hover, .bouton-bleu:hover, .bouton-rouge:hover { filter: brightness(0.93); }
+
+/* taille */
+.bouton-grand { min-height: 80px; flex-direction: column; padding: var(--espace-l); }
+.bouton-petit { min-height: auto; padding: var(--espace-s) var(--espace-l); font-size: var(--texte-petit); }
+
+/* ============================================================
+   CHAMP — saisie texte / menu déroulant (même base)
+============================================================ */
+.champ {
+  width: 100%;
+  padding: var(--espace-s) var(--espace-m);
+  background: var(--blanc);
+  border: 1px solid var(--champ-bord);
+  border-radius: var(--rayon);
+  font-family: var(--police);
+  font-size: var(--texte-normal);
+  font-weight: var(--poids-leger);
+  color: var(--brun-fonce);
+  outline: none;
+  transition: var(--transition);
+  min-height: var(--tactile);
+}
+.champ:focus { border-color: var(--champ-focus); box-shadow: 0 0 0 3px var(--champ-focus-halo); }
+.champ::placeholder { color: var(--placeholder); opacity: 0.6; }
+select.champ {
+  appearance: none;
+  cursor: pointer;
+  padding-right: calc(var(--espace-m) * 2.5);
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath d='M1 1l5 5 5-5' stroke='%236b4f3a' stroke-width='1.5' fill='none'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right var(--espace-m) center;
+}
+
+/* ============================================================
+   COMPTEUR — le − valeur + (choisir une quantité)
+============================================================ */
+.compteur {
+  display: inline-flex;
+  align-items: center;
+  background: var(--blanc);
+  border: 1px solid var(--champ-bord);
+  border-radius: var(--rayon);
+  overflow: hidden;
+}
+.compteur-btn {
+  width: var(--tactile);
+  height: var(--tactile);
+  background: transparent;
+  border: none;
+  font-size: var(--texte-moyen);
+  color: var(--brun);
+  cursor: pointer;
+  transition: var(--transition);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.compteur-btn:hover { background: var(--beige); }
+.compteur-valeur {
+  min-width: var(--tactile);
+  height: var(--tactile);
+  text-align: center;
+  font-size: var(--texte-normal);
+  font-weight: var(--poids-fort);
+  color: var(--brun-fonce);
+  border-left: 1px solid var(--champ-bord);
+  border-right: 1px solid var(--champ-bord);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* ============================================================
+   CARTE — un conteneur blanc à ombre douce
+============================================================ */
+.carte {
+  background: var(--blanc);
+  border-radius: var(--rayon);
+  box-shadow: var(--ombre-carte);
+  padding: var(--espace-l);
+}
+
+/* ============================================================
+   ACCORDÉON — un bloc repliable (tête brune + items)
+============================================================ */
+.accordeon { background: var(--blanc); border-radius: var(--rayon); overflow: hidden; margin-bottom: var(--espace-s); }
+.accordeon-tete {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: var(--espace-m) var(--espace-l);
+  cursor: pointer;
+  background: var(--brun);
+  color: var(--creme);
+  font-weight: var(--poids-fort);
+  font-size: var(--texte-moyen);
+  min-height: var(--tactile);
+  user-select: none;
+  transition: var(--transition);
+}
+.accordeon-tete:hover { background: var(--brun-fonce); }
+.accordeon-fleche { font-size: var(--texte-micro); color: var(--beige-moyen); transition: transform 0.25s ease; }
+.accordeon-tete.ouvert .accordeon-fleche { transform: rotate(180deg); }
+.accordeon-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: var(--espace-s) var(--espace-l);
+  font-size: var(--texte-normal);
+  min-height: var(--tactile);
+  transition: background var(--transition);
+}
+.accordeon-item:hover { background: var(--survol); }
+
+/* ============================================================
+   ITEM — une ligne de liste (nom + détail + quantité)
+============================================================ */
+.item {
+  display: flex;
+  align-items: center;
+  gap: var(--espace-m);
+  padding: var(--espace-s) var(--espace-l);
+  border-top: 1px solid var(--separateur);
+  min-height: var(--tactile);
+  transition: background var(--transition);
+}
+.item:hover { background: var(--survol); }
+.item-info { flex: 1; }
+.item-nom { font-size: var(--texte-moyen); font-weight: var(--poids-normal); color: var(--brun-fonce); }
+.item-detail { font-size: var(--texte-petit); font-weight: var(--poids-leger); color: var(--brun-clair); }
+.item-quantite {
+  font-size: var(--texte-petit);
+  font-weight: var(--poids-fort);
+  color: var(--brun);
+  background: var(--beige);
+  padding: 3px var(--espace-s);
+  border-radius: var(--rayon);
+}
+
+/* ============================================================
+   MESSAGE — petit retour sous une action
+============================================================ */
+.message { font-size: var(--texte-petit); font-weight: var(--poids-leger); margin-top: var(--espace-s); min-height: 18px; }
+.message-erreur { color: var(--rouge); }
+.message-succes { color: var(--vert); }
