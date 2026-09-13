@@ -23,9 +23,12 @@ Principes structurels non négociables (détail dans `RdG-00`) : rien de fixe (l
 
 ## Où on en est
 
-Phase actuelle = **étape 1 du plan de construction : finir la réflexion (les 12 actions) AVANT de bâtir quoi que ce soit** (Sheet, sécurité, code).
+**Bascule (2026-09-12) : de la réflexion à la construction.** Jean-Claude a décidé de **bâtir et tester le point 1 (l'entrée)** pour apprendre en voyant, plutôt qu'imaginer d'avance toutes les situations. Son contrat : **ça marche** + **conçu pour évoluer**. Il délègue les décisions de structure à Claude (pas de revue colonne par colonne).
 
-Brainstorm des 12 actions : **faits 1, 2, 3** · **partiel 8** (le geste du prêt est réglé; le retour à creuser) · **restent 4, 5, 6, 7, 11, 12**. C'est Jean-Claude qui choisit le prochain sujet.
+Brainstorm des 12 actions : **faits 1, 2, 3, 4** · **partiel 8** · restent 5, 6, 7, 11, 12.
+- Point 4 « trouver » = la MÊME fiche-consultation que le point 3, appelée de la maison. La fiche montre *où + quantité* en « X sur total », une ligne « en transit » à part, le statut « déjà dans la liste d'achats » (le rachat est automatique au manque). Depuis la fiche on peut lancer un **déplacement** (point 7 : change la place, jamais le total).
+
+**Construction du point 1** — structure des données définie dans **`RdG-structure-donnees.md`** (6 tables : cœur Produits / Emplacements / Stock · support Secteurs / Catégories / Codes). Nouveau Sheet propre + coffre-fort Apps Script remplacent l'ancien OAuth/clé API. Prochaines étapes : (1) script qui monte la Sheet, (2) le coffre-fort, (3) le code du parcours d'entrée.
 
 ## Git — à ne jamais pousser
 
@@ -37,5 +40,6 @@ Le dépôt GitHub est **public**. Les fichiers **`.gs`** (Google Apps Script) ne
 - **`RdG-01-entree.md`** — brainstorm de juillet : la méthode complète + les 12 actions + l'entrée (point 1).
 - **`RdG-02-sortie-2026-09-03.md`** — sortie / consommer (point 2).
 - **`RdG-03-en-ai-je-deja-2026-09-03.md`** — « en ai-je déjà? » au magasin (point 3).
+- **`RdG-structure-donnees.md`** — LA référence des colonnes (positions exactes) : les 6 tables du point 1, bâties pour évoluer.
 
 ⚠️ **`README.md`** décrit l'**ancienne** structure technique (Sheet + code, février 2026), **abandonnée**. Référence **visuelle** seulement (le look est gardé comme base) — ce n'est PAS la base de données ni la structure actuelle.
