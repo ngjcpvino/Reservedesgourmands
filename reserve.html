@@ -1,0 +1,190 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>La Réserve des Gourmands</title>
+<link href="https://api.fontshare.com/v2/css?f[]=cabinet-grotesk@100,200,300,400,500&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --creme:#f5efe6; --beige:#e8ddd0; --beige-moyen:#d4c4b0;
+    --brun-clair:#a08060; --brun:#6b4f3a; --brun-fonce:#3d2b1f;
+    --rouge:#c0392b; --orange:#d4820a; --vert:#2e7d52; --bleu:#4e679c;
+    --blanc:#fff;
+    --rayon:2px; --tactile:44px;
+    --xs:4px; --s:8px; --m:12px; --l:16px; --xl:20px;
+    --txt:15px;
+    --police:'Cabinet Grotesk', system-ui, sans-serif;
+  }
+  * { box-sizing:border-box; }
+  body {
+    margin:0; font-family:var(--police); font-weight:400; font-size:var(--txt);
+    color:var(--brun-fonce); background:var(--creme); -webkit-font-smoothing:antialiased;
+  }
+  .cadre { max-width:520px; margin:0 auto; padding:var(--l); }
+  header.tete { background:var(--brun-fonce); color:var(--blanc); padding:var(--xl) var(--l); }
+  header.tete h1 { margin:0; font-weight:300; font-size:22px; letter-spacing:.5px; text-transform:uppercase; }
+  header.tete p { margin:var(--xs) 0 0; font-weight:300; opacity:.85; font-size:13px; }
+  h2 { font-weight:500; font-size:16px; margin:0 0 var(--m); }
+  label { display:block; font-weight:400; font-size:13px; margin:0 0 var(--xs); color:var(--brun); }
+  input, select {
+    width:100%; min-height:var(--tactile); padding:0 var(--m);
+    font-family:var(--police); font-size:var(--txt); color:var(--brun-fonce);
+    background:var(--blanc); border:1px solid var(--beige-moyen); border-radius:var(--rayon);
+    margin:0 0 var(--m);
+  }
+  input:focus, select:focus { outline:2px solid var(--brun-clair); border-color:var(--brun-clair); }
+  .bouton {
+    display:block; width:100%; min-height:var(--tactile);
+    font-family:var(--police); font-size:var(--txt); font-weight:500;
+    color:var(--blanc); background:var(--brun); border:none; border-radius:var(--rayon); cursor:pointer;
+  }
+  .bouton:active { background:var(--brun-fonce); }
+  .bouton.vert { background:var(--vert); }
+  .bouton:disabled { opacity:.5; }
+  .carte { background:var(--blanc); border-radius:var(--rayon); box-shadow:0 1px 4px rgba(61,43,31,.12); padding:var(--l); margin:0 0 var(--l); }
+  .item { display:flex; justify-content:space-between; align-items:center; padding:var(--m) 0; border-bottom:1px solid var(--beige); }
+  .item:last-child { border-bottom:none; }
+  .item .qte { color:var(--brun); font-size:13px; }
+  .etiquette { display:inline-block; font-size:11px; font-weight:500; text-transform:uppercase; color:var(--orange); border:1px solid var(--orange); border-radius:var(--rayon); padding:2px 6px; margin-left:var(--s); letter-spacing:.5px; }
+  .vide { color:var(--brun-clair); font-weight:300; text-align:center; padding:var(--l) 0; }
+  .message { font-size:13px; margin:var(--s) 0 0; min-height:16px; }
+  .message.err { color:var(--rouge); }
+  .message.ok { color:var(--vert); }
+  .lien { display:inline-block; margin-top:var(--m); color:var(--brun-clair); font-size:13px; text-decoration:underline; cursor:pointer; }
+  [hidden] { display:none !important; }
+</style>
+</head>
+<body>
+
+<div id="vue-connexion">
+  <header class="tete"><h1>La Réserve<br>des Gourmands</h1></header>
+  <div class="cadre">
+    <div class="carte">
+      <h2>Mot de passe</h2>
+      <input id="mdp" type="password" autocomplete="current-password" placeholder="Mot de passe">
+      <button class="bouton" id="btn-entrer">Entrer</button>
+      <p class="message err" id="msg-connexion"></p>
+    </div>
+  </div>
+</div>
+
+<div id="vue-app" hidden>
+  <header class="tete"><h1>La Réserve</h1><p>Entrée des produits</p></header>
+  <div class="cadre">
+
+    <div class="carte">
+      <h2>Entrer un produit</h2>
+      <label for="nom">Nom</label>
+      <input id="nom" type="text" placeholder="Ex. Café">
+      <label for="unite">Unité</label>
+      <input id="unite" type="text" list="unites" placeholder="Ex. unité, sac, livre">
+      <datalist id="unites">
+        <option value="unité"></option><option value="sac"></option><option value="boîte"></option>
+        <option value="livre"></option><option value="kg"></option><option value="g"></option>
+        <option value="L"></option><option value="ml"></option><option value="paquet"></option>
+      </datalist>
+      <label for="qte">Quantité</label>
+      <input id="qte" type="number" inputmode="numeric" min="0" step="1" value="1">
+      <button class="bouton vert" id="btn-ajouter">Ajouter</button>
+      <p class="message" id="msg-ajout"></p>
+    </div>
+
+    <div class="carte">
+      <h2>En transit <span class="etiquette">pas rangé</span></h2>
+      <div id="liste-transit"><p class="vide">Chargement…</p></div>
+    </div>
+
+    <span class="lien" id="lien-deco">Se déconnecter</span>
+  </div>
+</div>
+
+<script>
+  const VAULT = 'https://script.google.com/macros/s/AKfycbzh7b73Vt7Jm0EJIeZx1BN9-Bbu3_6seatzMZTrf_zCKrHuJVnymJba0fmK8Rlkjyqf/exec';
+  const $ = id => document.getElementById(id);
+  const mdp = () => sessionStorage.getItem('rdg_mdp') || '';
+
+  async function appel(payload) {
+    const res = await fetch(VAULT, {
+      method: 'POST',
+      headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+      body: JSON.stringify(Object.assign({ motDePasse: mdp() }, payload))
+    });
+    return res.json();
+  }
+
+  async function entrer() {
+    const pw = $('mdp').value.trim();
+    if (!pw) return;
+    sessionStorage.setItem('rdg_mdp', pw);
+    $('msg-connexion').textContent = 'Vérification…';
+    try {
+      const r = await appel({ action: 'lire', table: 'Produits' });
+      if (r && r.ok) { montrerApp(); }
+      else { sessionStorage.removeItem('rdg_mdp'); $('msg-connexion').textContent = 'Mot de passe refusé.'; }
+    } catch (e) { $('msg-connexion').textContent = 'Connexion impossible.'; }
+  }
+
+  function montrerApp() { $('vue-connexion').hidden = true; $('vue-app').hidden = false; chargerTransit(); }
+
+  function deconnexion() {
+    sessionStorage.removeItem('rdg_mdp');
+    $('vue-app').hidden = true; $('vue-connexion').hidden = false;
+    $('mdp').value = ''; $('msg-connexion').textContent = '';
+  }
+
+  async function ajouter() {
+    const nom = $('nom').value.trim();
+    const unite = $('unite').value.trim();
+    const qte = Number($('qte').value) || 0;
+    const msg = $('msg-ajout');
+    if (!nom) { msg.className = 'message err'; msg.textContent = 'Donne un nom.'; return; }
+    msg.className = 'message'; msg.textContent = 'Enregistrement…';
+    $('btn-ajouter').disabled = true;
+    try {
+      const p = await appel({ action: 'ajouter', table: 'Produits', ligne: ['', nom, '', unite, 'O'] });
+      if (!p.ok) throw new Error(p.erreur || 'refus');
+      const dateEntree = new Date().toISOString().slice(0, 10);
+      await appel({ action: 'ajouter', table: 'Stock', ligne: ['', p.id, '', qte, dateEntree] });
+      msg.className = 'message ok'; msg.textContent = nom + ' ajouté.';
+      $('nom').value = ''; $('unite').value = ''; $('qte').value = '1'; $('nom').focus();
+      chargerTransit();
+    } catch (e) {
+      msg.className = 'message err'; msg.textContent = 'Échec : ' + e.message;
+    } finally { $('btn-ajouter').disabled = false; }
+  }
+
+  async function chargerTransit() {
+    const cont = $('liste-transit');
+    cont.innerHTML = '<p class="vide">Chargement…</p>';
+    try {
+      const [rp, rs] = await Promise.all([
+        appel({ action: 'lire', table: 'Produits' }),
+        appel({ action: 'lire', table: 'Stock' })
+      ]);
+      const noms = {}, unites = {};
+      (rp.lignes || []).forEach(r => { noms[r[0]] = r[1]; unites[r[0]] = r[3]; });
+      const transit = (rs.lignes || []).filter(r => !r[2]);
+      if (!transit.length) { cont.innerHTML = '<p class="vide">Rien en transit.</p>'; return; }
+      cont.innerHTML = '';
+      transit.forEach(r => {
+        const div = document.createElement('div');
+        div.className = 'item';
+        const nom = document.createElement('span'); nom.className = 'nom';
+        nom.textContent = noms[r[1]] || '(produit ?)';
+        const q = document.createElement('span'); q.className = 'qte';
+        q.textContent = r[3] + ' ' + (unites[r[1]] || '');
+        div.appendChild(nom); div.appendChild(q); cont.appendChild(div);
+      });
+    } catch (e) { cont.innerHTML = '<p class="vide">Erreur de chargement.</p>'; }
+  }
+
+  $('btn-entrer').addEventListener('click', entrer);
+  $('mdp').addEventListener('keydown', e => { if (e.key === 'Enter') entrer(); });
+  $('btn-ajouter').addEventListener('click', ajouter);
+  $('lien-deco').addEventListener('click', deconnexion);
+
+  if (mdp()) montrerApp();
+</script>
+</body>
+</html>
