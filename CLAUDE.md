@@ -11,7 +11,7 @@ L'utilisateur est **Jean-Claude**, méthodique. Deux usagers de l'app : lui et s
 - **Zéro code tant que la réflexion n'est pas finie** — le code lui donne de l'urticaire. On parle ACTIONS, jamais implémentation.
 - **Un sujet à la fois, creusé à fond.** Ne JAMAIS proposer de passer au suivant tant que le courant n'est pas épuisé — **c'est Jean-Claude qui décide**. Ne pas pousser.
 - **Expliquer AVANT de faire**, il valide, ensuite on agit. Jamais coder/agir sans accord explicite.
-- **PÉRIMÈTRE (crucial) : on ne travaille QUE sur `reserve.html` (+ `JS/entree.js`).** `index.html` (l'accueil) est le **premier site de J-C, gardé tel quel** — NE JAMAIS y toucher, ni à `JS/accueil.js`, sans son accord explicite.
+- **PÉRIMÈTRE (crucial) : on ne travaille QUE sur `rdg.html` (+ `JS/entree.js`).** `index.html` (l'accueil) est le **premier site de J-C, gardé tel quel** — NE JAMAIS y toucher, ni à `JS/accueil.js`, sans son accord explicite.
 - Méthode = brainstorm + arbres décisionnels (« j'appuie sur un bouton, quels sont TOUS les scénarios »).
 - Parenthèse vers un autre sujet = la NOTER, ne pas la creuser, refermer.
 - Correction de code (le jour venu) : trouve/remplace, UNE à la fois, attendre le « ok ». Bloc « réécrit » = bloc complet prêt à copier-coller, sans jargon.
@@ -39,9 +39,9 @@ Principes structurels non négociables (détail dans `RdG-00`) : rien de fixe (l
 Brainstorm des 12 actions : **faits 1,2,3,4** · **partiel 8** · restent 5,6,7,11,12. (Point 4 « trouver » = même fiche que le 3 : où + quantité « X sur total », ligne « en transit », statut « déjà dans la liste »; peut lancer un déplacement = point 7.)
 
 **L'app neuve — en ligne (GitHub Pages, dépôt public `ngjcpvino/Reservedesgourmands`)** :
-- **Arborescence** : HTML à la racine (`index.html`, `reserve.html`) · styles dans `CSS/` · scripts de page dans `JS/` · scripts serveur dans `gas/` (jamais poussés) · docs dans `docs/` · ancienne app dans `archive/`.
-- `index.html` (+`JS/accueil.js`) — **PREMIER site de J-C, GARDÉ TEL QUEL, hors chantier (ne pas toucher sans accord)** — hub / accueil : hero photo + **4 blocs** + **5 accordéons** (Stock épuisé, Réserve vide, À consommer bientôt, En spécial, Listes en attente). **Bloc 1 (Entrée) → ouvre `reserve.html`**; les 3 autres (Trouver/Consommer/Listes) = avis « à venir ». Accordéons vides — à faire.
-- `reserve.html` (+`JS/entree.js`) — **la fiche d'entrée d'un article** : catégorie → sous-catégorie → produit (choisir un existant OU « + Nouveau ») → **marque** → **format** → **1 à N endroits** (meuble → espace + quantité; la carte d'endroit prend la **couleur du meuble**). Enregistrer = crée le produit + les lignes de stock placées.
+- **Arborescence** : HTML à la racine (`index.html`, `rdg.html`) · styles dans `CSS/` · scripts de page dans `JS/` · scripts serveur dans `gas/` (jamais poussés) · docs dans `docs/` · ancienne app dans `archive/`.
+- `index.html` (+`JS/accueil.js`) — **PREMIER site de J-C, GARDÉ TEL QUEL, hors chantier (ne pas toucher sans accord)** — hub / accueil : hero photo + **4 blocs** + **5 accordéons** (Stock épuisé, Réserve vide, À consommer bientôt, En spécial, Listes en attente). **Bloc 1 (Entrée) → ouvre `rdg.html`**; les 3 autres (Trouver/Consommer/Listes) = avis « à venir ». Accordéons vides — à faire.
+- `rdg.html` (+`JS/entree.js`) — **la fiche d'entrée d'un article** : catégorie → sous-catégorie → produit (choisir un existant OU « + Nouveau ») → **marque** → **format** → **1 à N endroits** (meuble → espace + quantité; la carte d'endroit prend la **couleur du meuble**). Enregistrer = crée le produit + les lignes de stock placées.
 - `CSS/base.css` = le style générique (voir Conventions). `JS/coffre.js` = le client du coffre-fort (partagé).
 - ⚠️ L'ancien `index.html` a été **remplacé** par le nouvel accueil (2026-09-13). L'ANCIENNE app survit dans `archive/` (`styles.css`, `styleQ.css`, `scripts-*.js`, `quin.html`) mais n'est plus reliée — ne PAS s'en servir.
 
@@ -58,7 +58,7 @@ Brainstorm des 12 actions : **faits 1,2,3,4** · **partiel 8** · restent 5,6,7,
 
 - **Style** : tout dans **`CSS/base.css`**, générique — une base + variantes (`bouton` + `bouton-vert` + `bouton-grand`), noms **français**, **toute valeur au root** (changer une fois = partout). On réutilise; on n'ajoute un style que si aucun existant ne fait la job. (L'ancien `styles.css`, désormais dans `archive/`, ne sert QUE l'ancienne app.)
 - **Logique** : la communication avec le coffre-fort vit dans **`JS/coffre.js`** (partagé : `Coffre.lire / ajouter / modifier / connexion`). **Aucun script inline** dans le HTML — chaque page = structure + `JS/coffre.js` + son propre `.js` (dans `JS/`).
-- **App en ligne** : `reserve.html` / `index.html` (GitHub Pages) parlent au coffre-fort par **mot de passe** (Propriété du script `MOT_DE_PASSE`). URL du coffre-fort dans `JS/coffre.js`.
+- **App en ligne** : `rdg.html` / `index.html` (GitHub Pages) parlent au coffre-fort par **mot de passe** (Propriété du script `MOT_DE_PASSE`). URL du coffre-fort dans `JS/coffre.js`.
 - **Vitesse (CRITIQUE)** : le coffre-fort répond en ~1 s/appel (mesuré) — c'est le NOMBRE d'appels qui tue, pas Apps Script. Règles : **jamais d'appels en parallèle** (le VPN de J-C les échappe → « Load failed ») → toujours **séquentiel**; **actions groupées côté serveur** (`references` = tout charger en 1 appel; `entrerArticle` = produit + stocks en 1 appel); **cache** des listes en `localStorage` (instantané ensuite); **login optimiste** (n'attend aucun appel réseau); **mot de passe en `localStorage`** (reste connecté). Modèle = Dionysos.
 
 ## Dionysos — l'app de référence de Jean-Claude
