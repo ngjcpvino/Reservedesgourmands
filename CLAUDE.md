@@ -17,6 +17,15 @@ L'utilisateur est **Jean-Claude**, méthodique. Deux usagers de l'app : lui et s
 - Correction de code (le jour venu) : trouve/remplace, UNE à la fois, attendre le « ok ». Bloc « réécrit » = bloc complet prêt à copier-coller, sans jargon.
 - **Contexte & perf** : souvent sur **iPad**, **VPN toujours actif**. La **vitesse est critique** — « un app lent, je m'en servirai pas » (dit textuellement). Sa référence de qualité/vitesse : son autre app **Dionysos** (section dédiée plus bas).
 
+## Avant de dire « c'est fait » (NON NÉGOCIABLE)
+
+- **Vérifier, en silence : (1) la syntaxe des fichiers modifiés (node --check pour les .js/.gs) ; (2) tracer le parcours jusqu'au bout — succès, erreur, annulation, retour — chaque bouton a une sortie définie. Anticiper les cas limites soi-même (vide, refus, double-clic, réseau lent), pas les découvrir après coup.
+- **Chercher avant de demander : ne jamais demander à J-C un nom de champ / fichier / fonction qu'une recherche dans le code donnerait. Lire le code avant de parler — le code écrit fait foi.
+- **Jamais en vase clos : tout nouvel écran ou toute fonction part d'un existant validé comme gabarit ; chercher si une classe/fonction existe avant d'en créer une ; un bouton se comporte pareil partout.
+- **Écritures à l'épreuve du reclic (idempotence) : toute action qui écrit dans le Sheet doit résister à un 2e envoi après une erreur — le serveur vérifie avant d'écrire. Un produit ou un stock en double = inventaire faux. (C'est le piège qu'on vient de corriger sur Dionysos.)
+
+
+
 ## L'essence du projet
 
 Ce n'est PAS une app d'épicerie. C'est **UN moteur + UNE base de données pour tout ce qu'on possède** dans la maison (nourriture, quincaillerie, passe-temps…). Tout item vit le même cycle : **entre → quantité → rangé → sort → manque** (déclenche le rachat). Les **secteurs** ne se distinguent **qu'à l'affichage, jamais dans les données**. « La Réserve des Gourmands » = le secteur **Épicerie**, le premier construit; Bricoleurs/Jardiniers = d'autres secteurs du même moteur.
@@ -73,3 +82,4 @@ Le dépôt GitHub est **public**. Les fichiers **`.gs`** (Google Apps Script) ne
 - **`RdG-categories-superc.md`** — la liste finale des catégories Épicerie (12 rayons / 48 sous-cat), taillée avec J-C depuis Super C. Déjà semée.
 
 ⚠️ **`README.md`** décrit l'**ancienne** structure technique (Sheet + code, février 2026), **abandonnée**. Référence **visuelle** seulement (le look est gardé comme base) — ce n'est PAS la base de données ni la structure actuelle.
+
