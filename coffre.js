@@ -11,9 +11,9 @@
 const Coffre = {
   URL: 'https://script.google.com/macros/s/AKfycbzh7b73Vt7Jm0EJIeZx1BN9-Bbu3_6seatzMZTrf_zCKrHuJVnymJba0fmK8Rlkjyqf/exec',
 
-  motDePasse()         { return sessionStorage.getItem('rdg_mdp') || ''; },
-  definirMotDePasse(m) { sessionStorage.setItem('rdg_mdp', m); },
-  oublier()            { sessionStorage.removeItem('rdg_mdp'); },
+  motDePasse()         { return localStorage.getItem('rdg_mdp') || ''; },
+  definirMotDePasse(m) { localStorage.setItem('rdg_mdp', m); },
+  oublier()            { localStorage.removeItem('rdg_mdp'); },
 
   async appel(charge) {
     const res = await fetch(this.URL, {
