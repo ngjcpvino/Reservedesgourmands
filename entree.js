@@ -1,10 +1,16 @@
 /* ============================================================
-   ENTRÉE — logique propre à la page reserve.html.
-   Utilise Coffre (coffre.js) pour tout ce qui touche aux données.
+   ENTRÉE D'UN ARTICLE — reserve.html. Utilise Coffre (coffre.js).
+   Flux : catégorie → sous-catégorie → produit (choisir ou créer)
+          → marque · format → 1 à N endroits (meuble → espace + qté).
 ============================================================ */
 const $ = id => document.getElementById(id);
+const esc = s => String(s == null ? '' : s).replace(/[&<>"]/g, c => ({ '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;' }[c]));
+const montrer = (id, ok) => { $(id).hidden = !ok; };
 
-/* ---- Connexion ---- */
+// Données de référence chargées après connexion
+var RAYONS = [], SOUSCATS = {}, MEUBLES = [], ESPACES = {}, PRODUITS = [];
+
+/* ---------- Connexion ---------- */
 async function entrer() {
   const pw = $('mdp').value.trim();
   if (!pw) return;
@@ -12,97 +18,202 @@ async function entrer() {
   try {
     if (await Coffre.connexion(pw)) montrerApp();
     else $('msg-connexion').textContent = 'Mot de passe refusé.';
-  } catch (e) {
-    $('msg-connexion').textContent = 'Connexion impossible.';
-  }
+  } catch (e) { $('msg-connexion').textContent = 'Connexion impossible.'; }
 }
 
-function montrerApp() {
+async function montrerApp() {
   $('vue-connexion').hidden = true;
   $('vue-app').hidden = false;
-  chargerTransit();
+  $('msg').textContent = 'Chargement des listes…';
+  try {
+    await chargerReferences();
+    remplirCategories();
+    $('msg').textContent = '';
+  } catch (e) { $('msg').textContent = 'Erreur de chargement : ' + e.message; }
 }
 
 function deconnexion() {
   Coffre.oublier();
   $('vue-app').hidden = true;
   $('vue-connexion').hidden = false;
-  $('mdp').value = '';
-  $('msg-connexion').textContent = '';
+  $('mdp').value = ''; $('msg-connexion').textContent = '';
 }
 
-/* ---- Compteur de quantité ---- */
-function majQte(delta) {
-  const el = $('qte');
-  el.textContent = Math.max(0, (parseInt(el.textContent, 10) || 0) + delta);
+/* ---------- Chargement des références ---------- */
+async function chargerReferences() {
+  const [rc, re, rp] = await Promise.all([
+    Coffre.lire('Categories'), Coffre.lire('Emplacements'), Coffre.lire('Produits')
+  ]);
+
+  RAYONS = []; SOUSCATS = {};
+  (rc.lignes || []).forEach(r => {                    // [ID,Nom,ParentID,SecteurID,DureeVie,Actif]
+    if (String(r[5]) !== 'O') return;
+    if (!r[2]) RAYONS.push({ id: r[0], nom: r[1] });
+    else (SOUSCATS[r[2]] = SOUSCATS[r[2]] || []).push({ id: r[0], nom: r[1] });
+  });
+
+  MEUBLES = []; ESPACES = {};
+  (re.lignes || []).forEach(r => {                    // [ID,Nom,ParentID,SecteurID,Actif,Couleur]
+    if (String(r[4]) !== 'O') return;
+    if (!r[2]) MEUBLES.push({ id: r[0], nom: r[1], couleur: r[5] || '' });
+    else (ESPACES[r[2]] = ESPACES[r[2]] || []).push({ id: r[0], nom: r[1] });
+  });
+
+  PRODUITS = (rp.lignes || [])                         // [ID,Nom,CategorieID,Unite,Actif,Marque,Format]
+    .filter(r => String(r[4]) !== 'N')
+    .map(r => ({ id: r[0], nom: r[1], catId: r[2], marque: r[5] || '', format: r[6] || '' }));
 }
 
-/* ---- Ajouter un produit (crée le produit + une ligne de stock « en transit ») ---- */
-async function ajouter() {
-  const nom = $('nom').value.trim();
-  const unite = $('unite').value.trim();
-  const qte = parseInt($('qte').textContent, 10) || 0;
-  const msg = $('msg-ajout');
-  if (!nom) { msg.className = 'message message-erreur'; msg.textContent = 'Donne un nom.'; return; }
-  msg.className = 'message'; msg.textContent = 'Enregistrement…';
-  $('btn-ajouter').disabled = true;
-  try {
-    const p = await Coffre.ajouter('Produits', ['', nom, '', unite, 'O']);
-    if (!p.ok) throw new Error(p.erreur || 'refus');
-    const dateEntree = new Date().toISOString().slice(0, 10);
-    await Coffre.ajouter('Stock', ['', p.id, '', qte, dateEntree]);
-    msg.className = 'message message-succes'; msg.textContent = nom + ' ajouté.';
-    $('nom').value = ''; $('unite').value = ''; $('qte').textContent = '1'; $('nom').focus();
-    chargerTransit();
-  } catch (e) {
-    msg.className = 'message message-erreur'; msg.textContent = 'Échec : ' + e.message;
-  } finally {
-    $('btn-ajouter').disabled = false;
+function options(liste, vide) {
+  return '<option value="">' + vide + '</option>' +
+    liste.map(x => '<option value="' + x.id + '">' + esc(x.nom) + '</option>').join('');
+}
+
+/* ---------- Entonnoir ---------- */
+function remplirCategories() {
+  $('cat').innerHTML = options(RAYONS, '— Catégorie —');
+  resetSous();
+}
+function resetSous() {
+  montrer('bloc-souscat', false); resetProduit();
+}
+function resetProduit() {
+  montrer('bloc-produit', false); montrer('bloc-nom', false);
+  montrer('bloc-details', false); montrer('bloc-endroits', false);
+  montrer('btn-enregistrer', false);
+  $('endroits').innerHTML = ''; $('msg').textContent = '';
+}
+
+function surCategorie() {
+  const rid = $('cat').value;
+  $('souscat').innerHTML = options(SOUSCATS[rid] || [], '— Sous-catégorie —');
+  montrer('bloc-souscat', !!rid);
+  resetProduit();
+}
+
+function surSousCategorie() {
+  const scid = $('souscat').value;
+  const prods = PRODUITS.filter(p => p.catId === scid);
+  $('produit').innerHTML = options(prods, '— Produit —') +
+    '<option value="__nouveau">+ Nouveau produit</option>';
+  montrer('bloc-produit', !!scid);
+  montrer('bloc-nom', false); montrer('bloc-details', false);
+  montrer('bloc-endroits', false); montrer('btn-enregistrer', false);
+  $('endroits').innerHTML = '';
+}
+
+function surProduit() {
+  const v = $('produit').value;
+  if (!v) { montrer('bloc-details', false); montrer('bloc-endroits', false); montrer('btn-enregistrer', false); return; }
+  if (v === '__nouveau') {
+    montrer('bloc-nom', true); $('nom').value = ''; $('marque').value = ''; $('format').value = '';
+  } else {
+    montrer('bloc-nom', false);
+    const p = PRODUITS.find(x => x.id === v);
+    $('marque').value = p ? p.marque : ''; $('format').value = p ? p.format : '';
   }
+  montrer('bloc-details', true);
+  montrer('bloc-endroits', true);
+  if (!$('endroits').children.length) ajouterEndroit();
+  montrer('btn-enregistrer', true);
 }
 
-/* ---- Liste « en transit » (lignes de stock sans emplacement) ---- */
-async function chargerTransit() {
-  const cont = $('liste-transit');
-  cont.innerHTML = '<div class="accordeon-item"><span class="texte-petit texte-pale">Chargement…</span></div>';
+/* ---------- Endroits ---------- */
+function ajouterEndroit() {
+  const row = document.createElement('div');
+  row.className = 'endroit carte';
+  row.style.marginBottom = 'var(--espace-s)';
+  row.innerHTML =
+    '<div class="bloc"><div class="label">Meuble</div><select class="champ meuble"></select></div>' +
+    '<div class="bloc"><div class="label">Espace</div><select class="champ espace"></select></div>' +
+    '<div class="bloc"><div class="label">Quantité</div><input class="champ qte" type="number" min="0" value="1"></div>' +
+    '<button class="bouton bouton-petit retirer" type="button">Retirer</button>';
+
+  const meuble = row.querySelector('.meuble');
+  const espace = row.querySelector('.espace');
+  meuble.innerHTML = options(MEUBLES, '— Meuble —');
+  espace.innerHTML = '<option value="">—</option>';
+
+  meuble.onchange = () => {
+    const mid = meuble.value;
+    const esp = ESPACES[mid] || [];
+    espace.innerHTML = esp.length
+      ? options(esp, '— Espace —')
+      : '<option value="">(directement sur le meuble)</option>';
+    const m = MEUBLES.find(x => x.id === mid);
+    row.style.borderLeft = (m && m.couleur) ? ('5px solid ' + m.couleur) : '';
+  };
+  row.querySelector('.retirer').onclick = () => {
+    if ($('endroits').children.length > 1) row.remove();
+  };
+  $('endroits').appendChild(row);
+}
+
+/* ---------- Enregistrer ---------- */
+function statut(txt, type) {
+  const m = $('msg');
+  m.className = 'message' + (type ? ' message-' + type : '');
+  m.textContent = txt;
+}
+
+async function enregistrer() {
+  const scid = $('souscat').value;
+  const pv = $('produit').value;
+  let produitId = null, nouveau = false, nom = '';
+
+  if (pv === '__nouveau') {
+    nom = $('nom').value.trim();
+    if (!nom) { statut('Donne un nom au produit.', 'erreur'); return; }
+    nouveau = true;
+  } else if (pv) {
+    produitId = pv;
+  } else { statut('Choisis ou crée un produit.', 'erreur'); return; }
+
+  const endroits = [];
+  [...$('endroits').children].forEach(row => {
+    const mid = row.querySelector('.meuble').value;
+    const eid = row.querySelector('.espace').value;
+    const qte = parseInt(row.querySelector('.qte').value, 10) || 0;
+    if (mid) endroits.push({ emp: eid || mid, qte: qte });
+  });
+  if (!endroits.length) { statut('Choisis au moins un endroit.', 'erreur'); return; }
+
+  const marque = $('marque').value.trim(), format = $('format').value.trim();
+  statut('Enregistrement…');
+  $('btn-enregistrer').disabled = true;
   try {
-    const [rp, rs] = await Promise.all([ Coffre.lire('Produits'), Coffre.lire('Stock') ]);
-    const noms = {}, unites = {};
-    (rp.lignes || []).forEach(r => { noms[r[0]] = r[1]; unites[r[0]] = r[3]; });
-    const transit = (rs.lignes || []).filter(r => !r[2]);
-    if (!transit.length) {
-      cont.innerHTML = '<div class="accordeon-item"><span class="texte-petit texte-pale">Rien en transit.</span></div>';
-      return;
+    if (nouveau) {
+      const p = await Coffre.ajouter('Produits', ['', nom, scid, '', 'O', marque, format]);
+      if (!p.ok) throw new Error(p.erreur || 'refus');
+      produitId = p.id;
     }
-    cont.innerHTML = '';
-    transit.forEach(r => {
-      const row = document.createElement('div'); row.className = 'item';
-      const info = document.createElement('div'); info.className = 'item-info';
-      const nom = document.createElement('div'); nom.className = 'item-nom';
-      nom.textContent = noms[r[1]] || '(produit ?)';
-      info.appendChild(nom);
-      const q = document.createElement('div'); q.className = 'item-quantite';
-      q.textContent = r[3] + ' ' + (unites[r[1]] || '');
-      row.appendChild(info); row.appendChild(q); cont.appendChild(row);
-    });
+    const date = new Date().toISOString().slice(0, 10);
+    for (const e of endroits) {
+      await Coffre.ajouter('Stock', ['', produitId, e.emp, e.qte, date]);
+    }
+    statut('Article ajouté ✓', 'succes');
+    await chargerReferences();    // recharge les produits (le nouveau apparaît)
+    reinit();
   } catch (e) {
-    cont.innerHTML = '<div class="accordeon-item"><span class="texte-petit texte-pale">Erreur de chargement.</span></div>';
-  }
+    statut('Échec : ' + e.message, 'erreur');
+  } finally { $('btn-enregistrer').disabled = false; }
 }
 
-/* ---- Branchements ---- */
+function reinit() {
+  $('cat').value = '';
+  resetSous();
+}
+
+/* ---------- Branchements ---------- */
 function initEntree() {
   $('btn-entrer').addEventListener('click', entrer);
   $('mdp').addEventListener('keydown', e => { if (e.key === 'Enter') entrer(); });
-  $('btn-ajouter').addEventListener('click', ajouter);
-  $('q-moins').addEventListener('click', () => majQte(-1));
-  $('q-plus').addEventListener('click', () => majQte(1));
+  $('cat').addEventListener('change', surCategorie);
+  $('souscat').addEventListener('change', surSousCategorie);
+  $('produit').addEventListener('change', surProduit);
+  $('btn-endroit').addEventListener('click', ajouterEndroit);
+  $('btn-enregistrer').addEventListener('click', enregistrer);
   $('lien-deco').addEventListener('click', deconnexion);
-  $('tete-transit').addEventListener('click', function () {
-    this.classList.toggle('ouvert');
-    $('liste-transit').style.display = this.classList.contains('ouvert') ? 'block' : 'none';
-  });
   if (Coffre.motDePasse()) montrerApp();
 }
-
 document.addEventListener('DOMContentLoaded', initEntree);

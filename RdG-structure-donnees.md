@@ -35,19 +35,22 @@ endroits en même temps).*
 |-----|-----|------|
 | A | ID | date/heure de création |
 | B | Nom | nom du produit |
-| C | CategorieID | lien vers CATEGORIES (peut rester vide = « fiche à terminer ») |
-| D | Unite | l'unité de mesure du produit (unité, sac, livre…), décidée une fois |
+| C | CategorieID | lien vers CATEGORIES (la sous-catégorie; peut rester vide = « fiche à terminer ») |
+| D | Unite | unité de mesure (legacy, souvent vide — le Format le remplace à l'usage) |
 | E | Actif | O / N |
+| F | Marque | marque du produit (optionnel) |
+| G | Format | format / grosseur, ex. « 500 g », « 2 L » (optionnel) |
 
-### EMPLACEMENTS — les places, en arbre (Lieu → Espace, profondeur libre)
+### EMPLACEMENTS — les rangements, en arbre (Meuble → Espace)
 
 | Col | Nom | Sens |
 |-----|-----|------|
 | A | ID | date/heure de création |
-| B | Nom | ex. « Frigo LG », « Porte du frigo », « Réserve sous-sol » |
-| C | ParentID | lien vers une autre ligne d'EMPLACEMENTS. Vide = un Lieu; rempli = un Espace dans ce Lieu |
+| B | Nom | le **meuble** (« Frigo », « Congélateur ») ou l'**espace** (« Tablette 1 », « Bac ») |
+| C | ParentID | vide = un **meuble**; rempli = un **espace** dans ce meuble |
 | D | SecteurID | lien vers SECTEURS |
 | E | Actif | O / N |
+| F | Couleur | couleur distinctive du meuble (HEX). Sur le meuble; vide sur l'espace (il en hérite) |
 
 ### STOCK — LE cœur : qui est rangé où, et combien
 *Une ligne par produit × place. Un même produit a autant de lignes que d'endroits.*
