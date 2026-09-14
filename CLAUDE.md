@@ -29,10 +29,11 @@ Principes structurels non négociables (détail dans `RdG-00`) : rien de fixe (l
 Brainstorm des 12 actions : **faits 1,2,3,4** · **partiel 8** · restent 5,6,7,11,12. (Point 4 « trouver » = même fiche que le 3 : où + quantité « X sur total », ligne « en transit », statut « déjà dans la liste »; peut lancer un déplacement = point 7.)
 
 **L'app neuve — en ligne (GitHub Pages, dépôt public `ngjcpvino/Reservedesgourmands`)** :
-- `index.html` (+`accueil.js`) — le **hub / page d'accueil** (racine du site) : hero photo + **4 blocs** + **5 accordéons** (Stock épuisé, Réserve vide, À consommer bientôt, En spécial, Listes en attente). **Bloc 1 (Entrée) → ouvre `reserve.html`**; les 3 autres (Trouver/Consommer/Listes) = avis « à venir ». Accordéons vides — à faire.
-- `reserve.html` (+`entree.js`) — **la fiche d'entrée d'un article** : catégorie → sous-catégorie → produit (choisir un existant OU « + Nouveau ») → **marque** → **format** → **1 à N endroits** (meuble → espace + quantité; la carte d'endroit prend la **couleur du meuble**). Enregistrer = crée le produit + les lignes de stock placées.
-- `base.css` = le style générique (voir Conventions). `coffre.js` = le client du coffre-fort (partagé).
-- ⚠️ L'ancien `index.html` a été **remplacé** par le nouvel accueil (2026-09-13). L'ANCIENNE app survit dans le dépôt (`styles.css`, `scripts-*.js`, `quin.html`) mais n'est plus reliée — ne PAS s'en servir.
+- **Arborescence** : HTML à la racine (`index.html`, `reserve.html`) · styles dans `CSS/` · scripts de page dans `JS/` · scripts serveur dans `gas/` (jamais poussés) · docs dans `docs/` · ancienne app dans `archive/`.
+- `index.html` (+`JS/accueil.js`) — le **hub / page d'accueil** (racine du site) : hero photo + **4 blocs** + **5 accordéons** (Stock épuisé, Réserve vide, À consommer bientôt, En spécial, Listes en attente). **Bloc 1 (Entrée) → ouvre `reserve.html`**; les 3 autres (Trouver/Consommer/Listes) = avis « à venir ». Accordéons vides — à faire.
+- `reserve.html` (+`JS/entree.js`) — **la fiche d'entrée d'un article** : catégorie → sous-catégorie → produit (choisir un existant OU « + Nouveau ») → **marque** → **format** → **1 à N endroits** (meuble → espace + quantité; la carte d'endroit prend la **couleur du meuble**). Enregistrer = crée le produit + les lignes de stock placées.
+- `CSS/base.css` = le style générique (voir Conventions). `JS/coffre.js` = le client du coffre-fort (partagé).
+- ⚠️ L'ancien `index.html` a été **remplacé** par le nouvel accueil (2026-09-13). L'ANCIENNE app survit dans `archive/` (`styles.css`, `styleQ.css`, `scripts-*.js`, `quin.html`) mais n'est plus reliée — ne PAS s'en servir.
 
 **Données (Sheet, 6 onglets — `RdG-structure-donnees.md`) — SEMÉES** :
 - Secteur **Épicerie**; **Catégories** : 12 rayons / 48 sous-cat (taillées depuis Super C → `RdG-categories-superc.md`); **Emplacements** : 22 **meubles** / 74 espaces, chacun sa **Couleur** (col. F ajoutée); **Produits** : colonnes **Marque** (F) + **Format** (G) ajoutées.
@@ -45,9 +46,9 @@ Brainstorm des 12 actions : **faits 1,2,3,4** · **partiel 8** · restent 5,6,7,
 
 ## Conventions de l'app (à respecter, ne pas régresser)
 
-- **Style** : tout dans **`base.css`**, générique — une base + variantes (`bouton` + `bouton-vert` + `bouton-grand`), noms **français**, **toute valeur au root** (changer une fois = partout). On réutilise; on n'ajoute un style que si aucun existant ne fait la job. (L'ancien `styles.css` ne sert QUE l'ancienne app.)
-- **Logique** : la communication avec le coffre-fort vit dans **`coffre.js`** (partagé : `Coffre.lire / ajouter / modifier / connexion`). **Aucun script inline** dans le HTML — chaque page = structure + `coffre.js` + son propre `.js`.
-- **App en ligne** : `reserve.html` / `accueil.html` (GitHub Pages) parlent au coffre-fort par **mot de passe** (Propriété du script `MOT_DE_PASSE`). URL du coffre-fort dans `coffre.js`.
+- **Style** : tout dans **`CSS/base.css`**, générique — une base + variantes (`bouton` + `bouton-vert` + `bouton-grand`), noms **français**, **toute valeur au root** (changer une fois = partout). On réutilise; on n'ajoute un style que si aucun existant ne fait la job. (L'ancien `styles.css`, désormais dans `archive/`, ne sert QUE l'ancienne app.)
+- **Logique** : la communication avec le coffre-fort vit dans **`JS/coffre.js`** (partagé : `Coffre.lire / ajouter / modifier / connexion`). **Aucun script inline** dans le HTML — chaque page = structure + `JS/coffre.js` + son propre `.js` (dans `JS/`).
+- **App en ligne** : `reserve.html` / `index.html` (GitHub Pages) parlent au coffre-fort par **mot de passe** (Propriété du script `MOT_DE_PASSE`). URL du coffre-fort dans `JS/coffre.js`.
 - **Vitesse (CRITIQUE)** : le coffre-fort répond en ~1 s/appel (mesuré) — c'est le NOMBRE d'appels qui tue, pas Apps Script. Règles : **jamais d'appels en parallèle** (le VPN de J-C les échappe → « Load failed ») → toujours **séquentiel**; **actions groupées côté serveur** (`references` = tout charger en 1 appel; `entrerArticle` = produit + stocks en 1 appel); **cache** des listes en `localStorage` (instantané ensuite); **login optimiste** (n'attend aucun appel réseau); **mot de passe en `localStorage`** (reste connecté). Modèle = Dionysos.
 
 ## Dionysos — l'app de référence de Jean-Claude
@@ -61,7 +62,7 @@ Son app d'inventaire de vin, **rapide et léchée** — LE modèle à imiter : `
 
 Le dépôt GitHub est **public**. Les fichiers **`.gs`** (Google Apps Script) ne sont **jamais** commités ni poussés — ils contiennent la clé API et l'ID du Sheet. Ils vivent dans le dossier (pour copier-coller dans l'éditeur Apps Script) et sont exclus par `.gitignore`.
 
-## Les documents (source de vérité, à lire)
+## Les documents (source de vérité, à lire — désormais dans `docs/`)
 
 - **`RdG-00-le-projet-fondations.md`** — « Le Projet » : le pourquoi, les principes, l'ordre de construction.
 - **`RdG-01-entree.md`** — brainstorm de juillet : la méthode complète + les 12 actions + l'entrée (point 1).
