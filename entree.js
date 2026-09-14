@@ -79,19 +79,26 @@ function appliquer(d) {
 async function chargerReferences() {
   const cache = lireCache();
   if (cache) { appliquer(cache); remplirCategories(); statut(''); }   // instantané si déjà vu
-  else statut('Chargement des listes…');
+  else statut('Chargement…');
   try {
-    const cats = await lireRetry('Categories');                       // 1) catégories -> l'entonnoir marche
-    appliquer({ cats: cats, emps: cache ? cache.emps : [], prods: cache ? cache.prods : [] });
-    remplirCategories(); statut('');
-    const emps = await lireRetry('Emplacements');                     // 2) puis le reste
-    const prods = await lireRetry('Produits');
-    const data = { cats: cats, emps: emps, prods: prods };
-    appliquer(data); ecrireCache(data);
+    const data = await chargerData();
+    appliquer(data); ecrireCache(data); remplirCategories(); statut('');
   } catch (e) {
     if (e.message === 'non autorisé') { Coffre.oublier(); revenirConnexion('Mot de passe refusé.'); }
     else if (!cache) statut('Réseau lent — patiente un instant ou recharge la page.', 'erreur');
   }
+}
+
+async function chargerData() {
+  try {
+    const r = await Coffre.references();          // chemin rapide : UN seul appel
+    if (r && r.ok && r.categories !== undefined) return { cats: r.categories, emps: r.emplacements, prods: r.produits };
+    if (r && r.erreur === 'non autorisé') throw new Error('non autorisé');
+  } catch (e) { if (e.message === 'non autorisé') throw e; }   // sinon on tente le repli
+  const cats = await lireRetry('Categories');     // repli : 3 appels un à la fois
+  const emps = await lireRetry('Emplacements');
+  const prods = await lireRetry('Produits');
+  return { cats: cats, emps: emps, prods: prods };
 }
 
 function options(liste, vide) {
@@ -205,15 +212,19 @@ async function enregistrer() {
   statut('Enregistrement…');
   $('btn-enregistrer').disabled = true;
   try {
+    const charge = nouveau ? { produit: [nom, scid, marque, format], endroits: endroits }
+                           : { produitId: produitId, endroits: endroits };
+    const r = await Coffre.entrerArticle(charge);          // UN seul appel
+    if (r && r.ok) { produitId = r.produitId || produitId; }
+    else if (r && r.erreur === 'action inconnue') {        // repli si coffre-fort pas encore à jour
+      if (nouveau) { const p = await Coffre.ajouter('Produits', ['', nom, scid, '', 'O', marque, format]); if (!p.ok) throw new Error(p.erreur || 'refus'); produitId = p.id; }
+      const date = new Date().toISOString().slice(0, 10);
+      for (const e of endroits) await Coffre.ajouter('Stock', ['', produitId, e.emp, e.qte, date]);
+    } else { throw new Error((r && r.erreur) || 'refus'); }
     if (nouveau) {
-      const p = await Coffre.ajouter('Produits', ['', nom, scid, '', 'O', marque, format]);
-      if (!p.ok) throw new Error(p.erreur || 'refus');
-      produitId = p.id;
       PRODUITS.push({ id: produitId, nom: nom, catId: scid, marque: marque, format: format });
       const c = lireCache(); if (c) { (c.prods = c.prods || []).push([produitId, nom, scid, '', 'O', marque, format]); ecrireCache(c); }
     }
-    const date = new Date().toISOString().slice(0, 10);
-    for (const e of endroits) await Coffre.ajouter('Stock', ['', produitId, e.emp, e.qte, date]);
     statut('Article ajouté ✓', 'succes');
     reinit();
   } catch (e) {

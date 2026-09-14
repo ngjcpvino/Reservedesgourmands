@@ -28,6 +28,10 @@ const Coffre = {
   ajouter(table, ligne)     { return this.appel({ action: 'ajouter', table, ligne }); },
   modifier(table, id, ligne){ return this.appel({ action: 'modifier', table, id, ligne }); },
 
+  // Rapides : un seul aller-retour
+  references()              { return this.appel({ action: 'references' }); },
+  entrerArticle(charge)     { return this.appel(Object.assign({ action: 'entrerArticle' }, charge)); },
+
   // Enregistre le mot de passe et vérifie qu'il est bon.
   async connexion(m) {
     this.definirMotDePasse(m);
