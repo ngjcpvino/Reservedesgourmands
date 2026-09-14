@@ -28,7 +28,6 @@
   --champ-focus:      #6b4f3a;
   --champ-focus-halo: rgba(107, 79, 58, 0.12);
   --placeholder:      #a08060;
-  --halo-clair:       rgba(255, 255, 255, 0.35);
 
   /* ---- Tailles de texte (échelle neutre : change la valeur, tout suit) ---- */
   --texte-micro:      12px;
@@ -325,21 +324,6 @@ select.champ {
 .message { font-size: var(--texte-petit); font-weight: var(--poids-leger); margin-top: var(--espace-s); min-height: 18px; }
 .message-erreur { color: var(--rouge); }
 .message-succes { color: var(--vert); }
-
-/* ============================================================
-   SPINNER — petit rond de chargement (attente d'un appel)
-============================================================ */
-.spinner {
-  display: inline-block;
-  width: 20px;
-  height: 20px;
-  border: 2.5px solid var(--champ-bord);
-  border-top-color: var(--brun);
-  border-radius: 50%;
-  animation: spinner-tourne 0.7s linear infinite;
-}
-.spinner-clair { border-color: var(--halo-clair); border-top-color: var(--blanc); }
-@keyframes spinner-tourne { to { transform: rotate(360deg); } }
 
 /* ============================================================
    GRILLE — disposition en colonnes (2 par défaut, ou 3)
