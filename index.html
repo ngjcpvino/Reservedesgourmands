@@ -9,7 +9,30 @@
 </head>
 <body>
 
-<div class="conteneur">
+<!-- ============================================================
+     PORTE — mot de passe (la première chose à l'ouverture)
+============================================================ -->
+<div id="vue-connexion" class="conteneur">
+  <div class="entete">
+    <div class="entete-photo">
+      <img src="https://images.unsplash.com/photo-1514237487632-b60bc844a47d?q=80&w=1920&auto=format&fit=crop" alt="La Réserve des Gourmands">
+      <div class="entete-titre">La<br>Réserve<br>des<br>Gourmands</div>
+    </div>
+  </div>
+  <div class="contenu">
+    <div class="titre">Mot de passe</div>
+    <div class="bloc">
+      <input class="champ" id="mdp" type="password" autocomplete="current-password" placeholder="Mot de passe">
+    </div>
+    <button class="bouton bouton-brun bouton-pleine" id="btn-entrer">Entrer</button>
+    <div class="message message-erreur" id="msg-connexion"></div>
+  </div>
+</div>
+
+<!-- ============================================================
+     ACCUEIL — le hub (une fois connecté)
+============================================================ -->
+<div id="vue-app" class="conteneur" hidden>
 
   <div class="entete">
     <div class="entete-photo">
@@ -35,9 +58,13 @@
     <div class="accordeon"><div class="accordeon-tete" data-toggle>En spécial cette semaine <span class="accordeon-fleche">▼</span></div><div class="accordeon-corps" hidden><div class="accordeon-item"><span class="texte-petit texte-pale">—</span></div></div></div>
     <div class="accordeon"><div class="accordeon-tete" data-toggle>Listes en attente <span class="accordeon-fleche">▼</span></div><div class="accordeon-corps" hidden><div class="accordeon-item"><span class="texte-petit texte-pale">—</span></div></div></div>
 
+    <!-- Se déconnecter — provisoire, ira dans un menu plus tard -->
+    <button class="bouton bouton-pleine" id="lien-deco" style="margin-top: var(--espace-xl);">Se déconnecter</button>
+
   </div>
 </div>
 
+<script src="JS/coffre.js"></script>
 <script src="JS/accueil.js"></script>
 </body>
 </html>
