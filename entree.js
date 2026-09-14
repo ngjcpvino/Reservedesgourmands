@@ -2,34 +2,33 @@
    ENTRÉE D'UN ARTICLE — reserve.html. Utilise Coffre (coffre.js).
    Flux : catégorie → sous-catégorie → produit (choisir ou créer)
           → marque · format → 1 à N endroits (meuble → espace + qté).
+   Chargement robuste : un appel à la fois (VPN-friendly), nouvel essai,
+   et mémorisation locale pour un accès instantané ensuite.
 ============================================================ */
 const $ = id => document.getElementById(id);
 const esc = s => String(s == null ? '' : s).replace(/[&<>"]/g, c => ({ '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;' }[c]));
 const montrer = (id, ok) => { $(id).hidden = !ok; };
 
-// Données de référence chargées après connexion
 var RAYONS = [], SOUSCATS = {}, MEUBLES = [], ESPACES = {}, PRODUITS = [];
+const CACHE = 'rdg_ref_v1';
 
 /* ---------- Connexion ---------- */
-async function entrer() {
+function entrer() {
   const pw = $('mdp').value.trim();
   if (!pw) return;
-  $('msg-connexion').textContent = 'Vérification…';
-  try {
-    if (await Coffre.connexion(pw)) montrerApp();
-    else $('msg-connexion').textContent = 'Mot de passe refusé.';
-  } catch (e) { $('msg-connexion').textContent = 'Connexion impossible.'; }
+  Coffre.definirMotDePasse(pw);   // pas d'appel bloquant : entrée instantanée
+  montrerApp();                    // la validation se fait en arrière-plan (au chargement)
 }
 
-async function montrerApp() {
+function revenirConnexion(msg) {
+  $('vue-app').hidden = true; $('vue-connexion').hidden = false;
+  $('msg-connexion').textContent = msg || '';
+}
+
+function montrerApp() {
   $('vue-connexion').hidden = true;
   $('vue-app').hidden = false;
-  $('msg').textContent = 'Chargement des listes…';
-  try {
-    await chargerReferences();
-    remplirCategories();
-    $('msg').textContent = '';
-  } catch (e) { $('msg').textContent = 'Erreur de chargement : ' + e.message; }
+  chargerReferences();
 }
 
 function deconnexion() {
@@ -39,29 +38,60 @@ function deconnexion() {
   $('mdp').value = ''; $('msg-connexion').textContent = '';
 }
 
-/* ---------- Chargement des références ---------- */
-async function chargerReferences() {
-  const [rc, re, rp] = await Promise.all([
-    Coffre.lire('Categories'), Coffre.lire('Emplacements'), Coffre.lire('Produits')
-  ]);
+/* ---------- Cache local des listes ---------- */
+function lireCache() { try { return JSON.parse(localStorage.getItem(CACHE) || 'null'); } catch (e) { return null; } }
+function ecrireCache(d) { try { localStorage.setItem(CACHE, JSON.stringify(d)); } catch (e) {} }
 
+/* Un appel, réessayé jusqu'à 3 fois. Retourne les lignes. */
+async function lireRetry(table) {
+  let err;
+  for (let i = 0; i < 3; i++) {
+    try {
+      const r = await Coffre.lire(table);
+      if (r && r.ok) return r.lignes || [];
+      if (r && r.erreur === 'non autorisé') throw new Error('non autorisé'); // inutile de réessayer
+      err = new Error((r && r.erreur) || 'refus');
+    } catch (e) { if (e.message === 'non autorisé') throw e; err = e; }
+    await new Promise(res => setTimeout(res, 500 * (i + 1)));
+  }
+  throw err;
+}
+
+/* Construit les listes de travail à partir des lignes brutes. */
+function appliquer(d) {
   RAYONS = []; SOUSCATS = {};
-  (rc.lignes || []).forEach(r => {                    // [ID,Nom,ParentID,SecteurID,DureeVie,Actif]
+  (d.cats || []).forEach(r => {                       // [ID,Nom,ParentID,SecteurID,DureeVie,Actif]
     if (String(r[5]) !== 'O') return;
     if (!r[2]) RAYONS.push({ id: r[0], nom: r[1] });
     else (SOUSCATS[r[2]] = SOUSCATS[r[2]] || []).push({ id: r[0], nom: r[1] });
   });
-
   MEUBLES = []; ESPACES = {};
-  (re.lignes || []).forEach(r => {                    // [ID,Nom,ParentID,SecteurID,Actif,Couleur]
+  (d.emps || []).forEach(r => {                       // [ID,Nom,ParentID,SecteurID,Actif,Couleur]
     if (String(r[4]) !== 'O') return;
     if (!r[2]) MEUBLES.push({ id: r[0], nom: r[1], couleur: r[5] || '' });
     else (ESPACES[r[2]] = ESPACES[r[2]] || []).push({ id: r[0], nom: r[1] });
   });
-
-  PRODUITS = (rp.lignes || [])                         // [ID,Nom,CategorieID,Unite,Actif,Marque,Format]
+  PRODUITS = (d.prods || [])                          // [ID,Nom,CategorieID,Unite,Actif,Marque,Format]
     .filter(r => String(r[4]) !== 'N')
     .map(r => ({ id: r[0], nom: r[1], catId: r[2], marque: r[5] || '', format: r[6] || '' }));
+}
+
+async function chargerReferences() {
+  const cache = lireCache();
+  if (cache) { appliquer(cache); remplirCategories(); statut(''); }   // instantané si déjà vu
+  else statut('Chargement des listes…');
+  try {
+    const cats = await lireRetry('Categories');                       // 1) catégories -> l'entonnoir marche
+    appliquer({ cats: cats, emps: cache ? cache.emps : [], prods: cache ? cache.prods : [] });
+    remplirCategories(); statut('');
+    const emps = await lireRetry('Emplacements');                     // 2) puis le reste
+    const prods = await lireRetry('Produits');
+    const data = { cats: cats, emps: emps, prods: prods };
+    appliquer(data); ecrireCache(data);
+  } catch (e) {
+    if (e.message === 'non autorisé') { Coffre.oublier(); revenirConnexion('Mot de passe refusé.'); }
+    else if (!cache) statut('Réseau lent — patiente un instant ou recharge la page.', 'erreur');
+  }
 }
 
 function options(liste, vide) {
@@ -71,17 +101,16 @@ function options(liste, vide) {
 
 /* ---------- Entonnoir ---------- */
 function remplirCategories() {
+  const garde = $('cat').value;
   $('cat').innerHTML = options(RAYONS, '— Catégorie —');
-  resetSous();
+  if (garde) $('cat').value = garde;
 }
-function resetSous() {
-  montrer('bloc-souscat', false); resetProduit();
-}
+function resetSous() { montrer('bloc-souscat', false); resetProduit(); }
 function resetProduit() {
   montrer('bloc-produit', false); montrer('bloc-nom', false);
   montrer('bloc-details', false); montrer('bloc-endroits', false);
   montrer('btn-enregistrer', false);
-  $('endroits').innerHTML = ''; $('msg').textContent = '';
+  $('endroits').innerHTML = '';
 }
 
 function surCategorie() {
@@ -94,8 +123,7 @@ function surCategorie() {
 function surSousCategorie() {
   const scid = $('souscat').value;
   const prods = PRODUITS.filter(p => p.catId === scid);
-  $('produit').innerHTML = options(prods, '— Produit —') +
-    '<option value="__nouveau">+ Nouveau produit</option>';
+  $('produit').innerHTML = options(prods, '— Produit —') + '<option value="__nouveau">+ Nouveau produit</option>';
   montrer('bloc-produit', !!scid);
   montrer('bloc-nom', false); montrer('bloc-details', false);
   montrer('bloc-endroits', false); montrer('btn-enregistrer', false);
@@ -137,15 +165,11 @@ function ajouterEndroit() {
   meuble.onchange = () => {
     const mid = meuble.value;
     const esp = ESPACES[mid] || [];
-    espace.innerHTML = esp.length
-      ? options(esp, '— Espace —')
-      : '<option value="">(directement sur le meuble)</option>';
+    espace.innerHTML = esp.length ? options(esp, '— Espace —') : '<option value="">(directement sur le meuble)</option>';
     const m = MEUBLES.find(x => x.id === mid);
     row.style.borderLeft = (m && m.couleur) ? ('5px solid ' + m.couleur) : '';
   };
-  row.querySelector('.retirer').onclick = () => {
-    if ($('endroits').children.length > 1) row.remove();
-  };
+  row.querySelector('.retirer').onclick = () => { if ($('endroits').children.length > 1) row.remove(); };
   $('endroits').appendChild(row);
 }
 
@@ -165,9 +189,8 @@ async function enregistrer() {
     nom = $('nom').value.trim();
     if (!nom) { statut('Donne un nom au produit.', 'erreur'); return; }
     nouveau = true;
-  } else if (pv) {
-    produitId = pv;
-  } else { statut('Choisis ou crée un produit.', 'erreur'); return; }
+  } else if (pv) { produitId = pv; }
+  else { statut('Choisis ou crée un produit.', 'erreur'); return; }
 
   const endroits = [];
   [...$('endroits').children].forEach(row => {
@@ -186,23 +209,19 @@ async function enregistrer() {
       const p = await Coffre.ajouter('Produits', ['', nom, scid, '', 'O', marque, format]);
       if (!p.ok) throw new Error(p.erreur || 'refus');
       produitId = p.id;
+      PRODUITS.push({ id: produitId, nom: nom, catId: scid, marque: marque, format: format });
+      const c = lireCache(); if (c) { (c.prods = c.prods || []).push([produitId, nom, scid, '', 'O', marque, format]); ecrireCache(c); }
     }
     const date = new Date().toISOString().slice(0, 10);
-    for (const e of endroits) {
-      await Coffre.ajouter('Stock', ['', produitId, e.emp, e.qte, date]);
-    }
+    for (const e of endroits) await Coffre.ajouter('Stock', ['', produitId, e.emp, e.qte, date]);
     statut('Article ajouté ✓', 'succes');
-    await chargerReferences();    // recharge les produits (le nouveau apparaît)
     reinit();
   } catch (e) {
     statut('Échec : ' + e.message, 'erreur');
   } finally { $('btn-enregistrer').disabled = false; }
 }
 
-function reinit() {
-  $('cat').value = '';
-  resetSous();
-}
+function reinit() { $('cat').value = ''; resetSous(); }
 
 /* ---------- Branchements ---------- */
 function initEntree() {
