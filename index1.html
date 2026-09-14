@@ -1,0 +1,290 @@
+
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>La Réserve des Gourmands</title>
+  <link href="https://api.fontshare.com/v2/css?f[]=cabinet-grotesk@100,200,300,400,500&display=swap" rel="stylesheet">
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/quagga/0.12.1/quagga.min.js"></script>
+  <script src="https://accounts.google.com/gsi/client" async defer></script>
+<link rel="stylesheet" href="styles.css">
+</head>
+<body> 
+
+  <!-- ============================================================
+       BURGER — fixe en haut à gauche
+  ============================================================ -->
+  <button class="bouton-burger bouton-burger-fixe" id="btn-burger" onclick="toggleMenu()">
+    <span class="bouton-burger-trait"></span>
+    <span class="bouton-burger-trait"></span>
+    <span class="bouton-burger-trait"></span>
+  </button>
+
+  <!-- ============================================================
+       MENU PLEIN ÉCRAN
+  ============================================================ -->
+  <div id="menu-principal" class="menu-overlay">
+    <div class="menu-contenu">
+
+      <div class="menu-accordeon-header" onclick="toggleMenuAccordeon(this)">
+        Inventaire <span class="accordeon-fleche">▼</span>
+      </div>
+      <div class="menu-accordeon-items">
+        <div class="menu-accordeon-item">Scanner</div>
+        <div class="menu-accordeon-item">Trouver</div>
+        <div class="menu-accordeon-item">Consommer</div>
+      </div>
+
+      <div class="menu-accordeon-header" onclick="toggleMenuAccordeon(this)">
+        Listes <span class="accordeon-fleche">▼</span>
+      </div>
+      <div class="menu-accordeon-items">
+        <div class="menu-accordeon-item">Liste d'épicerie</div>
+        <div class="menu-accordeon-item">Liste de pharmacie</div>
+      </div>
+
+      <div class="menu-accordeon-header" onclick="toggleMenuAccordeon(this)">
+        Recettes <span class="accordeon-fleche">▼</span>
+      </div>
+      <div class="menu-accordeon-items">
+        <div class="menu-accordeon-item">Toutes les recettes</div>
+        <div class="menu-accordeon-item">Favoris</div>
+      </div>
+
+      <div class="menu-accordeon-header" onclick="toggleMenuAccordeon(this)">
+        Configuration <span class="accordeon-fleche">▼</span>
+      </div>
+      <div class="menu-accordeon-items">
+        <div class="menu-accordeon-item">Emplacements</div>
+        <div class="menu-accordeon-item">Catégories</div>
+        <div class="menu-accordeon-item">Magasins</div>
+        <div class="menu-accordeon-item">Alertes</div>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- ============================================================
+       PAGE ACCUEIL
+  ============================================================ -->
+  <div class="app-conteneur" id="page-accueil">
+
+    <!-- EN-TÊTE PHOTO -->
+    <div class="entete-wrapper">
+      <div class="entete-photo">
+        <img
+          src="https://images.unsplash.com/photo-1514237487632-b60bc844a47d?q=80&w=1920&auto=format&fit=crop"
+          alt="La Réserve des Gourmands"
+        >
+        <div class="entete-titre">La<br>Réserve<br>des<br>Gourmands</div>
+      </div>
+    </div>
+
+    <!-- CONTENU -->
+    <div class="accueil-contenu">
+
+      <!-- BOUTONS PRINCIPAUX 2x2 -->
+      <div class="accueil-grille">
+       <button class="bouton-principal bouton-principal-brun" onclick="afficherPage('page-scanner')">
+          <span class="bouton-principal-icone"><img src="https://i.ibb.co/SDD5JZfq/scan.png" alt="Scanner"></span>
+        </button>
+        <button class="bouton-principal bouton-principal-vert">
+          <span class="bouton-principal-icone"><img src="https://i.ibb.co/xqZ284dg/loupe2.png" alt="Trouver"></span>
+        </button>
+        <button class="bouton-principal bouton-principal-orange">
+          <span class="bouton-principal-icone">✓</span>
+        </button>
+        <button class="bouton-principal bouton-principal-bleu">
+          <span class="bouton-principal-icone"><img src="https://i.ibb.co/dwxHdy6v/cards.png" alt="Listes"></span>
+        </button>
+      </div>
+
+      <div class="accordeon-container">
+        <div class="accordeon-header ouvert" onclick="toggleAccordeon(this)">
+          Stock épuisé <span class="accordeon-fleche">▼</span>
+        </div>
+        <div id="accordeon-stock"></div>
+      </div>
+
+      <div class="accordeon-container">
+        <div class="accordeon-header" onclick="toggleAccordeon(this)">
+          Réserve vide <span class="accordeon-fleche">▼</span>
+        </div>
+        <div id="accordeon-reserve"></div>
+      </div>
+
+      <div class="accordeon-container">
+        <div class="accordeon-header" onclick="toggleAccordeon(this)">
+          À consommer bientôt <span class="accordeon-fleche">▼</span>
+        </div>
+        <div id="accordeon-consommer"></div>
+      </div>
+
+      <div class="accordeon-container">
+        <div class="accordeon-header" onclick="toggleAccordeon(this)">
+          En spécial cette semaine <span class="accordeon-fleche">▼</span>
+        </div>
+        <div id="accordeon-special"></div>
+      </div>
+
+      <div class="accordeon-container">
+        <div class="accordeon-header" onclick="toggleAccordeon(this)">
+          Listes en attente <span class="accordeon-fleche">▼</span>
+        </div>
+        <div id="accordeon-listes"></div>
+      </div>
+
+    </div>
+  </div>
+<!-- ============================================================
+       PAGE SCANNER
+  ============================================================ -->
+  <div class="app-conteneur" id="page-scanner" style="display:none;">
+
+    <div class="entete-wrapper">
+      <div class="titre-page" style="padding-top: var(--espace-xl);">Scanner</div>
+    </div>
+
+    <div class="accueil-contenu">
+
+      <!-- CHOIX ACTION -->
+      <div id="scanner-choix" class="accueil-grille" style="grid-template-columns: 1fr 1fr 1fr; margin-bottom: var(--espace-xl);">
+        <button class="bouton-principal bouton-principal-brun" onclick="choisirAction('ajouter')">
+          <span class="bouton-principal-icone">＋</span>
+        </button>
+        <button class="bouton-principal bouton-principal-orange" onclick="choisirAction('consommer')">
+          <span class="bouton-principal-icone">✓</span>
+        </button>
+        <button class="bouton-principal bouton-principal-vert" onclick="choisirAction('trouver')">
+          <span class="bouton-principal-icone"><img src="https://i.ibb.co/xqZ284dg/loupe2.png" alt="Trouver"></span>
+        </button>
+      </div>
+
+      <!-- FENÊTRE CAMÉRA -->
+      <div id="scanner-camera" style="display:none;">
+        <div class="fenetre-camera" style="position:relative; overflow:hidden;">
+          <div id="interactive" style="width:100%; height:100%;"></div>
+          <div class="fenetre-camera-viseur"></div>
+          <div class="fenetre-camera-texte" id="scanner-feedback" style="position:absolute; bottom:var(--espace-m); left:0; right:0; text-align:center;">
+            Alignez le code-barres avec le cadre
+          </div>
+        </div>
+        <button class="bouton-secondaire" style="margin-top:var(--espace-m); width:100%;" onclick="arreterScan()">Annuler</button>
+        <button class="bouton-secondaire" style="margin-top:var(--espace-s); width:100%;" onclick="toggleSaisieManuelle()">Saisir manuellement</button>
+        <div id="saisie-manuelle" style="display:none; margin-top:var(--espace-s); display:none;">
+          <div class="filtre-recherche">
+            <input class="filtre-input" type="number" id="input-code-manuel" placeholder="Code-barres (8-13 chiffres)">
+            <button class="filtre-bouton actif" onclick="soumettreCodeManuel()">OK</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- RÉSULTAT -->
+      <div id="scanner-resultat" style="display:none;">
+        <div class="accordeon-container" style="margin-bottom:var(--espace-m);">
+          <div class="accordeon-header ouvert">
+            <span id="resultat-titre">Produit trouvé</span>
+          </div>
+          <div style="display:block; padding:var(--espace-m) var(--espace-l);">
+            <div id="resultat-contenu"></div>
+          </div>
+        </div>
+        <button class="bouton-confirmer" id="resultat-btn-action" style="margin-bottom:var(--espace-s);">Confirmer</button>
+        <button class="bouton-secondaire" style="width:100%;" onclick="recommencerScan()">Scanner un autre</button>
+      </div>
+
+    </div>
+
+
+    <!-- FORMULAIRE AJOUTER -->
+      <div id="scanner-formulaire" style="display:none;">
+
+        <div class="accordeon-container" style="margin-bottom:var(--espace-m);">
+          <div class="accordeon-header ouvert">
+            <span id="form-titre">Nouveau produit</span>
+          </div>
+          <div style="display:block; padding:var(--espace-m) var(--espace-l);">
+
+            <div id="form-photo-preview" style="margin-bottom:var(--espace-m);"></div>
+
+            <div style="margin-bottom:var(--espace-m);">
+              <input class="champ-texte" type="text" id="form-nom" placeholder="Nom du produit *">
+            </div>
+            <div style="margin-bottom:var(--espace-m);">
+              <input class="champ-texte" type="text" id="form-marque" placeholder="Marque">
+            </div>
+            <div style="margin-bottom:var(--espace-m);">
+              <input class="champ-texte" type="text" id="form-code" placeholder="Code-barres" readonly>
+            </div>
+
+            <div style="margin-bottom:var(--espace-m);">
+              <select class="liste-deroulante" id="form-categorie">
+                <option value="">-- Catégorie --</option>
+              </select>
+            </div>
+            <div style="margin-bottom:var(--espace-m);">
+              <select class="liste-deroulante" id="form-emplacement">
+                <option value="">-- Emplacement --</option>
+              </select>
+            </div>
+
+            <div style="margin-bottom:var(--espace-m);">
+              <div style="font-size:var(--taille-micro); color:var(--couleur-brun-clair); margin-bottom:var(--espace-xs);">Stock</div>
+              <div class="compteur-quantite">
+                <button class="compteur-btn" onclick="changerCompteur('form-stock', -1)">−</button>
+                <div class="compteur-valeur" id="form-stock">1</div>
+                <button class="compteur-btn" onclick="changerCompteur('form-stock', 1)">+</button>
+              </div>
+            </div>
+
+            <div style="margin-bottom:var(--espace-m);">
+              <div style="font-size:var(--taille-micro); color:var(--couleur-brun-clair); margin-bottom:var(--espace-xs);">Réserve</div>
+              <div class="compteur-quantite">
+                <button class="compteur-btn" onclick="changerCompteur('form-reserve', -1)">−</button>
+                <div class="compteur-valeur" id="form-reserve">0</div>
+                <button class="compteur-btn" onclick="changerCompteur('form-reserve', 1)">+</button>
+              </div>
+            </div>
+
+            <div style="margin-bottom:var(--espace-m);">
+              <div style="font-size:var(--taille-micro); color:var(--couleur-brun-clair); margin-bottom:var(--espace-xs);">Seuil d'alerte</div>
+              <div class="compteur-quantite">
+                <button class="compteur-btn" onclick="changerCompteur('form-seuil', -1)">−</button>
+                <div class="compteur-valeur" id="form-seuil">1</div>
+                <button class="compteur-btn" onclick="changerCompteur('form-seuil', 1)">+</button>
+              </div>
+            </div>
+
+            <div style="margin-bottom:var(--espace-m);">
+              <input class="champ-texte" type="date" id="form-expiration" placeholder="Date d'expiration">
+            </div>
+            <div style="margin-bottom:var(--espace-m);">
+              <input class="champ-texte" type="text" id="form-notes" placeholder="Notes (optionnel)">
+            </div>
+
+          </div>
+        </div>
+
+        <button class="bouton-confirmer" id="btn-sauvegarder" style="margin-bottom:var(--espace-s);" onclick="sauvegarderProduit()">Sauvegarder</button>
+        <button class="bouton-secondaire" style="width:100%;" onclick="recommencerScan()">Annuler</button>
+
+      </div>
+  </div>
+
+  <!-- ============================================================
+       fin PAGE SCANNER
+  ============================================================ -->
+<script src="scripts-config.js"></script>
+<script src="scripts-nav.js"></script>
+<script src="scripts-accueil.js"></script>
+<script src="scripts-scanner.js"></script>
+<script>
+  window.addEventListener('load', function() {
+    initialiserAccordeons();
+    initialiserMenuAccordeons();
+    chargerAccueil();
+  });
+</script>
+</body>
+</html>
