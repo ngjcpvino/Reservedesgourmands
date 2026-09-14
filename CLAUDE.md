@@ -52,7 +52,7 @@ Brainstorm des 12 actions : **faits 1,2,3,4** · **partiel 8** · restent 5,6,7,
 
 **⏳ EN ATTENTE — à faire par J-C (prévu demain)** : **redéployer le coffre-fort**. `gas/api.gs` a été refait en **mode « action »** (voir Vitesse). Coller le nouveau contenu dans le script `api`, puis **Déployer → Gérer les déploiements → crayon ✏️ → Nouvelle version** (GARDER la même URL, jamais « Nouveau déploiement »). Tant que ce n'est pas fait, l'app marche mais en **repli lent** (le client a un repli automatique).
 
-**À suivre (parkings)** : rangement des « en transit »; le scan (rafale d'arrivée d'épicerie); brancher les 4 blocs + navigation accueil↔fiche; contenu des accordéons (manque, péremption, spéciaux, listes = pts 5/6/12); durée de vie sur les sous-catégories; **spinner** comme Dionysos; page de gestion des listes de base; **page unique / SPA (panneaux au lieu de `.html` séparés) — reco du dev Dionysos : ne plus recharger à chaque écran; fusionnerait `index.html`+`reserve.html`, donc à DÉCIDER avec J-C**.
+**À suivre (parkings)** : rangement des « en transit »; le scan (rafale d'arrivée d'épicerie); brancher les 4 blocs + navigation accueil↔fiche; contenu des accordéons (manque, péremption, spéciaux, listes = pts 5/6/12); durée de vie sur les sous-catégories; **spinner** comme Dionysos; page de gestion des listes de base; **page unique / SPA (panneaux au lieu de `.html` séparés) — reco du dev Dionysos, vaut pour le projet `rdg.html` SEUL. ⚠️ `index.html` et `rdg.html` = 2 projets SÉPARÉS, jamais les fusionner.**
 
 ## Conventions de l'app (à respecter, ne pas régresser)
 
