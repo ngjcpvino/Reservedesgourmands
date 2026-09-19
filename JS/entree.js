@@ -12,30 +12,44 @@ const montrer = (id, ok) => { $(id).hidden = !ok; };
 var RAYONS = [], SOUSCATS = {}, MEUBLES = [], ESPACES = {}, PRODUITS = [];
 const CACHE = 'rdg_ref_v1';
 
-/* ---------- Connexion ---------- */
-function entrer() {
-  const pw = $('mdp').value.trim();
-  if (!pw) return;
-  Coffre.definirMotDePasse(pw);   // pas d'appel bloquant : entrée instantanée
-  montrerApp();                    // la validation se fait en arrière-plan (au chargement)
+/* ---------- Vues : connexion → page d'ouverture → formulaire ---------- */
+function toutCacher() {
+  $('vue-connexion').hidden = true;
+  $('vue-accueil').hidden = true;
+  $('vue-app').hidden = true;
 }
-
+function montrerAccueil()    { toutCacher(); $('vue-accueil').hidden = false; fermerMenu(); }
+function montrerFormulaire() { toutCacher(); $('vue-app').hidden = false; fermerMenu(); chargerReferences(); }
 function revenirConnexion(msg) {
-  $('vue-app').hidden = true; $('vue-connexion').hidden = false;
+  toutCacher(); $('vue-connexion').hidden = false; fermerMenu();
   $('msg-connexion').textContent = msg || '';
 }
 
-function montrerApp() {
-  $('vue-connexion').hidden = true;
-  $('vue-app').hidden = false;
-  chargerReferences();
+function entrer() {
+  const pw = $('mdp').value.trim();
+  if (!pw) return;
+  Coffre.definirMotDePasse(pw);   // login optimiste : aucun appel bloquant
+  montrerAccueil();                // → la page d'ouverture
 }
 
 function deconnexion() {
   Coffre.oublier();
-  $('vue-app').hidden = true;
-  $('vue-connexion').hidden = false;
   $('mdp').value = ''; $('msg-connexion').textContent = '';
+  revenirConnexion();
+}
+
+/* ---------- Menu burger ---------- */
+function fermerMenu()   { $('menu').hidden = true; }
+function basculerMenu() { $('menu').hidden = !$('menu').hidden; }
+
+/* ---------- Toast « à venir » ---------- */
+function avis(txt) {
+  let t = document.querySelector('.toast');
+  if (!t) { t = document.createElement('div'); t.className = 'toast toast-avis'; document.body.appendChild(t); }
+  t.textContent = txt;
+  requestAnimationFrame(() => t.classList.add('visible'));
+  clearTimeout(t._h);
+  t._h = setTimeout(() => t.classList.remove('visible'), 1600);
 }
 
 /* ---------- Cache local des listes ---------- */
@@ -236,14 +250,30 @@ function reinit() { $('cat').value = ''; resetSous(); }
 
 /* ---------- Branchements ---------- */
 function initEntree() {
+  // connexion
   $('btn-entrer').addEventListener('click', entrer);
   $('mdp').addEventListener('keydown', e => { if (e.key === 'Enter') entrer(); });
+  // page d'ouverture : menu burger + items
+  $('btn-burger').addEventListener('click', basculerMenu);
+  $('menu-ouverture').addEventListener('click', montrerAccueil);   // 1er item = retour à l'ouverture
+  $('menu-deco').addEventListener('click', deconnexion);
+  // boutons de l'accueil : éteints pour l'instant (avis « à venir »)
+  document.querySelectorAll('#vue-accueil .bouton[data-avenir]').forEach(b =>
+    b.addEventListener('click', () => avis(b.dataset.avenir + ' — à venir')));
+  document.querySelectorAll('#vue-accueil .accordeon-tete[data-toggle]').forEach(tete =>
+    tete.addEventListener('click', () => {
+      tete.classList.toggle('ouvert');
+      const c = tete.nextElementSibling;
+      if (c) c.hidden = !tete.classList.contains('ouvert');
+    }));
+  // formulaire d'entrée (accessible quand on allumera le bouton Entrée)
   $('cat').addEventListener('change', surCategorie);
   $('souscat').addEventListener('change', surSousCategorie);
   $('produit').addEventListener('change', surProduit);
   $('btn-endroit').addEventListener('click', ajouterEndroit);
   $('btn-enregistrer').addEventListener('click', enregistrer);
   $('lien-deco').addEventListener('click', deconnexion);
-  if (Coffre.motDePasse()) montrerApp();
+  // reste connecté → page d'ouverture directement
+  if (Coffre.motDePasse()) montrerAccueil();
 }
 document.addEventListener('DOMContentLoaded', initEntree);

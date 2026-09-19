@@ -357,3 +357,54 @@ select.champ {
 .toast-avis   { background: var(--brun-fonce); }
 .toast-succes { background: var(--vert); }
 .toast-erreur { background: var(--rouge); }
+
+/* ============================================================
+   MENU BURGER — bouton fixe en haut à DROITE + menu plein écran
+============================================================ */
+.burger {
+  position: fixed;
+  top: var(--espace-l);
+  right: var(--espace-l);
+  z-index: 230;
+  width: var(--tactile);
+  height: var(--tactile);
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: 5px;
+  padding: 0 10px;
+  background: rgba(255, 255, 255, 0.85);
+  border: none;
+  border-radius: var(--rayon);
+  box-shadow: var(--ombre-bouton);
+  cursor: pointer;
+}
+.burger span { display: block; height: 2px; background: var(--brun-fonce); border-radius: 2px; }
+
+.menu {
+  position: fixed;
+  inset: 0;
+  z-index: 220;
+  background: var(--creme);
+  overflow-y: auto;
+  padding: calc(var(--tactile) + var(--espace-xl)) var(--espace-l) var(--espace-l);
+}
+.menu-contenu { max-width: 700px; margin: 0 auto; }
+.menu-item {
+  display: block;
+  width: 100%;
+  text-align: left;
+  min-height: var(--tactile);
+  padding: var(--espace-m) var(--espace-l);
+  margin-bottom: var(--espace-s);
+  background: var(--blanc);
+  border: none;
+  border-radius: var(--rayon);
+  box-shadow: var(--ombre-bouton);
+  font-family: var(--police);
+  font-size: var(--texte-moyen);
+  color: var(--brun-fonce);
+  cursor: pointer;
+  transition: var(--transition);
+}
+.menu-item:hover { background: var(--survol); }
