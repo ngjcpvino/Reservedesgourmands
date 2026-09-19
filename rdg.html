@@ -7,7 +7,7 @@
 <link href="https://api.fontshare.com/v2/css?f[]=cabinet-grotesk@100,200,300,400,500&display=swap" rel="stylesheet">
   <link rel="icon" type="image/svg+xml" href="/favicon.svg">
 
-<link rel="stylesheet" href="CSS/rdg.css?v=1">
+<link rel="stylesheet" href="CSS/rdg.css?v=2">
 </head>
 <body>
 
@@ -27,6 +27,47 @@
     </div>
     <button class="bouton bouton-brun bouton-pleine" id="btn-entrer">Entrer</button>
     <div class="message message-erreur" id="msg-connexion"></div>
+  </div>
+</div>
+
+<!-- ============================================================
+     PAGE D'OUVERTURE (accueil) — s'affiche après le mot de passe
+============================================================ -->
+<div id="vue-accueil" class="conteneur" hidden>
+
+  <!-- Menu burger (à DROITE) + menu plein écran -->
+  <button class="burger" id="btn-burger" type="button" aria-label="Menu">
+    <span></span><span></span><span></span>
+  </button>
+  <div id="menu" class="menu" hidden>
+    <div class="menu-contenu">
+      <button class="menu-item" id="menu-ouverture" type="button">Page d'ouverture</button>
+      <button class="menu-item" id="menu-deco" type="button">Se déconnecter</button>
+    </div>
+  </div>
+
+  <!-- Photo -->
+  <div class="entete">
+    <div class="entete-photo">
+      <img src="https://images.unsplash.com/photo-1514237487632-b60bc844a47d?q=80&w=1920&auto=format&fit=crop" alt="La Réserve des Gourmands">
+      <div class="entete-titre">La<br>Réserve<br>des<br>Gourmands</div>
+    </div>
+  </div>
+
+  <!-- 4 boutons (éteints pour l'instant) + accordéons -->
+  <div class="contenu">
+    <div class="grille" style="margin-bottom: var(--espace-xl);">
+      <button class="bouton bouton-brun bouton-grand" data-avenir="Entrée"><span class="icone"><img src="https://i.ibb.co/SDD5JZfq/scan.png" alt=""></span></button>
+      <button class="bouton bouton-vert bouton-grand" data-avenir="Trouver"><span class="icone"><img src="https://i.ibb.co/xqZ284dg/loupe2.png" alt=""></span></button>
+      <button class="bouton bouton-orange bouton-grand" data-avenir="Consommer"><span class="icone">✓</span></button>
+      <button class="bouton bouton-bleu bouton-grand" data-avenir="Listes"><span class="icone"><img src="https://i.ibb.co/dwxHdy6v/cards.png" alt=""></span></button>
+    </div>
+
+    <div class="accordeon"><div class="accordeon-tete" data-toggle>Stock épuisé <span class="accordeon-fleche">▼</span></div><div class="accordeon-corps" hidden><div class="accordeon-item"><span class="texte-petit texte-pale">—</span></div></div></div>
+    <div class="accordeon"><div class="accordeon-tete" data-toggle>Réserve vide <span class="accordeon-fleche">▼</span></div><div class="accordeon-corps" hidden><div class="accordeon-item"><span class="texte-petit texte-pale">—</span></div></div></div>
+    <div class="accordeon"><div class="accordeon-tete" data-toggle>À consommer bientôt <span class="accordeon-fleche">▼</span></div><div class="accordeon-corps" hidden><div class="accordeon-item"><span class="texte-petit texte-pale">—</span></div></div></div>
+    <div class="accordeon"><div class="accordeon-tete" data-toggle>En spécial cette semaine <span class="accordeon-fleche">▼</span></div><div class="accordeon-corps" hidden><div class="accordeon-item"><span class="texte-petit texte-pale">—</span></div></div></div>
+    <div class="accordeon"><div class="accordeon-tete" data-toggle>Listes en attente <span class="accordeon-fleche">▼</span></div><div class="accordeon-corps" hidden><div class="accordeon-item"><span class="texte-petit texte-pale">—</span></div></div></div>
   </div>
 </div>
 
@@ -88,6 +129,6 @@
 </div>
 
 <script src="JS/coffre.js?v=1"></script>
-<script src="JS/entree.js?v=1"></script>
+<script src="JS/entree.js?v=2"></script>
 </body>
 </html>
