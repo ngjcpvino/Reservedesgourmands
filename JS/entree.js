@@ -262,9 +262,16 @@ function initEntree() {
     b.addEventListener('click', () => avis(b.dataset.avenir + ' — à venir')));
   document.querySelectorAll('#vue-accueil .accordeon-tete[data-toggle]').forEach(tete =>
     tete.addEventListener('click', () => {
-      tete.classList.toggle('ouvert');
-      const c = tete.nextElementSibling;
-      if (c) c.hidden = !tete.classList.contains('ouvert');
+      const ouvrir = !tete.classList.contains('ouvert');
+      // un seul ouvert à la fois : on ferme tous les autres d'abord
+      document.querySelectorAll('#vue-accueil .accordeon-tete[data-toggle]').forEach(t => {
+        t.classList.remove('ouvert');
+        if (t.nextElementSibling) t.nextElementSibling.hidden = true;
+      });
+      if (ouvrir) {
+        tete.classList.add('ouvert');
+        if (tete.nextElementSibling) tete.nextElementSibling.hidden = false;
+      }
     }));
   // formulaire d'entrée (accessible quand on allumera le bouton Entrée)
   $('cat').addEventListener('change', surCategorie);
