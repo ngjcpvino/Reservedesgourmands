@@ -101,7 +101,7 @@ body {
   overflow: hidden;
   border-radius: var(--rayon);
 }
-.entete-photo img { width: 100%; height: 100%; object-fit: cover; display: block; }
+.entete-photo img { width: 100%; height: 100%; object-fit: cover; object-position: top; display: block; }
 .entete-titre {
   position: absolute;
   bottom: var(--espace-xl);
