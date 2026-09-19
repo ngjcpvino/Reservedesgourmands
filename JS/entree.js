@@ -16,8 +16,12 @@ const CACHE = 'rdg_ref_v1';
 function toutCacher() {
   $('vue-connexion').hidden = true;
   $('vue-accueil').hidden = true;
+  $('vue-choix-quoi').hidden = true;
+  $('vue-choix-comment').hidden = true;
   $('vue-app').hidden = true;
 }
+function montrerChoixQuoi()    { toutCacher(); $('vue-choix-quoi').hidden = false; fermerMenu(); }
+function montrerChoixComment() { toutCacher(); $('vue-choix-comment').hidden = false; fermerMenu(); }
 function montrerAccueil()    { toutCacher(); $('vue-accueil').hidden = false; fermerMenu(); }
 function montrerFormulaire() { toutCacher(); $('vue-app').hidden = false; fermerMenu(); chargerReferences(); }
 function revenirConnexion(msg) {
@@ -273,7 +277,15 @@ function initEntree() {
         if (tete.nextElementSibling) tete.nextElementSibling.hidden = false;
       }
     }));
-  // formulaire d'entrée (accessible quand on allumera le bouton Entrée)
+  // bouton 1 → choix « quoi » (un produit / toute l'épicerie) → choix « comment » (scanner / à la main)
+  $('btn-entree').addEventListener('click', montrerChoixQuoi);
+  $('choix-produit').addEventListener('click', montrerChoixComment);
+  $('choix-epicerie').addEventListener('click', () => avis("Toute l'épicerie — à venir"));
+  $('choix-scan').addEventListener('click', () => avis('Scanner — à venir'));
+  $('choix-manuel').addEventListener('click', montrerFormulaire);
+  $('retour-accueil-1').addEventListener('click', montrerAccueil);
+  $('retour-quoi').addEventListener('click', montrerChoixQuoi);
+  // formulaire d'entrée
   $('cat').addEventListener('change', surCategorie);
   $('souscat').addEventListener('change', surSousCategorie);
   $('produit').addEventListener('change', surProduit);

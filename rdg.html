@@ -58,7 +58,7 @@
   <!-- 4 boutons (éteints pour l'instant) + accordéons -->
   <div class="contenu">
     <div class="grille" style="margin-bottom: var(--espace-xl);">
-      <button class="bouton bouton-brun bouton-grand" data-avenir="Entrée"><span class="icone"><img src="https://i.ibb.co/SDD5JZfq/scan.png" alt=""></span></button>
+      <button class="bouton bouton-brun bouton-grand" id="btn-entree" type="button"><span class="icone"><img src="https://i.ibb.co/SDD5JZfq/scan.png" alt=""></span></button>
       <button class="bouton bouton-vert bouton-grand" data-avenir="Trouver"><span class="icone"><img src="https://i.ibb.co/xqZ284dg/loupe2.png" alt=""></span></button>
       <button class="bouton bouton-orange bouton-grand" data-avenir="Consommer"><span class="icone">✓</span></button>
       <button class="bouton bouton-bleu bouton-grand" data-avenir="Listes"><span class="icone"><img src="https://i.ibb.co/dwxHdy6v/cards.png" alt=""></span></button>
@@ -69,6 +69,27 @@
     <div class="accordeon"><div class="accordeon-tete" data-toggle>À consommer bientôt <span class="accordeon-fleche">▼</span></div><div class="accordeon-corps" hidden><div class="accordeon-item"><span class="texte-petit texte-pale">—</span></div></div></div>
     <div class="accordeon"><div class="accordeon-tete" data-toggle>En spécial cette semaine <span class="accordeon-fleche">▼</span></div><div class="accordeon-corps" hidden><div class="accordeon-item"><span class="texte-petit texte-pale">—</span></div></div></div>
     <div class="accordeon"><div class="accordeon-tete" data-toggle>Listes en attente <span class="accordeon-fleche">▼</span></div><div class="accordeon-corps" hidden><div class="accordeon-item"><span class="texte-petit texte-pale">—</span></div></div></div>
+  </div>
+</div>
+
+<!-- ============================================================
+     CHOIX — 1) quoi entrer  2) comment
+============================================================ -->
+<div id="vue-choix-quoi" class="conteneur" hidden>
+  <div class="contenu">
+    <div class="titre" style="margin-top: var(--espace-xl);">Entrer</div>
+    <button class="bouton bouton-brun bouton-pleine" id="choix-produit" type="button" style="margin-bottom: var(--espace-m);">Un produit</button>
+    <button class="bouton bouton-brun bouton-pleine" id="choix-epicerie" type="button">Toute l'épicerie</button>
+    <button class="bouton bouton-pleine" id="retour-accueil-1" type="button" style="margin-top: var(--espace-xl);">← Retour</button>
+  </div>
+</div>
+
+<div id="vue-choix-comment" class="conteneur" hidden>
+  <div class="contenu">
+    <div class="titre" style="margin-top: var(--espace-xl);">Un produit</div>
+    <button class="bouton bouton-brun bouton-pleine" id="choix-scan" type="button" style="margin-bottom: var(--espace-m);">Scanner</button>
+    <button class="bouton bouton-brun bouton-pleine" id="choix-manuel" type="button">À la main</button>
+    <button class="bouton bouton-pleine" id="retour-quoi" type="button" style="margin-top: var(--espace-xl);">← Retour</button>
   </div>
 </div>
 
@@ -130,6 +151,6 @@
 </div>
 
 <script src="JS/coffre.js?v=1"></script>
-<script src="JS/entree.js?v=4"></script>
+<script src="JS/entree.js?v=5"></script>
 </body>
 </html>
