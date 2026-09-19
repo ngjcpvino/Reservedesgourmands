@@ -39,8 +39,8 @@ function deconnexion() {
 }
 
 /* ---------- Menu burger ---------- */
-function fermerMenu()   { $('menu').hidden = true; }
-function basculerMenu() { $('menu').hidden = !$('menu').hidden; }
+function fermerMenu()   { $('menu').classList.remove('ouvert'); }
+function basculerMenu() { $('menu').classList.toggle('ouvert'); }
 
 /* ---------- Toast « à venir » ---------- */
 function avis(txt) {

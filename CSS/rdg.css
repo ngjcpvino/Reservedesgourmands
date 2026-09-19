@@ -363,7 +363,7 @@ select.champ {
 ============================================================ */
 .burger {
   position: fixed;
-  top: var(--espace-l);
+  top: var(--espace-xl);                 /* aligné avec le haut de la photo */
   right: max(var(--espace-l), calc(50% - 350px + var(--espace-l)));   /* collé au conteneur (700px), pas au bord de l'écran */
   z-index: 230;
   width: var(--tactile);
@@ -373,7 +373,7 @@ select.champ {
   align-items: center;
   justify-content: center;
   gap: 5px;
-  background: var(--blanc);
+  background: rgba(255, 255, 255, 0.75);
   border: none;
   border-radius: var(--rayon);
   box-shadow: var(--ombre-bouton);
@@ -385,28 +385,31 @@ select.champ {
 
 .menu {
   position: fixed;
-  inset: 0;
+  top: 0; right: 0; bottom: 0;            /* panneau latéral à DROITE */
   z-index: 220;
-  background: var(--creme);
+  min-width: 220px;
+  background: var(--brun-fonce);          /* brun foncé, comme index */
   overflow-y: auto;
-  padding: calc(var(--tactile) + var(--espace-xl)) var(--espace-l) var(--espace-l);
+  transform: translateX(100%);            /* caché hors écran à droite */
+  transition: transform 0.3s ease;
 }
-.menu-contenu { max-width: 700px; margin: 0 auto; }
+.menu.ouvert { transform: translateX(0); }
+.menu-contenu { padding: 80px var(--espace-l) var(--espace-xl); white-space: nowrap; }
 .menu-item {
-  display: block;
+  display: flex;
+  align-items: center;
   width: 100%;
-  text-align: left;
   min-height: var(--tactile);
   padding: var(--espace-m) var(--espace-l);
-  margin-bottom: var(--espace-s);
-  background: var(--blanc);
+  background: rgba(255, 252, 248, 0.08);
   border: none;
-  border-radius: var(--rayon);
-  box-shadow: var(--ombre-bouton);
+  border-top: 1px solid rgba(255, 252, 248, 0.06);
   font-family: var(--police);
   font-size: var(--texte-moyen);
-  color: var(--brun-fonce);
+  font-weight: var(--poids-fort);
+  color: var(--creme);
+  text-align: left;
   cursor: pointer;
   transition: var(--transition);
 }
-.menu-item:hover { background: var(--survol); }
+.menu-item:hover { background: rgba(255, 252, 248, 0.13); }
