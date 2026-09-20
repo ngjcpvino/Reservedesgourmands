@@ -275,7 +275,7 @@ function ajouterEndroit(pref) {
     '<div class="bloc"><div class="label">Pièce</div><select class="champ piece"></select></div>' +
     '<div class="bloc"><div class="label">Meuble</div><select class="champ meuble"></select></div>' +
     '<div class="bloc"><div class="label">Espace</div><select class="champ espace"></select></div>' +
-    '<div class="bloc"><div class="label">Quantité</div><input class="champ qte" type="number" min="0" value="1"></div>' +
+    '<div class="bloc"><div class="label">Quantité</div><input class="champ qte" type="text" inputmode="numeric" pattern="[0-9]*" value="1"></div>' +
     '<button class="bouton bouton-petit retirer" type="button">Retirer</button>';
 
   const piece = row.querySelector('.piece');
