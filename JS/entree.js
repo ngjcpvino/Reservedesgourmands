@@ -1,7 +1,7 @@
 /* ============================================================
    ENTRÉE D'UN ARTICLE — reserve.html. Utilise Coffre (coffre.js).
    Flux : catégorie → sous-catégorie → produit (choisir ou créer)
-          → marque · format → 1 à N endroits (meuble → espace + qté).
+          → marque · format → 1 à N endroits (pièce → meuble → espace + qté).
    Chargement robuste : un appel à la fois (VPN-friendly), nouvel essai,
    et mémorisation locale pour un accès instantané ensuite.
 ============================================================ */
@@ -239,15 +239,25 @@ function ajouterEndroit() {
   row.className = 'endroit carte';
   row.style.marginBottom = 'var(--espace-s)';
   row.innerHTML =
+    '<div class="bloc"><div class="label">Pièce</div><select class="champ piece"></select></div>' +
     '<div class="bloc"><div class="label">Meuble</div><select class="champ meuble"></select></div>' +
     '<div class="bloc"><div class="label">Espace</div><select class="champ espace"></select></div>' +
     '<div class="bloc"><div class="label">Quantité</div><input class="champ qte" type="number" min="0" value="1"></div>' +
     '<button class="bouton bouton-petit retirer" type="button">Retirer</button>';
 
+  const piece = row.querySelector('.piece');
   const meuble = row.querySelector('.meuble');
   const espace = row.querySelector('.espace');
-  meuble.innerHTML = options(MEUBLES, '— Meuble —');
+  piece.innerHTML = options(PIECES, '— Pièce —');
+  meuble.innerHTML = '<option value="">—</option>';
   espace.innerHTML = '<option value="">—</option>';
+
+  piece.onchange = () => {
+    const mbs = MEUBLES.filter(m => String(m.pieceId) === String(piece.value));
+    meuble.innerHTML = mbs.length ? options(mbs, '— Meuble —') : '<option value="">(aucun meuble)</option>';
+    espace.innerHTML = '<option value="">—</option>';
+    row.style.borderLeft = '';
+  };
 
   meuble.onchange = () => {
     const mid = meuble.value;
