@@ -9,8 +9,8 @@ const $ = id => document.getElementById(id);
 const esc = s => String(s == null ? '' : s).replace(/[&<>"]/g, c => ({ '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;' }[c]));
 const montrer = (id, ok) => { $(id).hidden = !ok; };
 
-var RAYONS = [], SOUSCATS = {}, MEUBLES = [], ESPACES = {}, PRODUITS = [];
-const CACHE = 'rdg_ref_v1';
+var RAYONS = [], SOUSCATS = {}, MEUBLES = [], ESPACES = {}, PRODUITS = [], VARIANTES = {};
+const CACHE = 'rdg_ref_v2';
 
 /* ---------- Vues : connexion → page d'ouverture → formulaire ---------- */
 function toutCacher() {
@@ -93,7 +93,8 @@ function appliquer(d) {
   });
   PRODUITS = (d.prods || [])                          // [ID,Nom,CategorieID,Unite,Actif,Marque,Format]
     .filter(r => String(r[4]) !== 'N')
-    .map(r => ({ id: r[0], nom: r[1], catId: r[2], marque: r[5] || '', format: r[6] || '' }));
+    .map(r => ({ id: r[0], nom: r[1], catId: r[2] }));
+  VARIANTES = d.variantes || {};                      // { produitId: { marques:[], formats:[] } }
 }
 
 async function chargerReferences() {
@@ -112,7 +113,7 @@ async function chargerReferences() {
 async function chargerData() {
   try {
     const r = await Coffre.references();          // chemin rapide : UN seul appel
-    if (r && r.ok && r.categories !== undefined) return { cats: r.categories, emps: r.emplacements, prods: r.produits };
+    if (r && r.ok && r.categories !== undefined) return { cats: r.categories, emps: r.emplacements, prods: r.produits, variantes: r.variantes };
     if (r && r.erreur === 'non autorisé') throw new Error('non autorisé');
   } catch (e) { if (e.message === 'non autorisé') throw e; }   // sinon on tente le repli
   const cats = await lireRetry('Categories');     // repli : 3 appels un à la fois
@@ -157,16 +158,33 @@ function surSousCategorie() {
   $('endroits').innerHTML = '';
 }
 
+/* Remplit les suggestions (datalist) de marque/format pour un produit. */
+function remplirVariantes(pid) {
+  const vr = (pid && VARIANTES[pid]) || { marques: [], formats: [] };
+  $('dl-marques').innerHTML = (vr.marques || []).map(x => '<option value="' + esc(x) + '"></option>').join('');
+  $('dl-formats').innerHTML = (vr.formats || []).map(x => '<option value="' + esc(x) + '"></option>').join('');
+}
+
+/* Retient localement une marque/format pour un produit (suggestions immédiates + cache). */
+function memoriserVariante(pid, marque, format) {
+  if (!pid || (!marque && !format)) return;
+  const vr = VARIANTES[pid] || (VARIANTES[pid] = { marques: [], formats: [] });
+  if (marque && vr.marques.indexOf(marque) === -1) vr.marques.push(marque);
+  if (format && vr.formats.indexOf(format) === -1) vr.formats.push(format);
+  const c = lireCache(); if (c) { (c.variantes = c.variantes || {})[pid] = vr; ecrireCache(c); }
+}
+
 function surProduit() {
   const v = $('produit').value;
   if (!v) { montrer('bloc-details', false); montrer('bloc-endroits', false); montrer('btn-enregistrer', false); return; }
   if (v === '__nouveau') {
-    montrer('bloc-nom', true); $('nom').value = ''; $('marque').value = ''; $('format').value = '';
+    montrer('bloc-nom', true); $('nom').value = '';
+    remplirVariantes(null);                 // nouveau produit : aucune suggestion
   } else {
     montrer('bloc-nom', false);
-    const p = PRODUITS.find(x => x.id === v);
-    $('marque').value = p ? p.marque : ''; $('format').value = p ? p.format : '';
+    remplirVariantes(v);                     // suggestions = marques/formats déjà vus pour ce produit
   }
+  $('marque').value = ''; $('format').value = '';   // ne se pré-remplit plus (marque/format changent d'une fois à l'autre)
   montrer('bloc-details', true);
   montrer('bloc-endroits', true);
   if (!$('endroits').children.length) ajouterEndroit();
@@ -232,19 +250,20 @@ async function enregistrer() {
   statut('Enregistrement…');
   $('btn-enregistrer').disabled = true;
   try {
-    const charge = nouveau ? { produit: [nom, scid, marque, format], endroits: endroits }
-                           : { produitId: produitId, endroits: endroits };
+    const charge = nouveau ? { produit: [nom, scid], marque: marque, format: format, endroits: endroits }
+                           : { produitId: produitId, marque: marque, format: format, endroits: endroits };
     const r = await Coffre.entrerArticle(charge);          // UN seul appel
     if (r && r.ok) { produitId = r.produitId || produitId; }
     else if (r && r.erreur === 'action inconnue') {        // repli si coffre-fort pas encore à jour
-      if (nouveau) { const p = await Coffre.ajouter('Produits', ['', nom, scid, '', 'O', marque, format]); if (!p.ok) throw new Error(p.erreur || 'refus'); produitId = p.id; }
+      if (nouveau) { const p = await Coffre.ajouter('Produits', ['', nom, scid, '', 'O', '', '']); if (!p.ok) throw new Error(p.erreur || 'refus'); produitId = p.id; }
       const date = new Date().toISOString().slice(0, 10);
-      for (const e of endroits) await Coffre.ajouter('Stock', ['', produitId, e.emp, e.qte, date]);
+      for (const e of endroits) await Coffre.ajouter('Stock', ['', produitId, e.emp, e.qte, date, marque, format]);
     } else { throw new Error((r && r.erreur) || 'refus'); }
     if (nouveau) {
-      PRODUITS.push({ id: produitId, nom: nom, catId: scid, marque: marque, format: format });
-      const c = lireCache(); if (c) { (c.prods = c.prods || []).push([produitId, nom, scid, '', 'O', marque, format]); ecrireCache(c); }
+      PRODUITS.push({ id: produitId, nom: nom, catId: scid });
+      const c = lireCache(); if (c) { (c.prods = c.prods || []).push([produitId, nom, scid, '', 'O', '', '']); ecrireCache(c); }
     }
+    memoriserVariante(produitId, marque, format);          // suggestions à jour tout de suite
     statut('Article ajouté ✓', 'succes');
     reinit();
   } catch (e) {

@@ -139,11 +139,13 @@
     <div id="bloc-details" hidden>
       <div class="bloc">
         <div class="label">Marque</div>
-        <input class="champ" id="marque" placeholder="Optionnel">
+        <input class="champ" id="marque" list="dl-marques" placeholder="Choisir ou saisir (optionnel)">
+        <datalist id="dl-marques"></datalist>
       </div>
       <div class="bloc">
         <div class="label">Format</div>
-        <input class="champ" id="format" placeholder="Ex. 500 g, 2 L (optionnel)">
+        <input class="champ" id="format" list="dl-formats" placeholder="500 g, 2 L, unité… (optionnel)">
+        <datalist id="dl-formats"></datalist>
       </div>
     </div>
 
@@ -163,6 +165,6 @@
 </div>
 
 <script src="JS/coffre.js?v=1"></script>
-<script src="JS/entree.js?v=7"></script>
+<script src="JS/entree.js?v=8"></script>
 </body>
 </html>

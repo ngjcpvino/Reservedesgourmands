@@ -38,8 +38,8 @@ endroits en même temps).*
 | C | CategorieID | lien vers CATEGORIES (la sous-catégorie; peut rester vide = « fiche à terminer ») |
 | D | Unite | unité de mesure (legacy, souvent vide — le Format le remplace à l'usage) |
 | E | Actif | O / N |
-| F | Marque | marque du produit (optionnel) |
-| G | Format | format / grosseur, ex. « 500 g », « 2 L » (optionnel) |
+| F | Marque | *(legacy — laissé vide : la marque vit sur STOCK, un produit peut en avoir plusieurs)* |
+| G | Format | *(legacy — laissé vide : le format vit sur STOCK)* |
 
 ### EMPLACEMENTS — les rangements, en arbre (Meuble → Espace)
 
@@ -62,6 +62,8 @@ endroits en même temps).*
 | C | EmplacementID | lien vers EMPLACEMENTS. **Vide = en transit** (entré, compté, pas encore rangé) |
 | D | Quantite | en unités du produit |
 | E | DateEntree | date d'entrée de ce lot = date du scan (automatique) |
+| F | Marque | marque de CE lot (bio, ordinaire, une marque précise…) — un même produit peut en avoir plusieurs |
+| G | Format | format de CE lot (« 500 g », « unité »…) — idem |
 
 > Le « total » d'un produit = la somme de ses lignes STOCK.
 > Le « 2 sur 4 » et la ligne « en transit » de la fiche viennent d'ici.
