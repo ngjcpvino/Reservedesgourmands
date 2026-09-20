@@ -52,6 +52,7 @@ function deconnexion() {
 
 /* ---------- Menu burger ---------- */
 function fermerMenu()   { $('menu').classList.remove('ouvert'); }
+function montrerVoile(on){ $('voile').hidden = !on; }   // voile bloquant + fourchette qui tourne
 function basculerMenu() { $('menu').classList.toggle('ouvert'); }
 
 /* ---------- Toast « à venir » ---------- */
@@ -258,6 +259,7 @@ async function enregistrer() {
   if (!opCourant) opCourant = 'op-' + Date.now() + '-' + Math.random().toString(36).slice(2, 8);
   statut('Enregistrement…');
   $('btn-enregistrer').disabled = true;
+  montrerVoile(true);
   try {
     const charge = nouveau ? { produit: [nom, scid], marque: marque, format: format, endroits: endroits, opId: opCourant }
                            : { produitId: produitId, marque: marque, format: format, endroits: endroits, opId: opCourant };
@@ -278,7 +280,7 @@ async function enregistrer() {
     reinit();
   } catch (e) {
     statut('Échec : ' + e.message, 'erreur');
-  } finally { $('btn-enregistrer').disabled = false; }
+  } finally { $('btn-enregistrer').disabled = false; montrerVoile(false); }
 }
 
 function reinit() { $('cat').value = ''; resetSous(); }
@@ -291,6 +293,7 @@ async function enregistrerMeuble() {
   const couleur = $('meuble-couleur').value || '';
   msg.className = 'message'; msg.textContent = 'Enregistrement…';
   $('btn-meuble-enr').disabled = true;
+  montrerVoile(true);
   try {
     // Emplacements : ID · Nom · ParentID(vide = meuble) · SecteurID · Actif · Couleur
     const r = await Coffre.ajouter('Emplacements', ['', nom, '', SECTEUR_ID, 'O', couleur]);
@@ -301,7 +304,7 @@ async function enregistrerMeuble() {
     $('meuble-nom').value = '';
   } catch (e) {
     msg.className = 'message message-erreur'; msg.textContent = 'Échec : ' + e.message;
-  } finally { $('btn-meuble-enr').disabled = false; }
+  } finally { $('btn-meuble-enr').disabled = false; montrerVoile(false); }
 }
 
 /* Liste des meubles (accordéons, à leur couleur) + leurs espaces, dans « Gérer les bases ». */
@@ -332,6 +335,7 @@ async function ajouterEspace(meubleId, btn) {
   const nom = input.value.trim();
   if (!nom) { input.focus(); return; }
   btn.disabled = true;
+  montrerVoile(true);
   try {
     // Emplacements : ID · Nom · ParentID(=meuble) · SecteurID · Actif · Couleur (vide pour un espace)
     const r = await Coffre.ajouter('Emplacements', ['', nom, meubleId, SECTEUR_ID, 'O', '']);
@@ -343,7 +347,7 @@ async function ajouterEspace(meubleId, btn) {
     input.value = '';
   } catch (e) {
     input.placeholder = 'Échec — réessaie';
-  } finally { btn.disabled = false; }
+  } finally { btn.disabled = false; montrerVoile(false); }
 }
 
 /* ---------- Branchements ---------- */
