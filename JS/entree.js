@@ -532,6 +532,8 @@ function initEntree() {
   $('choix-epicerie').addEventListener('click', () => avis("Toute l'épicerie — à venir"));
   $('choix-scan').addEventListener('click', () => avis('Scanner — à venir'));
   $('choix-manuel').addEventListener('click', montrerFormulaire);
+  $('btn-retour-quoi').addEventListener('click', montrerAccueil);        // retour : choix « quoi » → accueil
+  $('btn-retour-comment').addEventListener('click', montrerChoixQuoi);   // retour : choix « comment » → choix « quoi »
   // formulaire d'entrée
   $('cat').addEventListener('change', surCategorie);
   $('souscat').addEventListener('change', surSousCategorie);
