@@ -207,12 +207,45 @@ function remplirVariantes(pid) {
   $('dl-formats').innerHTML = (vr.formats || []).map(x => '<option value="' + esc(x) + '"></option>').join('');
 }
 
-/* Retient localement une marque/format pour un produit (suggestions immédiates + cache). */
-function memoriserVariante(pid, marque, format) {
-  if (!pid || (!marque && !format)) return;
-  const vr = VARIANTES[pid] || (VARIANTES[pid] = { marques: [], formats: [] });
-  if (marque && vr.marques.indexOf(marque) === -1) vr.marques.push(marque);
-  if (format && vr.formats.indexOf(format) === -1) vr.formats.push(format);
+/* Un emplacement (id stocké dans STOCK) -> { pieceId, meubleId, espaceId }.
+   L'id est soit un espace (enfant d'un meuble), soit un meuble (rangé directement dessus). */
+function resoudreEmp(empId) {
+  empId = String(empId);
+  for (const mid in ESPACES) {
+    if ((ESPACES[mid] || []).some(e => String(e.id) === empId)) {
+      const m = MEUBLES.find(x => String(x.id) === String(mid));
+      return { pieceId: (m && m.pieceId) || '', meubleId: mid, espaceId: empId };
+    }
+  }
+  const m = MEUBLES.find(x => String(x.id) === empId);
+  if (m) return { pieceId: m.pieceId || '', meubleId: empId, espaceId: '' };
+  return null;   // emplacement disparu (meuble/espace supprimé)
+}
+
+/* Produit déjà connu : pré-remplir marque/format (dernières utilisées) + un endroit
+   par emplacement habituel (dans l'ordre), quantité vide. Tout reste modifiable. */
+function prefillProduit(pid) {
+  const vr = (pid && VARIANTES[pid]) || null;
+  remplirVariantes(pid);                                   // choix déjà inscrits (datalists)
+  $('marque').value = (vr && vr.derniereMarque) || '';
+  $('format').value = (vr && vr.dernierFormat) || '';
+  $('endroits').innerHTML = '';
+  let n = 0;
+  ((vr && vr.emplacements) || []).forEach(empId => {
+    const e = resoudreEmp(empId);
+    if (e) { ajouterEndroit({ pieceId: e.pieceId, meubleId: e.meubleId, espaceId: e.espaceId, qte: '' }); n++; }
+  });
+  if (!n) ajouterEndroit();                                // aucun emplacement connu -> une carte vierge
+}
+
+/* Retient localement marque/format/emplacements d'un produit (suggestions immédiates + cache). */
+function memoriserVariante(pid, marque, format, endroits) {
+  if (!pid) return;
+  const vr = VARIANTES[pid] || (VARIANTES[pid] = { marques: [], formats: [], emplacements: [], derniereMarque: '', dernierFormat: '' });
+  vr.marques = vr.marques || []; vr.formats = vr.formats || []; vr.emplacements = vr.emplacements || [];
+  if (marque) { if (vr.marques.indexOf(marque) === -1) vr.marques.push(marque); vr.derniereMarque = marque; }
+  if (format) { if (vr.formats.indexOf(format) === -1) vr.formats.push(format); vr.dernierFormat = format; }
+  (endroits || []).forEach(e => { if (e.emp && vr.emplacements.indexOf(e.emp) === -1) vr.emplacements.push(e.emp); });
   const c = lireCache(); if (c) { (c.variantes = c.variantes || {})[pid] = vr; ecrireCache(c); }
 }
 
@@ -221,20 +254,20 @@ function surProduit() {
   if (!v) { montrer('bloc-details', false); montrer('bloc-endroits', false); montrer('btn-enregistrer', false); return; }
   if (v === '__nouveau') {
     montrer('bloc-nom', true); $('nom').value = '';
-    remplirVariantes(null);                 // nouveau produit : aucune suggestion
+    remplirVariantes(null);                       // nouveau produit : aucune suggestion
+    $('marque').value = ''; $('format').value = '';
+    $('endroits').innerHTML = ''; ajouterEndroit();
   } else {
     montrer('bloc-nom', false);
-    remplirVariantes(v);                     // suggestions = marques/formats déjà vus pour ce produit
+    prefillProduit(v);                            // marque/format + endroits habituels, tout modifiable
   }
-  $('marque').value = ''; $('format').value = '';   // ne se pré-remplit plus (marque/format changent d'une fois à l'autre)
   montrer('bloc-details', true);
   montrer('bloc-endroits', true);
-  if (!$('endroits').children.length) ajouterEndroit();
   montrer('btn-enregistrer', true);
 }
 
 /* ---------- Endroits ---------- */
-function ajouterEndroit() {
+function ajouterEndroit(pref) {
   const row = document.createElement('div');
   row.className = 'endroit carte';
   row.style.marginBottom = 'var(--espace-s)';
@@ -268,6 +301,13 @@ function ajouterEndroit() {
   };
   row.querySelector('.retirer').onclick = () => { if ($('endroits').children.length > 1) row.remove(); };
   $('endroits').appendChild(row);
+
+  if (pref) {                                  // pré-remplir un endroit habituel (tout reste modifiable)
+    if (pref.pieceId)  { piece.value  = String(pref.pieceId);  piece.onchange(); }
+    if (pref.meubleId) { meuble.value = String(pref.meubleId); meuble.onchange(); }
+    if (pref.espaceId) { espace.value = String(pref.espaceId); }
+    if (pref.qte !== undefined) row.querySelector('.qte').value = pref.qte;
+  }
 }
 
 /* ---------- Enregistrer ---------- */
@@ -294,9 +334,9 @@ async function enregistrer() {
     const mid = row.querySelector('.meuble').value;
     const eid = row.querySelector('.espace').value;
     const qte = parseInt(row.querySelector('.qte').value, 10) || 0;
-    if (mid) endroits.push({ emp: eid || mid, qte: qte });
+    if (mid && qte > 0) endroits.push({ emp: eid || mid, qte: qte });   // qté vide/0 = pas rangé ici
   });
-  if (!endroits.length) { statut('Choisis au moins un endroit.', 'erreur'); return; }
+  if (!endroits.length) { statut('Mets une quantité sur au moins un endroit.', 'erreur'); return; }
 
   const marque = $('marque').value.trim(), format = $('format').value.trim();
   if (!opCourant) opCourant = 'op-' + Date.now() + '-' + Math.random().toString(36).slice(2, 8);
@@ -317,7 +357,7 @@ async function enregistrer() {
       PRODUITS.push({ id: produitId, nom: nom, catId: scid });
       const c = lireCache(); if (c) { (c.prods = c.prods || []).push([produitId, nom, scid, '', 'O', '', '']); ecrireCache(c); }
     }
-    memoriserVariante(produitId, marque, format);          // suggestions à jour tout de suite
+    memoriserVariante(produitId, marque, format, endroits);   // marque/format/emplacements à jour tout de suite
     opCourant = null;                                      // succès : le prochain article aura un nouveau jeton
     statut('Article ajouté ✓', 'succes');
     reinit();
