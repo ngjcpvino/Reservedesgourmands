@@ -26,7 +26,7 @@ function toutCacher() {
   $('btn-burger').hidden = true;   // burger caché par défaut ; ré-affiché sur accueil + choix + bases
   fermerMenu();
 }
-function montrerBases()  { toutCacher(); $('vue-bases').hidden = false; $('btn-burger').hidden = false; }
+function montrerBases()  { toutCacher(); $('vue-bases').hidden = false; $('btn-burger').hidden = false; remplirMeubles(); }
 function montrerMeuble() { toutCacher(); $('vue-meuble').hidden = false; $('meuble-msg').textContent = ''; }
 function montrerChoixQuoi()    { toutCacher(); $('vue-choix-quoi').hidden = false; $('btn-burger').hidden = false; }
 function montrerChoixComment() { toutCacher(); $('vue-choix-comment').hidden = false; $('btn-burger').hidden = false; }
@@ -304,6 +304,48 @@ async function enregistrerMeuble() {
   } finally { $('btn-meuble-enr').disabled = false; }
 }
 
+/* Liste des meubles (accordéons, à leur couleur) + leurs espaces, dans « Gérer les bases ». */
+function remplirMeubles() {
+  const html = MEUBLES.map(function (m) {
+    const espaces = (ESPACES[m.id] || []).map(function (e) {
+      return '<div class="accordeon-item">' + esc(e.nom) + '</div>';
+    }).join('');
+    const style = m.couleur ? ' style="background:' + esc(m.couleur) + '"' : '';
+    return '<div class="accordeon">' +
+      '<div class="accordeon-tete"' + style + '>' + esc(m.nom) + ' <span class="accordeon-fleche">▼</span></div>' +
+      '<div class="accordeon-corps" hidden>' +
+        espaces +
+        '<div class="accordeon-item" style="gap: var(--espace-s)">' +
+          '<input class="champ espace-nouveau" placeholder="Nouvel espace…">' +
+          '<button class="bouton bouton-petit ajout-espace" data-meuble="' + esc(m.id) + '" type="button">+</button>' +
+        '</div>' +
+      '</div>' +
+    '</div>';
+  }).join('');
+  $('liste-meubles').innerHTML = html || '<div class="texte-petit texte-pale">Aucun meuble encore.</div>';
+}
+
+/* Ajoute un espace (tablette…) à un meuble, sans quitter la liste ni fermer l'accordéon. */
+async function ajouterEspace(meubleId, btn) {
+  const corps = btn.closest('.accordeon-corps');
+  const input = corps.querySelector('.espace-nouveau');
+  const nom = input.value.trim();
+  if (!nom) { input.focus(); return; }
+  btn.disabled = true;
+  try {
+    // Emplacements : ID · Nom · ParentID(=meuble) · SecteurID · Actif · Couleur (vide pour un espace)
+    const r = await Coffre.ajouter('Emplacements', ['', nom, meubleId, SECTEUR_ID, 'O', '']);
+    if (!r || !r.ok) throw new Error((r && r.erreur) || 'refus');
+    (ESPACES[meubleId] = ESPACES[meubleId] || []).push({ id: r.id, nom: nom });
+    const c = lireCache(); if (c) { (c.emps = c.emps || []).push([r.id, nom, meubleId, SECTEUR_ID, 'O', '']); ecrireCache(c); }
+    const div = document.createElement('div'); div.className = 'accordeon-item'; div.textContent = nom;
+    corps.insertBefore(div, corps.lastElementChild);   // avant la ligne d'ajout
+    input.value = '';
+  } catch (e) {
+    input.placeholder = 'Échec — réessaie';
+  } finally { btn.disabled = false; }
+}
+
 /* ---------- Branchements ---------- */
 function initEntree() {
   // connexion
@@ -319,6 +361,17 @@ function initEntree() {
   $('btn-ajout-meuble').addEventListener('click', montrerMeuble);
   $('btn-meuble-enr').addEventListener('click', enregistrerMeuble);
   $('meuble-annuler').addEventListener('click', montrerBases);
+  // liste des meubles (éléments générés) : ouvrir/fermer un accordéon, ajouter un espace
+  $('liste-meubles').addEventListener('click', function (ev) {
+    const bAjout = ev.target.closest('.ajout-espace');
+    if (bAjout) { ajouterEspace(bAjout.getAttribute('data-meuble'), bAjout); return; }
+    const tete = ev.target.closest('.accordeon-tete');
+    if (tete) {
+      tete.classList.toggle('ouvert');
+      const corps = tete.nextElementSibling;
+      if (corps) corps.hidden = !tete.classList.contains('ouvert');
+    }
+  });
   // boutons de l'accueil : éteints pour l'instant (avis « à venir »)
   document.querySelectorAll('#vue-accueil .bouton[data-avenir]').forEach(b =>
     b.addEventListener('click', () => avis(b.dataset.avenir + ' — à venir')));
