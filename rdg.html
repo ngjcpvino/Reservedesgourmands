@@ -12,6 +12,17 @@
 </head>
 <body>
 
+<!-- Menu burger — GLOBAL (accueil + pages de choix), caché sur connexion/fiche -->
+<button class="burger" id="btn-burger" type="button" aria-label="Menu" hidden>
+  <span></span><span></span><span></span>
+</button>
+<div id="menu" class="menu">
+  <div class="menu-contenu">
+    <button class="menu-item" id="menu-ouverture" type="button">Page d'ouverture</button>
+    <button class="menu-item" id="menu-deco" type="button">Se déconnecter</button>
+  </div>
+</div>
+
 <!-- ============================================================
      CONNEXION
 ============================================================ -->
@@ -35,17 +46,6 @@
      PAGE D'OUVERTURE (accueil) — s'affiche après le mot de passe
 ============================================================ -->
 <div id="vue-accueil" class="conteneur" hidden>
-
-  <!-- Menu burger (à DROITE) + menu plein écran -->
-  <button class="burger" id="btn-burger" type="button" aria-label="Menu">
-    <span></span><span></span><span></span>
-  </button>
-  <div id="menu" class="menu">
-    <div class="menu-contenu">
-      <button class="menu-item" id="menu-ouverture" type="button">Page d'ouverture</button>
-      <button class="menu-item" id="menu-deco" type="button">Se déconnecter</button>
-    </div>
-  </div>
 
   <!-- Photo -->
   <div class="entete">
@@ -76,20 +76,32 @@
      CHOIX — 1) quoi entrer  2) comment
 ============================================================ -->
 <div id="vue-choix-quoi" class="conteneur" hidden>
+  <div class="entete">
+    <div class="entete-photo">
+      <img src="https://images.unsplash.com/photo-1514237487632-b60bc844a47d?q=80&w=1920&auto=format&fit=crop" alt="La Réserve des Gourmands">
+      <div class="entete-titre">La<br>Réserve<br>des<br>Gourmands</div>
+    </div>
+  </div>
   <div class="contenu">
-    <div class="titre" style="margin-top: var(--espace-xl);">Entrer</div>
-    <button class="bouton bouton-brun bouton-pleine" id="choix-produit" type="button" style="margin-bottom: var(--espace-m);">Un produit</button>
-    <button class="bouton bouton-brun bouton-pleine" id="choix-epicerie" type="button">Toute l'épicerie</button>
-    <button class="bouton bouton-pleine" id="retour-accueil-1" type="button" style="margin-top: var(--espace-xl);">← Retour</button>
+    <div class="grille">
+      <button class="bouton bouton-brun bouton-grand" id="choix-produit" type="button"><span class="icone">🥫</span>Un produit</button>
+      <button class="bouton bouton-vert bouton-grand" id="choix-epicerie" type="button"><span class="icone">🛒</span>Toute l'épicerie</button>
+    </div>
   </div>
 </div>
 
 <div id="vue-choix-comment" class="conteneur" hidden>
+  <div class="entete">
+    <div class="entete-photo">
+      <img src="https://images.unsplash.com/photo-1514237487632-b60bc844a47d?q=80&w=1920&auto=format&fit=crop" alt="La Réserve des Gourmands">
+      <div class="entete-titre">La<br>Réserve<br>des<br>Gourmands</div>
+    </div>
+  </div>
   <div class="contenu">
-    <div class="titre" style="margin-top: var(--espace-xl);">Un produit</div>
-    <button class="bouton bouton-brun bouton-pleine" id="choix-scan" type="button" style="margin-bottom: var(--espace-m);">Scanner</button>
-    <button class="bouton bouton-brun bouton-pleine" id="choix-manuel" type="button">À la main</button>
-    <button class="bouton bouton-pleine" id="retour-quoi" type="button" style="margin-top: var(--espace-xl);">← Retour</button>
+    <div class="grille">
+      <button class="bouton bouton-brun bouton-grand" id="choix-scan" type="button"><span class="icone"><img src="https://i.ibb.co/SDD5JZfq/scan.png" alt=""></span>Scanner</button>
+      <button class="bouton bouton-vert bouton-grand" id="choix-manuel" type="button"><span class="icone">✏️</span>À la main</button>
+    </div>
   </div>
 </div>
 
@@ -151,6 +163,6 @@
 </div>
 
 <script src="JS/coffre.js?v=1"></script>
-<script src="JS/entree.js?v=6"></script>
+<script src="JS/entree.js?v=7"></script>
 </body>
 </html>

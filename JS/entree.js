@@ -19,10 +19,12 @@ function toutCacher() {
   $('vue-choix-quoi').hidden = true;
   $('vue-choix-comment').hidden = true;
   $('vue-app').hidden = true;
+  $('btn-burger').hidden = true;   // burger caché par défaut ; ré-affiché sur accueil + choix
+  fermerMenu();
 }
-function montrerChoixQuoi()    { toutCacher(); $('vue-choix-quoi').hidden = false; fermerMenu(); }
-function montrerChoixComment() { toutCacher(); $('vue-choix-comment').hidden = false; fermerMenu(); }
-function montrerAccueil()    { toutCacher(); $('vue-accueil').hidden = false; fermerMenu(); }
+function montrerChoixQuoi()    { toutCacher(); $('vue-choix-quoi').hidden = false; $('btn-burger').hidden = false; }
+function montrerChoixComment() { toutCacher(); $('vue-choix-comment').hidden = false; $('btn-burger').hidden = false; }
+function montrerAccueil()    { toutCacher(); $('vue-accueil').hidden = false; $('btn-burger').hidden = false; }
 function montrerFormulaire() { toutCacher(); $('vue-app').hidden = false; fermerMenu(); chargerReferences(); }
 function revenirConnexion(msg) {
   toutCacher(); $('vue-connexion').hidden = false; fermerMenu();
@@ -283,8 +285,6 @@ function initEntree() {
   $('choix-epicerie').addEventListener('click', () => avis("Toute l'épicerie — à venir"));
   $('choix-scan').addEventListener('click', () => avis('Scanner — à venir'));
   $('choix-manuel').addEventListener('click', montrerFormulaire);
-  $('retour-accueil-1').addEventListener('click', montrerAccueil);
-  $('retour-quoi').addEventListener('click', montrerChoixQuoi);
   // formulaire d'entrée
   $('cat').addEventListener('change', surCategorie);
   $('souscat').addEventListener('change', surSousCategorie);
