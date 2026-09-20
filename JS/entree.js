@@ -9,7 +9,7 @@ const $ = id => document.getElementById(id);
 const esc = s => String(s == null ? '' : s).replace(/[&<>"]/g, c => ({ '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;' }[c]));
 const montrer = (id, ok) => { $(id).hidden = !ok; };
 
-var RAYONS = [], SOUSCATS = {}, MEUBLES = [], ESPACES = {}, PRODUITS = [], VARIANTES = {};
+var RAYONS = [], SOUSCATS = {}, MEUBLES = [], ESPACES = {}, PRODUITS = [], VARIANTES = {}, PIECES = [];
 var opCourant = null;                                   // jeton anti-reclic de l'article en cours
 var SECTEUR_ID = '';                                    // secteur de cette app (Épicerie), déduit des données
 const CACHE = 'rdg_ref_v2';
@@ -23,6 +23,7 @@ function toutCacher() {
   $('vue-app').hidden = true;
   $('vue-bases').hidden = true;
   $('vue-meuble').hidden = true;
+  $('vue-piece').hidden = true;
   $('btn-burger').hidden = true;   // burger caché par défaut ; ré-affiché sur accueil + choix + bases
   fermerMenu();
 }
@@ -35,6 +36,7 @@ async function montrerBases() {
   remplirMeubles();
 }
 function montrerMeuble() { toutCacher(); $('vue-meuble').hidden = false; $('meuble-msg').textContent = ''; }
+function montrerPiece()  { toutCacher(); $('vue-piece').hidden = false; $('piece-msg').textContent = ''; }
 function montrerChoixQuoi()    { toutCacher(); $('vue-choix-quoi').hidden = false; $('btn-burger').hidden = false; }
 function montrerChoixComment() { toutCacher(); $('vue-choix-comment').hidden = false; $('btn-burger').hidden = false; }
 function montrerAccueil()    { toutCacher(); $('vue-accueil').hidden = false; $('btn-burger').hidden = false; }
@@ -101,11 +103,18 @@ function appliquer(d) {
     if (!r[2]) RAYONS.push({ id: r[0], nom: r[1] });
     else (SOUSCATS[r[2]] = SOUSCATS[r[2]] || []).push({ id: r[0], nom: r[1] });
   });
-  MEUBLES = []; ESPACES = {};
-  (d.emps || []).forEach(r => {                       // [ID,Nom,ParentID,SecteurID,Actif,Couleur]
-    if (String(r[4]) !== 'O') return;
-    if (!r[2]) MEUBLES.push({ id: r[0], nom: r[1], couleur: r[5] || '' });
-    else (ESPACES[r[2]] = ESPACES[r[2]] || []).push({ id: r[0], nom: r[1] });
+  MEUBLES = []; ESPACES = {}; PIECES = [];
+  const emps = (d.emps || []).filter(r => String(r[4]) === 'O');   // [ID,Nom,ParentID,SecteurID,Actif,Couleur]
+  const estPiece = {};                                             // pièce = enfant direct du SECTEUR
+  emps.forEach(r => { if (SECTEUR_ID && String(r[2]) === SECTEUR_ID) { PIECES.push({ id: r[0], nom: r[1] }); estPiece[r[0]] = true; } });
+  const estMeuble = {};                                            // meuble = enfant d'une pièce, OU pas encore rangé (ParentID vide)
+  emps.forEach(r => {
+    const p = String(r[2] || '');
+    if (!p || estPiece[p]) { MEUBLES.push({ id: r[0], nom: r[1], couleur: r[5] || '', pieceId: estPiece[p] ? p : '' }); estMeuble[r[0]] = true; }
+  });
+  emps.forEach(r => {                                              // espace = enfant d'un meuble
+    const p = String(r[2] || '');
+    if (p && estMeuble[p]) (ESPACES[p] = ESPACES[p] || []).push({ id: r[0], nom: r[1] });
   });
   PRODUITS = (d.prods || [])                          // [ID,Nom,CategorieID,Unite,Actif,Marque,Format]
     .filter(r => String(r[4]) !== 'N')
@@ -314,8 +323,49 @@ async function enregistrerMeuble() {
   } finally { $('btn-meuble-enr').disabled = false; montrerVoile(false); }
 }
 
+/* Ajouter une pièce (= un emplacement dont le parent est le SECTEUR). */
+async function enregistrerPiece() {
+  const nom = $('piece-nom').value.trim();
+  const msg = $('piece-msg');
+  if (!nom) { msg.className = 'message message-erreur'; msg.textContent = 'Donne un nom à la pièce.'; return; }
+  msg.className = 'message'; msg.textContent = 'Enregistrement…';
+  $('btn-piece-enr').disabled = true;
+  montrerVoile(true);
+  try {
+    const r = await Coffre.ajouter('Emplacements', ['', nom, SECTEUR_ID, SECTEUR_ID, 'O', '']);
+    if (!r || !r.ok) throw new Error((r && r.erreur) || 'refus');
+    PIECES.push({ id: r.id, nom: nom });
+    const c = lireCache(); if (c) { (c.emps = c.emps || []).push([r.id, nom, SECTEUR_ID, SECTEUR_ID, 'O', '']); ecrireCache(c); }
+    msg.className = 'message message-succes'; msg.textContent = 'Pièce ajoutée ✓';
+    $('piece-nom').value = '';
+  } catch (e) {
+    msg.className = 'message message-erreur'; msg.textContent = 'Échec : ' + e.message;
+  } finally { $('btn-piece-enr').disabled = false; montrerVoile(false); }
+}
+
+/* Assigner (ou retirer) la pièce d'un meuble = changer son ParentID. */
+async function assignerPiece(meubleId, pieceId, sel) {
+  const m = MEUBLES.find(x => String(x.id) === String(meubleId));
+  if (!m) return;
+  sel.disabled = true;
+  montrerVoile(true);
+  try {
+    const r = await Coffre.modifier('Emplacements', meubleId, [meubleId, m.nom, pieceId || '', SECTEUR_ID, 'O', m.couleur || '']);
+    if (!r || !r.ok) throw new Error((r && r.erreur) || 'refus');
+    m.pieceId = pieceId || '';
+    const c = lireCache(); if (c && c.emps) { const row = c.emps.find(x => String(x[0]) === String(meubleId)); if (row) row[2] = pieceId || ''; ecrireCache(c); }
+  } catch (e) {
+    sel.value = m.pieceId || '';   // échec : on remet l'ancienne valeur
+  } finally { sel.disabled = false; montrerVoile(false); }
+}
+
 /* Liste des meubles (accordéons, à leur couleur) + leurs espaces, dans « Gérer les bases ». */
 function remplirMeubles() {
+  const optionsPieces = function (sel) {
+    return '<option value="">— à ranger —</option>' + PIECES.map(function (p) {
+      return '<option value="' + esc(p.id) + '"' + (String(p.id) === String(sel) ? ' selected' : '') + '>' + esc(p.nom) + '</option>';
+    }).join('');
+  };
   const html = MEUBLES.map(function (m) {
     const espaces = (ESPACES[m.id] || []).map(function (e) {
       return '<div class="accordeon-item">' + esc(e.nom) + '</div>';
@@ -324,6 +374,8 @@ function remplirMeubles() {
     return '<div class="accordeon">' +
       '<div class="accordeon-tete"' + style + '>' + esc(m.nom) + ' <span class="accordeon-fleche">▼</span></div>' +
       '<div class="accordeon-corps" hidden>' +
+        '<div class="bloc" style="padding: var(--espace-m) var(--espace-l) 0"><div class="label">Pièce</div>' +
+          '<select class="champ choix-piece" data-meuble="' + esc(m.id) + '">' + optionsPieces(m.pieceId) + '</select></div>' +
         espaces +
         '<div class="accordeon-item" style="gap: var(--espace-s)">' +
           '<input class="champ espace-nouveau" placeholder="Nouvel espace…">' +
@@ -372,6 +424,14 @@ function initEntree() {
   $('btn-ajout-meuble').addEventListener('click', montrerMeuble);
   $('btn-meuble-enr').addEventListener('click', enregistrerMeuble);
   $('meuble-annuler').addEventListener('click', montrerBases);
+  $('btn-ajout-piece').addEventListener('click', montrerPiece);
+  $('btn-piece-enr').addEventListener('click', enregistrerPiece);
+  $('piece-annuler').addEventListener('click', montrerBases);
+  // changer la pièce d'un meuble (menu déroulant généré)
+  $('liste-meubles').addEventListener('change', function (ev) {
+    const sel = ev.target.closest('.choix-piece');
+    if (sel) assignerPiece(sel.getAttribute('data-meuble'), sel.value, sel);
+  });
   // liste des meubles (éléments générés) : ouvrir/fermer un accordéon, ajouter un espace
   $('liste-meubles').addEventListener('click', function (ev) {
     const bAjout = ev.target.closest('.ajout-espace');

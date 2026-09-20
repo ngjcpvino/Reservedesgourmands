@@ -177,6 +177,7 @@
     <div class="titre" style="margin-top: var(--espace-xl);">Gérer les bases</div>
   </div>
   <div class="contenu">
+    <button class="bouton bouton-vert bouton-pleine" id="btn-ajout-piece" type="button" style="margin-bottom: var(--espace-s);">+ Ajouter une pièce</button>
     <button class="bouton bouton-brun bouton-pleine" id="btn-ajout-meuble" type="button" style="margin-bottom: var(--espace-l);">+ Ajouter un meuble</button>
     <div id="liste-meubles"></div>
   </div>
@@ -201,7 +202,20 @@
   </div>
 </div>
 
+<div id="vue-piece" class="conteneur" hidden>
+  <div class="entete"><div class="titre" style="margin-top: var(--espace-xl);">Ajouter une pièce</div></div>
+  <div class="contenu">
+    <div class="bloc">
+      <div class="label">Nom de la pièce</div>
+      <input class="champ" id="piece-nom" placeholder="Ex. Cuisine, Dépense">
+    </div>
+    <button class="bouton bouton-vert bouton-pleine" id="btn-piece-enr" type="button" style="margin-top: var(--espace-l);">Enregistrer</button>
+    <div class="message" id="piece-msg"></div>
+    <button class="bouton bouton-pleine" id="piece-annuler" type="button" style="margin-top: var(--espace-xl);">Annuler</button>
+  </div>
+</div>
+
 <script src="JS/coffre.js?v=1"></script>
-<script src="JS/entree.js?v=13"></script>
+<script src="JS/entree.js?v=14"></script>
 </body>
 </html>
