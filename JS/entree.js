@@ -62,6 +62,23 @@ function deconnexion() {
 /* ---------- Menu burger ---------- */
 function fermerMenu()   { $('menu').classList.remove('ouvert'); }
 function montrerVoile(on){ $('voile').hidden = !on; }   // voile bloquant + fourchette qui tourne
+
+/* Ouvre/ferme un accordéon — UN SEUL ouvert à la fois dans son groupe (ses frères). Partout. */
+function toggleAccordeon(tete) {
+  const acc = tete.closest('.accordeon');
+  if (!acc || !acc.parentElement) return;
+  const ouvrir = !tete.classList.contains('ouvert');
+  [...acc.parentElement.children].forEach(function (el) {   // fermer les frères
+    if (el.classList && el.classList.contains('accordeon')) {
+      if (el.firstElementChild) el.firstElementChild.classList.remove('ouvert');
+      if (el.children[1]) el.children[1].hidden = true;
+    }
+  });
+  if (ouvrir) {
+    tete.classList.add('ouvert');
+    if (tete.nextElementSibling) tete.nextElementSibling.hidden = false;
+  }
+}
 function basculerMenu() { $('menu').classList.toggle('ouvert'); }
 
 /* ---------- Toast « à venir » ---------- */
@@ -360,31 +377,46 @@ async function assignerPiece(meubleId, pieceId, sel) {
 }
 
 /* Liste des meubles (accordéons, à leur couleur) + leurs espaces, dans « Gérer les bases ». */
-function remplirMeubles() {
-  const optionsPieces = function (sel) {
-    return '<option value="">— à ranger —</option>' + PIECES.map(function (p) {
-      return '<option value="' + esc(p.id) + '"' + (String(p.id) === String(sel) ? ' selected' : '') + '>' + esc(p.nom) + '</option>';
-    }).join('');
-  };
-  const html = MEUBLES.map(function (m) {
-    const espaces = (ESPACES[m.id] || []).map(function (e) {
-      return '<div class="accordeon-item">' + esc(e.nom) + '</div>';
-    }).join('');
-    const style = m.couleur ? ' style="background:' + esc(m.couleur) + '"' : '';
-    return '<div class="accordeon">' +
-      '<div class="accordeon-tete"' + style + '>' + esc(m.nom) + ' <span class="accordeon-fleche">▼</span></div>' +
-      '<div class="accordeon-corps" hidden>' +
-        '<div class="bloc" style="padding: var(--espace-m) var(--espace-l) 0"><div class="label">Pièce</div>' +
-          '<select class="champ choix-piece" data-meuble="' + esc(m.id) + '">' + optionsPieces(m.pieceId) + '</select></div>' +
-        espaces +
-        '<div class="accordeon-item" style="gap: var(--espace-s)">' +
-          '<input class="champ espace-nouveau" placeholder="Nouvel espace…">' +
-          '<button class="bouton bouton-petit ajout-espace" data-meuble="' + esc(m.id) + '" type="button">+</button>' +
-        '</div>' +
-      '</div>' +
-    '</div>';
+function optionsPieces(sel) {
+  return '<option value="">— à ranger —</option>' + PIECES.map(function (p) {
+    return '<option value="' + esc(p.id) + '"' + (String(p.id) === String(sel) ? ' selected' : '') + '>' + esc(p.nom) + '</option>';
   }).join('');
-  $('liste-meubles').innerHTML = html || '<div class="texte-petit texte-pale">Aucun meuble encore.</div>';
+}
+/* Un meuble = accordéon (à sa couleur) : menu Pièce + ses espaces + « + un espace ». */
+function htmlMeuble(m) {
+  const espaces = (ESPACES[m.id] || []).map(function (e) {
+    return '<div class="accordeon-item">' + esc(e.nom) + '</div>';
+  }).join('');
+  const style = m.couleur ? ' style="background:' + esc(m.couleur) + '"' : '';
+  return '<div class="accordeon">' +
+    '<div class="accordeon-tete"' + style + '>' + esc(m.nom) + ' <span class="accordeon-fleche">▼</span></div>' +
+    '<div class="accordeon-corps" hidden>' +
+      '<div class="bloc" style="padding: var(--espace-m) var(--espace-l) 0"><div class="label">Pièce</div>' +
+        '<select class="champ choix-piece" data-meuble="' + esc(m.id) + '">' + optionsPieces(m.pieceId) + '</select></div>' +
+      espaces +
+      '<div class="accordeon-item" style="gap: var(--espace-s)">' +
+        '<input class="champ espace-nouveau" placeholder="Nouvel espace…">' +
+        '<button class="bouton bouton-petit ajout-espace" data-meuble="' + esc(m.id) + '" type="button">+</button>' +
+      '</div>' +
+    '</div>' +
+  '</div>';
+}
+/* « Gérer les bases » : les pièces en accordéon → leurs meubles (accordéon) → espaces. */
+function remplirMeubles() {
+  let html = '';
+  const nonRanges = MEUBLES.filter(function (m) { return !m.pieceId; });
+  if (nonRanges.length) {
+    html += '<div class="accordeon"><div class="accordeon-tete">À ranger (' + nonRanges.length + ') <span class="accordeon-fleche">▼</span></div>' +
+      '<div class="accordeon-corps" hidden>' + nonRanges.map(htmlMeuble).join('') + '</div></div>';
+  }
+  html += PIECES.map(function (p) {
+    const meubles = MEUBLES.filter(function (m) { return String(m.pieceId) === String(p.id); });
+    const contenu = meubles.length ? meubles.map(htmlMeuble).join('')
+                                   : '<div class="accordeon-item"><span class="texte-petit texte-pale">Aucun meuble</span></div>';
+    return '<div class="accordeon"><div class="accordeon-tete">' + esc(p.nom) + ' <span class="accordeon-fleche">▼</span></div>' +
+      '<div class="accordeon-corps" hidden>' + contenu + '</div></div>';
+  }).join('');
+  $('liste-meubles').innerHTML = html || '<div class="texte-petit texte-pale">Aucune pièce ni meuble.</div>';
 }
 
 /* Ajoute un espace (tablette…) à un meuble, sans quitter la liste ni fermer l'accordéon. */
@@ -437,28 +469,13 @@ function initEntree() {
     const bAjout = ev.target.closest('.ajout-espace');
     if (bAjout) { ajouterEspace(bAjout.getAttribute('data-meuble'), bAjout); return; }
     const tete = ev.target.closest('.accordeon-tete');
-    if (tete) {
-      tete.classList.toggle('ouvert');
-      const corps = tete.nextElementSibling;
-      if (corps) corps.hidden = !tete.classList.contains('ouvert');
-    }
+    if (tete) toggleAccordeon(tete);
   });
   // boutons de l'accueil : éteints pour l'instant (avis « à venir »)
   document.querySelectorAll('#vue-accueil .bouton[data-avenir]').forEach(b =>
     b.addEventListener('click', () => avis(b.dataset.avenir + ' — à venir')));
   document.querySelectorAll('#vue-accueil .accordeon-tete[data-toggle]').forEach(tete =>
-    tete.addEventListener('click', () => {
-      const ouvrir = !tete.classList.contains('ouvert');
-      // un seul ouvert à la fois : on ferme tous les autres d'abord
-      document.querySelectorAll('#vue-accueil .accordeon-tete[data-toggle]').forEach(t => {
-        t.classList.remove('ouvert');
-        if (t.nextElementSibling) t.nextElementSibling.hidden = true;
-      });
-      if (ouvrir) {
-        tete.classList.add('ouvert');
-        if (tete.nextElementSibling) tete.nextElementSibling.hidden = false;
-      }
-    }));
+    tete.addEventListener('click', () => toggleAccordeon(tete)));
   // bouton 1 → choix « quoi » (un produit / toute l'épicerie) → choix « comment » (scanner / à la main)
   $('btn-entree').addEventListener('click', montrerChoixQuoi);
   $('choix-produit').addEventListener('click', montrerChoixComment);

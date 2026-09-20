@@ -62,6 +62,7 @@ Brainstorm des 12 actions : **faits 1,2,3,4** · **partiel 8** · restent 5,6,7,
 - **Logique** : la communication avec le coffre-fort vit dans **`JS/coffre.js`** (partagé : `Coffre.lire / ajouter / modifier / connexion`). **Aucun script inline** dans le HTML — chaque page = structure + `JS/coffre.js` + son propre `.js` (dans `JS/`).
 - **App en ligne** : `rdg.html` (GitHub Pages) parle au coffre-fort par **mot de passe** (Propriété du script `MOT_DE_PASSE`). URL du coffre-fort dans `JS/coffre.js`.
 - **Anti-cache** : dans `rdg.html`, les assets portent un numéro de version (`CSS/rdg.css?v=N`, `JS/*.js?v=N`). **Monter N à CHAQUE modif d'un de ces fichiers** — sinon le navigateur (iPad) garde l'ancienne version ~10 min.
+- **Accordéons (règle de J-C, PARTOUT)** : un seul ouvert à la fois dans son groupe (ses frères). Une seule fonction `toggleAccordeon(tete)` dans `entree.js` — la réutiliser pour tout accordéon, jamais réécrire la logique.
 - **Vitesse (CRITIQUE)** : le coffre-fort répond en ~1 s/appel (mesuré) — c'est le NOMBRE d'appels qui tue, pas Apps Script. Règles : **jamais d'appels en parallèle** (le VPN de J-C les échappe → « Load failed ») → toujours **séquentiel**; **actions groupées côté serveur** (`references` = tout charger en 1 appel; `entrerArticle` = produit + stocks en 1 appel); **cache** des listes en `localStorage` (instantané ensuite); **login optimiste** (n'attend aucun appel réseau); **mot de passe en `localStorage`** (reste connecté). Modèle = Dionysos.
 
 ## Dionysos — l'app de référence de Jean-Claude
