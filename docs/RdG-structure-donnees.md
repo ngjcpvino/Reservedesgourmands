@@ -64,6 +64,7 @@ endroits en même temps).*
 | E | DateEntree | date d'entrée de ce lot = date du scan (automatique) |
 | F | Marque | marque de CE lot (bio, ordinaire, une marque précise…) — un même produit peut en avoir plusieurs |
 | G | Format | format de CE lot (« 500 g », « unité »…) — idem |
+| H | OpId | jeton anti-reclic de l'entrée (toutes les lignes d'un même envoi = même jeton). Un renvoi du même jeton n'écrit RIEN |
 
 > Le « total » d'un produit = la somme de ses lignes STOCK.
 > Le « 2 sur 4 » et la ligne « en transit » de la fiche viennent d'ici.
