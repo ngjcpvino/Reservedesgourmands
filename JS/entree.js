@@ -10,6 +10,7 @@ const esc = s => String(s == null ? '' : s).replace(/[&<>"]/g, c => ({ '&':'&amp
 const montrer = (id, ok) => { $(id).hidden = !ok; };
 
 var RAYONS = [], SOUSCATS = {}, MEUBLES = [], ESPACES = {}, PRODUITS = [], VARIANTES = {};
+var opCourant = null;                                   // jeton anti-reclic de l'article en cours
 const CACHE = 'rdg_ref_v2';
 
 /* ---------- Vues : connexion → page d'ouverture → formulaire ---------- */
@@ -247,23 +248,25 @@ async function enregistrer() {
   if (!endroits.length) { statut('Choisis au moins un endroit.', 'erreur'); return; }
 
   const marque = $('marque').value.trim(), format = $('format').value.trim();
+  if (!opCourant) opCourant = 'op-' + Date.now() + '-' + Math.random().toString(36).slice(2, 8);
   statut('Enregistrement…');
   $('btn-enregistrer').disabled = true;
   try {
-    const charge = nouveau ? { produit: [nom, scid], marque: marque, format: format, endroits: endroits }
-                           : { produitId: produitId, marque: marque, format: format, endroits: endroits };
+    const charge = nouveau ? { produit: [nom, scid], marque: marque, format: format, endroits: endroits, opId: opCourant }
+                           : { produitId: produitId, marque: marque, format: format, endroits: endroits, opId: opCourant };
     const r = await Coffre.entrerArticle(charge);          // UN seul appel
     if (r && r.ok) { produitId = r.produitId || produitId; }
     else if (r && r.erreur === 'action inconnue') {        // repli si coffre-fort pas encore à jour
       if (nouveau) { const p = await Coffre.ajouter('Produits', ['', nom, scid, '', 'O', '', '']); if (!p.ok) throw new Error(p.erreur || 'refus'); produitId = p.id; }
       const date = new Date().toISOString().slice(0, 10);
-      for (const e of endroits) await Coffre.ajouter('Stock', ['', produitId, e.emp, e.qte, date, marque, format]);
+      for (const e of endroits) await Coffre.ajouter('Stock', ['', produitId, e.emp, e.qte, date, marque, format, opCourant]);
     } else { throw new Error((r && r.erreur) || 'refus'); }
     if (nouveau) {
       PRODUITS.push({ id: produitId, nom: nom, catId: scid });
       const c = lireCache(); if (c) { (c.prods = c.prods || []).push([produitId, nom, scid, '', 'O', '', '']); ecrireCache(c); }
     }
     memoriserVariante(produitId, marque, format);          // suggestions à jour tout de suite
+    opCourant = null;                                      // succès : le prochain article aura un nouveau jeton
     statut('Article ajouté ✓', 'succes');
     reinit();
   } catch (e) {
