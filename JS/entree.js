@@ -291,7 +291,7 @@ function initEntree() {
   $('produit').addEventListener('change', surProduit);
   $('btn-endroit').addEventListener('click', ajouterEndroit);
   $('btn-enregistrer').addEventListener('click', enregistrer);
-  $('lien-deco').addEventListener('click', deconnexion);
+  $('btn-annuler').addEventListener('click', montrerChoixComment);
   // reste connecté → page d'ouverture directement
   if (Coffre.motDePasse()) montrerAccueil();
 }
