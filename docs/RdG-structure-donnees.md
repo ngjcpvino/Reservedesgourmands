@@ -46,8 +46,8 @@ endroits en même temps).*
 | Col | Nom | Sens |
 |-----|-----|------|
 | A | ID | date/heure de création |
-| B | Nom | le **meuble** (« Frigo », « Congélateur ») ou l'**espace** (« Tablette 1 », « Bac ») |
-| C | ParentID | vide = un **meuble**; rempli = un **espace** dans ce meuble |
+| B | Nom | la **pièce** (« Cuisine »…), le **meuble** (« Frigo »…) ou l'**espace** (« Tablette 1 »…) |
+| C | ParentID | = SecteurID → **pièce** · = une pièce → **meuble** · = un meuble → **espace**. (Vide = meuble pas encore rangé dans une pièce = legacy) |
 | D | SecteurID | lien vers SECTEURS |
 | E | Actif | O / N |
 | F | Couleur | couleur distinctive du meuble (HEX). Sur le meuble; vide sur l'espace (il en hérite) |
