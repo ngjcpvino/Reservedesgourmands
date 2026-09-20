@@ -19,6 +19,8 @@
 <div id="menu" class="menu">
   <div class="menu-contenu">
     <button class="menu-item" id="menu-ouverture" type="button">Page d'ouverture</button>
+    <button class="menu-item" id="menu-outils" type="button">Outils ▾</button>
+    <button class="menu-item" id="menu-bases" type="button" hidden style="padding-left: var(--espace-xl);">Gérer les bases</button>
     <button class="menu-item" id="menu-deco" type="button">Se déconnecter</button>
   </div>
 </div>
@@ -164,7 +166,38 @@
   </div>
 </div>
 
+<!-- ============================================================
+     OUTILS — gérer les bases
+============================================================ -->
+<div id="vue-bases" class="conteneur" hidden>
+  <div class="entete">
+    <div class="titre" style="margin-top: var(--espace-xl);">Gérer les bases</div>
+  </div>
+  <div class="contenu">
+    <button class="bouton bouton-brun bouton-pleine" id="btn-ajout-meuble" type="button">Ajouter un meuble</button>
+  </div>
+</div>
+
+<div id="vue-meuble" class="conteneur" hidden>
+  <div class="entete">
+    <div class="titre" style="margin-top: var(--espace-xl);">Ajouter un meuble</div>
+  </div>
+  <div class="contenu">
+    <div class="bloc">
+      <div class="label">Nom du meuble</div>
+      <input class="champ" id="meuble-nom" placeholder="Ex. Garde-manger, Frigo">
+    </div>
+    <div class="bloc">
+      <div class="label">Couleur</div>
+      <input class="champ" id="meuble-couleur" type="color" value="#6b4f3a">
+    </div>
+    <button class="bouton bouton-vert bouton-pleine" id="btn-meuble-enr" type="button" style="margin-top: var(--espace-l);">Enregistrer</button>
+    <div class="message" id="meuble-msg"></div>
+    <button class="bouton bouton-pleine" id="meuble-annuler" type="button" style="margin-top: var(--espace-xl);">Annuler</button>
+  </div>
+</div>
+
 <script src="JS/coffre.js?v=1"></script>
-<script src="JS/entree.js?v=9"></script>
+<script src="JS/entree.js?v=10"></script>
 </body>
 </html>

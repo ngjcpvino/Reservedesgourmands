@@ -11,6 +11,7 @@ const montrer = (id, ok) => { $(id).hidden = !ok; };
 
 var RAYONS = [], SOUSCATS = {}, MEUBLES = [], ESPACES = {}, PRODUITS = [], VARIANTES = {};
 var opCourant = null;                                   // jeton anti-reclic de l'article en cours
+var SECTEUR_ID = '';                                    // secteur de cette app (Épicerie), déduit des données
 const CACHE = 'rdg_ref_v2';
 
 /* ---------- Vues : connexion → page d'ouverture → formulaire ---------- */
@@ -20,9 +21,13 @@ function toutCacher() {
   $('vue-choix-quoi').hidden = true;
   $('vue-choix-comment').hidden = true;
   $('vue-app').hidden = true;
-  $('btn-burger').hidden = true;   // burger caché par défaut ; ré-affiché sur accueil + choix
+  $('vue-bases').hidden = true;
+  $('vue-meuble').hidden = true;
+  $('btn-burger').hidden = true;   // burger caché par défaut ; ré-affiché sur accueil + choix + bases
   fermerMenu();
 }
+function montrerBases()  { toutCacher(); $('vue-bases').hidden = false; $('btn-burger').hidden = false; }
+function montrerMeuble() { toutCacher(); $('vue-meuble').hidden = false; $('meuble-msg').textContent = ''; }
 function montrerChoixQuoi()    { toutCacher(); $('vue-choix-quoi').hidden = false; $('btn-burger').hidden = false; }
 function montrerChoixComment() { toutCacher(); $('vue-choix-comment').hidden = false; $('btn-burger').hidden = false; }
 function montrerAccueil()    { toutCacher(); $('vue-accueil').hidden = false; $('btn-burger').hidden = false; }
@@ -81,7 +86,9 @@ async function lireRetry(table) {
 /* Construit les listes de travail à partir des lignes brutes. */
 function appliquer(d) {
   RAYONS = []; SOUSCATS = {};
+  SECTEUR_ID = '';
   (d.cats || []).forEach(r => {                       // [ID,Nom,ParentID,SecteurID,DureeVie,Actif]
+    if (!SECTEUR_ID && r[3]) SECTEUR_ID = String(r[3]);   // secteur de l'app (Épicerie)
     if (String(r[5]) !== 'O') return;
     if (!r[2]) RAYONS.push({ id: r[0], nom: r[1] });
     else (SOUSCATS[r[2]] = SOUSCATS[r[2]] || []).push({ id: r[0], nom: r[1] });
@@ -276,6 +283,27 @@ async function enregistrer() {
 
 function reinit() { $('cat').value = ''; resetSous(); }
 
+/* ---------- Ajouter un meuble (Outils → Gérer les bases) ---------- */
+async function enregistrerMeuble() {
+  const nom = $('meuble-nom').value.trim();
+  const msg = $('meuble-msg');
+  if (!nom) { msg.className = 'message message-erreur'; msg.textContent = 'Donne un nom au meuble.'; return; }
+  const couleur = $('meuble-couleur').value || '';
+  msg.className = 'message'; msg.textContent = 'Enregistrement…';
+  $('btn-meuble-enr').disabled = true;
+  try {
+    // Emplacements : ID · Nom · ParentID(vide = meuble) · SecteurID · Actif · Couleur
+    const r = await Coffre.ajouter('Emplacements', ['', nom, '', SECTEUR_ID, 'O', couleur]);
+    if (!r || !r.ok) throw new Error((r && r.erreur) || 'refus');
+    MEUBLES.push({ id: r.id, nom: nom, couleur: couleur });   // dispo tout de suite dans l'entrée
+    const c = lireCache(); if (c) { (c.emps = c.emps || []).push([r.id, nom, '', SECTEUR_ID, 'O', couleur]); ecrireCache(c); }
+    msg.className = 'message message-succes'; msg.textContent = 'Meuble ajouté ✓';
+    $('meuble-nom').value = '';
+  } catch (e) {
+    msg.className = 'message message-erreur'; msg.textContent = 'Échec : ' + e.message;
+  } finally { $('btn-meuble-enr').disabled = false; }
+}
+
 /* ---------- Branchements ---------- */
 function initEntree() {
   // connexion
@@ -284,7 +312,13 @@ function initEntree() {
   // page d'ouverture : menu burger + items
   $('btn-burger').addEventListener('click', basculerMenu);
   $('menu-ouverture').addEventListener('click', montrerAccueil);   // 1er item = retour à l'ouverture
+  $('menu-outils').addEventListener('click', () => { $('menu-bases').hidden = !$('menu-bases').hidden; });
+  $('menu-bases').addEventListener('click', montrerBases);
   $('menu-deco').addEventListener('click', deconnexion);
+  // Outils → gérer les bases → ajouter un meuble
+  $('btn-ajout-meuble').addEventListener('click', montrerMeuble);
+  $('btn-meuble-enr').addEventListener('click', enregistrerMeuble);
+  $('meuble-annuler').addEventListener('click', montrerBases);
   // boutons de l'accueil : éteints pour l'instant (avis « à venir »)
   document.querySelectorAll('#vue-accueil .bouton[data-avenir]').forEach(b =>
     b.addEventListener('click', () => avis(b.dataset.avenir + ' — à venir')));
