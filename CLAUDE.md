@@ -58,6 +58,7 @@ Brainstorm des 12 actions : **faits 1,2,3,4** · **partiel 8** · restent 5,6,7,
 ## Conventions de l'app (à respecter, ne pas régresser)
 
 - **Style** : tout dans **`CSS/rdg.css`**, générique — une base + variantes (`bouton` + `bouton-vert` + `bouton-grand`), noms **français**, **toute valeur au root** (changer une fois = partout). On réutilise; on n'ajoute un style que si aucun existant ne fait la job. (L'ancien `styles.css`, désormais dans `archive/`, ne sert QUE l'ancienne app.)
+- ⚠️ **Look en parallèle (2026-09-20)** : une AUTRE conversation travaille `CSS/rdg.css`. **Ne pas y toucher** — bâtir en HTML + JS avec les classes existantes; **signaler à J-C tout ajout de CSS**; **`git pull` avant chaque push** (deux sessions poussent sur le même dépôt).
 - **Logique** : la communication avec le coffre-fort vit dans **`JS/coffre.js`** (partagé : `Coffre.lire / ajouter / modifier / connexion`). **Aucun script inline** dans le HTML — chaque page = structure + `JS/coffre.js` + son propre `.js` (dans `JS/`).
 - **App en ligne** : `rdg.html` (GitHub Pages) parle au coffre-fort par **mot de passe** (Propriété du script `MOT_DE_PASSE`). URL du coffre-fort dans `JS/coffre.js`.
 - **Anti-cache** : dans `rdg.html`, les assets portent un numéro de version (`CSS/rdg.css?v=N`, `JS/*.js?v=N`). **Monter N à CHAQUE modif d'un de ces fichiers** — sinon le navigateur (iPad) garde l'ancienne version ~10 min.
