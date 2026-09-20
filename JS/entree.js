@@ -26,7 +26,14 @@ function toutCacher() {
   $('btn-burger').hidden = true;   // burger caché par défaut ; ré-affiché sur accueil + choix + bases
   fermerMenu();
 }
-function montrerBases()  { toutCacher(); $('vue-bases').hidden = false; $('btn-burger').hidden = false; remplirMeubles(); }
+async function montrerBases() {
+  toutCacher(); $('vue-bases').hidden = false; $('btn-burger').hidden = false;
+  if (!MEUBLES.length) {                       // pas encore chargé (on n'est pas passé par l'entrée) → on charge
+    $('liste-meubles').innerHTML = '<div class="texte-petit texte-pale">Chargement…</div>';
+    await chargerReferences();
+  }
+  remplirMeubles();
+}
 function montrerMeuble() { toutCacher(); $('vue-meuble').hidden = false; $('meuble-msg').textContent = ''; }
 function montrerChoixQuoi()    { toutCacher(); $('vue-choix-quoi').hidden = false; $('btn-burger').hidden = false; }
 function montrerChoixComment() { toutCacher(); $('vue-choix-comment').hidden = false; $('btn-burger').hidden = false; }
