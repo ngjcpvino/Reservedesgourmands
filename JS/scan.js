@@ -74,18 +74,13 @@
     if (scanning) timer = setTimeout(boucle, 200);
   }
 
-  async function trouve(code) {
+  function trouve(code) {
     arreter();                                   // on tient un code : on coupe la caméra
-    msg('Recherche… (' + code + ')');
-    if (typeof ouvrirFicheParCode === 'function' && ouvrirFicheParCode(code)) return;   // déjà à nous
-    var d = await chercherOFF(code);
-    if (typeof ouvrirFicheDepuisScan === 'function') {
-      ouvrirFicheDepuisScan(d);                  // -> la fiche (pré-remplie si trouvé)
-    } else {                                      // filet : fiche pas branchée
-      el('scan-code').textContent = code;
-      el('scan-resultat').hidden = false;
-      msg(d.trouve ? ('Trouvé : ' + d.nom) : 'Code lu ✓ (inconnu)');
-    }
+    msg('Lu : ' + code);
+    if (typeof ouvrirFicheScan === 'function') { ouvrirFicheScan(code); return; }   // -> la fiche (mode code)
+    el('scan-code').textContent = code;          // filet : fiche pas branchée
+    el('scan-resultat').hidden = false;
+    msg('Code lu ✓');
   }
 
   /* Open Food Facts : code -> { code, nom, marque, format, trouve }. */
@@ -116,6 +111,7 @@
 
   window.montrerScanner = montrerScanner;
   window.stopScanner = arreter;
+  window.chercherOFF = chercherOFF;   // utilisé aussi par la fiche (champ code corrigé à la main)
 
   function init() {
     var r = el('scan-retour');
