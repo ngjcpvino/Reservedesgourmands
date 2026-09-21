@@ -57,6 +57,15 @@
   --ombre-carte:      0 2px 12px rgba(61, 43, 31, 0.10);
   --ombre-bouton:     0 1px 6px rgba(61, 43, 31, 0.10);
   --ombre-forte:      0 6px 24px rgba(61, 43, 31, 0.28);
+
+  /* ---- Spinner (le contenant qui se remplit — change de dessin par secteur) ---- */
+  --spinner-largeur:  42px;                    /* largeur d'UNE bouteille */
+  --spinner-elance:   2.6;                     /* hauteur = largeur x ce chiffre */
+  --spinner-vitesse:  6s;                      /* un cycle complet : se remplit puis se vide */
+  --spinner-decalage: 2s;                      /* l'écart entre les trois */
+  --spinner-plein:    var(--blanc);            /* le lait */
+  --spinner-trait:    var(--creme);            /* le contour de la bouteille */
+  --spinner-voile:    rgba(61, 43, 31, 0.55);  /* l'écran qui bloque derrière */
 }
 
 /* ============================================================
@@ -415,8 +424,13 @@ select.champ {
 .menu-item:hover { background: rgba(255, 252, 248, 0.13); }
 
 /* ============================================================
-   VOILE — écran bloquant + fourchette qui tourne (spinner RdG)
-   Classes : .voile (le voile) · .spinner-fourchette (le rond + la fourchette SVG)
+   VOILE — écran bloquant + les trois bouteilles de lait
+   Structure attendue (neutre, aucun décor dans le HTML) :
+     <div id="voile" class="voile" hidden>
+       <div class="spinner"><span><i></i></span><span><i></i></span><span><i></i></span></div>
+     </div>
+   .spinner      = la rangée · span = une bouteille (le trait) · i = le lait
+   Le dessin vit ICI : un autre secteur remplace juste l'image de fond.
 ============================================================ */
 .voile {
   position: fixed;
@@ -425,14 +439,50 @@ select.champ {
   display: flex;
   align-items: center;
   justify-content: center;
-  background: rgba(61, 43, 31, 0.4);
+  background: var(--spinner-voile);
 }
-.spinner-fourchette {
-  width: 64px;
-  height: 64px;
-  border-radius: 50%;
-  background: var(--blanc) url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%236b4f3a' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M7 2v7'/%3E%3Cpath d='M12 2v7'/%3E%3Cpath d='M17 2v7'/%3E%3Cpath d='M7 9h10'/%3E%3Cpath d='M12 9v13'/%3E%3C/svg%3E") center / 55% no-repeat;
-  box-shadow: var(--ombre-forte);
-  animation: tourne-fourchette 0.9s linear infinite;
+
+.spinner {
+  display: flex;
+  align-items: flex-end;
+  gap: calc(var(--spinner-largeur) * 0.34);
 }
-@keyframes tourne-fourchette { to { transform: rotate(360deg); } }
+
+/* une bouteille : le contour */
+.spinner span {
+  position: relative;
+  display: block;
+  width: var(--spinner-largeur);
+  height: calc(var(--spinner-largeur) * var(--spinner-elance));
+  filter: drop-shadow(0 0 10px rgba(255, 255, 255, 0.28));
+}
+.spinner span::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background-repeat: no-repeat;
+  background-position: center;
+  background-size: contain;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 40 104' fill='none' stroke='%23f5efe6' stroke-width='2.4' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M13.5 4h13'/%3E%3Cpath d='M15 4v24c0 4-9.5 8-9.5 16v52c0 2.2 1.8 4 4 4h21c2.2 0 4-1.8 4-4V44c0-8-9.5-12-9.5-16V4'/%3E%3C/svg%3E");
+}
+
+/* le lait, découpé à la forme intérieure de la bouteille */
+.spinner i {
+  position: absolute;
+  inset: 0;
+  display: block;
+  clip-path: polygon(41% 6%, 59% 6%, 59% 28%, 83% 43%, 83% 92%, 80% 95%, 20% 95%, 17% 92%, 17% 43%, 41% 28%);
+}
+.spinner i::after {
+  content: '';
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: var(--spinner-plein);
+  animation: remplir var(--spinner-vitesse) ease-in-out infinite;
+}
+.spinner span:nth-child(2) i::after { animation-delay: calc(var(--spinner-decalage) * -1); }
+.spinner span:nth-child(3) i::after { animation-delay: calc(var(--spinner-decalage) * -2); }
+
+@keyframes remplir { 0%, 100% { height: 8%; } 50% { height: 86%; } }
