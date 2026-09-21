@@ -495,14 +495,30 @@ function optionsPieces(sel) {
     return '<option value="' + esc(p.id) + '"' + (String(p.id) === String(sel) ? ' selected' : '') + '>' + esc(p.nom) + '</option>';
   }).join('');
 }
+/* Une couleur de meuble est-elle PÂLE ? Sert à choisir la couleur du texte par-dessus :
+   du crème sur un fond foncé, du brun foncé sur un fond pâle. Sans ça, un meuble
+   pâle (Hotte, Frigo…) affiche du crème sur du crème — le nom disparaît.
+   On pèse le vert plus que le rouge et le bleu, parce que l'œil y est plus sensible. */
+function couleurPale(couleur) {
+  const h = String(couleur || '').trim().replace('#', '');
+  if (h.length !== 3 && h.length !== 6) return false;     // couleur illisible : on garde le crème
+  const plein = h.length === 3 ? h[0] + h[0] + h[1] + h[1] + h[2] + h[2] : h;
+  const r = parseInt(plein.slice(0, 2), 16);
+  const v = parseInt(plein.slice(2, 4), 16);
+  const b = parseInt(plein.slice(4, 6), 16);
+  if (isNaN(r) || isNaN(v) || isNaN(b)) return false;
+  return (0.299 * r + 0.587 * v + 0.114 * b) > 150;       // 150 sur 255 : le seuil à ajuster
+}
+
 /* Un meuble = accordéon (à sa couleur) : menu Pièce + ses espaces + « + un espace ». */
 function htmlMeuble(m) {
   const espaces = (ESPACES[m.id] || []).map(function (e) {
     return '<div class="accordeon-item">' + esc(e.nom) + '</div>';
   }).join('');
   const style = m.couleur ? ' style="background:' + esc(m.couleur) + '"' : '';
+  const pale = (m.couleur && couleurPale(m.couleur)) ? ' tete-pale' : '';
   return '<div class="accordeon">' +
-    '<div class="accordeon-tete"' + style + '>' + esc(m.nom) + ' <span class="accordeon-fleche">▼</span></div>' +
+    '<div class="accordeon-tete' + pale + '"' + style + '>' + esc(m.nom) + ' <span class="accordeon-fleche">▼</span></div>' +
     '<div class="accordeon-corps" hidden>' +
       '<div class="bloc" style="padding: var(--espace-m) var(--espace-l) 0"><div class="label">Pièce</div>' +
         '<select class="champ choix-piece" data-meuble="' + esc(m.id) + '">' + optionsPieces(m.pieceId) + '</select></div>' +
