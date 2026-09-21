@@ -400,7 +400,7 @@ select.champ {
 ============================================================ */
 .burger {
   position: fixed;
-  top: var(--espace-xl);                 /* aligné avec le haut de la photo */
+  top: calc(var(--haut-ecran) + var(--espace-xl));   /* aligné avec le haut de la photo — suit --haut-ecran tout seul */
   right: max(var(--espace-l), calc(50% - 350px + var(--espace-l)));   /* collé au conteneur (700px), pas au bord de l'écran */
   z-index: 230;
   width: var(--tactile);
