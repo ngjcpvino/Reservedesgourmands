@@ -59,8 +59,8 @@
   --ombre-forte:      0 6px 24px rgba(61, 43, 31, 0.28);
 
   /* ---- Boutons à icône (accueil + écrans de choix) ---- */
-  --bouton-grand-haut: 92px;   /* tous les gros boutons font CETTE hauteur, image ou pas */
-  --icone-taille:      80px;   /* le dessin dedans — l'écart haut/bas en découle */
+  --bouton-grand-haut: 76px;   /* tous les gros boutons font CETTE hauteur, image ou pas */
+  --icone-taille:      52px;   /* le dessin dedans — l'écart haut/bas en découle */
 
   /* ---- Spinner (le contenant qui se remplit — change de dessin par secteur) ---- */
   --spinner-largeur:  42px;                    /* largeur d'UNE bouteille */
