@@ -422,7 +422,9 @@ select.champ {
 
 .menu {
   position: fixed;
-  top: 0; right: 0; bottom: 0;            /* panneau latéral à DROITE */
+  top: calc(var(--haut-ecran) + var(--espace-xl));   /* démarre au bord haut de la photo */
+  right: 0;
+  bottom: 10vh;                          /* s'arrête à 10% du bas : le panneau fait 90% de l'écran */
   z-index: 220;
   min-width: 220px;
   background: var(--brun-fonce);          /* brun foncé, comme index */
@@ -431,7 +433,7 @@ select.champ {
   transition: transform 0.3s ease;
 }
 .menu.ouvert { transform: translateX(0); }
-.menu-contenu { padding: 80px var(--espace-l) var(--espace-xl); white-space: nowrap; }
+.menu-contenu { padding: calc(var(--tactile) + var(--espace-s)) var(--espace-l) var(--espace-xl); white-space: nowrap; }   /* juste ce qu'il faut pour passer sous le burger */
 .menu-item {
   display: flex;
   align-items: center;
