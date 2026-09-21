@@ -59,7 +59,7 @@ function ouvrirFicheDepuisScan(d) {
   const b = $('scan-banniere');
   if (b) {
     if (d && d.trouve && d.nom) {
-      b.textContent = 'Scanné : ' + d.nom + (d.format ? ' · ' + d.format : '');
+      b.textContent = 'Scanné : ' + d.nom + (d.format ? ' · ' + d.format : '') + ' · code ' + d.code;
       b.className = 'message message-succes';
     } else {
       b.textContent = 'Code ' + (d ? d.code : '') + ' — inconnu d’Open Food Facts. Entre-le à la main.';
