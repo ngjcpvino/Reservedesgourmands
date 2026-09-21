@@ -28,7 +28,7 @@
   --champ-focus:      #6b4f3a;
   --champ-focus-halo: rgba(107, 79, 58, 0.12);
   --placeholder:      #a08060;
-  --menu-fond:        rgba(61, 43, 31, 0.65);  /* le brun foncé du menu, à 65% d'opacité */
+  --menu-fond:        rgba(61, 43, 31, 0.75);  /* le brun foncé du menu, à 75% d'opacité */
 
   /* ---- Tailles de texte (échelle neutre : change la valeur, tout suit) ---- */
   --texte-micro:      12px;
