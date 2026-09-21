@@ -74,12 +74,37 @@
     if (scanning) timer = setTimeout(boucle, 200);
   }
 
-  function trouve(code) {
-    el('scan-code').textContent = code;
-    el('scan-resultat').hidden = false;
-    msg('Code lu ✓');
-    arreter();   // tranche 1 : on lit UN code et on s’arrête
+  async function trouve(code) {
+    arreter();                                   // on tient un code : on coupe la caméra
+    msg('Recherche du produit… (' + code + ')');
+    var d = await chercherOFF(code);
+    if (typeof ouvrirFicheDepuisScan === 'function') {
+      ouvrirFicheDepuisScan(d);                  // -> la fiche (pré-remplie si trouvé)
+    } else {                                      // filet : fiche pas branchée
+      el('scan-code').textContent = code;
+      el('scan-resultat').hidden = false;
+      msg(d.trouve ? ('Trouvé : ' + d.nom) : 'Code lu ✓ (inconnu)');
+    }
   }
+
+  /* Open Food Facts : code -> { code, nom, marque, format, trouve }. */
+  async function chercherOFF(code) {
+    var url = 'https://world.openfoodfacts.org/api/v2/product/' + encodeURIComponent(code)
+            + '.json?fields=code,product_name_fr,product_name,generic_name,brands,quantity';
+    try {
+      var r = await fetch(url, { headers: { 'Accept': 'application/json' } });
+      var j = await r.json();
+      if (j && j.status === 1 && j.product) {
+        var p = j.product;
+        var nom = (p.product_name_fr || p.product_name || p.generic_name || '').trim();
+        var marque = (p.brands || '').split(',')[0].trim();
+        return { code: code, nom: nom, marque: marque, format: nettoyerFormat(p.quantity), trouve: true };
+      }
+    } catch (e) { /* réseau / inconnu : on retombe sur « non trouvé » */ }
+    return { code: code, nom: '', marque: '', format: '', trouve: false };
+  }
+
+  function nettoyerFormat(q) { return String(q || '').replace(/\s*e\s*$/i, '').trim(); }
 
   function arreter() {
     scanning = false;

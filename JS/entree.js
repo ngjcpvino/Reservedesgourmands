@@ -10,6 +10,7 @@ const esc = s => String(s == null ? '' : s).replace(/[&<>"]/g, c => ({ '&':'&amp
 const montrer = (id, ok) => { $(id).hidden = !ok; };
 
 var RAYONS = [], SOUSCATS = {}, MEUBLES = [], ESPACES = {}, PRODUITS = [], VARIANTES = {}, PIECES = [];
+var scanEnAttente = null;   // { code, nom, marque, format, trouve } quand on arrive par le scan
 var opCourant = null;                                   // jeton anti-reclic de l'article en cours
 var SECTEUR_ID = '';                                    // secteur de cette app (Épicerie), déduit des données
 const CACHE = 'rdg_ref_v2';
@@ -42,7 +43,31 @@ function montrerPiece()  { toutCacher(); $('vue-piece').hidden = false; $('piece
 function montrerChoixQuoi()    { toutCacher(); $('vue-choix-quoi').hidden = false; $('btn-burger').hidden = false; }
 function montrerChoixComment() { toutCacher(); $('vue-choix-comment').hidden = false; $('btn-burger').hidden = false; }
 function montrerAccueil()    { toutCacher(); $('vue-accueil').hidden = false; $('btn-burger').hidden = false; }
-function montrerFormulaire() { toutCacher(); $('vue-app').hidden = false; fermerMenu(); chargerReferences(); }
+function montrerFormulaire() {
+  toutCacher(); $('vue-app').hidden = false; fermerMenu();
+  scanEnAttente = null; cacherBanniereScan();   // ouverture « à la main » : pas de scan en cours
+  chargerReferences();
+}
+
+function cacherBanniereScan() { const b = $('scan-banniere'); if (b) { b.hidden = true; b.textContent = ''; } }
+
+/* Arrivée par le SCAN : ouvre la fiche avec ce qu'Open Food Facts a trouvé. */
+function ouvrirFicheDepuisScan(d) {
+  montrerFormulaire();          // ouvre la fiche + charge les références (et remet scanEnAttente à null)
+  reinit();                     // repart à la catégorie
+  scanEnAttente = d || null;    // (re)posé APRÈS montrerFormulaire/reinit qui l'effacent
+  const b = $('scan-banniere');
+  if (b) {
+    if (d && d.trouve && d.nom) {
+      b.textContent = 'Scanné : ' + d.nom + (d.format ? ' · ' + d.format : '');
+      b.className = 'message message-succes';
+    } else {
+      b.textContent = 'Code ' + (d ? d.code : '') + ' — inconnu d’Open Food Facts. Entre-le à la main.';
+      b.className = 'message message-erreur';
+    }
+    b.hidden = false;
+  }
+}
 function revenirConnexion(msg) {
   toutCacher(); $('vue-connexion').hidden = false; fermerMenu();
   $('msg-connexion').textContent = msg || '';
@@ -200,6 +225,14 @@ function surSousCategorie() {
   montrer('bloc-nom', false); montrer('bloc-details', false);
   montrer('bloc-endroits', false); montrer('btn-enregistrer', false);
   $('endroits').innerHTML = '';
+
+  if (scid && scanEnAttente && scanEnAttente.nom) {   // vient du scan : nouveau produit pré-rempli
+    $('produit').value = '__nouveau';
+    surProduit();
+    $('nom').value = scanEnAttente.nom;
+    $('marque').value = scanEnAttente.marque || '';
+    $('format').value = scanEnAttente.format || '';
+  }
 }
 
 /* Remplit les suggestions (datalist) de marque/format pour un produit. */
@@ -368,7 +401,7 @@ async function enregistrer() {
   } finally { $('btn-enregistrer').disabled = false; montrerVoile(false); }
 }
 
-function reinit() { $('cat').value = ''; resetSous(); }
+function reinit() { $('cat').value = ''; resetSous(); scanEnAttente = null; cacherBanniereScan(); }
 
 /* ---------- Ajouter un meuble (Outils → Gérer les bases) ---------- */
 async function enregistrerMeuble() {
