@@ -103,7 +103,7 @@ function deconnexion() {
 
 /* ---------- Menu burger ---------- */
 function fermerMenu()   { $('menu').classList.remove('ouvert'); }
-function montrerVoile(on){ $('voile').hidden = !on; }   // voile bloquant + fourchette qui tourne
+function montrerVoile(on){ $('voile').hidden = !on; }   // voile bloquant + les trois bouteilles de lait
 
 /* Ouvre/ferme un accordéon — UN SEUL ouvert à la fois dans son groupe (ses frères). Partout. */
 function toggleAccordeon(tete) {
