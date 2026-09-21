@@ -28,6 +28,7 @@
   --champ-focus:      #6b4f3a;
   --champ-focus-halo: rgba(107, 79, 58, 0.12);
   --placeholder:      #a08060;
+  --menu-fond:        rgba(61, 43, 31, 0.8);   /* le brun foncé du menu, à 80% d'opacité */
 
   /* ---- Tailles de texte (échelle neutre : change la valeur, tout suit) ---- */
   --texte-micro:      12px;
@@ -424,10 +425,10 @@ select.champ {
   position: fixed;
   top: calc(var(--haut-ecran) + var(--espace-xl));   /* démarre au bord haut de la photo */
   right: 0;
-  bottom: 10vh;                          /* s'arrête à 10% du bas : le panneau fait 90% de l'écran */
+  bottom: 2vh;                           /* s'arrête à 2% du bas */
   z-index: 220;
   min-width: 220px;
-  background: var(--brun-fonce);          /* brun foncé, comme index */
+  background: var(--menu-fond);           /* brun foncé à 80% : on devine la photo derrière */
   overflow-y: auto;
   transform: translateX(100%);            /* caché hors écran à droite */
   transition: transform 0.3s ease;
