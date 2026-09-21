@@ -113,6 +113,25 @@
 </div>
 
 <!-- ============================================================
+     SCANNER (tranche 1 : lire un code)
+============================================================ -->
+<div id="vue-scan" class="conteneur" hidden>
+  <div class="contenu">
+    <div class="bloc">
+      <div class="label">Vise un code-barres</div>
+      <video id="scan-video" playsinline muted style="width:100%; max-height:60vh; background:#000; border-radius:12px; object-fit:cover;"></video>
+    </div>
+    <div class="message" id="scan-msg"></div>
+    <div class="bloc" id="scan-resultat" hidden>
+      <div class="label">Code lu</div>
+      <div class="champ" id="scan-code" style="font-weight:600; letter-spacing:0.04em;"></div>
+      <button class="bouton bouton-vert bouton-pleine" id="scan-encore" type="button" style="margin-top: var(--espace-s);">Scanner un autre</button>
+    </div>
+    <button class="bouton bouton-brun bouton-pleine" id="scan-retour" type="button" style="margin-top: var(--espace-l);">Retour</button>
+  </div>
+</div>
+
+<!-- ============================================================
      ENTRER UN ARTICLE
 ============================================================ -->
 <div id="vue-app" class="conteneur" hidden>
@@ -218,6 +237,7 @@
 </div>
 
 <script src="JS/coffre.js?v=1"></script>
-<script src="JS/entree.js?v=19"></script>
+<script src="JS/entree.js?v=20"></script>
+<script src="JS/scan.js?v=1"></script>
 </body>
 </html>
