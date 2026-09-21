@@ -301,6 +301,10 @@ select.champ {
   transition: var(--transition);
 }
 .accordeon-tete:hover { background: var(--brun-fonce); }
+/* Fond pâle (couleur de meuble claire) : le texte passe au brun foncé, sinon il disparaît.
+   La classe est posée par le script, qui seul connaît la couleur choisie. */
+.accordeon-tete.tete-pale { color: var(--brun-fonce); }
+.accordeon-tete.tete-pale .accordeon-fleche { color: var(--brun); }
 .accordeon-fleche { font-size: var(--texte-micro); color: var(--beige-moyen); transition: transform 0.25s ease; }
 .accordeon-tete.ouvert .accordeon-fleche { transform: rotate(180deg); }
 .accordeon-item {
