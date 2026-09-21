@@ -11,6 +11,8 @@ const montrer = (id, ok) => { $(id).hidden = !ok; };
 
 var RAYONS = [], SOUSCATS = {}, MEUBLES = [], ESPACES = {}, PRODUITS = [], VARIANTES = {}, PIECES = [];
 var scanEnAttente = null;   // { code, nom, marque, format, trouve } quand on arrive par le scan
+var codeScan = '';          // code-barres de l'entrée en cours (écrit dans STOCK à l'enregistrement)
+var CODES = {};             // { codeBarres: produitId } — reconnaître un produit déjà à nous
 var opCourant = null;                                   // jeton anti-reclic de l'article en cours
 var SECTEUR_ID = '';                                    // secteur de cette app (Épicerie), déduit des données
 const CACHE = 'rdg_ref_v2';
@@ -45,7 +47,7 @@ function montrerChoixComment() { toutCacher(); $('vue-choix-comment').hidden = f
 function montrerAccueil()    { toutCacher(); $('vue-accueil').hidden = false; $('btn-burger').hidden = false; }
 function montrerFormulaire() {
   toutCacher(); $('vue-app').hidden = false; fermerMenu();
-  scanEnAttente = null; cacherBanniereScan();   // ouverture « à la main » : pas de scan en cours
+  scanEnAttente = null; codeScan = ''; cacherBanniereScan();   // ouverture « à la main » : pas de scan en cours
   chargerReferences();
 }
 
@@ -56,6 +58,7 @@ function ouvrirFicheDepuisScan(d) {
   montrerFormulaire();          // ouvre la fiche + charge les références (et remet scanEnAttente à null)
   reinit();                     // repart à la catégorie
   scanEnAttente = d || null;    // (re)posé APRÈS montrerFormulaire/reinit qui l'effacent
+  codeScan = (d && d.code) || '';   // à écrire dans STOCK à l'enregistrement
   const b = $('scan-banniere');
   if (b) {
     if (d && d.trouve && d.nom) {
@@ -67,6 +70,24 @@ function ouvrirFicheDepuisScan(d) {
     }
     b.hidden = false;
   }
+}
+
+/* Code déjà à nous ? Ouvre la fiche du bon produit existant. Renvoie true si reconnu. */
+function ouvrirFicheParCode(code) {
+  const pid = CODES[String(code)];
+  if (!pid) return false;
+  const prod = PRODUITS.find(p => String(p.id) === String(pid));
+  if (!prod) return false;
+  let rayonId = '';
+  for (const rid in SOUSCATS) { if ((SOUSCATS[rid] || []).some(s => String(s.id) === String(prod.catId))) { rayonId = rid; break; } }
+  montrerFormulaire(); reinit();
+  codeScan = String(code);                        // on ré-écrit le code sur le nouveau lot
+  const b = $('scan-banniere');
+  if (b) { b.textContent = 'Reconnu : ' + prod.nom + ' · code ' + code; b.className = 'message message-succes'; b.hidden = false; }
+  $('cat').value = rayonId; surCategorie();
+  $('souscat').value = String(prod.catId); surSousCategorie();
+  $('produit').value = String(pid); surProduit();  // -> endroits habituels + dernière marque/format
+  return true;
 }
 function revenirConnexion(msg) {
   toutCacher(); $('vue-connexion').hidden = false; fermerMenu();
@@ -164,6 +185,7 @@ function appliquer(d) {
     .filter(r => String(r[4]) !== 'N')
     .map(r => ({ id: r[0], nom: r[1], catId: r[2] }));
   VARIANTES = d.variantes || {};                      // { produitId: { marques:[], formats:[] } }
+  CODES = d.codes || {};                              // { codeBarres: produitId }
 }
 
 async function chargerReferences() {
@@ -182,7 +204,7 @@ async function chargerReferences() {
 async function chargerData() {
   try {
     const r = await Coffre.references();          // chemin rapide : UN seul appel
-    if (r && r.ok && r.categories !== undefined) return { cats: r.categories, emps: r.emplacements, prods: r.produits, variantes: r.variantes };
+    if (r && r.ok && r.categories !== undefined) return { cats: r.categories, emps: r.emplacements, prods: r.produits, variantes: r.variantes, codes: r.codes };
     if (r && r.erreur === 'non autorisé') throw new Error('non autorisé');
   } catch (e) { if (e.message === 'non autorisé') throw e; }   // sinon on tente le repli
   const cats = await lireRetry('Categories');     // repli : 3 appels un à la fois
@@ -379,14 +401,14 @@ async function enregistrer() {
   $('btn-enregistrer').disabled = true;
   montrerVoile(true);
   try {
-    const charge = nouveau ? { produit: [nom, scid], marque: marque, format: format, endroits: endroits, opId: opCourant }
-                           : { produitId: produitId, marque: marque, format: format, endroits: endroits, opId: opCourant };
+    const charge = nouveau ? { produit: [nom, scid], marque: marque, format: format, code: codeScan || '', endroits: endroits, opId: opCourant }
+                           : { produitId: produitId, marque: marque, format: format, code: codeScan || '', endroits: endroits, opId: opCourant };
     const r = await Coffre.entrerArticle(charge);          // UN seul appel
     if (r && r.ok) { produitId = r.produitId || produitId; }
     else if (r && r.erreur === 'action inconnue') {        // repli si coffre-fort pas encore à jour
       if (nouveau) { const p = await Coffre.ajouter('Produits', ['', nom, scid, '', 'O', '', '']); if (!p.ok) throw new Error(p.erreur || 'refus'); produitId = p.id; }
       const date = new Date().toISOString().slice(0, 10);
-      for (const e of endroits) await Coffre.ajouter('Stock', ['', produitId, e.emp, e.qte, date, marque, format, opCourant]);
+      for (const e of endroits) await Coffre.ajouter('Stock', ['', produitId, e.emp, e.qte, date, marque, format, opCourant, codeScan || '']);
     } else { throw new Error((r && r.erreur) || 'refus'); }
     if (nouveau) {
       PRODUITS.push({ id: produitId, nom: nom, catId: scid });
@@ -401,7 +423,7 @@ async function enregistrer() {
   } finally { $('btn-enregistrer').disabled = false; montrerVoile(false); }
 }
 
-function reinit() { $('cat').value = ''; resetSous(); scanEnAttente = null; cacherBanniereScan(); }
+function reinit() { $('cat').value = ''; resetSous(); scanEnAttente = null; codeScan = ''; cacherBanniereScan(); }
 
 /* ---------- Ajouter un meuble (Outils → Gérer les bases) ---------- */
 async function enregistrerMeuble() {
