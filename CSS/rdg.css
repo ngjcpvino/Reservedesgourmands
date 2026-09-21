@@ -283,6 +283,9 @@ select.champ {
    ACCORDÉON — un bloc repliable (tête brune + items)
 ============================================================ */
 .accordeon { background: var(--blanc); border-radius: var(--rayon); overflow: hidden; margin-bottom: var(--espace-s); }
+/* Un accordéon DANS un accordéon (un meuble dans sa pièce) : le premier serait collé au titre
+   de la pièce, car la marge n'existe qu'en dessous. On lui donne le même écart qu'aux autres. */
+.accordeon-corps > .accordeon:first-child { margin-top: var(--espace-s); }
 .accordeon-tete {
   display: flex;
   justify-content: space-between;
