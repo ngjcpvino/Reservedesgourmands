@@ -28,7 +28,8 @@
   --champ-focus:      #6b4f3a;
   --champ-focus-halo: rgba(107, 79, 58, 0.12);
   --placeholder:      #a08060;
-  --menu-fond:        rgba(61, 43, 31, 0.8);   /* le brun foncé du menu, à 80% d'opacité */
+  --menu-fond:        rgba(61, 43, 31, 0.65);  /* le brun foncé du menu, à 65% d'opacité */
+  --menu-flou:        12px;                    /* verre dépoli : la photo transparaît, le texte reste net */
 
   /* ---- Tailles de texte (échelle neutre : change la valeur, tout suit) ---- */
   --texte-micro:      12px;
@@ -428,7 +429,9 @@ select.champ {
   bottom: 2vh;                           /* s'arrête à 2% du bas */
   z-index: 220;
   min-width: 220px;
-  background: var(--menu-fond);           /* brun foncé à 80% : on devine la photo derrière */
+  background: var(--menu-fond);           /* brun translucide… */
+  backdrop-filter: blur(var(--menu-flou));          /* …+ flou derrière : la photo transparaît, adoucie */
+  -webkit-backdrop-filter: blur(var(--menu-flou));  /* Safari iOS */
   overflow-y: auto;
   transform: translateX(100%);            /* caché hors écran à droite */
   transition: transform 0.3s ease;
