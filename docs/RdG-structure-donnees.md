@@ -65,6 +65,7 @@ endroits en même temps).*
 | F | Marque | marque de CE lot (bio, ordinaire, une marque précise…) — un même produit peut en avoir plusieurs |
 | G | Format | format de CE lot (« 500 g », « unité »…) — idem |
 | H | OpId | jeton anti-reclic de l'entrée (toutes les lignes d'un même envoi = même jeton). Un renvoi du même jeton n'écrit RIEN |
+| I | CodeBarres | le code-barres scanné pour CE lot — **clé de recherche** (reconnaître le produit au prochain scan). Vide si entré à la main |
 
 > Le « total » d'un produit = la somme de ses lignes STOCK.
 > Le « 2 sur 4 » et la ligne « en transit » de la fiche viennent d'ici.
@@ -95,15 +96,17 @@ endroits en même temps).*
 | E | DureeVieJours | durée de conservation. Vide = hérite du parent le plus proche |
 | F | Actif | O / N |
 
-### CODES — les codes-barres (plusieurs par produit), chacun son multiplicateur
+### CODES-BARRES — PAS de table séparée (décision 2026-09-20)
 
-| Col | Nom | Sens |
-|-----|-----|------|
-| A | ID | date/heure de création |
-| B | CodeBarres | le code lu — **clé de recherche**, jamais l'identifiant du produit |
-| C | ProduitID | lien vers PRODUITS |
-| D | Multiplicateur | 1 par défaut; un code « paquet de 12 » = 12 |
-| E | Actif | O / N |
+Le code-barres vit sur **STOCK, colonne I** (ci-dessus), comme la marque et le
+format vivent sur le lot. Le serveur relit STOCK et renvoie un index
+`{ codeBarres: produitId }` (1re association gagne) pour **reconnaître un
+produit déjà à nous** au scan. Motivation : éviter un onglet de plus; un
+code-barres est un attribut du lot au même titre que marque/format.
+
+Un produit peut donc avoir **plusieurs codes** (ses lots l'ont porté), c'est
+correct. Reporté à plus tard : le **multiplicateur par code** (« paquet de 12 »)
+— si besoin, une colonne J s'ajoutera au bout, sans rien casser.
 
 ---
 

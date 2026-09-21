@@ -76,7 +76,8 @@
 
   async function trouve(code) {
     arreter();                                   // on tient un code : on coupe la caméra
-    msg('Recherche du produit… (' + code + ')');
+    msg('Recherche… (' + code + ')');
+    if (typeof ouvrirFicheParCode === 'function' && ouvrirFicheParCode(code)) return;   // déjà à nous
     var d = await chercherOFF(code);
     if (typeof ouvrirFicheDepuisScan === 'function') {
       ouvrirFicheDepuisScan(d);                  // -> la fiche (pré-remplie si trouvé)
