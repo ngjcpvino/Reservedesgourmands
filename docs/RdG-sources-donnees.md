@@ -57,19 +57,36 @@ Bonus gratuits (pour plus tard) : `nutriscore_grade`, `nova_group`,
 `countries` « Canada » · `image_front_url` ✔. (Le zéro de tête est normalisé :
 `0062020000743`.)
 
-## SOURCE B — Site du magasin (PRIX / SPÉCIAUX) — point 12, à brancher
+## SOURCE B — Site du magasin (PRIX / SPÉCIAUX) — point 12
 
-- Le **plus riche** : **code + prix + format + circulaire**. Jointure **par
-  code** (le « Numéro de produit » = l'UPC).
-- Deux plateformes : **Metro inc.** (Super C, Metro, Marché Richelieu →
-  superc.ca / metro.ca) vs **Sobeys** (IGA → iga.net).
-- **Pas d'API publique documentée**, MAIS un **endpoint interne** existe
-  presque sûrement (comme la SAQ pour Dionysos). Fragile (casse quand le
-  site change), par magasin, zone grise côté conditions d'utilisation.
-- **PIÈCE MANQUANTE = tâche de Jean-Claude (sur ordi)** : inspecter le réseau
-  de superc.ca/metro.ca, trouver l'endpoint qui prend le numéro de produit
-  et renvoie **produit + prix + dates du spécial**. Rapporter **URL + exemple
-  de réponse** → Claude branche.
+**Vérifié sur superc.ca le 2026-09-20 (navigateur intégré).** Plateforme
+**Metro inc.** (Super C, Metro, Richelieu → images partagées
+`product-images.metro.ca`); **IGA = Sobeys** (iga.net, à vérifier séparément).
+
+**Ce qui MARCHE, sans jeton — grattage de la page de recherche :**
+- `GET https://www.superc.ca/recherche?freeText=true&filter=<NOM>` renvoie des
+  **tuiles HTML**, chacune avec : `data-product-code` (= l'UPC), `data-product-brand`,
+  `data-product-name`, le format (`.head__unit-details`), le **prix**
+  (`data-main-price` = prix effectif; prix régulier à part si spécial), et
+  l'URL produit `/allees/.../p/<code>`.
+- ⚠️ La recherche est **par NOM, PAS par code** : chercher l'UPC brut → **0 résultat**.
+  Donc le code sert à **choisir la bonne tuile** (le bon format) parmi les
+  résultats du nom, pas à chercher.
+- **Flux prix** : scan → OFF (nom + code) → recherche Super C par **nom** →
+  garder la tuile dont `data-product-code` == code scanné → **prix + spécial** exacts.
+- **Exemple prouvé** : « nutella » → tuile code `062020000743`, 375 g,
+  **3,99 $ (régulier 5,49 $)**.
+
+**Le raccourci bloqué :** l'endpoint direct par code `POST /produit/skus`
+(celui que le site utilise pour rendre les tuiles) répond **409** sans
+jeton/session. `GET /p/<code>` seul = 404 (le chemin de catégorie est requis).
+→ **Tâche de J-C sur ordi** : copier une vraie requête `/produit/skus` depuis
+les devtools (« Copier comme fetch » : en-têtes + jeton + corps) → Claude la
+reproduit → **code → prix en 1 appel**, plus propre que le grattage.
+
+**Bémols :** grattage **HTML** (pas de JSON), derrière **Cloudflare** (fragile,
+conditions d'utilisation grises), **par magasin** (Ormstown ≠ un autre), et
+trous **marques maison / vrac** (pas de nom OFF pour lancer la recherche).
 
 ## SOURCE C — Flipp (plan B pour les spéciaux)
 
