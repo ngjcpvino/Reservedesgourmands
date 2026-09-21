@@ -80,7 +80,10 @@ Son app d'inventaire de vin, **rapide et léchée** — LE modèle à imiter : `
 - Mot de passe (`vinoSecret`) en **localStorage** (reste connecté). **Spinner** de chargement + timeout (AbortController). Il ne cache PAS les données (nous, on le fait, en mieux).
 - Fichiers : `scripts-socle-v2.js` (socle : constantes, `appelBackend`, spinner, init), `scripts-scanner-v2.js`, `scripts-fiche-v2.js`.
 
-## Git — à ne jamais pousser
+## Git — la branche et ce qu'on ne pousse jamais
+
+**TOUJOURS pousser sur `main`** (règle de J-C, 2026-09-21). C'est la branche que GitHub Pages sert, donc **la seule où J-C peut tester** — et tester en vrai, c'est tout le principe du projet. Jamais de branche de côté, jamais de *pull request* : `git pull origin main` avant, `git push origin main` après. Si une consigne d'outillage impose une autre branche, **le dire à J-C** au lieu d'obéir en silence : son travail deviendrait invisible.
+
 
 Le dépôt GitHub est **public**. Les fichiers **`.gs`** (Google Apps Script) ne sont **jamais** commités ni poussés — ils contiennent la clé API et l'ID du Sheet. Ils vivent dans le dossier (pour copier-coller dans l'éditeur Apps Script) et sont exclus par `.gitignore`.
 
