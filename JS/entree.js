@@ -10,9 +10,9 @@ const esc = s => String(s == null ? '' : s).replace(/[&<>"]/g, c => ({ '&':'&amp
 const montrer = (id, ok) => { $(id).hidden = !ok; };
 
 var RAYONS = [], SOUSCATS = {}, MEUBLES = [], ESPACES = {}, PRODUITS = [], VARIANTES = {}, PIECES = [];
-var scanEnAttente = null;   // { code, nom, marque, format, trouve } quand on arrive par le scan
-var codeScan = '';          // code-barres de l'entrée en cours (écrit dans STOCK à l'enregistrement)
+var codeScan = '';          // code-barres de l'entrée en cours (le champ #codebarres fait foi)
 var CODES = {};             // { codeBarres: produitId } — reconnaître un produit déjà à nous
+var produitCourant = null;  // id du produit reconnu (existant) ; null = nouveau produit
 var opCourant = null;                                   // jeton anti-reclic de l'article en cours
 var SECTEUR_ID = '';                                    // secteur de cette app (Épicerie), déduit des données
 const CACHE = 'rdg_ref_v2';
@@ -45,49 +45,43 @@ function montrerPiece()  { toutCacher(); $('vue-piece').hidden = false; $('piece
 function montrerChoixQuoi()    { toutCacher(); $('vue-choix-quoi').hidden = false; $('btn-burger').hidden = false; }
 function montrerChoixComment() { toutCacher(); $('vue-choix-comment').hidden = false; $('btn-burger').hidden = false; }
 function montrerAccueil()    { toutCacher(); $('vue-accueil').hidden = false; $('btn-burger').hidden = false; }
-function montrerFormulaire() {
+function montrerFormulaire(avecCode) {
   toutCacher(); $('vue-app').hidden = false; fermerMenu();
-  scanEnAttente = null; codeScan = ''; cacherBanniereScan();   // ouverture « à la main » : pas de scan en cours
-  chargerReferences();
+  reinitFiche();
+  montrer('bloc-code', !!avecCode);          // le champ code n'apparaît qu'au scan
+  $('codebarres').value = ''; codeScan = '';
+  chargerReferences();                        // catégories + liste des noms de produits
 }
 
-function cacherBanniereScan() { const b = $('scan-banniere'); if (b) { b.hidden = true; b.textContent = ''; } }
-
-/* Arrivée par le SCAN : ouvre la fiche avec ce qu'Open Food Facts a trouvé. */
-function ouvrirFicheDepuisScan(d) {
-  montrerFormulaire();          // ouvre la fiche + charge les références (et remet scanEnAttente à null)
-  reinit();                     // repart à la catégorie
-  scanEnAttente = d || null;    // (re)posé APRÈS montrerFormulaire/reinit qui l'effacent
-  codeScan = (d && d.code) || '';   // à écrire dans STOCK à l'enregistrement
-  const b = $('scan-banniere');
-  if (b) {
-    if (d && d.trouve && d.nom) {
-      b.textContent = 'Scanné : ' + d.nom + (d.format ? ' · ' + d.format : '') + ' · code ' + d.code;
-      b.className = 'message message-succes';
-    } else {
-      b.textContent = 'Code ' + (d ? d.code : '') + ' — inconnu d’Open Food Facts. Entre-le à la main.';
-      b.className = 'message message-erreur';
-    }
-    b.hidden = false;
-  }
+/* Arrivée par le SCAN : ouvre la fiche en mode code, pose le code, lance la recherche. */
+function ouvrirFicheScan(code) {
+  montrerFormulaire(true);
+  $('codebarres').value = String(code || '');
+  surCode();
 }
 
-/* Code déjà à nous ? Ouvre la fiche du bon produit existant. Renvoie true si reconnu. */
-function ouvrirFicheParCode(code) {
+/* Le code-barres est la clé : STOCK d'abord (reconnu ?), sinon Open Food Facts. */
+async function surCode() {
+  const code = $('codebarres').value.trim();
+  codeScan = code;
+  if (!code) return;
   const pid = CODES[String(code)];
-  if (!pid) return false;
-  const prod = PRODUITS.find(p => String(p.id) === String(pid));
-  if (!prod) return false;
-  let rayonId = '';
-  for (const rid in SOUSCATS) { if ((SOUSCATS[rid] || []).some(s => String(s.id) === String(prod.catId))) { rayonId = rid; break; } }
-  montrerFormulaire(); reinit();
-  codeScan = String(code);                        // on ré-écrit le code sur le nouveau lot
-  const b = $('scan-banniere');
-  if (b) { b.textContent = 'Reconnu : ' + prod.nom + ' · code ' + code; b.className = 'message message-succes'; b.hidden = false; }
-  $('cat').value = rayonId; surCategorie();
-  $('souscat').value = String(prod.catId); surSousCategorie();
-  $('produit').value = String(pid); surProduit();  // -> endroits habituels + dernière marque/format
-  return true;
+  if (pid) {                                        // déjà à nous
+    const prod = PRODUITS.find(p => String(p.id) === String(pid));
+    if (prod) { $('nom').value = prod.nom; surNom(); return; }
+  }
+  statut('Recherche du produit…');
+  let d = null;
+  if (typeof window.chercherOFF === 'function') { try { d = await window.chercherOFF(code); } catch (e) {} }
+  statut('');
+  if (d && d.trouve) {                              // trouvé chez Open Food Facts -> nouveau produit
+    $('nom').value = d.nom || '';
+    surNom();
+    if (produitCourant === null) {                  // resté « nouveau » : on garde les infos OFF
+      if (d.marque) $('marque').value = d.marque;
+      if (d.format) $('format').value = d.format;
+    }
+  }                                                 // sinon : on laisse; il remplit le nom à la main
 }
 function revenirConnexion(msg) {
   toutCacher(); $('vue-connexion').hidden = false; fermerMenu();
@@ -190,11 +184,11 @@ function appliquer(d) {
 
 async function chargerReferences() {
   const cache = lireCache();
-  if (cache) { appliquer(cache); remplirCategories(); statut(''); }   // instantané si déjà vu
+  if (cache) { appliquer(cache); remplirListes(); statut(''); }   // instantané si déjà vu
   else statut('Chargement…');
   try {
     const data = await chargerData();
-    appliquer(data); ecrireCache(data); remplirCategories(); statut('');
+    appliquer(data); ecrireCache(data); remplirListes(); statut('');
   } catch (e) {
     if (e.message === 'non autorisé') { Coffre.oublier(); revenirConnexion('Mot de passe refusé.'); }
     else if (!cache) statut('Réseau lent — patiente un instant ou recharge la page.', 'erreur');
@@ -218,43 +212,71 @@ function options(liste, vide) {
     liste.map(x => '<option value="' + x.id + '">' + esc(x.nom) + '</option>').join('');
 }
 
-/* ---------- Entonnoir ---------- */
+/* ---------- Fiche : Nom -> (reconnu / nouveau) -> catégorie -> endroits ---------- */
 function remplirCategories() {
   const garde = $('cat').value;
   $('cat').innerHTML = options(RAYONS, '— Catégorie —');
   if (garde) $('cat').value = garde;
 }
-function resetSous() { montrer('bloc-souscat', false); resetProduit(); }
-function resetProduit() {
-  montrer('bloc-produit', false); montrer('bloc-nom', false);
-  montrer('bloc-details', false); montrer('bloc-endroits', false);
-  montrer('btn-enregistrer', false);
+function remplirProduitsDatalist() {
+  $('dl-produits').innerHTML = PRODUITS.map(p => '<option value="' + esc(p.nom) + '"></option>').join('');
+}
+function remplirListes() { remplirCategories(); remplirProduitsDatalist(); }
+
+function trouverProduitParNom(nom) {
+  const n = String(nom || '').trim().toLowerCase();
+  if (!n) return null;
+  return PRODUITS.find(p => String(p.nom).trim().toLowerCase() === n) || null;
+}
+
+/* Remet la fiche à l'état de départ (champs vides, blocs cachés). */
+function reinitFiche() {
+  $('nom').value = ''; $('marque').value = ''; $('format').value = '';
+  $('cat').value = ''; $('endroits').innerHTML = '';
+  produitCourant = null;
+  montrer('bloc-details', false); montrer('bloc-cat', false); montrer('bloc-souscat', false);
+  montrer('bloc-endroits', false); montrer('btn-enregistrer', false);
+  statut('');
+}
+
+/* Le Nom pilote : match un produit existant = reconnu; sinon = nouveau. */
+function surNom() {
+  const val = $('nom').value.trim();
   $('endroits').innerHTML = '';
+  montrer('bloc-endroits', false); montrer('btn-enregistrer', false);
+  if (!val) {
+    produitCourant = null;
+    montrer('bloc-details', false); montrer('bloc-cat', false); montrer('bloc-souscat', false);
+    return;
+  }
+  montrer('bloc-details', true);
+  const prod = trouverProduitParNom(val);
+  if (prod) {                                   // produit existant reconnu
+    produitCourant = prod.id;
+    montrer('bloc-cat', false); montrer('bloc-souscat', false);   // catégorie déjà connue
+    prefillProduit(prod.id);                    // marque/format (dernières) + endroits habituels
+    montrer('bloc-endroits', true); montrer('btn-enregistrer', true);
+  } else {                                      // nouveau produit
+    produitCourant = null;
+    remplirVariantes(null);                     // aucune suggestion marque/format
+    montrer('bloc-cat', true);                  // il choisit la catégorie
+    montrer('bloc-souscat', !!$('cat').value);
+  }
 }
 
 function surCategorie() {
   const rid = $('cat').value;
   $('souscat').innerHTML = options(SOUSCATS[rid] || [], '— Sous-catégorie —');
   montrer('bloc-souscat', !!rid);
-  resetProduit();
+  montrer('bloc-endroits', false); montrer('btn-enregistrer', false);
+  $('endroits').innerHTML = '';
 }
 
 function surSousCategorie() {
   const scid = $('souscat').value;
-  const prods = PRODUITS.filter(p => p.catId === scid);
-  $('produit').innerHTML = options(prods, '— Produit —') + '<option value="__nouveau">+ Nouveau produit</option>';
-  montrer('bloc-produit', !!scid);
-  montrer('bloc-nom', false); montrer('bloc-details', false);
-  montrer('bloc-endroits', false); montrer('btn-enregistrer', false);
-  $('endroits').innerHTML = '';
-
-  if (scid && scanEnAttente && scanEnAttente.nom) {   // vient du scan : nouveau produit pré-rempli
-    $('produit').value = '__nouveau';
-    surProduit();
-    $('nom').value = scanEnAttente.nom;
-    $('marque').value = scanEnAttente.marque || '';
-    $('format').value = scanEnAttente.format || '';
-  }
+  if (!scid) { montrer('bloc-endroits', false); montrer('btn-enregistrer', false); return; }
+  montrer('bloc-endroits', true); montrer('btn-enregistrer', true);
+  if (!$('endroits').children.length) ajouterEndroit();
 }
 
 /* Remplit les suggestions (datalist) de marque/format pour un produit. */
@@ -304,23 +326,6 @@ function memoriserVariante(pid, marque, format, endroits) {
   if (format) { if (vr.formats.indexOf(format) === -1) vr.formats.push(format); vr.dernierFormat = format; }
   (endroits || []).forEach(e => { if (e.emp && vr.emplacements.indexOf(e.emp) === -1) vr.emplacements.push(e.emp); });
   const c = lireCache(); if (c) { (c.variantes = c.variantes || {})[pid] = vr; ecrireCache(c); }
-}
-
-function surProduit() {
-  const v = $('produit').value;
-  if (!v) { montrer('bloc-details', false); montrer('bloc-endroits', false); montrer('btn-enregistrer', false); return; }
-  if (v === '__nouveau') {
-    montrer('bloc-nom', true); $('nom').value = '';
-    remplirVariantes(null);                       // nouveau produit : aucune suggestion
-    $('marque').value = ''; $('format').value = '';
-    $('endroits').innerHTML = ''; ajouterEndroit();
-  } else {
-    montrer('bloc-nom', false);
-    prefillProduit(v);                            // marque/format + endroits habituels, tout modifiable
-  }
-  montrer('bloc-details', true);
-  montrer('bloc-endroits', true);
-  montrer('btn-enregistrer', true);
 }
 
 /* ---------- Endroits ---------- */
@@ -375,16 +380,16 @@ function statut(txt, type) {
 }
 
 async function enregistrer() {
-  const scid = $('souscat').value;
-  const pv = $('produit').value;
-  let produitId = null, nouveau = false, nom = '';
-
-  if (pv === '__nouveau') {
-    nom = $('nom').value.trim();
-    if (!nom) { statut('Donne un nom au produit.', 'erreur'); return; }
-    nouveau = true;
-  } else if (pv) { produitId = pv; }
-  else { statut('Choisis ou crée un produit.', 'erreur'); return; }
+  const nom = $('nom').value.trim();
+  if (!nom) { statut('Donne un nom au produit.', 'erreur'); return; }
+  const existant = trouverProduitParNom(nom);
+  let produitId = existant ? existant.id : null;
+  const nouveau = !produitId;
+  let scid = '';
+  if (nouveau) {
+    scid = $('souscat').value;
+    if (!scid) { statut('Choisis une catégorie et une sous-catégorie.', 'erreur'); return; }
+  }
 
   const endroits = [];
   [...$('endroits').children].forEach(row => {
@@ -395,24 +400,25 @@ async function enregistrer() {
   });
   if (!endroits.length) { statut('Mets une quantité sur au moins un endroit.', 'erreur'); return; }
 
-  const marque = $('marque').value.trim(), format = $('format').value.trim();
+  const marque = $('marque').value.trim(), format = $('format').value.trim(), code = $('codebarres').value.trim();
   if (!opCourant) opCourant = 'op-' + Date.now() + '-' + Math.random().toString(36).slice(2, 8);
   statut('Enregistrement…');
   $('btn-enregistrer').disabled = true;
   montrerVoile(true);
   try {
-    const charge = nouveau ? { produit: [nom, scid], marque: marque, format: format, code: codeScan || '', endroits: endroits, opId: opCourant }
-                           : { produitId: produitId, marque: marque, format: format, code: codeScan || '', endroits: endroits, opId: opCourant };
+    const charge = nouveau ? { produit: [nom, scid], marque: marque, format: format, code: code, endroits: endroits, opId: opCourant }
+                           : { produitId: produitId, marque: marque, format: format, code: code, endroits: endroits, opId: opCourant };
     const r = await Coffre.entrerArticle(charge);          // UN seul appel
     if (r && r.ok) { produitId = r.produitId || produitId; }
     else if (r && r.erreur === 'action inconnue') {        // repli si coffre-fort pas encore à jour
       if (nouveau) { const p = await Coffre.ajouter('Produits', ['', nom, scid, '', 'O', '', '']); if (!p.ok) throw new Error(p.erreur || 'refus'); produitId = p.id; }
       const date = new Date().toISOString().slice(0, 10);
-      for (const e of endroits) await Coffre.ajouter('Stock', ['', produitId, e.emp, e.qte, date, marque, format, opCourant, codeScan || '']);
+      for (const e of endroits) await Coffre.ajouter('Stock', ['', produitId, e.emp, e.qte, date, marque, format, opCourant, code]);
     } else { throw new Error((r && r.erreur) || 'refus'); }
     if (nouveau) {
       PRODUITS.push({ id: produitId, nom: nom, catId: scid });
       const c = lireCache(); if (c) { (c.prods = c.prods || []).push([produitId, nom, scid, '', 'O', '', '']); ecrireCache(c); }
+      remplirProduitsDatalist();                          // le nouveau nom devient suggérable tout de suite
     }
     memoriserVariante(produitId, marque, format, endroits);   // marque/format/emplacements à jour tout de suite
     opCourant = null;                                      // succès : le prochain article aura un nouveau jeton
@@ -423,7 +429,7 @@ async function enregistrer() {
   } finally { $('btn-enregistrer').disabled = false; montrerVoile(false); }
 }
 
-function reinit() { $('cat').value = ''; resetSous(); scanEnAttente = null; codeScan = ''; cacherBanniereScan(); }
+function reinit() { reinitFiche(); $('codebarres').value = ''; codeScan = ''; }
 
 /* ---------- Ajouter un meuble (Outils → Gérer les bases) ---------- */
 async function enregistrerMeuble() {
@@ -588,14 +594,15 @@ function initEntree() {
   $('choix-produit').addEventListener('click', montrerChoixComment);
   $('choix-epicerie').addEventListener('click', () => avis("Toute l'épicerie — à venir"));
   $('choix-scan').addEventListener('click', () => { if (typeof montrerScanner === 'function') montrerScanner(); });
-  $('choix-manuel').addEventListener('click', montrerFormulaire);
+  $('choix-manuel').addEventListener('click', () => montrerFormulaire(false));
   $('btn-retour-quoi').addEventListener('click', montrerAccueil);        // retour : choix « quoi » → accueil
   $('btn-retour-comment').addEventListener('click', montrerChoixQuoi);   // retour : choix « comment » → choix « quoi »
   // formulaire d'entrée
+  $('codebarres').addEventListener('change', surCode);
+  $('nom').addEventListener('change', surNom);
   $('cat').addEventListener('change', surCategorie);
   $('souscat').addEventListener('change', surSousCategorie);
-  $('produit').addEventListener('change', surProduit);
-  $('btn-endroit').addEventListener('click', ajouterEndroit);
+  $('btn-endroit').addEventListener('click', () => ajouterEndroit());
   $('btn-enregistrer').addEventListener('click', enregistrer);
   $('btn-annuler').addEventListener('click', montrerChoixComment);
   // reste connecté → page d'ouverture directement

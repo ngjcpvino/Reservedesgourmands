@@ -140,41 +140,41 @@
   </div>
   <div class="contenu">
 
-    <div class="message" id="scan-banniere" hidden></div>
-
-    <!-- Entonnoir -->
-    <div class="bloc">
-      <div class="label">Catégorie</div>
-      <select class="champ" id="cat"></select>
+    <!-- Code-barres (mode scan seulement) -->
+    <div class="bloc" id="bloc-code" hidden>
+      <div class="label">Code-barres</div>
+      <input class="champ" id="codebarres" type="text" inputmode="numeric" autocomplete="off" placeholder="Scanné ou saisi">
     </div>
 
-    <div class="bloc" id="bloc-souscat" hidden>
-      <div class="label">Sous-catégorie</div>
-      <select class="champ" id="souscat"></select>
+    <!-- Nom : suggère les produits déjà existants -->
+    <div class="bloc" id="bloc-nom">
+      <div class="label">Nom du produit</div>
+      <input class="champ" id="nom" list="dl-produits" autocomplete="off" placeholder="Nom du produit">
+      <datalist id="dl-produits"></datalist>
     </div>
 
-    <div class="bloc" id="bloc-produit" hidden>
-      <div class="label">Produit</div>
-      <select class="champ" id="produit"></select>
-    </div>
-
-    <div class="bloc" id="bloc-nom" hidden>
-      <div class="label">Nom du nouveau produit</div>
-      <input class="champ" id="nom" placeholder="Ex. Café moulu">
-    </div>
-
-    <!-- Détails produit -->
+    <!-- Marque / Format -->
     <div id="bloc-details" hidden>
       <div class="bloc">
         <div class="label">Marque</div>
-        <input class="champ" id="marque" list="dl-marques" placeholder="Choisir ou saisir (optionnel)">
+        <input class="champ" id="marque" list="dl-marques" autocomplete="off" placeholder="Choisir ou saisir (optionnel)">
         <datalist id="dl-marques"></datalist>
       </div>
       <div class="bloc">
         <div class="label">Format</div>
-        <input class="champ" id="format" list="dl-formats" placeholder="500 g, 2 L, unité… (optionnel)">
+        <input class="champ" id="format" list="dl-formats" autocomplete="off" placeholder="500 g, 2 L, unité… (optionnel)">
         <datalist id="dl-formats"></datalist>
       </div>
+    </div>
+
+    <!-- Catégorie / Sous-catégorie (seulement pour un NOUVEAU produit) -->
+    <div class="bloc" id="bloc-cat" hidden>
+      <div class="label">Catégorie</div>
+      <select class="champ" id="cat"></select>
+    </div>
+    <div class="bloc" id="bloc-souscat" hidden>
+      <div class="label">Sous-catégorie</div>
+      <select class="champ" id="souscat"></select>
     </div>
 
     <!-- Endroits (1 à N) -->
@@ -239,7 +239,7 @@
 </div>
 
 <script src="JS/coffre.js?v=1"></script>
-<script src="JS/entree.js?v=23"></script>
-<script src="JS/scan.js?v=3"></script>
+<script src="JS/entree.js?v=24"></script>
+<script src="JS/scan.js?v=4"></script>
 </body>
 </html>
