@@ -24,6 +24,8 @@ function toutCacher() {
   $('vue-bases').hidden = true;
   $('vue-meuble').hidden = true;
   $('vue-piece').hidden = true;
+  const vs = $('vue-scan'); if (vs) vs.hidden = true;
+  if (window.stopScanner) window.stopScanner();   // coupe la caméra en quittant la vue scan
   $('btn-burger').hidden = true;   // burger caché par défaut ; ré-affiché sur accueil + choix + bases
   fermerMenu();
 }
@@ -530,7 +532,7 @@ function initEntree() {
   $('btn-entree').addEventListener('click', montrerChoixQuoi);
   $('choix-produit').addEventListener('click', montrerChoixComment);
   $('choix-epicerie').addEventListener('click', () => avis("Toute l'épicerie — à venir"));
-  $('choix-scan').addEventListener('click', () => avis('Scanner — à venir'));
+  $('choix-scan').addEventListener('click', () => { if (typeof montrerScanner === 'function') montrerScanner(); });
   $('choix-manuel').addEventListener('click', montrerFormulaire);
   $('btn-retour-quoi').addEventListener('click', montrerAccueil);        // retour : choix « quoi » → accueil
   $('btn-retour-comment').addEventListener('click', montrerChoixQuoi);   // retour : choix « comment » → choix « quoi »
