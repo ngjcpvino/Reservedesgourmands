@@ -166,7 +166,13 @@
       </div>
     </div>
 
-    <!-- Catégorie / Sous-catégorie (seulement pour un NOUVEAU produit) -->
+    <!-- Produit : la liste de la sous-catégorie (entrée à la main) -->
+    <div class="bloc" id="bloc-produit" hidden>
+      <div class="label">Produit</div>
+      <select class="champ" id="produit"></select>
+    </div>
+
+    <!-- Catégorie / Sous-catégorie (à la main : toujours; au scan : nouveau produit seulement) -->
     <div class="bloc" id="bloc-cat" hidden>
       <div class="label">Catégorie</div>
       <select class="champ" id="cat"></select>
@@ -258,7 +264,7 @@
 </div><!-- fin du conteneur -->
 
 <script src="JS/coffre.js?v=3"></script>
-<script src="JS/entree.js?v=36"></script>
+<script src="JS/entree.js?v=37"></script>
 <script src="JS/scan.js?v=4"></script>
 </body>
 </html>
