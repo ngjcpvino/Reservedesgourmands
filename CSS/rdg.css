@@ -353,6 +353,7 @@ select.champ {
    de la pièce, car la marge n'existe qu'en dessous. On lui donne le même écart qu'aux autres. */
 .accordeon-corps { padding-left: var(--retrait); }
 .accordeon-corps > .accordeon:first-child { margin-top: var(--espace-s); }
+.accordeon-bloc { padding: var(--espace-m) var(--espace-l) 0; }   /* un bloc rentre dans le corps d'un accordeon */
 .accordeon-tete {
   display: flex;
   justify-content: space-between;
@@ -402,6 +403,7 @@ select.champ {
   transition: background var(--transition);
 }
 .accordeon-item:hover { background: var(--survol); }
+.accordeon-item-saisie { gap: var(--espace-s); }   /* une ligne ou l'on saisit : un champ + son bouton */
 
 /* ============================================================
    ITEM — une ligne de liste (nom + détail + quantité)
