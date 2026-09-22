@@ -67,3 +67,5 @@ Spinner « trois bouteilles de lait » · les 7 icônes dessinées dans le CSS �
 **Boutons style A + arrondi partout (22 septembre)** · choisis sur aperçu : dégradé léger de la couleur du bouton, petite ombre, reflet discret · `--rayon` passe de 1 à **6 px** : boutons, champs, accordéons, cartes, photo — le site perd sa rigidité.
 
 **Écran du scan (22 septembre)** · la ligne « Vise un code-barres » du haut est retirée (en double avec le message sous l'image) · la fenêtre passe de « jusqu'à 60 % » à **25 % de l'écran, hauteur fixe, pleine largeur** — la forme d'un code-barres, choisie sur aperçu. La lecture n'en souffre pas : le lecteur prend toujours l'image complète de la caméra.
+
+**Accueil : le 1er bouton prend un « + » (22 septembre)** · nouvelle icône `icone-plus` (trait 0.8, comme les autres) · le code-barres ne sert plus qu'au bouton « scanner », où il a du sens.
