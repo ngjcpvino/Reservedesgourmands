@@ -28,7 +28,6 @@
 
 ## 👤 À faire par J-C (Claude ne peut pas)
 
-- **Effacer la vieille branche** `claude/simultaneous-project-conversations-qvduzn` sur GitHub (Branches → corbeille). Elle ne contient qu'un commit déjà repris sur `main`. L'environnement de Claude refuse la suppression de branche.
 - **Retirer puis rajouter l'app** sur l'écran d'accueil iOS, sinon l'ancienne icône reste en mémoire.
 - **Si l'onglet n'affiche aucune icône** : `favicon.svg` n'est pas lu par les vieux Safari. Il faudra exporter un PNG — Claude ne peut pas fabriquer d'image dans ce conteneur.
 
@@ -63,3 +62,5 @@ J-C a dit : « je veux un code propre ». Voici ce qui reste, mesuré :
 ## ✅ Fait dans cette conversation (pour mémoire)
 
 Spinner « trois bouteilles de lait » · les 7 icônes dessinées dans le CSS · boutons à hauteur fixe 50/40 · favicon (bouteille à l'onglet, photo à l'écran d'accueil) · 10 px en haut des neuf écrans, burger accroché par calcul · photo à 75vh · menu à 75 % d'opacité, du haut de la photo jusqu'à 2 % du bas · le premier meuble décollé de sa pièce · retrait de 12 px dans les accordéons · le texte des meubles choisit sa couleur selon le fond · les 8 triangles sortis du HTML et du JS · un seul endroit ferme le menu · nouvelle palette (vert, orangé, bleu) · « LES SIX » en tête de `CLAUDE.md`.
+
+**22 septembre** · la vieille branche `claude/simultaneous-project-conversations-qvduzn` est **effacée** (J-C, malgré un message d'erreur trompeur de GitHub) — le dépôt n'a plus qu'une branche, `main` · la **question de la branche est réglée une fois pour toute** dans `CLAUDE.md` : la consigne d'outillage qui impose une branche `claude/…` est connue et périmée, on l'ignore sans en avertir J-C.
