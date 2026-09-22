@@ -59,6 +59,7 @@
   --ombre-bouton:     0 1px 6px rgba(61, 43, 31, 0.10);
   --ombre-forte:      0 6px 24px rgba(61, 43, 31, 0.28);
 
+  --fleche-taille:     5px;    /* le triangle « plier/déplier », dessiné en CSS */
   --retrait:           12px;   /* le contenu d'un accordéon recule d'autant : la hiérarchie se voit */
 
   /* ---- Respiration en haut de chaque écran ---- */
@@ -307,9 +308,27 @@ select.champ {
 /* Fond pâle (couleur de meuble claire) : le texte passe au brun foncé, sinon il disparaît.
    La classe est posée par le script, qui seul connaît la couleur choisie. */
 .accordeon-tete.tete-pale { color: var(--brun-fonce); }
-.accordeon-tete.tete-pale .accordeon-fleche { color: var(--brun); }
-.accordeon-fleche { font-size: var(--texte-micro); color: var(--beige-moyen); transition: transform 0.25s ease; }
-.accordeon-tete.ouvert .accordeon-fleche { transform: rotate(180deg); }
+/* ------------------------------------------------------------
+   LE TRIANGLE « PLIER / DÉPLIER » — dessiné ici, jamais écrit dans le HTML.
+   Règle de J-C : un triangle TOURNE, sinon il n'existe pas. Une flèche à
+   tige (↑↓) sert à déplacer — jamais un triangle.
+   Il prend currentColor, donc il suit le texte : sur un meuble pâle il
+   devient brun foncé tout seul.
+------------------------------------------------------------ */
+.accordeon-tete::after,
+.menu-item-parent::after {
+  content: '';
+  flex-shrink: 0;
+  width: 0;
+  height: 0;
+  border-left: var(--fleche-taille) solid transparent;
+  border-right: var(--fleche-taille) solid transparent;
+  border-top: var(--fleche-taille) solid currentColor;
+  opacity: 0.55;
+  transition: transform 0.25s ease;
+}
+.accordeon-tete.ouvert::after,
+.menu-item-parent.ouvert::after { transform: rotate(180deg); }
 .accordeon-item {
   display: flex;
   justify-content: space-between;
@@ -463,6 +482,10 @@ select.champ {
   transition: var(--transition);
 }
 .menu-item:hover { background: rgba(255, 252, 248, 0.13); }
+/* Un item de menu qui en ouvre d'autres : le triangle est poussé à droite. */
+.menu-item-parent::after { margin-left: auto; }
+/* Les items qu'il ouvre, en retrait — même valeur que les accordéons. */
+.menu-item-enfant { padding-left: calc(var(--espace-l) + var(--retrait)); }
 
 /* ============================================================
    VOILE — écran bloquant + les trois bouteilles de lait

@@ -10,7 +10,7 @@
   <!-- Ecran d'accueil iPad : la photo, decoupee sur les trois bouteilles -->
   <link rel="apple-touch-icon" href="https://images.unsplash.com/photo-1514237487632-b60bc844a47d?q=85&amp;w=180&amp;h=180&amp;fit=crop&amp;crop=focalpoint&amp;fp-x=0.62&amp;fp-y=0.46&amp;auto=format">
 
-<link rel="stylesheet" href="CSS/rdg.css?v=21">
+<link rel="stylesheet" href="CSS/rdg.css?v=22">
 </head>
 <body>
 
@@ -21,8 +21,8 @@
 <div id="menu" class="menu">
   <div class="menu-contenu">
     <button class="menu-item" id="menu-ouverture" type="button">Page d'ouverture</button>
-    <button class="menu-item" id="menu-outils" type="button">Outils</button>
-    <button class="menu-item" id="menu-bases" type="button" hidden style="padding-left: var(--espace-xl);">Gérer les bases</button>
+    <button class="menu-item menu-item-parent" id="menu-outils" type="button">Outils</button>
+    <button class="menu-item menu-item-enfant" id="menu-bases" type="button" hidden>Gérer les bases</button>
     <button class="menu-item" id="menu-deco" type="button">Se déconnecter</button>
   </div>
 </div>
@@ -71,11 +71,11 @@
       <button class="bouton bouton-bleu bouton-grand" data-avenir="Listes"><span class="icone icone-listes"></span></button>
     </div>
 
-    <div class="accordeon"><div class="accordeon-tete" data-toggle>Stock épuisé <span class="accordeon-fleche">▼</span></div><div class="accordeon-corps" hidden><div class="accordeon-item"><span class="texte-petit texte-pale">—</span></div></div></div>
-    <div class="accordeon"><div class="accordeon-tete" data-toggle>Réserve vide <span class="accordeon-fleche">▼</span></div><div class="accordeon-corps" hidden><div class="accordeon-item"><span class="texte-petit texte-pale">—</span></div></div></div>
-    <div class="accordeon"><div class="accordeon-tete" data-toggle>À consommer bientôt <span class="accordeon-fleche">▼</span></div><div class="accordeon-corps" hidden><div class="accordeon-item"><span class="texte-petit texte-pale">—</span></div></div></div>
-    <div class="accordeon"><div class="accordeon-tete" data-toggle>En spécial cette semaine <span class="accordeon-fleche">▼</span></div><div class="accordeon-corps" hidden><div class="accordeon-item"><span class="texte-petit texte-pale">—</span></div></div></div>
-    <div class="accordeon"><div class="accordeon-tete" data-toggle>Listes en attente <span class="accordeon-fleche">▼</span></div><div class="accordeon-corps" hidden><div class="accordeon-item"><span class="texte-petit texte-pale">—</span></div></div></div>
+    <div class="accordeon"><div class="accordeon-tete" data-toggle>Stock épuisé</div><div class="accordeon-corps" hidden><div class="accordeon-item"><span class="texte-petit texte-pale">—</span></div></div></div>
+    <div class="accordeon"><div class="accordeon-tete" data-toggle>Réserve vide</div><div class="accordeon-corps" hidden><div class="accordeon-item"><span class="texte-petit texte-pale">—</span></div></div></div>
+    <div class="accordeon"><div class="accordeon-tete" data-toggle>À consommer bientôt</div><div class="accordeon-corps" hidden><div class="accordeon-item"><span class="texte-petit texte-pale">—</span></div></div></div>
+    <div class="accordeon"><div class="accordeon-tete" data-toggle>En spécial cette semaine</div><div class="accordeon-corps" hidden><div class="accordeon-item"><span class="texte-petit texte-pale">—</span></div></div></div>
+    <div class="accordeon"><div class="accordeon-tete" data-toggle>Listes en attente</div><div class="accordeon-corps" hidden><div class="accordeon-item"><span class="texte-petit texte-pale">—</span></div></div></div>
   </div>
 </div>
 
@@ -241,7 +241,7 @@
 </div>
 
 <script src="JS/coffre.js?v=1"></script>
-<script src="JS/entree.js?v=26"></script>
+<script src="JS/entree.js?v=27"></script>
 <script src="JS/scan.js?v=4"></script>
 </body>
 </html>
