@@ -42,14 +42,11 @@
 
 ---
 
-## 🧹 Ménage de code — pas commencé, attend un « go »
+## 🧹 Ménage de code — **terminé**, sauf un point
 
-J-C a dit : « je veux un code propre ». Voici ce qui reste, mesuré :
+J-C a dit : « je veux un code propre ». Tout est fait, sauf ceci :
 
-- **2 styles en dur écrits par `entree.js`** (un rembourrage et un `gap`). Le troisième, la couleur de fond du meuble, est **légitime** : c'est une donnée, pas du décor.
-- **Aucune règle d'écran dans tout le CSS** (`@media` : zéro). L'iPhone et l'iPad reçoivent exactement la même mise en page. Ça a tenu jusqu'ici, mais c'est un choix par défaut, pas une décision.
-- **23 valeurs chiffrées écrites dans `CSS/rdg.css` lui-même**, hors du root (`75vh`, `700px`, `3px`, `1px solid`…). Trouvées en faisant le ménage du HTML. Pas touchées : c'est un autre chantier.
-- **L'en-tête copié 4 fois** dans `rdg.html` (lignes 37, 58, 86, 102), au caractère près. Pour n'en avoir qu'un, il doit sortir des feuilles et se poser au-dessus — ce qui touche `JS/entree.js`, le fichier de l'autre conversation. **Étape 2 du ménage, acceptée par J-C, pas commencée.**
+- **Aucune règle d'écran dans tout le CSS** (`@media` : zéro). L'iPhone et l'iPad reçoivent exactement la même mise en page. Ça a tenu jusqu'ici, mais c'est un choix par défaut, pas une décision. **Jamais discuté avec J-C.**
 
 ---
 
@@ -69,3 +66,5 @@ Spinner « trois bouteilles de lait » · les 7 icônes dessinées dans le CSS �
 **Favicon refait (22 septembre)** · la bouteille cède la place à un **sac d'épicerie** crème sur vert, trait 0,8, côtés droits, une anse, pas de rabat · deux fichiers **locaux** (`favicon.svg` pour l'onglet, `apple-touch-icon.png` 180×180 pour l'écran d'accueil) · la **photo Unsplash** qui servait d'icône d'accueil est retirée, un appel réseau de moins au démarrage.
 
 **Ménage du HTML, étape 1 (22 septembre)** · les **21 `style=`** sont sortis de `rdg.html` : il n'en reste **zéro** · rangés en 9 familles nommées par l'intention (`bouton-detache`, `bouton-quitter`, `bouton-suite`, `bouton-empile`/`-fin`, `grille-espacee`, `label-fort`, `scan-video`, `champ-code`, plus `.entete .titre` qui n'a demandé aucune classe) · 4 valeurs ajoutées au root (`--noir`, `--rayon-video`, `--scan-haut`, `--lettrage-large`) · le code lu passe de la graisse **600 à 500**, seul changement visible, décidé par J-C.
+
+**Ménage du HTML, étape 2 + les deux restes (22 septembre)** · **l'en-tête photo : 4 copies → 1.** Les 9 feuilles vivent désormais dans **un seul `.conteneur`**, l'en-tête est écrit une fois au-dessus, et le JS le montre écran par écran — **même patron que le burger**, pas de mécanique neuve. Photo sur 4 écrans (connexion, accueil, les 2 choix), pas sur les 5 autres. ⚠️ **Défaut attrapé avant de pousser** : l'en-tête était `hidden` par défaut, or sans mot de passe en mémoire le JS ne montre rien au démarrage — la photo aurait disparu de l'écran de connexion. Il part donc **visible**, comme l'écran de connexion lui-même. · **Les 23 valeurs chiffrées du CSS** sont au root (`--plein-ecran`, `--largeur-max`, `--photo-haut`, `--filet`/`--filet-titre`/`--filet-meuble`, `--halo`, le titre du site, le burger, le menu, les durées). Vérifié en aplatissant les deux versions du CSS et en les comparant : **rendu identique**. · **Les 2 styles écrits par `entree.js`** sont dans le CSS (`.endroit`, `.endroit-meuble`) ; le JS ne pose plus que la **couleur** du meuble, qui est une donnée.

@@ -54,6 +54,42 @@
   /* ---- Divers ---- */
   --rayon:            1px;
   --rayon-video:      12px;      /* le coin arrondi de l'image du scan */
+  --plein-ecran:      100vh;     /* la hauteur d'un ecran complet */
+  --largeur-max:      700px;     /* la largeur du cadre de l'app */
+  --photo-haut:       75vh;      /* la hauteur de la photo d'en-tete */
+  --message-haut:     18px;      /* la place reservee au petit message, pour qu'il ne fasse pas sauter la page */
+  --espace-micro:     3px;       /* le plus petit rembourrage : une etiquette */
+
+  /* ---- Filets (les traits de separation) ---- */
+  --filet:            1px;       /* le trait ordinaire : champs, separateurs */
+  --filet-titre:      1.5px;     /* le trait sous un titre */
+  --filet-meuble:     5px;       /* le filet colore a gauche d'un endroit : prend la couleur du meuble */
+  --halo:             3px;       /* l'epaisseur du halo autour d'un champ actif */
+
+  /* ---- Le titre du site, sur la photo ---- */
+  --titre-site-min:   40px;
+  --titre-site-fluide: 12vw;
+  --titre-site-max:   70px;
+  --lettrage-titre:   3px;
+  --ombre-titre:      0 2px 16px rgba(61, 43, 31, 0.6);
+
+  /* ---- Le burger ---- */
+  --burger-gap:       5px;       /* entre les trois traits */
+  --burger-trait-large: 18px;
+  --burger-trait-haut:  2px;
+  --burger-fond:      rgba(255, 255, 255, 0.75);
+
+  /* ---- Le menu ---- */
+  --menu-bas:         2vh;       /* il s'arrete a 2% du bas */
+  --menu-largeur:     220px;
+  --menu-enfant-fond: rgba(255, 252, 248, 0.08);
+  --menu-separateur:  rgba(255, 252, 248, 0.06);
+  --menu-survol:      rgba(255, 252, 248, 0.13);
+
+  /* ---- Durees ---- */
+  --transition-pli:   0.25s;     /* le triangle qui tourne */
+  --transition-menu:  0.3s;      /* le menu qui glisse */
+  --spinner-lueur:    drop-shadow(0 0 10px rgba(255, 255, 255, 0.28));
   --scan-haut:        60vh;      /* la hauteur maximale de l'image du scan */
   --lettrage-large:   0.04em;    /* l'espacement des lettres du code lu */
   --tactile:          44px;
@@ -94,7 +130,7 @@ body {
   font-weight: var(--poids-normal);
   color: var(--brun-fonce);
   background: var(--fond);
-  min-height: 100vh;
+  min-height: var(--plein-ecran);
   overflow-x: hidden;
 }
 
@@ -104,10 +140,10 @@ body {
    CONTENEUR — le cadre d'une page
 ============================================================ */
 .conteneur {
-  max-width: 700px;
+  max-width: var(--largeur-max);
   margin: 0 auto;
   background: var(--blanc);
-  min-height: 100vh;
+  min-height: var(--plein-ecran);
   padding-top: var(--haut-ecran);
 }
 .contenu { padding: var(--espace-xl) var(--espace-l); }
@@ -122,7 +158,7 @@ body {
 .entete .titre { margin-top: var(--espace-xl); }   /* le titre d'un ecran sans photo */
 .entete-photo {
   width: 100%;
-  height: 75vh;
+  height: var(--photo-haut);
   position: relative;
   overflow: hidden;
   border-radius: var(--rayon);
@@ -133,12 +169,12 @@ body {
   bottom: var(--espace-xl);
   left: var(--espace-xl);
   right: var(--espace-xl);
-  font-size: clamp(40px, 12vw, 70px);
+  font-size: clamp(var(--titre-site-min), var(--titre-site-fluide), var(--titre-site-max));
   font-weight: var(--poids-normal);
   color: var(--blanc);
-  letter-spacing: 3px;
+  letter-spacing: var(--lettrage-titre);
   text-transform: uppercase;
-  text-shadow: 0 2px 16px rgba(61, 43, 31, 0.6);
+  text-shadow: var(--ombre-titre);
   line-height: 1.2;
 }
 
@@ -165,7 +201,7 @@ body {
   font-weight: var(--poids-normal);
   color: var(--brun-fonce);
   padding-bottom: var(--espace-s);
-  border-bottom: 1.5px solid var(--beige-moyen);
+  border-bottom: var(--filet-titre) solid var(--beige-moyen);
   margin-bottom: var(--espace-l);
 }
 .titre-nu { border-bottom: none; padding-bottom: 0; }
@@ -225,7 +261,7 @@ body {
   width: 100%;
   padding: var(--espace-s) var(--espace-m);
   background: var(--blanc);
-  border: 1px solid var(--champ-bord);
+  border: var(--filet) solid var(--champ-bord);
   border-radius: var(--rayon);
   font-family: var(--police);
   font-size: var(--texte-normal);
@@ -235,7 +271,7 @@ body {
   transition: var(--transition);
   min-height: var(--tactile);
 }
-.champ:focus { border-color: var(--champ-focus); box-shadow: 0 0 0 3px var(--champ-focus-halo); }
+.champ:focus { border-color: var(--champ-focus); box-shadow: 0 0 0 var(--halo) var(--champ-focus-halo); }
 .champ::placeholder { color: var(--placeholder); opacity: 0.6; }
 .champ-code { font-weight: var(--poids-fort); letter-spacing: var(--lettrage-large); }   /* le code lu apres un scan */
 select.champ {
@@ -263,7 +299,7 @@ select.champ {
   display: inline-flex;
   align-items: center;
   background: var(--blanc);
-  border: 1px solid var(--champ-bord);
+  border: var(--filet) solid var(--champ-bord);
   border-radius: var(--rayon);
   overflow: hidden;
 }
@@ -288,8 +324,8 @@ select.champ {
   font-size: var(--texte-normal);
   font-weight: var(--poids-fort);
   color: var(--brun-fonce);
-  border-left: 1px solid var(--champ-bord);
-  border-right: 1px solid var(--champ-bord);
+  border-left: var(--filet) solid var(--champ-bord);
+  border-right: var(--filet) solid var(--champ-bord);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -298,6 +334,10 @@ select.champ {
 /* ============================================================
    CARTE — un conteneur blanc à ombre douce
 ============================================================ */
+.endroit { margin-bottom: var(--espace-s); }
+/* Le filet de gauche prend la couleur du meuble. L'epaisseur vit ici ; le JS ne pose que la COULEUR, qui est une donnee. */
+.endroit-meuble { border-left: var(--filet-meuble) solid; }
+
 .carte {
   background: var(--blanc);
   border-radius: var(--rayon);
@@ -348,7 +388,7 @@ select.champ {
   border-right: var(--fleche-taille) solid transparent;
   border-top: var(--fleche-taille) solid currentColor;
   opacity: 0.55;
-  transition: transform 0.25s ease;
+  transition: transform var(--transition-pli) ease;
 }
 .accordeon-tete.ouvert::after,
 .menu-item-parent.ouvert::after { transform: rotate(180deg); }
@@ -371,7 +411,7 @@ select.champ {
   align-items: center;
   gap: var(--espace-m);
   padding: var(--espace-s) var(--espace-l);
-  border-top: 1px solid var(--separateur);
+  border-top: var(--filet) solid var(--separateur);
   min-height: var(--tactile);
   transition: background var(--transition);
 }
@@ -384,14 +424,14 @@ select.champ {
   font-weight: var(--poids-fort);
   color: var(--brun);
   background: var(--beige);
-  padding: 3px var(--espace-s);
+  padding: var(--espace-micro) var(--espace-s);
   border-radius: var(--rayon);
 }
 
 /* ============================================================
    MESSAGE — petit retour sous une action
 ============================================================ */
-.message { font-size: var(--texte-petit); font-weight: var(--poids-leger); margin-top: var(--espace-s); min-height: 18px; }
+.message { font-size: var(--texte-petit); font-weight: var(--poids-leger); margin-top: var(--espace-s); min-height: var(--message-haut); }
 .message-erreur { color: var(--rouge); }
 .message-succes { color: var(--vert); }
 
@@ -455,7 +495,7 @@ select.champ {
 .burger {
   position: fixed;
   top: calc(var(--haut-ecran) + var(--espace-xl));   /* aligné avec le haut de la photo — suit --haut-ecran tout seul */
-  right: max(var(--espace-l), calc(50% - 350px + var(--espace-l)));   /* collé au conteneur (700px), pas au bord de l'écran */
+  right: max(var(--espace-l), calc(50% - var(--largeur-max) / 2 + var(--espace-l)));   /* collé au conteneur (700px), pas au bord de l'écran */
   z-index: 230;
   width: var(--tactile);
   height: var(--tactile);
@@ -463,8 +503,8 @@ select.champ {
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  gap: 5px;
-  background: rgba(255, 255, 255, 0.75);
+  gap: var(--burger-gap);
+  background: var(--burger-fond);
   border: none;
   border-radius: var(--rayon);
   box-shadow: var(--ombre-bouton);
@@ -472,19 +512,19 @@ select.champ {
   transition: var(--transition);
 }
 .burger:hover { background: var(--beige); }
-.burger span { display: block; width: 18px; height: 2px; background: var(--brun); border-radius: 1px; }
+.burger span { display: block; width: var(--burger-trait-large); height: var(--burger-trait-haut); background: var(--brun); border-radius: var(--rayon); }
 
 .menu {
   position: fixed;
   top: calc(var(--haut-ecran) + var(--espace-xl));   /* démarre au bord haut de la photo */
   right: 0;
-  bottom: 2vh;                           /* s'arrête à 2% du bas */
+  bottom: var(--menu-bas);                           /* s'arrête à 2% du bas */
   z-index: 220;
-  min-width: 220px;
+  min-width: var(--menu-largeur);
   background: var(--menu-fond);           /* brun translucide, sans flou */
   overflow-y: auto;
   transform: translateX(100%);            /* caché hors écran à droite */
-  transition: transform 0.3s ease;
+  transition: transform var(--transition-menu) ease;
 }
 .menu.ouvert { transform: translateX(0); }
 .menu-contenu { padding: calc(var(--tactile) + var(--espace-s)) var(--espace-l) var(--espace-xl); white-space: nowrap; }   /* juste ce qu'il faut pour passer sous le burger */
@@ -494,9 +534,9 @@ select.champ {
   width: 100%;
   min-height: var(--tactile);
   padding: var(--espace-m) var(--espace-l);
-  background: rgba(255, 252, 248, 0.08);
+  background: var(--menu-enfant-fond);
   border: none;
-  border-top: 1px solid rgba(255, 252, 248, 0.06);
+  border-top: var(--filet) solid var(--menu-separateur);
   font-family: var(--police);
   font-size: var(--texte-moyen);
   font-weight: var(--poids-fort);
@@ -505,7 +545,7 @@ select.champ {
   cursor: pointer;
   transition: var(--transition);
 }
-.menu-item:hover { background: rgba(255, 252, 248, 0.13); }
+.menu-item:hover { background: var(--menu-survol); }
 /* Un item de menu qui en ouvre d'autres : le triangle est poussé à droite. */
 .menu-item-parent::after { margin-left: auto; }
 /* Les items qu'il ouvre, en retrait — même valeur que les accordéons. */
@@ -542,7 +582,7 @@ select.champ {
   display: block;
   width: var(--spinner-largeur);
   height: calc(var(--spinner-largeur) * var(--spinner-elance));
-  filter: drop-shadow(0 0 10px rgba(255, 255, 255, 0.28));
+  filter: var(--spinner-lueur);
 }
 .spinner span::after {
   content: '';
