@@ -15,7 +15,16 @@ const Coffre = {
   definirMotDePasse(m) { localStorage.setItem('rdg_mdp', m); },
   oublier()            { localStorage.removeItem('rdg_mdp'); },
 
-  async appel(charge) {
+  // LA FILE : un seul appel à la fois, dans l'ordre, pour toute l'app — même ceux
+  // qui partent en arrière-plan. Le VPN échappe les appels simultanés (« Load failed »).
+  _file: Promise.resolve(),
+  appel(charge) {
+    const tour = this._file.then(() => this._envoyer(charge));
+    this._file = tour.catch(() => {});   // un échec ne bloque pas la file
+    return tour;
+  },
+
+  async _envoyer(charge) {
     const res = await fetch(this.URL, {
       method: 'POST',
       headers: { 'Content-Type': 'text/plain;charset=utf-8' },
@@ -31,6 +40,7 @@ const Coffre = {
   // Rapides : un seul aller-retour
   references()              { return this.appel({ action: 'references' }); },
   entrerArticle(charge)     { return this.appel(Object.assign({ action: 'entrerArticle' }, charge)); },
+  ordonner(groupes)         { return this.appel({ action: 'ordonner', groupes }); },
 
   // Enregistre le mot de passe et vérifie qu'il est bon.
   async connexion(m) {

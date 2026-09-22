@@ -101,6 +101,10 @@
 
   --fleche-taille:     5px;    /* le triangle « plier/déplier », dessiné en CSS */
   --retrait:           12px;   /* le contenu d'un accordéon recule d'autant : la hiérarchie se voit */
+  --fleche-deplacer:   18px;   /* la flèche à tige ↑↓ « déplacer », dessinée en CSS */
+  --fleche-trait:      0.55;   /* sa présence : discrète, comme le triangle */
+  --fleche-eteinte:    0.15;   /* la 1re ne monte pas, la dernière ne descend pas */
+  --plan-collant:      10;     /* un bouton collé au bas de l'écran passe par-dessus la liste */
 
   /* ---- Respiration en haut de chaque écran ---- */
   --haut-ecran:        10px;    /* sinon le contenu passe sous la barre d'état d'iOS et paraît flou */
@@ -409,6 +413,43 @@ select.champ {
 }
 .accordeon-item:hover { background: var(--survol); }
 .accordeon-item-saisie { gap: var(--espace-s); }   /* une ligne ou l'on saisit : un champ + son bouton */
+
+/* ------------------------------------------------------------
+   LES FLÈCHES ↑↓ « DÉPLACER » — flèche à tige, jamais un triangle.
+   Dessinées ici (masque SVG), jamais écrites dans le HTML. Elles prennent
+   currentColor : crème sur une tête foncée, brun foncé sur une tête pâle
+   ou sur une ligne blanche. Chaque flèche occupe toute la hauteur de sa
+   ligne, pour être facile à toucher.
+------------------------------------------------------------ */
+.fleches { display: flex; align-self: stretch; margin-left: auto; margin-right: var(--espace-s); }
+.accordeon-tete .fleches { margin-top: calc(-1 * var(--espace-m)); margin-bottom: calc(-1 * var(--espace-m)); }
+.accordeon-item .fleches { margin-top: calc(-1 * var(--espace-s)); margin-bottom: calc(-1 * var(--espace-s)); }
+.fleche {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: var(--tactile);
+  padding: 0;
+  background: none;
+  border: none;
+  color: inherit;
+  cursor: pointer;
+}
+.fleche::before {
+  content: '';
+  width: var(--fleche-deplacer);
+  height: var(--fleche-deplacer);
+  background: currentColor;
+  -webkit-mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Cpath d='M8 14V2M3 7l5-5 5 5' stroke='black' stroke-width='1.2' fill='none' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E") center / contain no-repeat;
+          mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Cpath d='M8 14V2M3 7l5-5 5 5' stroke='black' stroke-width='1.2' fill='none' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E") center / contain no-repeat;
+  opacity: var(--fleche-trait);
+}
+.fleche-bas::before { transform: rotate(180deg); }
+.fleche-eteinte { cursor: default; }
+.fleche-eteinte::before { opacity: var(--fleche-eteinte); }
+
+/* Un bouton qui reste collé au bas de l'écran pendant qu'on défile (Enregistrer l'ordre) */
+.bouton-collant { position: sticky; bottom: var(--espace-l); z-index: var(--plan-collant); }
 
 /* ============================================================
    ITEM — une ligne de liste (nom + détail + quantité)
