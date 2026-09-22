@@ -134,6 +134,11 @@ body {
   overflow-x: hidden;
 }
 
+/* La barre de défilement de la page est masquée : elle ne prend plus de place,
+   donc rien ne glisse vers la gauche quand la page s'allonge. Le défilement marche toujours. */
+html { scrollbar-width: none; }
+html::-webkit-scrollbar, body::-webkit-scrollbar { display: none; }
+
 [hidden] { display: none !important; }
 
 /* ============================================================
