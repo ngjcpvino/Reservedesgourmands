@@ -108,7 +108,7 @@ Une ligne par couleur changée; une couleur absente ou vide = celle d'origine du
 |-----|-----|------|
 | A | ID | date/heure de création |
 | B | SecteurID | lien vers SECTEURS — chaque secteur a sa palette |
-| C | Nom | la couleur de base du root : `blanc`, `creme`, `beige`, `beige-moyen`, `brun-clair`, `brun`, `brun-fonce`, `rouge`, `orange`, `vert`, `bleu`, `fond` |
+| C | Nom | la couleur de base du root : `blanc`, `creme`, `beige`, `beige-moyen`, `brun-clair`, `brun`, `brun-fonce`, `rouge`, `orange`, `vert`, `bleu`, `or`, `fond` |
 | D | Valeur | code hex (`#6b4f3a`). Vide = revenir à la couleur d'origine |
 
 > Les couleurs des **meubles** ne sont pas ici : elles restent dans EMPLACEMENTS, colonne F.

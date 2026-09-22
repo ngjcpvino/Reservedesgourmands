@@ -19,6 +19,7 @@
   --orange:           #D4835D;
   --vert:             #5A8A65;
   --bleu:             #6B9BC8;
+  --or:               #FFD700;   /* l'accent : les boutons Retour */
   --fond:             #ffffff;
   --noir:             #000000;   /* le fond de l'image du scan, quand la camera n'a rien */
 
@@ -268,7 +269,8 @@ html::-webkit-scrollbar, body::-webkit-scrollbar { display: none; }
 .bouton-orange { --c: var(--orange); color: var(--blanc); }
 .bouton-bleu   { --c: var(--bleu);   color: var(--blanc); }
 .bouton-rouge  { --c: var(--rouge);  color: var(--blanc); }
-.bouton-vert:hover, .bouton-orange:hover, .bouton-bleu:hover, .bouton-rouge:hover { filter: brightness(0.93); }
+.bouton-or     { --c: var(--or);     color: var(--brun-fonce); }   /* Retour : l'or est clair, le texte passe au brun foncé */
+.bouton-vert:hover, .bouton-orange:hover, .bouton-bleu:hover, .bouton-rouge:hover, .bouton-or:hover { filter: brightness(0.93); }
 
 /* taille */
 .bouton-grand {

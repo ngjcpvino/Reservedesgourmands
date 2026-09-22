@@ -75,3 +75,5 @@ Spinner « trois bouteilles de lait » · les 7 icônes dessinées dans le CSS �
 **Les listes quittent l'accueil (22 septembre)** · les 5 accordéons (Stock épuisé, Réserve vide, À consommer bientôt, En spécial cette semaine, Listes en attente) passent tels quels sur une page « Listes », ouverte par le **bouton bleu** · l'accueil ne garde que la photo et les 4 boutons · Retour ramène à l'accueil · reste à remplir leur contenu (points 5/6/12).
 
 **iPad : les gros boutons gardent la forme de l'iPhone (22 septembre)** · avant, hauteur fixe 50 px → sur iPad un bouton s'étirait à 560 × 50 · maintenant `aspect-ratio` (167/50, la proportion que J-C aime sur iPhone) + `min-height` : le bouton grandit en hauteur au lieu de s'étirer, et **l'icône suit** (60 % de la hauteur) · choisi sur aperçu iPad/iPhone côte à côte · toujours **aucune règle d'écran** (`@media` : zéro) — la proportion suffit.
+
+**Une couleur d'accent : l'or (22 septembre)** · `--or: #FFD700`, 13e couleur de base, modifiable dans Outils → Couleurs · variante `bouton-or` (texte brun foncé, choisi sur aperçu) · **tous les boutons Retour** la portent : les 2 écrans de choix, le scan et la page Listes.
