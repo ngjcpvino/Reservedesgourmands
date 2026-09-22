@@ -54,7 +54,7 @@
   --espace-xl:        20px;
 
   /* ---- Divers ---- */
-  --rayon:            6px;       /* l'arrondi de TOUT : boutons, champs, accordéons, cartes, photo */
+  --rayon:            8px;       /* l'arrondi de TOUT : boutons, champs, accordéons, cartes, photo */
   --rayon-video:      12px;      /* le coin arrondi de l'image du scan */
   --plein-ecran:      100vh;     /* la hauteur d'un ecran complet */
   --largeur-max:      700px;     /* la largeur du cadre de l'app */
