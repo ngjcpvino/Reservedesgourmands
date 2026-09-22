@@ -13,6 +13,7 @@ var RAYONS = [], SOUSCATS = {}, MEUBLES = [], ESPACES = {}, PRODUITS = [], VARIA
 var codeScan = '';          // code-barres de l'entrée en cours (le champ #codebarres fait foi)
 var CODES = {};             // { codeBarres: produitId } — reconnaître un produit déjà à nous
 var produitCourant = null;  // id du produit reconnu (existant) ; null = nouveau produit
+var modeManuel = false;     // entrée À LA MAIN : entonnoir catégorie -> sous-catégorie -> produit
 var opCourant = null;                                   // jeton anti-reclic de l'article en cours
 var SECTEUR_ID = '';                                    // secteur de cette app (Épicerie), déduit des données
 const CACHE = 'rdg_ref_v2';
@@ -91,10 +92,23 @@ function montrerListes()     { toutCacher(); $('vue-listes').hidden = false; $('
 function montrerAccueil()    { toutCacher(); $('vue-accueil').hidden = false; $('btn-burger').hidden = false; $('entete-photo').hidden = false; }
 function montrerFormulaire(avecCode) {
   toutCacher(); $('vue-app').hidden = false;
+  modeManuel = !avecCode;                    // à la main : on descend l'entonnoir; au scan : le code donne l'identité
+  ordonnerFiche();
   reinitFiche();
   montrer('bloc-code', !!avecCode);          // le champ code n'apparaît qu'au scan
   $('codebarres').value = ''; codeScan = '';
-  chargerReferences();                        // catégories + liste des noms de produits
+  chargerReferences();                        // catégories + liste des produits
+}
+
+/* Les mêmes blocs, dans l'ordre du chemin suivi :
+   à la main -> Catégorie, Sous-catégorie, Produit, (Nom si nouveau), Marque/Format, Endroits
+   au scan   -> Nom, Marque/Format, (Catégorie/Sous-catégorie si nouveau), Endroits */
+function ordonnerFiche() {
+  const parent = $('vue-app').querySelector('.contenu');
+  const ordre = modeManuel
+    ? ['bloc-code', 'bloc-cat', 'bloc-souscat', 'bloc-produit', 'bloc-nom', 'bloc-details', 'bloc-endroits']
+    : ['bloc-code', 'bloc-nom', 'bloc-details', 'bloc-cat', 'bloc-souscat', 'bloc-produit', 'bloc-endroits'];
+  ordre.forEach(id => parent.insertBefore($(id), $('btn-enregistrer')));
 }
 
 /* Arrivée par le SCAN : ouvre la fiche en mode code, pose le code, lance la recherche. */
@@ -298,16 +312,23 @@ function trouverProduitParNom(nom) {
 /* Remet la fiche à l'état de départ (champs vides, blocs cachés). */
 function reinitFiche() {
   $('nom').value = ''; $('marque').value = ''; $('format').value = '';
-  $('cat').value = ''; $('endroits').innerHTML = '';
+  $('cat').value = ''; $('souscat').innerHTML = ''; $('produit').innerHTML = ''; $('endroits').innerHTML = '';
   produitCourant = null;
-  montrer('bloc-details', false); montrer('bloc-cat', false); montrer('bloc-souscat', false);
+  montrer('bloc-details', false); montrer('bloc-souscat', false); montrer('bloc-produit', false);
   montrer('bloc-endroits', false); montrer('btn-enregistrer', false);
+  montrer('bloc-cat', modeManuel);      // à la main, l'entonnoir part de la catégorie
+  montrer('bloc-nom', !modeManuel);     // le nom ne sert qu'au scan, ou à un nouveau produit
   statut('');
 }
 
 /* Le Nom pilote : match un produit existant = reconnu; sinon = nouveau. */
 function surNom() {
   const val = $('nom').value.trim();
+  if (modeManuel) {                             // à la main : la catégorie est déjà choisie, le nom ne pilote rien
+    montrer('bloc-endroits', !!val); montrer('btn-enregistrer', !!val);
+    if (val && !$('endroits').children.length) ajouterEndroit();
+    return;
+  }
   $('endroits').innerHTML = '';
   montrer('bloc-endroits', false); montrer('btn-enregistrer', false);
   if (!val) {
@@ -334,15 +355,57 @@ function surCategorie() {
   const rid = $('cat').value;
   $('souscat').innerHTML = options(SOUSCATS[rid] || [], '— Sous-catégorie —');
   montrer('bloc-souscat', !!rid);
-  montrer('bloc-endroits', false); montrer('btn-enregistrer', false);
+  montrer('bloc-produit', false); montrer('bloc-endroits', false); montrer('btn-enregistrer', false);
   $('endroits').innerHTML = '';
+  if (modeManuel) { produitCourant = null; $('nom').value = ''; montrer('bloc-nom', false); montrer('bloc-details', false); }
 }
 
 function surSousCategorie() {
   const scid = $('souscat').value;
+  if (modeManuel) {                             // à la main : la sous-catégorie donne la liste des produits
+    produitCourant = null;
+    $('nom').value = '';
+    montrer('bloc-nom', false); montrer('bloc-details', false);
+    montrer('bloc-endroits', false); montrer('btn-enregistrer', false);
+    $('endroits').innerHTML = '';
+    if (!scid) { montrer('bloc-produit', false); return; }
+    remplirProduits(scid);
+    montrer('bloc-produit', true);
+    return;
+  }
   if (!scid) { montrer('bloc-endroits', false); montrer('btn-enregistrer', false); return; }
   montrer('bloc-endroits', true); montrer('btn-enregistrer', true);
   if (!$('endroits').children.length) ajouterEndroit();
+}
+
+/* La liste des produits d'une sous-catégorie, par ordre alphabétique, + « Nouveau produit… ». */
+function remplirProduits(scid) {
+  const liste = PRODUITS.filter(p => String(p.catId) === String(scid))
+                        .sort((a, b) => String(a.nom).localeCompare(String(b.nom), 'fr'));
+  $('produit').innerHTML = options(liste, '— Produit —') + '<option value="nouveau">Nouveau produit…</option>';
+}
+
+/* Un produit choisi dans la liste (ou « Nouveau produit… »). */
+function surProduit() {
+  const v = $('produit').value;
+  $('endroits').innerHTML = '';
+  montrer('bloc-endroits', false); montrer('btn-enregistrer', false);
+  if (!v) { produitCourant = null; montrer('bloc-nom', false); montrer('bloc-details', false); return; }
+  if (v === 'nouveau') {                        // il le nomme; la catégorie, elle, est déjà choisie
+    produitCourant = null;
+    $('nom').value = '';
+    remplirVariantes(null);
+    montrer('bloc-nom', true); montrer('bloc-details', true);
+    $('nom').focus();
+    return;
+  }
+  const prod = PRODUITS.find(p => String(p.id) === String(v));
+  if (!prod) return;
+  produitCourant = prod.id;
+  $('nom').value = prod.nom;                    // le nom sert à l'enregistrement; inutile de le montrer
+  montrer('bloc-nom', false); montrer('bloc-details', true);
+  prefillProduit(prod.id);                      // marque/format + endroits habituels
+  montrer('bloc-endroits', true); montrer('btn-enregistrer', true);
 }
 
 /* Remplit les suggestions (datalist) de marque/format pour un produit. */
@@ -450,7 +513,7 @@ async function enregistrer() {
   const nom = $('nom').value.trim();
   if (!nom) { statut('Donne un nom au produit.', 'erreur'); return; }
   const existant = trouverProduitParNom(nom);
-  let produitId = existant ? existant.id : null;
+  let produitId = produitCourant || (existant ? existant.id : null);   // le produit choisi dans la liste fait foi
   const nouveau = !produitId;
   let scid = '';
   if (nouveau) {
@@ -970,7 +1033,9 @@ function initEntree() {
   $('btn-retour-comment').addEventListener('click', montrerChoixQuoi);   // retour : choix « comment » → choix « quoi »
   // formulaire d'entrée
   $('codebarres').addEventListener('change', surCode);
+  $('nom').addEventListener('input', surNom);    // réagit pendant la saisie : plus besoin de fermer le clavier
   $('nom').addEventListener('change', surNom);
+  $('produit').addEventListener('change', surProduit);
   $('cat').addEventListener('change', surCategorie);
   $('souscat').addEventListener('change', surSousCategorie);
   $('btn-endroit').addEventListener('click', () => ajouterEndroit());
