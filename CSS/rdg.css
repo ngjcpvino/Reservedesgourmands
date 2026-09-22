@@ -53,7 +53,7 @@
   --espace-xl:        20px;
 
   /* ---- Divers ---- */
-  --rayon:            1px;
+  --rayon:            6px;       /* l'arrondi de TOUT : boutons, champs, accordéons, cartes, photo */
   --rayon-video:      12px;      /* le coin arrondi de l'image du scan */
   --plein-ecran:      100vh;     /* la hauteur d'un ecran complet */
   --largeur-max:      700px;     /* la largeur du cadre de l'app */
@@ -98,6 +98,11 @@
   --police:           'Cabinet Grotesk', system-ui, sans-serif;
   --ombre-carte:      0 2px 12px color-mix(in srgb, var(--brun-fonce) 10%, transparent);
   --ombre-bouton:     0 1px 6px color-mix(in srgb, var(--brun-fonce) 10%, transparent);
+  /* ---- Les boutons (style A) : dégradé clair → foncé de leur couleur + ombre + reflet en haut ---- */
+  --bouton-degrade:    8%;      /* l'écart entre le haut (plus clair) et le bas (plus foncé) */
+  --bouton-ombre:      0 2px 4px color-mix(in srgb, var(--brun-fonce) 22%, transparent);
+  --bouton-lisere:     color-mix(in srgb, var(--blanc) 28%, transparent);   /* le fin trait de lumière tout en haut */
+  --bouton-reflet:     color-mix(in srgb, var(--blanc) 14%, transparent);   /* la lueur sur la moitié du haut */
   --ombre-forte:      0 6px 24px color-mix(in srgb, var(--brun-fonce) 28%, transparent);
 
   --fleche-taille:     5px;    /* le triangle « plier/déplier », dessiné en CSS */
@@ -223,12 +228,17 @@ html::-webkit-scrollbar, body::-webkit-scrollbar { display: none; }
    ex. class="bouton bouton-brun bouton-pleine"
 ============================================================ */
 .bouton {
+  --c: var(--blanc);                      /* la couleur du bouton : chaque variante la change */
+  position: relative;
+  overflow: hidden;
   display: inline-flex;
   align-items: center;
   justify-content: center;
   gap: var(--espace-s);
   padding: var(--espace-m) var(--espace-l);
-  background: var(--blanc);
+  background: linear-gradient(to bottom,
+    color-mix(in srgb, var(--c), var(--blanc) var(--bouton-degrade)),
+    color-mix(in srgb, var(--c), var(--noir) var(--bouton-degrade)));
   color: var(--brun);
   border: none;
   border-radius: var(--rayon);
@@ -237,22 +247,25 @@ html::-webkit-scrollbar, body::-webkit-scrollbar { display: none; }
   font-size: var(--texte-normal);
   font-weight: var(--poids-fort);
   min-height: var(--tactile);
-  box-shadow: var(--ombre-bouton);
+  box-shadow: var(--bouton-ombre), inset 0 1px 0 var(--bouton-lisere);
   transition: var(--transition);
   text-align: center;
 }
-.bouton:hover { box-shadow: var(--ombre-carte); }
+/* le reflet : une lueur sur la moitié du haut, qui laisse passer le toucher */
+.bouton::before { content: ''; position: absolute; left: 0; right: 0; top: 0; height: 50%; pointer-events: none;
+  background: linear-gradient(to bottom, var(--bouton-reflet), transparent); }
+.bouton:hover { box-shadow: var(--ombre-carte), inset 0 1px 0 var(--bouton-lisere); }
 
 /* forme */
 .bouton-pleine { display: flex; width: 100%; }
 
-/* couleur (le fond change, la base reste pareille) */
-.bouton-brun   { background: var(--brun);   color: var(--creme); }
-.bouton-brun:hover   { background: var(--brun-fonce); }
-.bouton-vert   { background: var(--vert);   color: var(--blanc); }
-.bouton-orange { background: var(--orange); color: var(--blanc); }
-.bouton-bleu   { background: var(--bleu);   color: var(--blanc); }
-.bouton-rouge  { background: var(--rouge);  color: var(--blanc); }
+/* couleur : chaque variante ne change que --c ; le dégradé, l'ombre et le reflet suivent */
+.bouton-brun   { --c: var(--brun);   color: var(--creme); }
+.bouton-brun:hover   { --c: var(--brun-fonce); }
+.bouton-vert   { --c: var(--vert);   color: var(--blanc); }
+.bouton-orange { --c: var(--orange); color: var(--blanc); }
+.bouton-bleu   { --c: var(--bleu);   color: var(--blanc); }
+.bouton-rouge  { --c: var(--rouge);  color: var(--blanc); }
 .bouton-vert:hover, .bouton-orange:hover, .bouton-bleu:hover, .bouton-rouge:hover { filter: brightness(0.93); }
 
 /* taille */
