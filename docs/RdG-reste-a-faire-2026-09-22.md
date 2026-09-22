@@ -35,9 +35,10 @@
 
 ## 👀 À vérifier en ligne (les tests, c'est J-C)
 
-- **Le contraste de la nouvelle palette.** Le trait des icônes est très fin (0,8). Mesuré sur fond : vert **4,4 → 3,5:1**, orange **2,6:1** inchangé, bleu **4,9 → 2,6:1**. Le bleu perd le plus — l'icône « Listes » va paraître fantomatique, surtout au soleil. Sorties possibles : épaissir le trait, ou foncer le bleu.
+- ~~**Le contraste de la nouvelle palette.**~~ **TRANCHÉ le 22 septembre : J-C a regardé, « le bleu est ok pour le moment ».** Mesures gardées pour mémoire : vert 4,4 → 3,5:1, orange 2,6:1 inchangé, bleu 4,9 → 2,6:1. Ne pas y revenir sans qu'il le demande.
 - **Les messages de succès** sont en vert **sur blanc**. Le nouveau vert est plus pâle : le texte est plus mou à lire.
 - **Le meuble « Coin ».** Sa couleur tombe juste sous le seuil pâle/foncé (150 sur 255), donc son nom reste en crème. Si c'est limite à l'écran, c'est un seul chiffre à bouger dans `couleurPale()`, dans `entree.js`.
+- **La photo d'accueil vient encore d'Unsplash**, à distance. Elle n'est plus qu'un seul `<img>` depuis l'étape 2 (avant : quatre), mais c'est toujours **un appel réseau au démarrage**, à travers le VPN. La rapatrier dans le dépôt la rendrait instantanée. **Parenthèse notée, jamais creusée.**
 - **Le flou de 10 px en haut.** Si `--haut-ecran: 10px` ne dégage pas complètement la barre d'état d'iOS, il faudra mesurer sa hauteur réelle au lieu de la deviner — elle varie d'un modèle à l'autre.
 
 ---
