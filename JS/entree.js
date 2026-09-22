@@ -103,7 +103,11 @@ function deconnexion() {
 }
 
 /* ---------- Menu burger ---------- */
-function fermerMenu()   { $('menu').classList.remove('ouvert'); }
+function fermerMenu() {                 // le menu se ferme -> « Outils » se replie avec lui
+  $('menu').classList.remove('ouvert');
+  $('menu-bases').hidden = true;
+  $('menu-outils').classList.remove('ouvert');
+}
 function montrerVoile(on){ $('voile').hidden = !on; }   // voile bloquant + les trois bouteilles de lait
 
 /* Ouvre/ferme un accordéon — UN SEUL ouvert à la fois dans son groupe (ses frères). Partout. */
@@ -122,7 +126,10 @@ function toggleAccordeon(tete) {
     if (tete.nextElementSibling) tete.nextElementSibling.hidden = false;
   }
 }
-function basculerMenu() { $('menu').classList.toggle('ouvert'); }
+function basculerMenu() {                // ouvrir, ou fermer par le seul chemin qui replie tout
+  if ($('menu').classList.contains('ouvert')) fermerMenu();
+  else $('menu').classList.add('ouvert');
+}
 
 /* ---------- Toast « à venir » ---------- */
 function avis(txt) {
