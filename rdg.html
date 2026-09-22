@@ -10,7 +10,7 @@
   <!-- Ecran d'accueil iPad : le meme sac, en PNG (iOS n'accepte pas le SVG ici) -->
   <link rel="apple-touch-icon" href="apple-touch-icon.png?v=1">
 
-<link rel="stylesheet" href="CSS/rdg.css?v=24">
+<link rel="stylesheet" href="CSS/rdg.css?v=25">
 </head>
 <body>
 
@@ -31,15 +31,23 @@
 <div id="voile" class="voile" hidden><div class="spinner"><span><i></i></span><span><i></i></span><span><i></i></span></div></div>
 
 <!-- ============================================================
+     LE CADRE — un seul conteneur pour les 9 feuilles.
+     L'en-tete photo est ecrit UNE fois ici ; le JS le montre ou le
+     cache, exactement comme il fait pour le burger.
+============================================================ -->
+<div class="conteneur">
+
+<div class="entete" id="entete-photo">   <!-- visible au chargement, comme l'ecran de connexion ; le JS prend le relais ensuite -->
+  <div class="entete-photo">
+    <img src="https://images.unsplash.com/photo-1514237487632-b60bc844a47d?q=80&w=1920&auto=format&fit=crop" alt="La Réserve des Gourmands">
+    <div class="entete-titre">La<br>Réserve<br>des<br>Gourmands</div>
+  </div>
+</div>
+
+<!-- ============================================================
      CONNEXION
 ============================================================ -->
-<div id="vue-connexion" class="conteneur">
-  <div class="entete">
-    <div class="entete-photo">
-      <img src="https://images.unsplash.com/photo-1514237487632-b60bc844a47d?q=80&w=1920&auto=format&fit=crop" alt="La Réserve des Gourmands">
-      <div class="entete-titre">La<br>Réserve<br>des<br>Gourmands</div>
-    </div>
-  </div>
+<div id="vue-connexion">
   <div class="contenu">
     <div class="bloc">
       <input class="champ" id="mdp" type="password" autocomplete="current-password" placeholder="Mot de passe">
@@ -52,15 +60,7 @@
 <!-- ============================================================
      PAGE D'OUVERTURE (accueil) — s'affiche après le mot de passe
 ============================================================ -->
-<div id="vue-accueil" class="conteneur" hidden>
-
-  <!-- Photo -->
-  <div class="entete">
-    <div class="entete-photo">
-      <img src="https://images.unsplash.com/photo-1514237487632-b60bc844a47d?q=80&w=1920&auto=format&fit=crop" alt="La Réserve des Gourmands">
-      <div class="entete-titre">La<br>Réserve<br>des<br>Gourmands</div>
-    </div>
-  </div>
+<div id="vue-accueil" hidden>
 
   <!-- 4 boutons (éteints pour l'instant) + accordéons -->
   <div class="contenu">
@@ -82,13 +82,7 @@
 <!-- ============================================================
      CHOIX — 1) quoi entrer  2) comment
 ============================================================ -->
-<div id="vue-choix-quoi" class="conteneur" hidden>
-  <div class="entete">
-    <div class="entete-photo">
-      <img src="https://images.unsplash.com/photo-1514237487632-b60bc844a47d?q=80&w=1920&auto=format&fit=crop" alt="La Réserve des Gourmands">
-      <div class="entete-titre">La<br>Réserve<br>des<br>Gourmands</div>
-    </div>
-  </div>
+<div id="vue-choix-quoi" hidden>
   <div class="contenu">
     <div class="grille">
       <button class="bouton bouton-brun bouton-grand" id="choix-produit" type="button"><span class="icone icone-produit"></span></button>
@@ -98,13 +92,7 @@
   </div>
 </div>
 
-<div id="vue-choix-comment" class="conteneur" hidden>
-  <div class="entete">
-    <div class="entete-photo">
-      <img src="https://images.unsplash.com/photo-1514237487632-b60bc844a47d?q=80&w=1920&auto=format&fit=crop" alt="La Réserve des Gourmands">
-      <div class="entete-titre">La<br>Réserve<br>des<br>Gourmands</div>
-    </div>
-  </div>
+<div id="vue-choix-comment" hidden>
   <div class="contenu">
     <div class="grille">
       <button class="bouton bouton-brun bouton-grand" id="choix-scan" type="button"><span class="icone icone-entrer"></span></button>
@@ -117,7 +105,7 @@
 <!-- ============================================================
      SCANNER (tranche 1 : lire un code)
 ============================================================ -->
-<div id="vue-scan" class="conteneur" hidden>
+<div id="vue-scan" hidden>
   <div class="contenu">
     <div class="bloc">
       <div class="label">Vise un code-barres</div>
@@ -136,7 +124,7 @@
 <!-- ============================================================
      ENTRER UN ARTICLE
 ============================================================ -->
-<div id="vue-app" class="conteneur" hidden>
+<div id="vue-app" hidden>
   <div class="entete">
     <div class="titre">Entrer un article</div>
   </div>
@@ -197,7 +185,7 @@
 <!-- ============================================================
      OUTILS — gérer les bases
 ============================================================ -->
-<div id="vue-bases" class="conteneur" hidden>
+<div id="vue-bases" hidden>
   <div class="entete">
     <div class="titre">Gérer les bases</div>
   </div>
@@ -208,7 +196,7 @@
   </div>
 </div>
 
-<div id="vue-meuble" class="conteneur" hidden>
+<div id="vue-meuble" hidden>
   <div class="entete">
     <div class="titre">Ajouter un meuble</div>
   </div>
@@ -227,7 +215,7 @@
   </div>
 </div>
 
-<div id="vue-piece" class="conteneur" hidden>
+<div id="vue-piece" hidden>
   <div class="entete"><div class="titre">Ajouter une pièce</div></div>
   <div class="contenu">
     <div class="bloc">
@@ -240,8 +228,10 @@
   </div>
 </div>
 
+</div><!-- fin du conteneur -->
+
 <script src="JS/coffre.js?v=1"></script>
-<script src="JS/entree.js?v=28"></script>
+<script src="JS/entree.js?v=29"></script>
 <script src="JS/scan.js?v=4"></script>
 </body>
 </html>

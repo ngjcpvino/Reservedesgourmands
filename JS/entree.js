@@ -30,6 +30,7 @@ function toutCacher() {
   const vs = $('vue-scan'); if (vs) vs.hidden = true;
   if (window.stopScanner) window.stopScanner();   // coupe la caméra en quittant la vue scan
   $('btn-burger').hidden = true;   // burger caché par défaut ; ré-affiché sur accueil + choix + bases
+  $('entete-photo').hidden = true; // l'en-tête photo est écrit UNE fois dans le HTML ; on le montre écran par écran
   fermerMenu();   // tout changement d'écran ferme le menu : personne d'autre n'a à le faire
 }
 async function montrerBases() {
@@ -42,9 +43,9 @@ async function montrerBases() {
 }
 function montrerMeuble() { toutCacher(); $('vue-meuble').hidden = false; $('meuble-msg').textContent = ''; }
 function montrerPiece()  { toutCacher(); $('vue-piece').hidden = false; $('piece-msg').textContent = ''; }
-function montrerChoixQuoi()    { toutCacher(); $('vue-choix-quoi').hidden = false; $('btn-burger').hidden = false; }
-function montrerChoixComment() { toutCacher(); $('vue-choix-comment').hidden = false; $('btn-burger').hidden = false; }
-function montrerAccueil()    { toutCacher(); $('vue-accueil').hidden = false; $('btn-burger').hidden = false; }
+function montrerChoixQuoi()    { toutCacher(); $('vue-choix-quoi').hidden = false; $('btn-burger').hidden = false; $('entete-photo').hidden = false; }
+function montrerChoixComment() { toutCacher(); $('vue-choix-comment').hidden = false; $('btn-burger').hidden = false; $('entete-photo').hidden = false; }
+function montrerAccueil()    { toutCacher(); $('vue-accueil').hidden = false; $('btn-burger').hidden = false; $('entete-photo').hidden = false; }
 function montrerFormulaire(avecCode) {
   toutCacher(); $('vue-app').hidden = false;
   reinitFiche();
@@ -84,7 +85,7 @@ async function surCode() {
   }                                                 // sinon : on laisse; il remplit le nom à la main
 }
 function revenirConnexion(msg) {
-  toutCacher(); $('vue-connexion').hidden = false;
+  toutCacher(); $('vue-connexion').hidden = false; $('entete-photo').hidden = false;
   $('msg-connexion').textContent = msg || '';
 }
 
@@ -332,7 +333,6 @@ function memoriserVariante(pid, marque, format, endroits) {
 function ajouterEndroit(pref) {
   const row = document.createElement('div');
   row.className = 'endroit carte';
-  row.style.marginBottom = 'var(--espace-s)';
   row.innerHTML =
     '<div class="bloc"><div class="label">Pièce</div><select class="champ piece"></select></div>' +
     '<div class="bloc"><div class="label">Meuble</div><select class="champ meuble"></select></div>' +
@@ -351,7 +351,7 @@ function ajouterEndroit(pref) {
     const mbs = MEUBLES.filter(m => String(m.pieceId) === String(piece.value));
     meuble.innerHTML = mbs.length ? options(mbs, '— Meuble —') : '<option value="">(aucun meuble)</option>';
     espace.innerHTML = '<option value="">—</option>';
-    row.style.borderLeft = '';
+    row.classList.remove('endroit-meuble'); row.style.borderLeftColor = '';
   };
 
   meuble.onchange = () => {
@@ -359,7 +359,9 @@ function ajouterEndroit(pref) {
     const esp = ESPACES[mid] || [];
     espace.innerHTML = esp.length ? options(esp, '— Espace —') : '<option value="">(directement sur le meuble)</option>';
     const m = MEUBLES.find(x => x.id === mid);
-    row.style.borderLeft = (m && m.couleur) ? ('5px solid ' + m.couleur) : '';
+    const couleur = (m && m.couleur) || '';          // la couleur est une DONNÉE ; l'épaisseur du filet vit dans le CSS
+    row.classList.toggle('endroit-meuble', !!couleur);
+    row.style.borderLeftColor = couleur;
   };
   row.querySelector('.retirer').onclick = () => { if ($('endroits').children.length > 1) row.remove(); };
   $('endroits').appendChild(row);
