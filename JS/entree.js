@@ -160,6 +160,11 @@ function toggleAccordeon(tete) {
     if (el.classList && el.classList.contains('accordeon')) {
       if (el.firstElementChild) el.firstElementChild.classList.remove('ouvert');
       if (el.children[1]) el.children[1].hidden = true;
+      // ce qui se ferme ferme aussi tout ce qu'il contient : rien ne reste ouvert en cachette
+      el.querySelectorAll('.accordeon-tete.ouvert').forEach(function (t) {
+        t.classList.remove('ouvert');
+        if (t.nextElementSibling) t.nextElementSibling.hidden = true;
+      });
     }
   });
   if (ouvrir) {
