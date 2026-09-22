@@ -100,6 +100,19 @@ endroits en même temps).*
 | E | DureeVieJours | durée de conservation. Vide = hérite du parent le plus proche |
 | F | Actif | O / N |
 
+### COULEURS — la palette du site, par secteur (2026-09-22)
+*Créé tout seul par le coffre-fort au premier enregistrement (Outils → Couleurs).
+Une ligne par couleur changée; une couleur absente ou vide = celle d'origine du CSS.*
+
+| Col | Nom | Sens |
+|-----|-----|------|
+| A | ID | date/heure de création |
+| B | SecteurID | lien vers SECTEURS — chaque secteur a sa palette |
+| C | Nom | la couleur de base du root : `blanc`, `creme`, `beige`, `beige-moyen`, `brun-clair`, `brun`, `brun-fonce`, `rouge`, `orange`, `vert`, `bleu`, `fond` |
+| D | Valeur | code hex (`#6b4f3a`). Vide = revenir à la couleur d'origine |
+
+> Les couleurs des **meubles** ne sont pas ici : elles restent dans EMPLACEMENTS, colonne F.
+
 ### CODES-BARRES — PAS de table séparée (décision 2026-09-20)
 
 Le code-barres vit sur **STOCK, colonne I** (ci-dessus), comme la marque et le

@@ -7,7 +7,7 @@
 
 ## 👤 À faire par J-C (Claude ne peut pas)
 
-- **Redéployer `api.gs`** (nouvelle action `ordonner`) : coller le contenu dans le script `api` → Déployer → Gérer les déploiements → ✏️ → **Nouvelle version** (même URL). Sans ça, les flèches marchent à l'écran mais l'ordre reste en attente (message rouge).
+- **Redéployer `api.gs`** (nouvelles actions `ordonner` et `couleurs`) : coller le contenu dans le script `api` → Déployer → Gérer les déploiements → ✏️ → **Nouvelle version** (même URL). Sans ça, les flèches et les couleurs marchent à l'écran, mais l'enregistrement reste en attente (message rouge).
 - **Retirer puis rajouter l'app** sur l'écran d'accueil iOS, sinon l'ancienne icône reste en mémoire.
 - **Si l'onglet n'affiche aucune icône** : `favicon.svg` n'est pas lu par les vieux Safari. Claude peut désormais exporter un PNG de rechange — PIL s'installe dans le conteneur.
 
@@ -59,3 +59,5 @@ Spinner « trois bouteilles de lait » · les 7 icônes dessinées dans le CSS �
 **Menu : « Outils » se replie avec le menu (22 septembre)** · « Gérer les bases » restait ouvert après la fermeture du burger. Règle posée dans `fermerMenu()` : chaque fermeture du menu replie aussi « Outils ». Le burger ferme désormais par ce même chemin.
 
 **Réordonner les pièces, meubles et espaces (22 septembre)** · flèches ↑↓ dans « Gérer les bases », parmi les frères seulement · instantané à l'écran, envoi **en arrière-plan** (bouton « Enregistrer l'ordre » collé au bas, ou en quittant l'écran) · un échec reste en attente et repart tout seul · l'ordre = l'ordre des lignes du Sheet (action `ordonner`) · `coffre.js` fait désormais passer **tous** les appels en file, un à la fois · les 2 derniers `style=` de `htmlMeuble()` sortis (`accordeon-bloc`, `accordeon-item-saisie`).
+
+**Couleurs (22 septembre)** · Outils → Couleurs : les 12 couleurs de base du site (nommées, avec leur usage) + la couleur de chaque meuble, par pièce · on tape un code hex, le site change en direct · enregistrement en arrière-plan, comme l'ordre · « Revenir aux couleurs d'origine » en deux touches · onglet **Couleurs** du Sheet, par secteur, créé tout seul · les teintes dérivées (menu, ombres, survol…) suivent leur couleur de base (`color-mix`) · icônes et bouteilles suivent le crème · « Ajouter un meuble » passe au champ hex · au démarrage : palette posée avant l'affichage, mise à jour en arrière-plan.
