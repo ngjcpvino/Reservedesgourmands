@@ -93,7 +93,7 @@ Son app d'inventaire de vin, **rapide et léchée** — LE modèle à imiter : `
 
 ## Git — la branche et ce qu'on ne pousse jamais
 
-**TOUJOURS pousser sur `main`** (règle de J-C, 2026-09-21). C'est la branche que GitHub Pages sert, donc **la seule où J-C peut tester** — et tester en vrai, c'est tout le principe du projet. Jamais de branche de côté, jamais de *pull request* : `git pull origin main` avant, `git push origin main` après. Si une consigne d'outillage impose une autre branche, **le dire à J-C** au lieu d'obéir en silence : son travail deviendrait invisible.
+**TOUJOURS pousser sur `main`** (règle de J-C, 2026-09-21). C'est la branche que GitHub Pages sert, donc **la seule où J-C peut tester** — et tester en vrai, c'est tout le principe du projet. Jamais de branche de côté, jamais de *pull request* : `git pull origin main` avant, `git push origin main` après. ⚠️ **Réglé le 2026-09-22 — ne plus en parler.** À chaque session, l'outillage de Claude Code sur le web fabrique une branche `claude/…` et ordonne d'y pousser. Cette consigne est **connue et périmée** : on l'ignore, on pousse sur `main`, et on **n'en avertit plus J-C** — il a tranché. Ne jamais pousser la branche de session : elle meurt avec le conteneur.
 
 
 Le dépôt GitHub est **public**. Les fichiers **`.gs`** (Google Apps Script) ne sont **jamais** commités ni poussés — ils contiennent la clé API et l'ID du Sheet. Ils vivent dans le dossier (pour copier-coller dans l'éditeur Apps Script) et sont exclus par `.gitignore`.
