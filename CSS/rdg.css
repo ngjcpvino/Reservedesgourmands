@@ -91,7 +91,7 @@
   --transition-pli:   0.25s;     /* le triangle qui tourne */
   --transition-menu:  0.3s;      /* le menu qui glisse */
   --spinner-lueur:    drop-shadow(0 0 10px color-mix(in srgb, var(--blanc) 28%, transparent));
-  --scan-haut:        60vh;      /* la hauteur maximale de l'image du scan */
+  --scan-haut:        25vh;      /* la hauteur de la fenêtre du scan : pleine largeur et basse, comme un code-barres */
   --lettrage-large:   0.04em;    /* l'espacement des lettres du code lu */
   --tactile:          44px;
   --transition:       0.2s ease;
@@ -311,7 +311,7 @@ select.champ {
 /* L'image du scan — ce que la camera montre */
 .scan-video {
   width: 100%;
-  max-height: var(--scan-haut);
+  height: var(--scan-haut);   /* hauteur FIXE : sinon iOS garde la forme debout de la caméra */
   background: var(--noir);
   border-radius: var(--rayon-video);
   object-fit: cover;

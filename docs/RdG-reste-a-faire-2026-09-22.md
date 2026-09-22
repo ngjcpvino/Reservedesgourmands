@@ -65,3 +65,5 @@ Spinner « trois bouteilles de lait » · les 7 icônes dessinées dans le CSS �
 **Accordéons : fermer ferme aussi l'intérieur (22 septembre)** · une pièce ouverte dans « Couleurs des meubles » (ou un meuble dans sa pièce) restait ouverte en cachette quand son parent se fermait. `toggleAccordeon()` ferme maintenant tout ce que contient un accordéon qui se ferme — partout d'un coup.
 
 **Boutons style A + arrondi partout (22 septembre)** · choisis sur aperçu : dégradé léger de la couleur du bouton, petite ombre, reflet discret · `--rayon` passe de 1 à **6 px** : boutons, champs, accordéons, cartes, photo — le site perd sa rigidité.
+
+**Écran du scan (22 septembre)** · la ligne « Vise un code-barres » du haut est retirée (en double avec le message sous l'image) · la fenêtre passe de « jusqu'à 60 % » à **25 % de l'écran, hauteur fixe, pleine largeur** — la forme d'un code-barres, choisie sur aperçu. La lecture n'en souffre pas : le lecteur prend toujours l'image complète de la caméra.
