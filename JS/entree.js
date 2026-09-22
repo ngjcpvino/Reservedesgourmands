@@ -48,6 +48,7 @@ function toutCacher() {
   $('vue-connexion').hidden = true;
   $('vue-couleurs').hidden = true;
   $('vue-accueil').hidden = true;
+  $('vue-listes').hidden = true;
   $('vue-choix-quoi').hidden = true;
   $('vue-choix-comment').hidden = true;
   $('vue-app').hidden = true;
@@ -85,6 +86,7 @@ function montrerMeuble() {
 function montrerPiece()  { toutCacher(); $('vue-piece').hidden = false; $('piece-msg').textContent = ''; }
 function montrerChoixQuoi()    { toutCacher(); $('vue-choix-quoi').hidden = false; $('btn-burger').hidden = false; $('entete-photo').hidden = false; }
 function montrerChoixComment() { toutCacher(); $('vue-choix-comment').hidden = false; $('btn-burger').hidden = false; $('entete-photo').hidden = false; }
+function montrerListes()     { toutCacher(); $('vue-listes').hidden = false; $('btn-burger').hidden = false; }
 function montrerAccueil()    { toutCacher(); $('vue-accueil').hidden = false; $('btn-burger').hidden = false; $('entete-photo').hidden = false; }
 function montrerFormulaire(avecCode) {
   toutCacher(); $('vue-app').hidden = false;
@@ -953,10 +955,12 @@ function initEntree() {
   // boutons de l'accueil : éteints pour l'instant (avis « à venir »)
   document.querySelectorAll('#vue-accueil .bouton[data-avenir]').forEach(b =>
     b.addEventListener('click', () => avis(b.dataset.avenir + ' — à venir')));
-  document.querySelectorAll('#vue-accueil .accordeon-tete[data-toggle]').forEach(tete =>
+  document.querySelectorAll('.accordeon-tete[data-toggle]').forEach(tete =>
     tete.addEventListener('click', () => toggleAccordeon(tete)));
   // bouton 1 → choix « quoi » (un produit / toute l'épicerie) → choix « comment » (scanner / à la main)
   $('btn-entree').addEventListener('click', montrerChoixQuoi);
+  $('btn-listes').addEventListener('click', montrerListes);            // bouton bleu → la page des listes
+  $('btn-retour-listes').addEventListener('click', montrerAccueil);
   $('choix-produit').addEventListener('click', montrerChoixComment);
   $('choix-epicerie').addEventListener('click', () => avis("Toute l'épicerie — à venir"));
   $('choix-scan').addEventListener('click', () => { if (typeof montrerScanner === 'function') montrerScanner(); });
