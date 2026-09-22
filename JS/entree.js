@@ -518,7 +518,7 @@ function htmlMeuble(m) {
   const style = m.couleur ? ' style="background:' + esc(m.couleur) + '"' : '';
   const pale = (m.couleur && couleurPale(m.couleur)) ? ' tete-pale' : '';
   return '<div class="accordeon">' +
-    '<div class="accordeon-tete' + pale + '"' + style + '>' + esc(m.nom) + ' <span class="accordeon-fleche">▼</span></div>' +
+    '<div class="accordeon-tete' + pale + '"' + style + '>' + esc(m.nom) + '</div>' +
     '<div class="accordeon-corps" hidden>' +
       '<div class="bloc" style="padding: var(--espace-m) var(--espace-l) 0"><div class="label">Pièce</div>' +
         '<select class="champ choix-piece" data-meuble="' + esc(m.id) + '">' + optionsPieces(m.pieceId) + '</select></div>' +
@@ -535,14 +535,14 @@ function remplirMeubles() {
   let html = '';
   const nonRanges = MEUBLES.filter(function (m) { return !m.pieceId; });
   if (nonRanges.length) {
-    html += '<div class="accordeon"><div class="accordeon-tete">À ranger (' + nonRanges.length + ') <span class="accordeon-fleche">▼</span></div>' +
+    html += '<div class="accordeon"><div class="accordeon-tete">À ranger (' + nonRanges.length + ')</div>' +
       '<div class="accordeon-corps" hidden>' + nonRanges.map(htmlMeuble).join('') + '</div></div>';
   }
   html += PIECES.map(function (p) {
     const meubles = MEUBLES.filter(function (m) { return String(m.pieceId) === String(p.id); });
     const contenu = meubles.length ? meubles.map(htmlMeuble).join('')
                                    : '<div class="accordeon-item"><span class="texte-petit texte-pale">Aucun meuble</span></div>';
-    return '<div class="accordeon"><div class="accordeon-tete">' + esc(p.nom) + ' <span class="accordeon-fleche">▼</span></div>' +
+    return '<div class="accordeon"><div class="accordeon-tete">' + esc(p.nom) + '</div>' +
       '<div class="accordeon-corps" hidden>' + contenu + '</div></div>';
   }).join('');
   $('liste-meubles').innerHTML = html || '<div class="texte-petit texte-pale">Aucune pièce ni meuble.</div>';
@@ -578,7 +578,11 @@ function initEntree() {
   // page d'ouverture : menu burger + items
   $('btn-burger').addEventListener('click', basculerMenu);
   $('menu-ouverture').addEventListener('click', montrerAccueil);   // 1er item = retour à l'ouverture
-  $('menu-outils').addEventListener('click', () => { $('menu-bases').hidden = !$('menu-bases').hidden; });
+  $('menu-outils').addEventListener('click', function () {   // le triangle doit dire où on en est
+    const ouvrir = $('menu-bases').hidden;
+    $('menu-bases').hidden = !ouvrir;
+    $('menu-outils').classList.toggle('ouvert', ouvrir);
+  });
   $('menu-bases').addEventListener('click', montrerBases);
   $('menu-deco').addEventListener('click', deconnexion);
   // Outils → gérer les bases → ajouter un meuble
