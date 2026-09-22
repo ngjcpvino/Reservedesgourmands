@@ -79,3 +79,5 @@ Spinner « trois bouteilles de lait » · les 7 icônes dessinées dans le CSS �
 **Une couleur d'accent : l'or (22 septembre)** · `--or: #FFD700`, 13e couleur de base, modifiable dans Outils → Couleurs · variante `bouton-or` (texte brun foncé, choisi sur aperçu) · **tous les boutons Retour** la portent : les 2 écrans de choix, le scan et la page Listes.
 
 **L'entrée à la main redevient un entonnoir (22 septembre)** · Catégorie → Sous-catégorie → **liste déroulante des produits** (alphabétique) + « Nouveau produit… » → Marque/Format → Endroits · le scan garde son chemin « identité d'abord » · les mêmes blocs, remis dans l'ordre du chemin par `ordonnerFiche()` · ⚠️ **défaut corrigé** : le champ Nom n'écoutait que `change`, il fallait fermer le clavier pour voir la suite.
+
+**Première liste : « Inventaire » (22 septembre)** · ce qu'on possède, pièce → meuble → espace → produits (marque · format, quantité) · les endroits vides sont cachés · l'espace est un sous-titre, pas un accordéon · `references` renvoie maintenant aussi `stock`, **sans appel de plus** (STOCK lu une seule fois côté serveur) · ⚠️ **à redéployer** : `api.gs` a changé.

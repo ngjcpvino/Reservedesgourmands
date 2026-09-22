@@ -39,6 +39,7 @@ const COULEURS_SITE = [
   ['fond',        'Fond',        "autour du cadre, sur les grands écrans"]
 ];
 const ATTENTE_COULEURS = 'rdg_couleurs_attente';   // couleurs pas encore confirmées par le coffre-fort
+var STOCK = [];                                     // lignes de STOCK : ce qu'on possède, pour la liste « Inventaire »
 var COULEURS = [];                                  // lignes de l'onglet Couleurs : [ID, SecteurID, Nom, Valeur]
 var couleursModif = { site: {}, meubles: {} };      // changées à l'écran, pas encore envoyées
 var envoiCouleurs = false;                          // un envoi de couleurs est en route
@@ -88,7 +89,12 @@ function montrerMeuble() {
 function montrerPiece()  { toutCacher(); $('vue-piece').hidden = false; $('piece-msg').textContent = ''; }
 function montrerChoixQuoi()    { toutCacher(); $('vue-choix-quoi').hidden = false; $('btn-burger').hidden = false; $('entete-photo').hidden = false; }
 function montrerChoixComment() { toutCacher(); $('vue-choix-comment').hidden = false; $('btn-burger').hidden = false; $('entete-photo').hidden = false; }
-function montrerListes()     { toutCacher(); $('vue-listes').hidden = false; $('btn-burger').hidden = false; }
+async function montrerListes() {
+  toutCacher(); $('vue-listes').hidden = false; $('btn-burger').hidden = false;
+  remplirInventaire();                         // instantané : ce qu'on a déjà en mémoire
+  if (!MEUBLES.length) await chargerReferences();
+  remplirInventaire();                         // puis la version fraîche, quand elle arrive
+}
 function montrerAccueil()    { toutCacher(); $('vue-accueil').hidden = false; $('btn-burger').hidden = false; $('entete-photo').hidden = false; }
 function montrerFormulaire(avecCode) {
   toutCacher(); $('vue-app').hidden = false;
@@ -252,6 +258,7 @@ function appliquer(d) {
     .map(r => ({ id: r[0], nom: r[1], catId: r[2] }));
   VARIANTES = d.variantes || {};                      // { produitId: { marques:[], formats:[] } }
   CODES = d.codes || {};                              // { codeBarres: produitId }
+  STOCK = d.stock || [];
   COULEURS = d.couleurs || [];                        // [ID, SecteurID, Nom, Valeur]
   // une couleur pas encore confirmée (attente) ou en cours d'essai (écran) l'emporte sur le Sheet
   const cm = Object.assign({}, lireAttenteCouleurs().meubles, couleursModif.meubles);
@@ -278,7 +285,7 @@ async function chargerReferences() {
 async function chargerData() {
   try {
     const r = await Coffre.references();          // chemin rapide : UN seul appel
-    if (r && r.ok && r.categories !== undefined) return { cats: r.categories, emps: r.emplacements, prods: r.produits, variantes: r.variantes, codes: r.codes, couleurs: r.couleurs };
+    if (r && r.ok && r.categories !== undefined) return { cats: r.categories, emps: r.emplacements, prods: r.produits, stock: r.stock, variantes: r.variantes, codes: r.codes, couleurs: r.couleurs };
     if (r && r.erreur === 'non autorisé') throw new Error('non autorisé');
   } catch (e) { if (e.message === 'non autorisé') throw e; }   // sinon on tente le repli
   const cats = await lireRetry('Categories');     // repli : 3 appels un à la fois
@@ -550,6 +557,11 @@ async function enregistrer() {
       const c = lireCache(); if (c) { (c.prods = c.prods || []).push([produitId, nom, scid, '', 'O', '', '']); ecrireCache(c); }
       remplirProduitsDatalist();                          // le nouveau nom devient suggérable tout de suite
     }
+    const dateJour = new Date().toISOString().slice(0, 10);
+    endroits.forEach(x => {                                   // l'inventaire est à jour sans recharger
+      STOCK.push(['', produitId, x.emp, x.qte, dateJour, marque, format, opCourant, code]);
+      const c2 = lireCache(); if (c2) { (c2.stock = c2.stock || []).push(['', produitId, x.emp, x.qte, dateJour, marque, format, opCourant, code]); ecrireCache(c2); }
+    });
     memoriserVariante(produitId, marque, format, endroits);   // marque/format/emplacements à jour tout de suite
     opCourant = null;                                      // succès : le prochain article aura un nouveau jeton
     statut('Article ajouté ✓', 'succes');
@@ -697,6 +709,68 @@ function remplirMeubles(garderOuverts) {
     a.firstElementChild.classList.add('ouvert');
     a.children[1].hidden = false;
   });
+}
+
+/* ---------- Inventaire : ce qu'on a, pièce par pièce, meuble par meuble ---------- */
+/* Les lignes de STOCK regroupées par emplacement, puis par produit + marque + format
+   (deux lots identiques au même endroit s'additionnent). */
+function stockParEndroit() {
+  const par = {};
+  STOCK.forEach(l => {
+    const emp = String(l[2] || '');
+    const qte = Number(l[3]) || 0;
+    if (!emp || qte <= 0) return;              // sans endroit (en transit) ou vide : pas ici
+    const prod = PRODUITS.find(p => String(p.id) === String(l[1]));
+    if (!prod) return;                         // produit disparu : on n'invente rien
+    const marque = String(l[5] || '').trim(), format = String(l[6] || '').trim();
+    const cle = prod.id + '|' + marque + '|' + format;
+    const liste = (par[emp] = par[emp] || {});
+    if (liste[cle]) liste[cle].qte += qte;
+    else liste[cle] = { nom: prod.nom, marque: marque, format: format, qte: qte };
+  });
+  return par;
+}
+/* Les lignes d'un endroit, triées par nom. '' si l'endroit est vide. */
+function htmlLignesEndroit(par, empId) {
+  const dedans = par[empId];
+  if (!dedans) return '';
+  return Object.keys(dedans).map(k => dedans[k])
+    .sort((a, b) => String(a.nom).localeCompare(String(b.nom), 'fr'))
+    .map(x => {
+      const detail = [x.marque, x.format].filter(Boolean).join(' · ');
+      return '<div class="item"><div class="item-info"><div class="item-nom">' + esc(x.nom) + '</div>' +
+        (detail ? '<div class="item-detail">' + esc(detail) + '</div>' : '') + '</div>' +
+        '<span class="item-quantite">' + esc(x.qte) + '</span></div>';
+    }).join('');
+}
+/* Un meuble : ce qui est posé dessus directement, puis chaque espace qui contient quelque chose.
+   Rien dedans -> on renvoie '' et le meuble ne s'affiche pas (règle de J-C : on cache les vides). */
+function htmlMeubleInventaire(m, par) {
+  let corps = htmlLignesEndroit(par, m.id);    // posé sur le meuble, sans espace précis
+  (ESPACES[m.id] || []).forEach(esp => {
+    const lignes = htmlLignesEndroit(par, esp.id);
+    if (lignes) corps += '<div class="accordeon-item"><span class="texte-fort">' + esc(esp.nom) + '</span></div>' + lignes;
+  });
+  if (!corps) return '';
+  const style = m.couleur ? ' style="background:' + esc(m.couleur) + '"' : '';   // la couleur est une DONNÉE
+  const pale = (m.couleur && couleurPale(m.couleur)) ? ' tete-pale' : '';
+  return '<div class="accordeon"><div class="accordeon-tete' + pale + '"' + style + '>' + esc(m.nom) + '</div>' +
+    '<div class="accordeon-corps" hidden>' + corps + '</div></div>';
+}
+/* La liste complète : pièce -> meuble -> espace -> produits. Les endroits vides ne paraissent pas. */
+function remplirInventaire() {
+  const cible = $('liste-inventaire');
+  if (!cible) return;
+  let html = '';
+  const par = stockParEndroit();                 // calculé UNE fois pour toute la liste
+  const groupe = (titre, meubles) => {
+    const dedans = meubles.map(m => htmlMeubleInventaire(m, par)).join('');
+    return dedans ? '<div class="accordeon"><div class="accordeon-tete">' + esc(titre) + '</div>' +
+      '<div class="accordeon-corps" hidden>' + dedans + '</div></div>' : '';
+  };
+  PIECES.forEach(p => { html += groupe(p.nom, MEUBLES.filter(m => String(m.pieceId) === String(p.id))); });
+  html += groupe('À ranger', MEUBLES.filter(m => !m.pieceId));
+  cible.innerHTML = html || '<div class="accordeon-item"><span class="texte-petit texte-pale">Rien d\'entré pour le moment.</span></div>';
 }
 
 /* ---------- Réordonner (flèches ↑↓) — instantané à l'écran, envoyé en arrière-plan ---------- */
@@ -1023,7 +1097,11 @@ function initEntree() {
     tete.addEventListener('click', () => toggleAccordeon(tete)));
   // bouton 1 → choix « quoi » (un produit / toute l'épicerie) → choix « comment » (scanner / à la main)
   $('btn-entree').addEventListener('click', montrerChoixQuoi);
-  $('btn-listes').addEventListener('click', montrerListes);            // bouton bleu → la page des listes
+  $('btn-listes').addEventListener('click', montrerListes);
+  $('liste-inventaire').addEventListener('click', function (ev) {   // pièces et meubles de l'inventaire
+    const tete = ev.target.closest('.accordeon-tete');
+    if (tete) toggleAccordeon(tete);
+  });            // bouton bleu → la page des listes
   $('btn-retour-listes').addEventListener('click', montrerAccueil);
   $('choix-produit').addEventListener('click', montrerChoixComment);
   $('choix-epicerie').addEventListener('click', () => avis("Toute l'épicerie — à venir"));
