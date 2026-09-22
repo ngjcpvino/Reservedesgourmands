@@ -385,10 +385,11 @@ select.champ {
    ACCORDÉON — un bloc repliable (tête brune + items)
 ============================================================ */
 .accordeon { background: var(--blanc); border-radius: var(--rayon); overflow: hidden; margin-bottom: var(--espace-s); }
-/* Un accordéon DANS un accordéon (un meuble dans sa pièce) : le premier serait collé au titre
-   de la pièce, car la marge n'existe qu'en dessous. On lui donne le même écart qu'aux autres. */
+/* Ce qui ouvre le corps d'un accordéon serait collé au titre, car la marge n'existe qu'en dessous.
+   La règle vaut pour le PREMIER élément quel qu'il soit : un accordéon, une ligne, un item.
+   (`accordeon-bloc` fait exception : il porte déjà son propre rembourrage en haut.) */
 .accordeon-corps { padding-left: var(--retrait); }
-.accordeon-corps > .accordeon:first-child { margin-top: var(--espace-s); }
+.accordeon-corps > :first-child:not(.accordeon-bloc) { margin-top: var(--espace-s); }
 .accordeon-bloc { padding: var(--espace-m) var(--espace-l) 0; }   /* un bloc rentre dans le corps d'un accordeon */
 .accordeon-tete {
   display: flex;
@@ -550,7 +551,7 @@ select.champ {
 .icone-listes { --dessin: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23f5efe6' stroke-width='0.8' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M6 2.5h8l5 5v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2v-17a2 2 0 0 1 2-2z'/%3E%3Cpath d='M14 2.5v5h5'/%3E%3Cpath d='M7.5 13h8M7.5 17h5'/%3E%3C/svg%3E") }   /* la feuille et ses lignes */
 .icone-produit { --dessin: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23f5efe6' stroke-width='0.8' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M5 5.5c0-1.4 3.1-2.5 7-2.5s7 1.1 7 2.5-3.1 2.5-7 2.5-7-1.1-7-2.5z'/%3E%3Cpath d='M5 5.5v13c0 1.4 3.1 2.5 7 2.5s7-1.1 7-2.5v-13'/%3E%3Cpath d='M5 10c0 1.4 3.1 2.5 7 2.5s7-1.1 7-2.5'/%3E%3C/svg%3E") }   /* la conserve */
 .icone-epicerie { --dessin: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23f5efe6' stroke-width='0.8' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M3 8h18l-1.8 9.7a2 2 0 0 1-2 1.6H6.8a2 2 0 0 1-2-1.6z'/%3E%3Cpath d='M8 8V6a4 4 0 0 1 8 0v2'/%3E%3Cpath d='M10 12v3.5M14 12v3.5'/%3E%3C/svg%3E") }   /* le panier */
-.icone-manuel { --dessin: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23f5efe6' stroke-width='0.8' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M4 20.5l1.2-4.4L16.8 4.5l3.2 3.2L8.4 19.3z'/%3E%3Cpath d='M14.3 7l3.2 3.2'/%3E%3Cpath d='M4 20.5l3.6-1.2'/%3E%3C/svg%3E") }   /* le crayon */
+.icone-manuel { --dessin: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23f5efe6' stroke-width='0.8' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M4 20.5l1.2-4.4L16.8 4.5l3.2 3.2L8.4 19.3z'/%3E%3Cpath d='M14.3 7l3.2 3.2'/%3E%3Cpath d='M4 20.5l3.6-1.2'/%3E%3C/svg%3E") }   /* le crayon */
 .icone-plus { --dessin: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='0.8' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M12 5v14M5 12h14'/%3E%3C/svg%3E"); }   /* entrer un article : le + , pas le scan */
 
 /* ============================================================
