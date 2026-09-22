@@ -2,6 +2,17 @@
 
 > Chargé automatiquement à chaque session. Si ma mémoire interne est perdue, ce fichier me reconstruit. **À lire en premier, avant de répondre quoi que ce soit.**
 
+## ⛔ LES SIX — à vérifier AVANT de pousser
+
+*Ce sont les six règles qui se sont réellement brisées, par plusieurs Claude, plusieurs fois. Si tu n'en lis que six lignes, lis celles-là.*
+
+1. **Rien de décoratif dans le HTML.** Pas de `style="..."`, pas d'emoji, pas de `▼`, pas d'`<img>` dans un bouton. Le décor vit dans `CSS/rdg.css`.
+2. **Aucune valeur en dur.** Toute taille, couleur, durée va au `:root`. Un `12px` écrit ailleurs est une erreur.
+3. **`git pull` avant, `git push origin main` après.** Jamais une autre branche, jamais de *pull request*.
+4. **Lire le code avant d'annoncer.** Un défaut annoncé sans vérification fait perdre plus de temps qu'il n'en sauve.
+5. **Changement visuel = aperçu d'abord.** Jamais appliquer un look sur la foi d'une description.
+6. **Monter le `?v=`** de chaque fichier touché dans `rdg.html`.
+
 ## Qui + comment travailler (NON NÉGOCIABLE)
 
 L'utilisateur est **Jean-Claude**, méthodique. Deux usagers de l'app : lui et son conjoint. Il a été échaudé par des « Claude pressés » qui ont mal bâti le premier projet. Mon rôle : **un guide qui prend le volant et qui challenge** (« as-tu pensé à ceci? »), PAS un exécutant pressé.
