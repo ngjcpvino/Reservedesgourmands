@@ -20,10 +20,33 @@ const ATTENTE = 'rdg_ordre_attente';   // ordres pas encore confirmés par le co
 var ordreModifie = {};                 // groupes déplacés à l'écran, pas encore envoyés : 'p' · 'm:<pièce>' · 'e:<meuble>'
 var envoiOrdre = false;                // un envoi d'ordre est en route
 
+/* Les 12 couleurs de base du root, modifiables dans Outils → Couleurs : [variable, nom, à quoi elle sert].
+   Les teintes dérivées (menu, ombres, survol…) en découlent dans le CSS : elles suivent toutes seules. */
+const COULEURS_SITE = [
+  ['blanc',       'Blanc',       'fond du cadre, champs, texte des boutons de couleur'],
+  ['creme',       'Crème',       'icônes, texte des boutons bruns et du menu, bouteilles'],
+  ['beige',       'Beige',       'survol du burger, étiquettes de quantité'],
+  ['beige-moyen', 'Beige moyen', 'bord des champs, trait sous les titres'],
+  ['brun-clair',  'Brun clair',  'petits intitulés, texte pâle'],
+  ['brun',        'Brun',        "boutons bruns, têtes d'accordéon"],
+  ['brun-fonce',  'Brun foncé',  'texte, menu, ombres'],
+  ['rouge',       'Rouge',       'erreurs'],
+  ['orange',      'Orange',      'bouton Consommer'],
+  ['vert',        'Vert',        'boutons verts, succès'],
+  ['bleu',        'Bleu',        'bouton Listes'],
+  ['fond',        'Fond',        "autour du cadre, sur les grands écrans"]
+];
+const ATTENTE_COULEURS = 'rdg_couleurs_attente';   // couleurs pas encore confirmées par le coffre-fort
+var COULEURS = [];                                  // lignes de l'onglet Couleurs : [ID, SecteurID, Nom, Valeur]
+var couleursModif = { site: {}, meubles: {} };      // changées à l'écran, pas encore envoyées
+var envoiCouleurs = false;                          // un envoi de couleurs est en route
+
 /* ---------- Vues : connexion → page d'ouverture → formulaire ---------- */
 function toutCacher() {
   if (!$('vue-bases').hidden) envoyerOrdre();   // on quitte « Gérer les bases » : l'ordre part tout seul
+  if (!$('vue-couleurs').hidden) envoyerCouleurs();   // idem pour « Couleurs »
   $('vue-connexion').hidden = true;
+  $('vue-couleurs').hidden = true;
   $('vue-accueil').hidden = true;
   $('vue-choix-quoi').hidden = true;
   $('vue-choix-comment').hidden = true;
@@ -46,7 +69,19 @@ async function montrerBases() {
   remplirMeubles();
   expedierOrdre();                             // un ordre resté en attente (échec, fermeture) repart
 }
-function montrerMeuble() { toutCacher(); $('vue-meuble').hidden = false; $('meuble-msg').textContent = ''; }
+async function montrerCouleurs() {
+  toutCacher(); $('vue-couleurs').hidden = false; $('btn-burger').hidden = false;
+  if (!MEUBLES.length) {                       // pas encore chargé → on charge (même patron que les bases)
+    $('liste-couleurs').innerHTML = '<div class="texte-petit texte-pale">Chargement…</div>';
+    await chargerReferences();
+  }
+  remplirCouleurs();
+  expedierCouleurs();                          // des couleurs restées en attente repartent
+}
+function montrerMeuble() {
+  toutCacher(); $('vue-meuble').hidden = false; $('meuble-msg').textContent = '';
+  surHexMeuble();                              // la pastille montre la couleur de départ
+}
 function montrerPiece()  { toutCacher(); $('vue-piece').hidden = false; $('piece-msg').textContent = ''; }
 function montrerChoixQuoi()    { toutCacher(); $('vue-choix-quoi').hidden = false; $('btn-burger').hidden = false; $('entete-photo').hidden = false; }
 function montrerChoixComment() { toutCacher(); $('vue-choix-comment').hidden = false; $('btn-burger').hidden = false; $('entete-photo').hidden = false; }
@@ -99,6 +134,7 @@ function entrer() {
   if (!pw) return;
   Coffre.definirMotDePasse(pw);   // login optimiste : aucun appel bloquant
   montrerAccueil();                // → la page d'ouverture
+  chargerReferences();             // en arrière-plan : les couleurs à jour (et un mauvais mot de passe se voit)
 }
 
 function deconnexion() {
@@ -110,7 +146,7 @@ function deconnexion() {
 /* ---------- Menu burger ---------- */
 function fermerMenu() {                 // le menu se ferme -> « Outils » se replie avec lui
   $('menu').classList.remove('ouvert');
-  $('menu-bases').hidden = true;
+  document.querySelectorAll('#menu .menu-item-enfant').forEach(b => { b.hidden = true; });
   $('menu-outils').classList.remove('ouvert');
 }
 function montrerVoile(on){ $('voile').hidden = !on; }   // voile bloquant + les trois bouteilles de lait
@@ -194,6 +230,11 @@ function appliquer(d) {
     .map(r => ({ id: r[0], nom: r[1], catId: r[2] }));
   VARIANTES = d.variantes || {};                      // { produitId: { marques:[], formats:[] } }
   CODES = d.codes || {};                              // { codeBarres: produitId }
+  COULEURS = d.couleurs || [];                        // [ID, SecteurID, Nom, Valeur]
+  // une couleur pas encore confirmée (attente) ou en cours d'essai (écran) l'emporte sur le Sheet
+  const cm = Object.assign({}, lireAttenteCouleurs().meubles, couleursModif.meubles);
+  MEUBLES.forEach(m => { if (cm[m.id] !== undefined) m.couleur = cm[m.id]; });
+  appliquerCouleursSite();
 }
 
 async function chargerReferences() {
@@ -202,6 +243,7 @@ async function chargerReferences() {
   else statut('Chargement…');
   try {
     const data = await chargerData();
+    if (Object.keys(ordreModifie).length) envoyerOrdre();   // des flèches touchées pendant le chargement : on les garde
     reordonnerLignes(data.emps, lireAttente());   // un ordre pas encore confirmé l'emporte sur l'ancien
     appliquer(data); ecrireCache(data); remplirListes(); statut('');
     expedierOrdre();                              // le réseau répond : on en profite pour renvoyer l'attente
@@ -214,7 +256,7 @@ async function chargerReferences() {
 async function chargerData() {
   try {
     const r = await Coffre.references();          // chemin rapide : UN seul appel
-    if (r && r.ok && r.categories !== undefined) return { cats: r.categories, emps: r.emplacements, prods: r.produits, variantes: r.variantes, codes: r.codes };
+    if (r && r.ok && r.categories !== undefined) return { cats: r.categories, emps: r.emplacements, prods: r.produits, variantes: r.variantes, codes: r.codes, couleurs: r.couleurs };
     if (r && r.erreur === 'non autorisé') throw new Error('non autorisé');
   } catch (e) { if (e.message === 'non autorisé') throw e; }   // sinon on tente le repli
   const cats = await lireRetry('Categories');     // repli : 3 appels un à la fois
@@ -453,7 +495,8 @@ async function enregistrerMeuble() {
   const nom = $('meuble-nom').value.trim();
   const msg = $('meuble-msg');
   if (!nom) { msg.className = 'message message-erreur'; msg.textContent = 'Donne un nom au meuble.'; return; }
-  const couleur = $('meuble-couleur').value || '';
+  const couleur = hexValide($('meuble-couleur').value);
+  if (!couleur) { msg.className = 'message message-erreur'; msg.textContent = 'Code de couleur incomplet (ex. #6b4f3a).'; return; }
   msg.className = 'message'; msg.textContent = 'Enregistrement…';
   $('btn-meuble-enr').disabled = true;
   montrerVoile(true);
@@ -669,6 +712,161 @@ async function expedierOrdre() {
   }
 }
 
+/* ---------- Couleurs (Outils → Couleurs) — en direct à l'écran, envoyées en arrière-plan ---------- */
+/* Un code hex tapé -> '#rrggbb' en minuscules, ou '' s'il est incomplet ou mal tapé.
+   Le # est facultatif; #abc vaut #aabbcc. */
+function hexValide(v) {
+  let h = String(v || '').trim().toLowerCase().replace(/^#/, '');
+  if (/^[0-9a-f]{3}$/.test(h)) h = h[0] + h[0] + h[1] + h[1] + h[2] + h[2];
+  return /^[0-9a-f]{6}$/.test(h) ? '#' + h : '';
+}
+function lireAttenteCouleurs() {
+  try { const a = JSON.parse(localStorage.getItem(ATTENTE_COULEURS) || 'null'); if (a) return { site: a.site || {}, meubles: a.meubles || {} }; } catch (e) {}
+  return { site: {}, meubles: {} };
+}
+function ecrireAttenteCouleurs(a) { try { localStorage.setItem(ATTENTE_COULEURS, JSON.stringify(a)); } catch (e) {} }
+
+/* La palette du secteur : le Sheet, puis l'attente, puis l'essai en cours à l'écran (le plus récent gagne). */
+function paletteSite() {
+  const p = {};
+  COULEURS.forEach(r => { if (!SECTEUR_ID || String(r[1]) === SECTEUR_ID) p[String(r[2])] = String(r[3] || ''); });
+  return Object.assign(p, lireAttenteCouleurs().site, couleursModif.site);
+}
+/* Pose la palette sur le root. Une valeur vide ou illisible = la couleur d'origine du CSS. */
+function appliquerCouleursSite() {
+  const p = paletteSite(), root = document.documentElement.style;
+  COULEURS_SITE.forEach(([nom]) => {
+    const v = hexValide(p[nom]);
+    if (v) root.setProperty('--' + nom, v); else root.removeProperty('--' + nom);
+  });
+}
+/* La couleur affichée en ce moment pour une variable du root (d'origine ou changée). */
+function couleurActuelle(nom) {
+  return hexValide(getComputedStyle(document.documentElement).getPropertyValue('--' + nom)) || '';
+}
+
+/* Une ligne : pastille + nom (+ usage) + champ hex. La couleur de la pastille est une DONNÉE. */
+function htmlLigneCouleur(attr, id, nom, usage, valeur) {
+  return '<div class="accordeon-item accordeon-item-saisie">' +
+    '<span class="pastille"' + (valeur ? ' style="background:' + esc(valeur) + '"' : '') + '></span>' +
+    '<span class="couleur-nom">' + esc(nom) + (usage ? '<span class="couleur-usage">' + esc(usage) + '</span>' : '') + '</span>' +
+    '<input class="champ champ-hex" ' + attr + '="' + esc(id) + '" value="' + esc(valeur) + '" maxlength="7" autocomplete="off" autocapitalize="off" spellcheck="false" placeholder="#rrggbb">' +
+  '</div>';
+}
+/* L'écran : « Couleurs du site » puis « Couleurs des meubles » (par pièce, comme Gérer les bases).
+   garderOuverts : après « Revenir aux couleurs d'origine », les accordéons ouverts le restent. */
+function remplirCouleurs(garderOuverts) {
+  const liste = $('liste-couleurs');
+  const ouverts = garderOuverts ? [...liste.querySelectorAll('.accordeon-tete.ouvert')].map(t => t.parentElement.dataset.cle) : [];
+  const site = COULEURS_SITE.map(([nom, libelle, usage]) => htmlLigneCouleur('data-site', nom, libelle, usage, couleurActuelle(nom))).join('');
+  const meubleLigne = m => htmlLigneCouleur('data-meuble', m.id, m.nom, '', hexValide(m.couleur));
+  const groupe = (cle, titre, meubles) => meubles.length
+    ? '<div class="accordeon" data-cle="' + esc(cle) + '"><div class="accordeon-tete">' + esc(titre) + '</div><div class="accordeon-corps" hidden>' + meubles.map(meubleLigne).join('') + '</div></div>'
+    : '';
+  let meubles = groupe('r', 'À ranger', MEUBLES.filter(m => !m.pieceId));
+  meubles += PIECES.map(p => groupe('p:' + p.id, p.nom, MEUBLES.filter(m => String(m.pieceId) === String(p.id)))).join('');
+  liste.innerHTML =
+    '<div class="accordeon" data-cle="site"><div class="accordeon-tete">Couleurs du site</div><div class="accordeon-corps" hidden>' + site + '</div></div>' +
+    '<div class="accordeon" data-cle="meubles"><div class="accordeon-tete">Couleurs des meubles</div><div class="accordeon-corps" hidden>' +
+      (meubles || '<div class="accordeon-item"><span class="texte-petit texte-pale">Aucun meuble</span></div>') + '</div></div>';
+  liste.querySelectorAll('.accordeon').forEach(a => {
+    if (ouverts.indexOf(a.dataset.cle) === -1) return;
+    a.firstElementChild.classList.add('ouvert');
+    a.children[1].hidden = false;
+  });
+}
+
+/* On tape un code : complet et bon -> tout change en direct; sinon le champ se marque en rouge et rien ne bouge. */
+function surHex(ev) {
+  const inp = ev.target.closest('.champ-hex');
+  if (!inp) return;
+  const v = hexValide(inp.value);
+  inp.classList.toggle('champ-erreur', !v);
+  if (!v) return;
+  inp.parentElement.querySelector('.pastille').style.background = v;
+  if (inp.dataset.site) {
+    couleursModif.site[inp.dataset.site] = v;
+    document.documentElement.style.setProperty('--' + inp.dataset.site, v);
+  } else if (inp.dataset.meuble) {
+    const m = MEUBLES.find(x => String(x.id) === String(inp.dataset.meuble));
+    if (m) m.couleur = v;
+    couleursModif.meubles[inp.dataset.meuble] = v;
+  }
+  montrer('btn-couleurs', true);
+}
+
+/* « Revenir aux couleurs d'origine » : les 12 du site seulement (les meubles n'ont pas d'origine).
+   Deux touches : la première demande confirmation, pour ne pas perdre une palette par accident. */
+function couleursOrigine() {
+  const b = $('btn-couleurs-origine');
+  if (!b.dataset.confirmer) {
+    b.dataset.confirmer = '1';
+    b.textContent = 'Toucher encore pour confirmer';
+    clearTimeout(b._h);
+    b._h = setTimeout(() => { delete b.dataset.confirmer; b.textContent = "Revenir aux couleurs d'origine"; }, 3000);
+    return;
+  }
+  clearTimeout(b._h); delete b.dataset.confirmer; b.textContent = "Revenir aux couleurs d'origine";
+  COULEURS_SITE.forEach(([nom]) => { couleursModif.site[nom] = ''; document.documentElement.style.removeProperty('--' + nom); });
+  remplirCouleurs(true);
+  montrer('btn-couleurs', true);
+}
+
+/* « Enregistrer les couleurs » (ou on quitte l'écran) : gardées ici, puis envoyées sans rien bloquer. */
+function envoyerCouleurs() {
+  const site = couleursModif.site, meubles = couleursModif.meubles;
+  couleursModif = { site: {}, meubles: {} };
+  montrer('btn-couleurs', false);
+  if (!Object.keys(site).length && !Object.keys(meubles).length) return;
+  const a = lireAttenteCouleurs();
+  Object.assign(a.site, site); Object.assign(a.meubles, meubles);
+  ecrireAttenteCouleurs(a);
+  const c = lireCache();                                   // le cache suit : la palette tient au prochain démarrage
+  if (c) {
+    c.couleurs = c.couleurs || [];
+    Object.keys(site).forEach(nom => {
+      const r = c.couleurs.find(x => String(x[1]) === SECTEUR_ID && String(x[2]) === nom);
+      if (r) r[3] = site[nom]; else c.couleurs.push(['', SECTEUR_ID, nom, site[nom]]);
+    });
+    (c.emps || []).forEach(r => { if (meubles[r[0]] !== undefined) r[5] = meubles[r[0]]; });
+    ecrireCache(c);
+    COULEURS = c.couleurs;
+  }
+  expedierCouleurs();
+}
+/* Envoie l'attente, en arrière-plan (la file de coffre.js garde un appel à la fois).
+   Succès : on retire ce qui a été confirmé. Échec : tout reste, et repart au prochain passage. */
+async function expedierCouleurs() {
+  const a = lireAttenteCouleurs();
+  if ((!Object.keys(a.site).length && !Object.keys(a.meubles).length) || envoiCouleurs) return;
+  envoiCouleurs = true;
+  let ok = false;
+  try {
+    const r = await Coffre.couleurs({ secteurId: SECTEUR_ID, site: a.site, meubles: a.meubles });
+    if (!r || !r.ok) throw new Error((r && r.erreur) || 'refus');
+    const reste = lireAttenteCouleurs();                   // retirer seulement ce qui n'a pas rechangé entre-temps
+    Object.keys(a.site).forEach(k => { if (reste.site[k] === a.site[k]) delete reste.site[k]; });
+    Object.keys(a.meubles).forEach(k => { if (reste.meubles[k] === a.meubles[k]) delete reste.meubles[k]; });
+    ecrireAttenteCouleurs(reste);
+    ok = true;
+    avis('Couleurs enregistrées ✓', 'succes');
+  } catch (e) {
+    avis('Couleurs pas encore enregistrées — elles repartiront toutes seules', 'erreur');
+  } finally {
+    envoiCouleurs = false;
+    const reste = lireAttenteCouleurs();
+    if (ok && (Object.keys(reste.site).length || Object.keys(reste.meubles).length)) expedierCouleurs();
+  }
+}
+
+/* Ajouter un meuble : le champ hex et sa pastille. */
+function surHexMeuble() {
+  const inp = $('meuble-couleur');
+  const v = hexValide(inp.value);
+  inp.classList.toggle('champ-erreur', !v);
+  if (v) $('meuble-pastille').style.background = v;
+}
+
 /* Ajoute un espace (tablette…) à un meuble, sans quitter la liste ni fermer l'accordéon. */
 async function ajouterEspace(meubleId, btn) {
   const corps = btn.closest('.accordeon-corps');
@@ -703,17 +901,27 @@ function initEntree() {
   $('btn-burger').addEventListener('click', basculerMenu);
   $('menu-ouverture').addEventListener('click', montrerAccueil);   // 1er item = retour à l'ouverture
   $('menu-outils').addEventListener('click', function () {   // le triangle doit dire où on en est
-    const ouvrir = $('menu-bases').hidden;
-    $('menu-bases').hidden = !ouvrir;
+    const ouvrir = !$('menu-outils').classList.contains('ouvert');
+    document.querySelectorAll('#menu .menu-item-enfant').forEach(b => { b.hidden = !ouvrir; });
     $('menu-outils').classList.toggle('ouvert', ouvrir);
   });
   $('menu-bases').addEventListener('click', montrerBases);
+  $('menu-couleurs').addEventListener('click', montrerCouleurs);
+  // Outils → Couleurs
+  $('liste-couleurs').addEventListener('input', surHex);
+  $('liste-couleurs').addEventListener('click', function (ev) {
+    const tete = ev.target.closest('.accordeon-tete');
+    if (tete) toggleAccordeon(tete);
+  });
+  $('btn-couleurs').addEventListener('click', envoyerCouleurs);
+  $('btn-couleurs-origine').addEventListener('click', couleursOrigine);
+  $('meuble-couleur').addEventListener('input', surHexMeuble);
   $('menu-deco').addEventListener('click', deconnexion);
   // Outils → gérer les bases → ajouter un meuble
   $('btn-ajout-meuble').addEventListener('click', montrerMeuble);
   $('btn-ordre').addEventListener('click', envoyerOrdre);
   // l'app passe en arrière-plan (onglet fermé, iPad verrouillé) : l'ordre bougé part quand même
-  document.addEventListener('visibilitychange', () => { if (document.hidden) envoyerOrdre(); });
+  document.addEventListener('visibilitychange', () => { if (document.hidden) { envoyerOrdre(); envoyerCouleurs(); } });
   $('btn-meuble-enr').addEventListener('click', enregistrerMeuble);
   $('meuble-annuler').addEventListener('click', montrerBases);
   $('btn-ajout-piece').addEventListener('click', montrerPiece);
@@ -754,7 +962,12 @@ function initEntree() {
   $('btn-endroit').addEventListener('click', () => ajouterEndroit());
   $('btn-enregistrer').addEventListener('click', enregistrer);
   $('btn-annuler').addEventListener('click', montrerChoixComment);
-  // reste connecté → page d'ouverture directement
-  if (Coffre.motDePasse()) montrerAccueil();
+  // reste connecté → page d'ouverture directement, puis mise à jour en arrière-plan
+  // (les couleurs changées sur l'autre appareil arrivent ainsi, sans rien attendre)
+  if (Coffre.motDePasse()) { montrerAccueil(); chargerReferences(); }
 }
 document.addEventListener('DOMContentLoaded', initEntree);
+
+/* Dès que ce script est lu, AVANT l'affichage : la dernière palette connue (cache) est posée,
+   pour ne jamais voir un éclair des anciennes couleurs. */
+(function () { const c = lireCache(); if (c) appliquer(c); })();

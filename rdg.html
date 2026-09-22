@@ -10,7 +10,7 @@
   <!-- Ecran d'accueil iPad : le meme sac, en PNG (iOS n'accepte pas le SVG ici) -->
   <link rel="apple-touch-icon" href="apple-touch-icon.png?v=1">
 
-<link rel="stylesheet" href="CSS/rdg.css?v=28">
+<link rel="stylesheet" href="CSS/rdg.css?v=29">
 </head>
 <body>
 
@@ -23,6 +23,7 @@
     <button class="menu-item" id="menu-ouverture" type="button">Page d'ouverture</button>
     <button class="menu-item menu-item-parent" id="menu-outils" type="button">Outils</button>
     <button class="menu-item menu-item-enfant" id="menu-bases" type="button" hidden>Gérer les bases</button>
+    <button class="menu-item menu-item-enfant" id="menu-couleurs" type="button" hidden>Couleurs</button>
     <button class="menu-item" id="menu-deco" type="button">Se déconnecter</button>
   </div>
 </div>
@@ -198,6 +199,19 @@
   </div>
 </div>
 
+<!-- ============================================================
+     OUTILS — couleurs (le site + les meubles). Les lignes sont bâties par le JS.
+============================================================ -->
+<div id="vue-couleurs" hidden>
+  <div class="entete"><div class="titre">Couleurs</div></div>
+  <div class="contenu">
+    <div id="liste-couleurs"></div>
+    <button class="bouton bouton-pleine bouton-quitter" id="btn-couleurs-origine" type="button">Revenir aux couleurs d'origine</button>
+    <!-- n'apparait qu'apres un changement ; reste colle au bas de l'ecran -->
+    <button class="bouton bouton-vert bouton-pleine bouton-detache bouton-collant" id="btn-couleurs" type="button" hidden>Enregistrer les couleurs</button>
+  </div>
+</div>
+
 <div id="vue-meuble" hidden>
   <div class="entete">
     <div class="titre">Ajouter un meuble</div>
@@ -209,7 +223,10 @@
     </div>
     <div class="bloc">
       <div class="label">Couleur</div>
-      <input class="champ" id="meuble-couleur" type="color" value="#6b4f3a">
+      <div class="ligne-couleur">
+        <span class="pastille" id="meuble-pastille"></span>
+        <input class="champ champ-hex" id="meuble-couleur" value="#6b4f3a" maxlength="7" autocomplete="off" autocapitalize="off" spellcheck="false" placeholder="#rrggbb">
+      </div>
     </div>
     <button class="bouton bouton-vert bouton-pleine bouton-detache" id="btn-meuble-enr" type="button">Enregistrer</button>
     <div class="message" id="meuble-msg"></div>
@@ -232,8 +249,8 @@
 
 </div><!-- fin du conteneur -->
 
-<script src="JS/coffre.js?v=2"></script>
-<script src="JS/entree.js?v=31"></script>
+<script src="JS/coffre.js?v=3"></script>
+<script src="JS/entree.js?v=32"></script>
 <script src="JS/scan.js?v=4"></script>
 </body>
 </html>

@@ -41,6 +41,7 @@ const Coffre = {
   references()              { return this.appel({ action: 'references' }); },
   entrerArticle(charge)     { return this.appel(Object.assign({ action: 'entrerArticle' }, charge)); },
   ordonner(groupes)         { return this.appel({ action: 'ordonner', groupes }); },
+  couleurs(charge)          { return this.appel(Object.assign({ action: 'couleurs' }, charge)); },
 
   // Enregistre le mot de passe et vérifie qu'il est bon.
   async connexion(m) {

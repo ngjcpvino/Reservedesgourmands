@@ -22,14 +22,15 @@
   --fond:             #ffffff;
   --noir:             #000000;   /* le fond de l'image du scan, quand la camera n'a rien */
 
-  /* ---- Couleurs de service (dérivées des couleurs ci-dessus) ---- */
-  --separateur:       rgba(212, 196, 176, 0.4);
-  --survol:           rgba(245, 239, 230, 0.5);
-  --champ-bord:       #d4c4b0;
-  --champ-focus:      #6b4f3a;
-  --champ-focus-halo: rgba(107, 79, 58, 0.12);
-  --placeholder:      #a08060;
-  --menu-fond:        rgba(61, 43, 31, 0.75);  /* le brun foncé du menu, à 75% d'opacité */
+  /* ---- Couleurs de service : DÉRIVÉES des couleurs ci-dessus, jamais écrites en dur.
+     Change une couleur de base (écran Outils → Couleurs) : ses dérivées suivent. ---- */
+  --separateur:       color-mix(in srgb, var(--beige-moyen) 40%, transparent);
+  --survol:           color-mix(in srgb, var(--creme) 50%, transparent);
+  --champ-bord:       var(--beige-moyen);
+  --champ-focus:      var(--brun);
+  --champ-focus-halo: color-mix(in srgb, var(--brun) 12%, transparent);
+  --placeholder:      var(--brun-clair);
+  --menu-fond:        color-mix(in srgb, var(--brun-fonce) 75%, transparent);  /* le brun foncé du menu, à 75% d'opacité */
 
   /* ---- Tailles de texte (échelle neutre : change la valeur, tout suit) ---- */
   --texte-micro:      12px;
@@ -71,33 +72,33 @@
   --titre-site-fluide: 12vw;
   --titre-site-max:   70px;
   --lettrage-titre:   3px;
-  --ombre-titre:      0 2px 16px rgba(61, 43, 31, 0.6);
+  --ombre-titre:      0 2px 16px color-mix(in srgb, var(--brun-fonce) 60%, transparent);
 
   /* ---- Le burger ---- */
   --burger-gap:       5px;       /* entre les trois traits */
   --burger-trait-large: 18px;
   --burger-trait-haut:  2px;
-  --burger-fond:      rgba(255, 255, 255, 0.75);
+  --burger-fond:      color-mix(in srgb, var(--blanc) 75%, transparent);
 
   /* ---- Le menu ---- */
   --menu-bas:         2vh;       /* il s'arrete a 2% du bas */
   --menu-largeur:     220px;
-  --menu-enfant-fond: rgba(255, 252, 248, 0.08);
-  --menu-separateur:  rgba(255, 252, 248, 0.06);
-  --menu-survol:      rgba(255, 252, 248, 0.13);
+  --menu-enfant-fond: color-mix(in srgb, var(--blanc) 8%, transparent);
+  --menu-separateur:  color-mix(in srgb, var(--blanc) 6%, transparent);
+  --menu-survol:      color-mix(in srgb, var(--blanc) 13%, transparent);
 
   /* ---- Durees ---- */
   --transition-pli:   0.25s;     /* le triangle qui tourne */
   --transition-menu:  0.3s;      /* le menu qui glisse */
-  --spinner-lueur:    drop-shadow(0 0 10px rgba(255, 255, 255, 0.28));
+  --spinner-lueur:    drop-shadow(0 0 10px color-mix(in srgb, var(--blanc) 28%, transparent));
   --scan-haut:        60vh;      /* la hauteur maximale de l'image du scan */
   --lettrage-large:   0.04em;    /* l'espacement des lettres du code lu */
   --tactile:          44px;
   --transition:       0.2s ease;
   --police:           'Cabinet Grotesk', system-ui, sans-serif;
-  --ombre-carte:      0 2px 12px rgba(61, 43, 31, 0.10);
-  --ombre-bouton:     0 1px 6px rgba(61, 43, 31, 0.10);
-  --ombre-forte:      0 6px 24px rgba(61, 43, 31, 0.28);
+  --ombre-carte:      0 2px 12px color-mix(in srgb, var(--brun-fonce) 10%, transparent);
+  --ombre-bouton:     0 1px 6px color-mix(in srgb, var(--brun-fonce) 10%, transparent);
+  --ombre-forte:      0 6px 24px color-mix(in srgb, var(--brun-fonce) 28%, transparent);
 
   --fleche-taille:     5px;    /* le triangle « plier/déplier », dessiné en CSS */
   --retrait:           12px;   /* le contenu d'un accordéon recule d'autant : la hiérarchie se voit */
@@ -105,6 +106,8 @@
   --fleche-trait:      0.55;   /* sa présence : discrète, comme le triangle */
   --fleche-eteinte:    0.15;   /* la 1re ne monte pas, la dernière ne descend pas */
   --plan-collant:      10;     /* un bouton collé au bas de l'écran passe par-dessus la liste */
+  --pastille:          28px;   /* le carré qui montre une couleur (écran Couleurs, ajout d'un meuble) */
+  --champ-hex-large:   110px;  /* le champ où l'on tape un code hex : #6b4f3a */
 
   /* ---- Respiration en haut de chaque écran ---- */
   --haut-ecran:        10px;    /* sinon le contenu passe sous la barre d'état d'iOS et paraît flou */
@@ -120,7 +123,7 @@
   --spinner-decalage: 2s;                      /* l'écart entre les trois */
   --spinner-plein:    var(--blanc);            /* le lait */
   --spinner-trait:    var(--creme);            /* le contour de la bouteille */
-  --spinner-voile:    rgba(61, 43, 31, 0.55);  /* l'écran qui bloque derrière */
+  --spinner-voile:    color-mix(in srgb, var(--brun-fonce) 55%, transparent);  /* l'écran qui bloque derrière */
 }
 
 /* ============================================================
@@ -448,6 +451,17 @@ select.champ {
 .fleche-eteinte { cursor: default; }
 .fleche-eteinte::before { opacity: var(--fleche-eteinte); }
 
+/* ------------------------------------------------------------
+   COULEURS (Outils → Couleurs, ajout d'un meuble) — pastille + nom + code hex.
+   La couleur de la pastille est une DONNÉE : le script la pose.
+------------------------------------------------------------ */
+.ligne-couleur { display: flex; align-items: center; gap: var(--espace-s); }
+.pastille { flex-shrink: 0; width: var(--pastille); height: var(--pastille); border-radius: var(--rayon); border: var(--filet) solid var(--champ-bord); }
+.couleur-nom { flex: 1; min-width: 0; }
+.couleur-usage { display: block; font-size: var(--texte-micro); color: var(--brun-clair); }
+.champ-hex { flex-shrink: 0; width: var(--champ-hex-large); }
+.champ-erreur, .champ-erreur:focus { border-color: var(--rouge); }   /* un code mal tapé */
+
 /* Un bouton qui reste collé au bas de l'écran pendant qu'on défile (Enregistrer l'ordre) */
 .bouton-collant { position: sticky; bottom: var(--espace-l); z-index: var(--plan-collant); }
 
@@ -501,18 +515,18 @@ select.champ {
   flex-shrink: 0;
   width: var(--icone-taille);
   height: var(--icone-taille);
-  background-repeat: no-repeat;
-  background-position: center;
-  background-size: contain;
+  background-color: var(--creme);   /* le trait suit le crème du root */
+  -webkit-mask: var(--dessin) center / contain no-repeat;
+          mask: var(--dessin) center / contain no-repeat;
 }
 
-.icone-entrer { background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23f5efe6' stroke-width='0.8' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M3 8V5a2 2 0 0 1 2-2h3M16 3h3a2 2 0 0 1 2 2v3M21 16v3a2 2 0 0 1-2 2h-3M8 21H5a2 2 0 0 1-2-2v-3'/%3E%3Cpath d='M7 8.5v7M10 8.5v7M12.5 8.5v7M15 8.5v7M17.5 8.5v7'/%3E%3C/svg%3E") }   /* le code-barres dans son cadre de visee */
-.icone-trouver { background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23f5efe6' stroke-width='0.8' stroke-linecap='round' stroke-linejoin='round'%3E%3Ccircle cx='10.5' cy='10.5' r='7'/%3E%3Cpath d='M15.6 15.6 21 21'/%3E%3C/svg%3E") }   /* la loupe, sans code-barres dedans */
-.icone-consommer { background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23f5efe6' stroke-width='0.8' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M5.5 2.5v4.5M8 2.5v4.5M10.5 2.5v4.5'/%3E%3Cpath d='M5.5 7c0 1.8 1.1 3 2.5 3s2.5-1.2 2.5-3'/%3E%3Cpath d='M8 10v11.5'/%3E%3Cpath d='M15.5 2.5c3 2.8 4 6.4 4 9.5h-4z'/%3E%3Cpath d='M17.5 12v9.5'/%3E%3C/svg%3E") }   /* la fourchette et le couteau */
-.icone-listes { background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23f5efe6' stroke-width='0.8' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M6 2.5h8l5 5v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2v-17a2 2 0 0 1 2-2z'/%3E%3Cpath d='M14 2.5v5h5'/%3E%3Cpath d='M7.5 13h8M7.5 17h5'/%3E%3C/svg%3E") }   /* la feuille et ses lignes */
-.icone-produit { background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23f5efe6' stroke-width='0.8' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M5 5.5c0-1.4 3.1-2.5 7-2.5s7 1.1 7 2.5-3.1 2.5-7 2.5-7-1.1-7-2.5z'/%3E%3Cpath d='M5 5.5v13c0 1.4 3.1 2.5 7 2.5s7-1.1 7-2.5v-13'/%3E%3Cpath d='M5 10c0 1.4 3.1 2.5 7 2.5s7-1.1 7-2.5'/%3E%3C/svg%3E") }   /* la conserve */
-.icone-epicerie { background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23f5efe6' stroke-width='0.8' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M3 8h18l-1.8 9.7a2 2 0 0 1-2 1.6H6.8a2 2 0 0 1-2-1.6z'/%3E%3Cpath d='M8 8V6a4 4 0 0 1 8 0v2'/%3E%3Cpath d='M10 12v3.5M14 12v3.5'/%3E%3C/svg%3E") }   /* le panier */
-.icone-manuel { background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23f5efe6' stroke-width='0.8' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M4 20.5l1.2-4.4L16.8 4.5l3.2 3.2L8.4 19.3z'/%3E%3Cpath d='M14.3 7l3.2 3.2'/%3E%3Cpath d='M4 20.5l3.6-1.2'/%3E%3C/svg%3E") }   /* le crayon */
+.icone-entrer { --dessin: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23f5efe6' stroke-width='0.8' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M3 8V5a2 2 0 0 1 2-2h3M16 3h3a2 2 0 0 1 2 2v3M21 16v3a2 2 0 0 1-2 2h-3M8 21H5a2 2 0 0 1-2-2v-3'/%3E%3Cpath d='M7 8.5v7M10 8.5v7M12.5 8.5v7M15 8.5v7M17.5 8.5v7'/%3E%3C/svg%3E") }   /* le code-barres dans son cadre de visee */
+.icone-trouver { --dessin: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23f5efe6' stroke-width='0.8' stroke-linecap='round' stroke-linejoin='round'%3E%3Ccircle cx='10.5' cy='10.5' r='7'/%3E%3Cpath d='M15.6 15.6 21 21'/%3E%3C/svg%3E") }   /* la loupe, sans code-barres dedans */
+.icone-consommer { --dessin: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23f5efe6' stroke-width='0.8' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M5.5 2.5v4.5M8 2.5v4.5M10.5 2.5v4.5'/%3E%3Cpath d='M5.5 7c0 1.8 1.1 3 2.5 3s2.5-1.2 2.5-3'/%3E%3Cpath d='M8 10v11.5'/%3E%3Cpath d='M15.5 2.5c3 2.8 4 6.4 4 9.5h-4z'/%3E%3Cpath d='M17.5 12v9.5'/%3E%3C/svg%3E") }   /* la fourchette et le couteau */
+.icone-listes { --dessin: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23f5efe6' stroke-width='0.8' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M6 2.5h8l5 5v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2v-17a2 2 0 0 1 2-2z'/%3E%3Cpath d='M14 2.5v5h5'/%3E%3Cpath d='M7.5 13h8M7.5 17h5'/%3E%3C/svg%3E") }   /* la feuille et ses lignes */
+.icone-produit { --dessin: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23f5efe6' stroke-width='0.8' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M5 5.5c0-1.4 3.1-2.5 7-2.5s7 1.1 7 2.5-3.1 2.5-7 2.5-7-1.1-7-2.5z'/%3E%3Cpath d='M5 5.5v13c0 1.4 3.1 2.5 7 2.5s7-1.1 7-2.5v-13'/%3E%3Cpath d='M5 10c0 1.4 3.1 2.5 7 2.5s7-1.1 7-2.5'/%3E%3C/svg%3E") }   /* la conserve */
+.icone-epicerie { --dessin: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23f5efe6' stroke-width='0.8' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M3 8h18l-1.8 9.7a2 2 0 0 1-2 1.6H6.8a2 2 0 0 1-2-1.6z'/%3E%3Cpath d='M8 8V6a4 4 0 0 1 8 0v2'/%3E%3Cpath d='M10 12v3.5M14 12v3.5'/%3E%3C/svg%3E") }   /* le panier */
+.icone-manuel { --dessin: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23f5efe6' stroke-width='0.8' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M4 20.5l1.2-4.4L16.8 4.5l3.2 3.2L8.4 19.3z'/%3E%3Cpath d='M14.3 7l3.2 3.2'/%3E%3Cpath d='M4 20.5l3.6-1.2'/%3E%3C/svg%3E") }   /* le crayon */
 
 /* ============================================================
    TOAST — petit avis flottant (confirmation / à venir)
@@ -636,10 +650,9 @@ select.champ {
   content: '';
   position: absolute;
   inset: 0;
-  background-repeat: no-repeat;
-  background-position: center;
-  background-size: contain;
-  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 40 104' fill='none' stroke='%23f5efe6' stroke-width='2.4' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M13.5 4h13'/%3E%3Cpath d='M15 4v24c0 4-9.5 8-9.5 16v52c0 2.2 1.8 4 4 4h21c2.2 0 4-1.8 4-4V44c0-8-9.5-12-9.5-16V4'/%3E%3C/svg%3E");
+  background-color: var(--spinner-trait);   /* le contour suit le crème du root */
+  -webkit-mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 40 104' fill='none' stroke='%23f5efe6' stroke-width='2.4' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M13.5 4h13'/%3E%3Cpath d='M15 4v24c0 4-9.5 8-9.5 16v52c0 2.2 1.8 4 4 4h21c2.2 0 4-1.8 4-4V44c0-8-9.5-12-9.5-16V4'/%3E%3C/svg%3E") center / contain no-repeat;
+          mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 40 104' fill='none' stroke='%23f5efe6' stroke-width='2.4' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M13.5 4h13'/%3E%3Cpath d='M15 4v24c0 4-9.5 8-9.5 16v52c0 2.2 1.8 4 4 4h21c2.2 0 4-1.8 4-4V44c0-8-9.5-12-9.5-16V4'/%3E%3C/svg%3E") center / contain no-repeat;
 }
 
 /* le lait, découpé à la forme intérieure de la bouteille */
