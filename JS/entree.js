@@ -34,6 +34,7 @@ const COULEURS_SITE = [
   ['orange',      'Orange',      'bouton Consommer'],
   ['vert',        'Vert',        'boutons verts, succès'],
   ['bleu',        'Bleu',        'bouton Listes'],
+  ['or',          'Or',          'boutons Retour'],
   ['fond',        'Fond',        "autour du cadre, sur les grands écrans"]
 ];
 const ATTENTE_COULEURS = 'rdg_couleurs_attente';   // couleurs pas encore confirmées par le coffre-fort
