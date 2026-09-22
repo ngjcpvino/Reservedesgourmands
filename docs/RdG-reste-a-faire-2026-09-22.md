@@ -5,27 +5,9 @@
 
 ---
 
-## 🔓 DÉBLOQUÉ (22 septembre) — en cours
-
-### Réordonner les pièces, les meubles et les espaces
-
-**Débloqué :** la conversation qui tourne sur l'ordi de J-C lit `gas/api.gs` directement. Plus rien à coller.
-
-**Déjà décidé, à ne pas rediscuter :**
-- **Des flèches ↑↓**, pas de glisser-déposer (capricieux sur iPad, beaucoup plus de code).
-- On bouge les lignes **à l'écran** sans rien envoyer, puis **un seul bouton « Enregistrer l'ordre »**. Sinon chaque flèche = un aller-retour d'une seconde au coffre-fort.
-- **Règle des symboles :** triangle plein ▼ = plier/déplier, et il tourne. Flèche à tige ↑↓ = déplacer. Jamais un triangle pour déplacer.
-
-**Reste à trancher (quand `api.gs` sera visible) :** stocker l'ordre dans une **nouvelle colonne** de l'onglet Emplacements, ou réordonner les **lignes elles-mêmes**. La deuxième voie n'exige aucune colonne à ajouter, puisque l'affichage suit déjà l'ordre des lignes et que rien ne référence leur position — tout se lie par ID.
-
-**Pourquoi c'est nécessaire :** le bouton « + un espace » ajoute toujours **à la fin**. Une tablette ajoutée après coup se colle en bas, même si dans la vraie vie elle est au milieu. Et la configuration change parfois.
-
-**Le principe de J-C, à respecter :** on compte les tablettes **à partir de celle que la main touche en premier**. Au-dessus du comptoir, c'est celle du bas. Sous le comptoir, c'est celle du haut. Une seule règle, deux résultats.
-
----
-
 ## 👤 À faire par J-C (Claude ne peut pas)
 
+- **Redéployer `api.gs`** (nouvelle action `ordonner`) : coller le contenu dans le script `api` → Déployer → Gérer les déploiements → ✏️ → **Nouvelle version** (même URL). Sans ça, les flèches marchent à l'écran mais l'ordre reste en attente (message rouge).
 - **Retirer puis rajouter l'app** sur l'écran d'accueil iOS, sinon l'ancienne icône reste en mémoire.
 - **Si l'onglet n'affiche aucune icône** : `favicon.svg` n'est pas lu par les vieux Safari. Claude peut désormais exporter un PNG de rechange — PIL s'installe dans le conteneur.
 
@@ -75,3 +57,5 @@ Spinner « trois bouteilles de lait » · les 7 icônes dessinées dans le CSS �
 **Barre de défilement masquée (22 septembre)** · sur l'ordi, la barre apparaissait quand la page s'allongeait et poussait tout vers la gauche. Elle est masquée (`html` + `::-webkit-scrollbar` dans `rdg.css`) : elle ne prend plus de place, rien ne glisse, le défilement marche toujours.
 
 **Menu : « Outils » se replie avec le menu (22 septembre)** · « Gérer les bases » restait ouvert après la fermeture du burger. Règle posée dans `fermerMenu()` : chaque fermeture du menu replie aussi « Outils ». Le burger ferme désormais par ce même chemin.
+
+**Réordonner les pièces, meubles et espaces (22 septembre)** · flèches ↑↓ dans « Gérer les bases », parmi les frères seulement · instantané à l'écran, envoi **en arrière-plan** (bouton « Enregistrer l'ordre » collé au bas, ou en quittant l'écran) · un échec reste en attente et repart tout seul · l'ordre = l'ordre des lignes du Sheet (action `ordonner`) · `coffre.js` fait désormais passer **tous** les appels en file, un à la fois · les 2 derniers `style=` de `htmlMeuble()` sortis (`accordeon-bloc`, `accordeon-item-saisie`).

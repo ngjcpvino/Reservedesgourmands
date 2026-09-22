@@ -16,9 +16,13 @@ var produitCourant = null;  // id du produit reconnu (existant) ; null = nouveau
 var opCourant = null;                                   // jeton anti-reclic de l'article en cours
 var SECTEUR_ID = '';                                    // secteur de cette app (Épicerie), déduit des données
 const CACHE = 'rdg_ref_v2';
+const ATTENTE = 'rdg_ordre_attente';   // ordres pas encore confirmés par le coffre-fort (survit à une fermeture)
+var ordreModifie = {};                 // groupes déplacés à l'écran, pas encore envoyés : 'p' · 'm:<pièce>' · 'e:<meuble>'
+var envoiOrdre = false;                // un envoi d'ordre est en route
 
 /* ---------- Vues : connexion → page d'ouverture → formulaire ---------- */
 function toutCacher() {
+  if (!$('vue-bases').hidden) envoyerOrdre();   // on quitte « Gérer les bases » : l'ordre part tout seul
   $('vue-connexion').hidden = true;
   $('vue-accueil').hidden = true;
   $('vue-choix-quoi').hidden = true;
@@ -40,6 +44,7 @@ async function montrerBases() {
     await chargerReferences();
   }
   remplirMeubles();
+  expedierOrdre();                             // un ordre resté en attente (échec, fermeture) repart
 }
 function montrerMeuble() { toutCacher(); $('vue-meuble').hidden = false; $('meuble-msg').textContent = ''; }
 function montrerPiece()  { toutCacher(); $('vue-piece').hidden = false; $('piece-msg').textContent = ''; }
@@ -132,9 +137,10 @@ function basculerMenu() {                // ouvrir, ou fermer par le seul chemin
 }
 
 /* ---------- Toast « à venir » ---------- */
-function avis(txt) {
+function avis(txt, type) {                 // type : 'avis' (défaut) · 'succes' · 'erreur'
   let t = document.querySelector('.toast');
-  if (!t) { t = document.createElement('div'); t.className = 'toast toast-avis'; document.body.appendChild(t); }
+  if (!t) { t = document.createElement('div'); document.body.appendChild(t); }
+  t.className = 'toast toast-' + (type || 'avis');
   t.textContent = txt;
   requestAnimationFrame(() => t.classList.add('visible'));
   clearTimeout(t._h);
@@ -196,7 +202,9 @@ async function chargerReferences() {
   else statut('Chargement…');
   try {
     const data = await chargerData();
+    reordonnerLignes(data.emps, lireAttente());   // un ordre pas encore confirmé l'emporte sur l'ancien
     appliquer(data); ecrireCache(data); remplirListes(); statut('');
+    expedierOrdre();                              // le réseau répond : on en profite pour renvoyer l'attente
   } catch (e) {
     if (e.message === 'non autorisé') { Coffre.oublier(); revenirConnexion('Mot de passe refusé.'); }
     else if (!cache) statut('Réseau lent — patiente un instant ou recharge la page.', 'erreur');
@@ -519,42 +527,146 @@ function couleurPale(couleur) {
   return (0.299 * r + 0.587 * v + 0.114 * b) > 150;       // 150 sur 255 : le seuil à ajuster
 }
 
+/* Les flèches ↑↓ d'une ligne (dessinées dans le CSS). La 1re ne monte pas, la dernière ne descend pas. */
+function fleches(type, id, i, n) {
+  const b = (sens, cls, eteinte, nom) => '<button class="fleche ' + cls + (eteinte ? ' fleche-eteinte' : '') +
+    '" type="button" data-type="' + type + '" data-id="' + esc(id) + '" data-sens="' + sens + '" aria-label="' + nom + '"></button>';
+  return '<span class="fleches">' + b(-1, 'fleche-haut', i === 0, 'Monter') + b(1, 'fleche-bas', i === n - 1, 'Descendre') + '</span>';
+}
+/* Un espace = une ligne, avec ses flèches. i = sa place parmi les espaces du meuble (groupe). */
+function htmlEspace(e, i, groupe) {
+  return '<div class="accordeon-item" data-type="e" data-id="' + esc(e.id) + '">' +
+    '<span>' + esc(e.nom) + '</span>' + fleches('e', e.id, i, groupe.length) + '</div>';
+}
 /* Un meuble = accordéon (à sa couleur) : menu Pièce + ses espaces + « + un espace ». */
-function htmlMeuble(m) {
-  const espaces = (ESPACES[m.id] || []).map(function (e) {
-    return '<div class="accordeon-item">' + esc(e.nom) + '</div>';
-  }).join('');
-  const style = m.couleur ? ' style="background:' + esc(m.couleur) + '"' : '';
+function htmlMeuble(m, i, groupe) {
+  const liste = ESPACES[m.id] || [];
+  const espaces = liste.map(htmlEspace).join('');
+  const style = m.couleur ? ' style="background:' + esc(m.couleur) + '"' : '';   // la couleur est une DONNÉE
   const pale = (m.couleur && couleurPale(m.couleur)) ? ' tete-pale' : '';
-  return '<div class="accordeon">' +
-    '<div class="accordeon-tete' + pale + '"' + style + '>' + esc(m.nom) + '</div>' +
+  return '<div class="accordeon" data-type="m" data-id="' + esc(m.id) + '">' +
+    '<div class="accordeon-tete' + pale + '"' + style + '><span>' + esc(m.nom) + '</span>' + fleches('m', m.id, i, groupe.length) + '</div>' +
     '<div class="accordeon-corps" hidden>' +
-      '<div class="bloc" style="padding: var(--espace-m) var(--espace-l) 0"><div class="label">Pièce</div>' +
+      '<div class="bloc accordeon-bloc"><div class="label">Pièce</div>' +
         '<select class="champ choix-piece" data-meuble="' + esc(m.id) + '">' + optionsPieces(m.pieceId) + '</select></div>' +
       espaces +
-      '<div class="accordeon-item" style="gap: var(--espace-s)">' +
+      '<div class="accordeon-item accordeon-item-saisie">' +
         '<input class="champ espace-nouveau" placeholder="Nouvel espace…">' +
         '<button class="bouton bouton-petit ajout-espace" data-meuble="' + esc(m.id) + '" type="button">+</button>' +
       '</div>' +
     '</div>' +
   '</div>';
 }
-/* « Gérer les bases » : les pièces en accordéon → leurs meubles (accordéon) → espaces. */
-function remplirMeubles() {
+/* « Gérer les bases » : les pièces en accordéon → leurs meubles (accordéon) → espaces.
+   garderOuverts : après un déplacement, les accordéons ouverts le restent. */
+function remplirMeubles(garderOuverts) {
+  const ouverts = garderOuverts
+    ? [...$('liste-meubles').querySelectorAll('.accordeon-tete.ouvert')].map(t => t.parentElement.dataset.type + ':' + t.parentElement.dataset.id)
+    : [];
   let html = '';
   const nonRanges = MEUBLES.filter(function (m) { return !m.pieceId; });
   if (nonRanges.length) {
-    html += '<div class="accordeon"><div class="accordeon-tete">À ranger (' + nonRanges.length + ')</div>' +
+    html += '<div class="accordeon" data-type="r" data-id=""><div class="accordeon-tete">À ranger (' + nonRanges.length + ')</div>' +
       '<div class="accordeon-corps" hidden>' + nonRanges.map(htmlMeuble).join('') + '</div></div>';
   }
-  html += PIECES.map(function (p) {
+  html += PIECES.map(function (p, i) {
     const meubles = MEUBLES.filter(function (m) { return String(m.pieceId) === String(p.id); });
     const contenu = meubles.length ? meubles.map(htmlMeuble).join('')
                                    : '<div class="accordeon-item"><span class="texte-petit texte-pale">Aucun meuble</span></div>';
-    return '<div class="accordeon"><div class="accordeon-tete">' + esc(p.nom) + '</div>' +
+    return '<div class="accordeon" data-type="p" data-id="' + esc(p.id) + '"><div class="accordeon-tete"><span>' + esc(p.nom) + '</span>' +
+      fleches('p', p.id, i, PIECES.length) + '</div>' +
       '<div class="accordeon-corps" hidden>' + contenu + '</div></div>';
   }).join('');
   $('liste-meubles').innerHTML = html || '<div class="texte-petit texte-pale">Aucune pièce ni meuble.</div>';
+  $('liste-meubles').querySelectorAll('.accordeon').forEach(function (a) {
+    if (ouverts.indexOf(a.dataset.type + ':' + a.dataset.id) === -1) return;
+    a.firstElementChild.classList.add('ouvert');
+    a.children[1].hidden = false;
+  });
+}
+
+/* ---------- Réordonner (flèches ↑↓) — instantané à l'écran, envoyé en arrière-plan ---------- */
+/* Les frères d'une ligne : la liste qui la porte, le groupe où elle bouge, et le nom du groupe. */
+function freres(type, id) {
+  id = String(id);
+  if (type === 'p') return { liste: PIECES, groupe: PIECES, cle: 'p' };
+  if (type === 'm') {
+    const m = MEUBLES.find(x => String(x.id) === id);
+    if (!m) return null;
+    const piece = String(m.pieceId || '');
+    return { liste: MEUBLES, groupe: MEUBLES.filter(x => String(x.pieceId || '') === piece), cle: 'm:' + piece };
+  }
+  if (type === 'e') {
+    for (const mid in ESPACES) if (ESPACES[mid].some(e => String(e.id) === id)) return { liste: ESPACES[mid], groupe: ESPACES[mid], cle: 'e:' + mid };
+  }
+  return null;
+}
+/* Échange une ligne avec sa voisine (sens -1 = monter, 1 = descendre). Aucun appel réseau. */
+function deplacer(type, id, sens) {
+  const f = freres(type, id);
+  if (!f) return;
+  const j = f.groupe.findIndex(x => String(x.id) === String(id));
+  const voisin = f.groupe[j + sens];
+  if (j < 0 || !voisin) return;
+  const a = f.liste.indexOf(f.groupe[j]), b = f.liste.indexOf(voisin);
+  f.liste[a] = voisin; f.liste[b] = f.groupe[j];
+  ordreModifie[f.cle] = true;
+  remplirMeubles(true);
+  montrer('btn-ordre', true);
+}
+/* Les ids d'un groupe, dans l'ordre affiché. */
+function idsDuGroupe(cle) {
+  if (cle === 'p') return PIECES.map(p => String(p.id));
+  if (cle.indexOf('m:') === 0) { const piece = cle.slice(2); return MEUBLES.filter(m => String(m.pieceId || '') === piece).map(m => String(m.id)); }
+  if (cle.indexOf('e:') === 0) return (ESPACES[cle.slice(2)] || []).map(e => String(e.id));
+  return [];
+}
+/* Même règle que le coffre-fort : les lignes d'un groupe s'échangent entre les places
+   qu'elles occupent déjà. Sert au cache local et à l'ordre encore en attente. */
+function reordonnerLignes(lignes, groupes) {
+  if (!lignes) return;
+  (groupes || []).forEach(function (ids) {
+    const ou = {};
+    lignes.forEach((r, i) => { ou[String(r[0])] = i; });
+    const trouves = [];
+    ids.forEach(id => { const i = ou[String(id)]; if (i !== undefined && trouves.indexOf(i) === -1) trouves.push(i); });
+    const places = trouves.slice().sort((a, b) => a - b);
+    const copies = trouves.map(i => lignes[i]);
+    places.forEach((p, k) => { lignes[p] = copies[k]; });
+  });
+}
+function lireAttente()   { try { return JSON.parse(localStorage.getItem(ATTENTE) || '[]'); } catch (e) { return []; } }
+function ecrireAttente(g){ try { localStorage.setItem(ATTENTE, JSON.stringify(g)); } catch (e) {} }
+
+/* « Enregistrer l'ordre » (ou on quitte l'écran) : l'ordre est gardé ici, puis part sans rien bloquer. */
+function envoyerOrdre() {
+  const groupes = Object.keys(ordreModifie).map(idsDuGroupe).filter(g => g.length > 1);
+  ordreModifie = {};
+  montrer('btn-ordre', false);
+  if (!groupes.length) return;
+  const c = lireCache(); if (c) { reordonnerLignes(c.emps, groupes); ecrireCache(c); }
+  ecrireAttente(lireAttente().concat(groupes));
+  expedierOrdre();
+}
+/* Envoie l'attente au coffre-fort, en arrière-plan (la file de coffre.js garde un appel à la fois).
+   Succès : l'attente se vide. Échec : elle reste, et repart au prochain passage. */
+async function expedierOrdre() {
+  const groupes = lireAttente();
+  if (!groupes.length || envoiOrdre) return;
+  envoiOrdre = true;
+  let ok = false;
+  try {
+    const r = await Coffre.ordonner(groupes);
+    if (!r || !r.ok) throw new Error((r && r.erreur) || 'refus');
+    ecrireAttente(lireAttente().slice(groupes.length));   // d'autres ont pu s'ajouter pendant l'envoi
+    ok = true;
+    avis('Ordre enregistré ✓', 'succes');
+  } catch (e) {
+    avis("Ordre pas encore enregistré — il repartira tout seul", 'erreur');
+  } finally {
+    envoiOrdre = false;
+    if (ok && lireAttente().length) expedierOrdre();       // ce qui s'est ajouté pendant l'envoi
+  }
 }
 
 /* Ajoute un espace (tablette…) à un meuble, sans quitter la liste ni fermer l'accordéon. */
@@ -569,10 +681,13 @@ async function ajouterEspace(meubleId, btn) {
     // Emplacements : ID · Nom · ParentID(=meuble) · SecteurID · Actif · Couleur (vide pour un espace)
     const r = await Coffre.ajouter('Emplacements', ['', nom, meubleId, SECTEUR_ID, 'O', '']);
     if (!r || !r.ok) throw new Error((r && r.erreur) || 'refus');
-    (ESPACES[meubleId] = ESPACES[meubleId] || []).push({ id: r.id, nom: nom });
+    const liste = (ESPACES[meubleId] = ESPACES[meubleId] || []);
+    liste.push({ id: r.id, nom: nom });
     const c = lireCache(); if (c) { (c.emps = c.emps || []).push([r.id, nom, meubleId, SECTEUR_ID, 'O', '']); ecrireCache(c); }
-    const div = document.createElement('div'); div.className = 'accordeon-item'; div.textContent = nom;
-    corps.insertBefore(div, corps.lastElementChild);   // avant la ligne d'ajout
+    const saisie = corps.lastElementChild;               // la ligne d'ajout
+    const avant = saisie.previousElementSibling;         // l'ancien dernier espace : sa ↓ se rallume
+    if (avant && avant.dataset.type === 'e') avant.querySelector('.fleche-bas').classList.remove('fleche-eteinte');
+    saisie.insertAdjacentHTML('beforebegin', htmlEspace(liste[liste.length - 1], liste.length - 1, liste));
     input.value = '';
   } catch (e) {
     input.placeholder = 'Échec — réessaie';
@@ -596,6 +711,9 @@ function initEntree() {
   $('menu-deco').addEventListener('click', deconnexion);
   // Outils → gérer les bases → ajouter un meuble
   $('btn-ajout-meuble').addEventListener('click', montrerMeuble);
+  $('btn-ordre').addEventListener('click', envoyerOrdre);
+  // l'app passe en arrière-plan (onglet fermé, iPad verrouillé) : l'ordre bougé part quand même
+  document.addEventListener('visibilitychange', () => { if (document.hidden) envoyerOrdre(); });
   $('btn-meuble-enr').addEventListener('click', enregistrerMeuble);
   $('meuble-annuler').addEventListener('click', montrerBases);
   $('btn-ajout-piece').addEventListener('click', montrerPiece);
@@ -608,6 +726,8 @@ function initEntree() {
   });
   // liste des meubles (éléments générés) : ouvrir/fermer un accordéon, ajouter un espace
   $('liste-meubles').addEventListener('click', function (ev) {
+    const fl = ev.target.closest('.fleche');               // avant la tête : une flèche n'ouvre ni ne ferme rien
+    if (fl) { if (!fl.classList.contains('fleche-eteinte')) deplacer(fl.dataset.type, fl.dataset.id, Number(fl.dataset.sens)); return; }
     const bAjout = ev.target.closest('.ajout-espace');
     if (bAjout) { ajouterEspace(bAjout.getAttribute('data-meuble'), bAjout); return; }
     const tete = ev.target.closest('.accordeon-tete');

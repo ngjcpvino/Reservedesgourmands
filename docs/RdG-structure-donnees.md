@@ -52,6 +52,10 @@ endroits en même temps).*
 | E | Actif | O / N |
 | F | Couleur | couleur distinctive du meuble (HEX). Sur le meuble; vide sur l'espace (il en hérite) |
 
+> **L'ordre d'affichage = l'ordre des lignes** (décision 2026-09-22, pas de colonne « Ordre »).
+> Les flèches ↑↓ de « Gérer les bases » font réordonner les lignes par le coffre-fort
+> (action `ordonner`). Sans danger : tout se lie par ID, jamais par position de ligne.
+
 ### STOCK — LE cœur : qui est rangé où, et combien
 *Une ligne par produit × place. Un même produit a autant de lignes que d'endroits.*
 
