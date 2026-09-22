@@ -656,8 +656,12 @@ function deplacer(type, id, sens) {
   const j = f.groupe.findIndex(x => String(x.id) === String(id));
   const voisin = f.groupe[j + sens];
   if (j < 0 || !voisin) return;
-  const a = f.liste.indexOf(f.groupe[j]), b = f.liste.indexOf(voisin);
-  f.liste[a] = voisin; f.liste[b] = f.groupe[j];
+  // on retient la ligne AVANT d'écrire : pour les pièces et les espaces, groupe et liste
+  // sont le MÊME tableau — écrire d'abord ferait perdre la ligne qu'on déplace.
+  const ligne = f.groupe[j];
+  const a = f.liste.indexOf(ligne), b = f.liste.indexOf(voisin);
+  if (a < 0 || b < 0) return;
+  f.liste[a] = voisin; f.liste[b] = ligne;
   ordreModifie[f.cle] = true;
   remplirMeubles(true);
   montrer('btn-ordre', true);
