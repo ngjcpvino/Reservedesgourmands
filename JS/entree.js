@@ -30,7 +30,7 @@ function toutCacher() {
   const vs = $('vue-scan'); if (vs) vs.hidden = true;
   if (window.stopScanner) window.stopScanner();   // coupe la caméra en quittant la vue scan
   $('btn-burger').hidden = true;   // burger caché par défaut ; ré-affiché sur accueil + choix + bases
-  fermerMenu();
+  fermerMenu();   // tout changement d'écran ferme le menu : personne d'autre n'a à le faire
 }
 async function montrerBases() {
   toutCacher(); $('vue-bases').hidden = false; $('btn-burger').hidden = false;
@@ -46,7 +46,7 @@ function montrerChoixQuoi()    { toutCacher(); $('vue-choix-quoi').hidden = fals
 function montrerChoixComment() { toutCacher(); $('vue-choix-comment').hidden = false; $('btn-burger').hidden = false; }
 function montrerAccueil()    { toutCacher(); $('vue-accueil').hidden = false; $('btn-burger').hidden = false; }
 function montrerFormulaire(avecCode) {
-  toutCacher(); $('vue-app').hidden = false; fermerMenu();
+  toutCacher(); $('vue-app').hidden = false;
   reinitFiche();
   montrer('bloc-code', !!avecCode);          // le champ code n'apparaît qu'au scan
   $('codebarres').value = ''; codeScan = '';
@@ -84,7 +84,7 @@ async function surCode() {
   }                                                 // sinon : on laisse; il remplit le nom à la main
 }
 function revenirConnexion(msg) {
-  toutCacher(); $('vue-connexion').hidden = false; fermerMenu();
+  toutCacher(); $('vue-connexion').hidden = false;
   $('msg-connexion').textContent = msg || '';
 }
 
