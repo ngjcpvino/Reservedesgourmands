@@ -43,6 +43,8 @@ var STOCK = [];                                     // lignes de STOCK : ce qu'o
 var COULEURS = [];                                  // lignes de l'onglet Couleurs : [ID, SecteurID, Nom, Valeur]
 var couleursModif = { site: {}, meubles: {} };      // changées à l'écran, pas encore envoyées
 var envoiCouleurs = false;                          // un envoi de couleurs est en route
+var dernierChargement = 0;                          // quand les listes ont été relues (pour ne pas appeler pour rien)
+const FRAICHEUR = 30000;                            // au retour dans l'app, on relit si ça date de plus de 30 s
 
 /* ---------- Vues : connexion → page d'ouverture → formulaire ---------- */
 function toutCacher() {
@@ -270,6 +272,7 @@ async function chargerReferences() {
   const cache = lireCache();
   if (cache) { appliquer(cache); remplirListes(); statut(''); }   // instantané si déjà vu
   else statut('Chargement…');
+  dernierChargement = Date.now();
   try {
     const data = await chargerData();
     if (Object.keys(ordreModifie).length) envoyerOrdre();   // des flèches touchées pendant le chargement : on les garde
@@ -1070,7 +1073,10 @@ function initEntree() {
   $('btn-ajout-meuble').addEventListener('click', montrerMeuble);
   $('btn-ordre').addEventListener('click', envoyerOrdre);
   // l'app passe en arrière-plan (onglet fermé, iPad verrouillé) : l'ordre bougé part quand même
-  document.addEventListener('visibilitychange', () => { if (document.hidden) { envoyerOrdre(); envoyerCouleurs(); } });
+  document.addEventListener('visibilitychange', () => {
+    if (document.hidden) { envoyerOrdre(); envoyerCouleurs(); return; }
+    retourDansApp();   // on revient dans l'app : les entrées de l'autre appareil arrivent toutes seules
+  });
   $('btn-meuble-enr').addEventListener('click', enregistrerMeuble);
   $('meuble-annuler').addEventListener('click', montrerBases);
   $('btn-ajout-piece').addEventListener('click', montrerPiece);
@@ -1123,6 +1129,18 @@ function initEntree() {
   // (les couleurs changées sur l'autre appareil arrivent ainsi, sans rien attendre)
   if (Coffre.motDePasse()) { montrerAccueil(); chargerReferences(); }
 }
+/* On revient dans l'app (retour d'arrière-plan, réveil de l'iPad) : on relit les listes
+   en arrière-plan, sans rien bloquer, et on redessine l'inventaire s'il est à l'écran.
+   On ne rappelle pas si ça vient d'être fait, ni si l'on est en train d'écrire quelque part. */
+async function retourDansApp() {
+  if (!Coffre.motDePasse()) return;
+  if (Date.now() - dernierChargement < FRAICHEUR) return;
+  if (!$('vue-app').hidden || !$('vue-meuble').hidden || !$('vue-piece').hidden) return;   // une saisie en cours : on ne touche à rien
+  await chargerReferences();
+  if (!$('vue-listes').hidden) remplirInventaire();
+  if (!$('vue-bases').hidden && !Object.keys(ordreModifie).length) remplirMeubles(true);
+}
+
 document.addEventListener('DOMContentLoaded', initEntree);
 
 /* Dès que ce script est lu, AVANT l'affichage : la dernière palette connue (cache) est posée,
