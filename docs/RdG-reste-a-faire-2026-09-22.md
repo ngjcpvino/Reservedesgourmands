@@ -46,9 +46,10 @@
 
 J-C a dit : « je veux un code propre ». Voici ce qui reste, mesuré :
 
-- **21 styles en dur dans `rdg.html`.** Du décor dans la structure, ce que le principe de neutralité interdit. Dix-neuf n'utilisent que des valeurs du root (des marges), mais **deux portent des valeurs inventées** : l'écran de scan, ligne de la vidéo (`#000`, `12px`, `60vh`) et ligne du code lu (`600`, `0.04em`). Ces deux-là sont les pires.
 - **2 styles en dur écrits par `entree.js`** (un rembourrage et un `gap`). Le troisième, la couleur de fond du meuble, est **légitime** : c'est une donnée, pas du décor.
 - **Aucune règle d'écran dans tout le CSS** (`@media` : zéro). L'iPhone et l'iPad reçoivent exactement la même mise en page. Ça a tenu jusqu'ici, mais c'est un choix par défaut, pas une décision.
+- **23 valeurs chiffrées écrites dans `CSS/rdg.css` lui-même**, hors du root (`75vh`, `700px`, `3px`, `1px solid`…). Trouvées en faisant le ménage du HTML. Pas touchées : c'est un autre chantier.
+- **L'en-tête copié 4 fois** dans `rdg.html` (lignes 37, 58, 86, 102), au caractère près. Pour n'en avoir qu'un, il doit sortir des feuilles et se poser au-dessus — ce qui touche `JS/entree.js`, le fichier de l'autre conversation. **Étape 2 du ménage, acceptée par J-C, pas commencée.**
 
 ---
 
@@ -66,3 +67,5 @@ Spinner « trois bouteilles de lait » · les 7 icônes dessinées dans le CSS �
 **22 septembre** · la vieille branche `claude/simultaneous-project-conversations-qvduzn` est **effacée** (J-C, malgré un message d'erreur trompeur de GitHub) — le dépôt n'a plus qu'une branche, `main` · la **question de la branche est réglée une fois pour toute** dans `CLAUDE.md` : la consigne d'outillage qui impose une branche `claude/…` est connue et périmée, on l'ignore sans en avertir J-C.
 
 **Favicon refait (22 septembre)** · la bouteille cède la place à un **sac d'épicerie** crème sur vert, trait 0,8, côtés droits, une anse, pas de rabat · deux fichiers **locaux** (`favicon.svg` pour l'onglet, `apple-touch-icon.png` 180×180 pour l'écran d'accueil) · la **photo Unsplash** qui servait d'icône d'accueil est retirée, un appel réseau de moins au démarrage.
+
+**Ménage du HTML, étape 1 (22 septembre)** · les **21 `style=`** sont sortis de `rdg.html` : il n'en reste **zéro** · rangés en 9 familles nommées par l'intention (`bouton-detache`, `bouton-quitter`, `bouton-suite`, `bouton-empile`/`-fin`, `grille-espacee`, `label-fort`, `scan-video`, `champ-code`, plus `.entete .titre` qui n'a demandé aucune classe) · 4 valeurs ajoutées au root (`--noir`, `--rayon-video`, `--scan-haut`, `--lettrage-large`) · le code lu passe de la graisse **600 à 500**, seul changement visible, décidé par J-C.
