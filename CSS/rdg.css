@@ -20,6 +20,7 @@
   --vert:             #5A8A65;
   --bleu:             #6B9BC8;
   --fond:             #ffffff;
+  --noir:             #000000;   /* le fond de l'image du scan, quand la camera n'a rien */
 
   /* ---- Couleurs de service (dérivées des couleurs ci-dessus) ---- */
   --separateur:       rgba(212, 196, 176, 0.4);
@@ -52,6 +53,9 @@
 
   /* ---- Divers ---- */
   --rayon:            1px;
+  --rayon-video:      12px;      /* le coin arrondi de l'image du scan */
+  --scan-haut:        60vh;      /* la hauteur maximale de l'image du scan */
+  --lettrage-large:   0.04em;    /* l'espacement des lettres du code lu */
   --tactile:          44px;
   --transition:       0.2s ease;
   --police:           'Cabinet Grotesk', system-ui, sans-serif;
@@ -115,6 +119,7 @@ body {
    EN-TÊTE PHOTO (le grand visuel d'accueil)
 ============================================================ */
 .entete { padding: var(--espace-xl) var(--espace-l) 0; }
+.entete .titre { margin-top: var(--espace-xl); }   /* le titre d'un ecran sans photo */
 .entete-photo {
   width: 100%;
   height: 75vh;
@@ -150,6 +155,7 @@ body {
 
 /* petit intitulé au-dessus d'un champ */
 .label { font-size: var(--texte-micro); color: var(--brun-clair); margin-bottom: var(--espace-xs); }
+.label-fort { font-size: var(--texte-normal); color: var(--brun-fonce); font-weight: var(--poids-fort); }
 
 /* ============================================================
    TITRE — un titre de section/page (base + variante nue)
@@ -205,6 +211,13 @@ body {
 .bouton-grand { height: var(--bouton-grand-haut); flex-direction: column; padding: var(--espace-xs); }
 .bouton-petit { min-height: auto; padding: var(--espace-s) var(--espace-l); font-size: var(--texte-petit); }
 
+/* Ou le bouton se pose par rapport a ce qui le precede */
+.bouton-detache    { margin-top: var(--espace-l); }     /* pose apres le contenu : Retour, Enregistrer */
+.bouton-quitter    { margin-top: var(--espace-xl); }    /* detache du reste : Annuler */
+.bouton-suite      { margin-top: var(--espace-s); }     /* suit immediatement ce qui precede */
+.bouton-empile     { margin-bottom: var(--espace-s); }  /* un bouton d'une pile */
+.bouton-empile-fin { margin-bottom: var(--espace-l); }  /* le dernier de la pile */
+
 /* ============================================================
    CHAMP — saisie texte / menu déroulant (même base)
 ============================================================ */
@@ -224,6 +237,7 @@ body {
 }
 .champ:focus { border-color: var(--champ-focus); box-shadow: 0 0 0 3px var(--champ-focus-halo); }
 .champ::placeholder { color: var(--placeholder); opacity: 0.6; }
+.champ-code { font-weight: var(--poids-fort); letter-spacing: var(--lettrage-large); }   /* le code lu apres un scan */
 select.champ {
   appearance: none;
   cursor: pointer;
@@ -231,6 +245,15 @@ select.champ {
   background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath d='M1 1l5 5 5-5' stroke='%236b4f3a' stroke-width='1.5' fill='none'/%3E%3C/svg%3E");
   background-repeat: no-repeat;
   background-position: right var(--espace-m) center;
+}
+
+/* L'image du scan — ce que la camera montre */
+.scan-video {
+  width: 100%;
+  max-height: var(--scan-haut);
+  background: var(--noir);
+  border-radius: var(--rayon-video);
+  object-fit: cover;
 }
 
 /* ============================================================
@@ -377,6 +400,7 @@ select.champ {
 ============================================================ */
 .grille   { display: grid; grid-template-columns: 1fr 1fr; gap: var(--espace-s); }
 .grille-3 { grid-template-columns: 1fr 1fr 1fr; }
+.grille-espacee { margin-bottom: var(--espace-xl); }   /* la grille de l'accueil, avant les accordeons */
 
 /* icône au centre d'un bouton (image ou symbole) */
 /* ------------------------------------------------------------
