@@ -30,7 +30,7 @@
   --champ-focus:      var(--brun);
   --champ-focus-halo: color-mix(in srgb, var(--brun) 12%, transparent);
   --placeholder:      var(--brun-clair);
-  --menu-fond:        color-mix(in srgb, var(--brun-fonce) 75%, transparent);  /* le brun foncé du menu, à 75% d'opacité */
+  --menu-fond:        color-mix(in srgb, var(--brun-fonce) 80%, transparent);  /* le brun foncé du menu, à 80% d'opacité */
 
   /* ---- Tailles de texte (échelle neutre : change la valeur, tout suit) ---- */
   --texte-micro:      12px;
