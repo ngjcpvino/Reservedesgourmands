@@ -35,6 +35,7 @@ L'utilisateur est **Jean-Claude**, méthodique. Deux usagers de l'app : lui et s
 - **Chercher avant de demander : ne jamais demander à J-C un nom de champ / fichier / fonction qu'une recherche dans le code donnerait. Lire le code avant de parler — le code écrit fait foi.
 - **Jamais en vase clos : tout nouvel écran ou toute fonction part d'un existant validé comme gabarit ; chercher si une classe/fonction existe avant d'en créer une ; un bouton se comporte pareil partout.
 - **Écritures à l'épreuve du reclic (idempotence) : toute action qui écrit dans le Sheet doit résister à un 2e envoi après une erreur — le serveur vérifie avant d'écrire. Un produit ou un stock en double = inventaire faux. (C'est le piège qu'on vient de corriger sur Dionysos.)
+- **Le document suit, toujours** (règle de J-C, 2026-09-22) : dès qu'une chose est **faite**, mettre le document à jour dans le même mouvement — retirer la ligne du « reste à faire », l'inscrire au « fait ». Jamais laisser un document annoncer du travail déjà accompli : J-C perd son temps à refaire ce qui est fini.
 - **Les tests EN LIGNE, c'est J-C qui les fait**, pas moi. Moi : coder → vérifier syntaxe/logique en silence (node --check) → pousser → « c'est poussé, teste ». NE PAS lancer de session navigateur (naviguer / simuler / screenshot) pour tester le rendu ou le fonctionnement — J-C teste sur le web et me dit si ça marche.
 
 
