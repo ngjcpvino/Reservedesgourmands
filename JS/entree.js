@@ -14,6 +14,10 @@ var codeScan = '';          // code-barres de l'entrée en cours (le champ #code
 var CODES = {};             // { codeBarres: produitId } — reconnaître un produit déjà à nous
 var produitCourant = null;  // id du produit reconnu (existant) ; null = nouveau produit
 var modeManuel = false;     // entrée À LA MAIN : entonnoir catégorie -> sous-catégorie -> produit
+var MAGASINS = [];          // les magasins déjà utilisés (on propose au lieu de faire taper)
+var compteNouveau = { marque: 'N', saveur: 'N' };   // pour un NOUVEAU produit : qu'est-ce qui sépare les comptes
+var POIDS = [];             // viande : le poids de chaque paquet; un paquet = une ligne de stock
+const QUI = 'rdg_qui';      // qui se sert de l'app sur CET appareil
 var opCourant = null;                                   // jeton anti-reclic de l'article en cours
 var SECTEUR_ID = '';                                    // secteur de cette app (Épicerie), déduit des données
 const CACHE = 'rdg_ref_v2';
@@ -52,6 +56,7 @@ function toutCacher() {
   if (!$('vue-couleurs').hidden) envoyerCouleurs();   // idem pour « Couleurs »
   $('vue-connexion').hidden = true;
   $('vue-couleurs').hidden = true;
+  $('vue-qui').hidden = true;
   $('vue-accueil').hidden = true;
   $('vue-listes').hidden = true;
   $('vue-choix-quoi').hidden = true;
@@ -83,6 +88,18 @@ async function montrerCouleurs() {
   }
   remplirCouleurs();
   expedierCouleurs();                          // des couleurs restées en attente repartent
+}
+function montrerQui() {
+  toutCacher(); $('vue-qui').hidden = false; $('btn-burger').hidden = false;
+  $('qui-nom').value = localStorage.getItem(QUI) || '';
+  $('qui-msg').textContent = '';
+}
+function enregistrerQui() {
+  const nom = $('qui-nom').value.trim();
+  try { if (nom) localStorage.setItem(QUI, nom); else localStorage.removeItem(QUI); } catch (e) {}
+  const msg = $('qui-msg');
+  msg.className = 'message message-succes';
+  msg.textContent = nom ? 'C\'est noté : ' + nom : 'Personne n\'est nommé sur cet appareil.';
 }
 function montrerMeuble() {
   toutCacher(); $('vue-meuble').hidden = false; $('meuble-msg').textContent = '';
@@ -265,9 +282,12 @@ function appliquer(d) {
     const p = String(r[2] || '');
     if (p && estMeuble[p]) (ESPACES[p] = ESPACES[p] || []).push({ id: r[0], nom: r[1] });
   });
-  PRODUITS = (d.prods || [])                          // [ID,Nom,CategorieID,Unite,Actif,Marque,Format]
+  PRODUITS = (d.prods || [])              // [ID,Nom,CategorieID,Unite,Actif,Marque,Format,MarqueCompte,SaveurCompte]
     .filter(r => String(r[4]) !== 'N')
-    .map(r => ({ id: r[0], nom: r[1], catId: r[2] }));
+    .map(r => ({ id: r[0], nom: r[1], catId: r[2],
+                 marqueCompte: String(r[7] || 'O') === 'O' ? 'O' : 'N',   // produits d'avant : la marque compte
+                 saveurCompte: String(r[8] || 'N') === 'O' ? 'O' : 'N' }));
+  MAGASINS = d.magasins || [];
   VARIANTES = d.variantes || {};                      // { produitId: { marques:[], formats:[] } }
   CODES = d.codes || {};                              // { codeBarres: produitId }
   STOCK = d.stock || [];
@@ -298,7 +318,7 @@ async function chargerReferences() {
 async function chargerData() {
   try {
     const r = await Coffre.references();          // chemin rapide : UN seul appel
-    if (r && r.ok && r.categories !== undefined) return { cats: r.categories, emps: r.emplacements, prods: r.produits, stock: r.stock, variantes: r.variantes, codes: r.codes, couleurs: r.couleurs };
+    if (r && r.ok && r.categories !== undefined) return { cats: r.categories, emps: r.emplacements, prods: r.produits, stock: r.stock, variantes: r.variantes, codes: r.codes, couleurs: r.couleurs, magasins: r.magasins };
     if (r && r.erreur === 'non autorisé') throw new Error('non autorisé');
   } catch (e) { if (e.message === 'non autorisé') throw e; }   // sinon on tente le repli
   const cats = await lireRetry('Categories');     // repli : 3 appels un à la fois
@@ -331,10 +351,14 @@ function trouverProduitParNom(nom) {
 
 /* Remet la fiche à l'état de départ (champs vides, blocs cachés). */
 function reinitFiche() {
-  $('nom').value = ''; $('marque').value = ''; $('format').value = '';
+  $('nom').value = ''; $('marque').value = ''; $('format').value = ''; $('saveur').value = '';
+  $('magasin').value = ''; $('prix').value = ''; $('poids').value = '';
+  POIDS = []; dessinerPoids(); modePoids(false);
+  compteNouveau = { marque: 'N', saveur: 'N' }; marquerChoix();
   $('cat').value = ''; $('souscat').innerHTML = ''; $('produit').innerHTML = ''; $('endroits').innerHTML = '';
   produitCourant = null;
   montrer('bloc-details', false); montrer('bloc-souscat', false); montrer('bloc-produit', false);
+  montrer('bloc-compte', false); montrer('bloc-doublons', false); montrer('bloc-achat', false);
   montrer('bloc-endroits', false); montrer('btn-enregistrer', false);
   montrer('bloc-cat', modeManuel);      // à la main, l'entonnoir part de la catégorie
   montrer('bloc-nom', !modeManuel);     // le nom ne sert qu'au scan, ou à un nouveau produit
@@ -345,7 +369,8 @@ function reinitFiche() {
 function surNom() {
   const val = $('nom').value.trim();
   if (modeManuel) {                             // à la main : la catégorie est déjà choisie, le nom ne pilote rien
-    montrer('bloc-endroits', !!val); montrer('btn-enregistrer', !!val);
+    proposerRessemblances(val);                 // un nom qui ressemble à un produit déjà là ?
+    montrer('bloc-achat', !!val); montrer('bloc-endroits', !!val); montrer('btn-enregistrer', !!val);
     if (val && !$('endroits').children.length) ajouterEndroit();
     return;
   }
@@ -361,11 +386,15 @@ function surNom() {
   if (prod) {                                   // produit existant reconnu
     produitCourant = prod.id;
     montrer('bloc-cat', false); montrer('bloc-souscat', false);   // catégorie déjà connue
+    montrer('bloc-compte', false); montrer('bloc-doublons', false);
     prefillProduit(prod.id);                    // marque/format (dernières) + endroits habituels
-    montrer('bloc-endroits', true); montrer('btn-enregistrer', true);
+    champsDuProduit(prod);                      // puis on cache — et on vide — ce qui ne compte pas
+    montrer('bloc-achat', true); montrer('bloc-endroits', true); montrer('btn-enregistrer', true);
   } else {                                      // nouveau produit
     produitCourant = null;
     remplirVariantes(null);                     // aucune suggestion marque/format
+    proposerRessemblances(val);                 // ... mais peut-être un doublon d'un produit connu
+    montrer('bloc-compte', true); champsDuProduit(null);
     montrer('bloc-cat', true);                  // il choisit la catégorie
     montrer('bloc-souscat', !!$('cat').value);
   }
@@ -415,7 +444,8 @@ function surProduit() {
     produitCourant = null;
     $('nom').value = '';
     remplirVariantes(null);
-    montrer('bloc-nom', true); montrer('bloc-details', true);
+    montrer('bloc-nom', true); montrer('bloc-compte', true); montrer('bloc-details', true);
+    champsDuProduit(null);
     $('nom').focus();
     return;
   }
@@ -423,16 +453,32 @@ function surProduit() {
   if (!prod) return;
   produitCourant = prod.id;
   $('nom').value = prod.nom;                    // le nom sert à l'enregistrement; inutile de le montrer
-  montrer('bloc-nom', false); montrer('bloc-details', true);
+  montrer('bloc-nom', false); montrer('bloc-compte', false); montrer('bloc-doublons', false);
+  montrer('bloc-details', true);
   prefillProduit(prod.id);                      // marque/format + endroits habituels
-  montrer('bloc-endroits', true); montrer('btn-enregistrer', true);
+  champsDuProduit(prod);                        // puis on cache — et on vide — ce qui ne compte pas
+  montrer('bloc-achat', true); montrer('bloc-endroits', true); montrer('btn-enregistrer', true);
 }
 
 /* Remplit les suggestions (datalist) de marque/format pour un produit. */
 function remplirVariantes(pid) {
-  const vr = (pid && VARIANTES[pid]) || { marques: [], formats: [] };
-  $('dl-marques').innerHTML = (vr.marques || []).map(x => '<option value="' + esc(x) + '"></option>').join('');
-  $('dl-formats').innerHTML = (vr.formats || []).map(x => '<option value="' + esc(x) + '"></option>').join('');
+  const vr = (pid && VARIANTES[pid]) || { marques: [], formats: [], saveurs: [] };
+  const opts = liste => (liste || []).map(x => '<option value="' + esc(x) + '"></option>').join('');
+  $('dl-marques').innerHTML = opts(vr.marques);
+  $('dl-formats').innerHTML = opts(vr.formats);
+  $('dl-saveurs').innerHTML = opts(vr.saveurs);
+  $('dl-magasins').innerHTML = opts(MAGASINS);
+}
+
+/* Les champs à montrer pour CE produit : la marque et la saveur n'apparaissent que si
+   elles comptent — c'est ce qui a été décidé à la création du produit. */
+function champsDuProduit(prod) {
+  const marque = !prod || prod.marqueCompte === 'O';
+  const saveur = prod ? prod.saveurCompte === 'O' : compteNouveau.saveur === 'O';
+  montrer('bloc-marque', prod ? marque : compteNouveau.marque === 'O');
+  montrer('bloc-saveur', saveur);
+  if (!(prod ? marque : compteNouveau.marque === 'O')) $('marque').value = '';
+  if (!saveur) $('saveur').value = '';
 }
 
 /* Un emplacement (id stocké dans STOCK) -> { pieceId, meubleId, espaceId }.
@@ -475,6 +521,106 @@ function memoriserVariante(pid, marque, format, endroits) {
   if (format) { if (vr.formats.indexOf(format) === -1) vr.formats.push(format); vr.dernierFormat = format; }
   (endroits || []).forEach(e => { if (e.emp && vr.emplacements.indexOf(e.emp) === -1) vr.emplacements.push(e.emp); });
   const c = lireCache(); if (c) { (c.variantes = c.variantes || {})[pid] = vr; ecrireCache(c); }
+}
+
+/* Le choix retenu se colore : on voit ce qu'on a répondu. */
+function marquerChoix() {
+  document.querySelectorAll('#bloc-compte [data-compte]').forEach(b =>
+    b.classList.toggle('choix-actif', compteNouveau[b.dataset.compte] === b.dataset.valeur));
+}
+
+/* ---------- Doublons : proposer, jamais deviner ---------- */
+/* Un nom réduit à l'essentiel : sans accent, sans majuscule, sans ponctuation, sans pluriel. */
+function nomNu(nom) {
+  return String(nom || '').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '')
+    .replace(/[^a-z0-9 ]/g, ' ').replace(/s\b/g, '').replace(/\s+/g, ' ').trim();
+}
+/* Distance entre deux mots : combien de lettres il faut changer pour passer de l'un à l'autre. */
+function distance(a, b) {
+  const m = a.length, n = b.length;
+  if (!m || !n) return Math.max(m, n);
+  let ligne = Array.from({ length: n + 1 }, (_, k) => k);
+  for (let i = 1; i <= m; i++) {
+    let prec = ligne[0]; ligne[0] = i;
+    for (let k = 1; k <= n; k++) {
+      const tmp = ligne[k];
+      ligne[k] = Math.min(ligne[k] + 1, ligne[k - 1] + 1, prec + (a[i - 1] === b[k - 1] ? 0 : 1));
+      prec = tmp;
+    }
+  }
+  return ligne[n];
+}
+/* Les produits qui ressemblent à ce nom : l'un contient l'autre, ou deux lettres d'écart. */
+function ressemblances(nom) {
+  const n = nomNu(nom);
+  if (n.length < 3) return [];
+  const tel = String(nom || '').trim().toLowerCase();
+  return PRODUITS.filter(p => {
+    const q = nomNu(p.nom);
+    if (!q) return false;
+    if (String(p.nom).trim().toLowerCase() === tel) return false;   // déjà reconnu : inutile de le proposer
+    if (q === n) return true;                                       // « Lait 2% » et « Lait 2 % » : le même
+    return q.indexOf(n) === 0 || n.indexOf(q) === 0 || distance(n, q) <= 2;
+  }).slice(0, 6);
+}
+/* On les montre, il touche le bon — ou il continue, et c'est un nouveau produit. */
+function proposerRessemblances(nom) {
+  if (produitCourant) { montrer('bloc-doublons', false); return; }
+  const proches = ressemblances(nom);
+  $('liste-doublons').innerHTML = proches.map(p =>
+    '<button class="bouton bouton-petit bouton-suite" data-doublon="' + esc(p.id) + '" type="button">' + esc(p.nom) + '</button>').join('');
+  montrer('bloc-doublons', proches.length > 0);
+}
+/* Il touche un produit proposé : on bascule dessus, comme s'il l'avait choisi dans la liste. */
+function adopterProduit(pid) {
+  const prod = PRODUITS.find(p => String(p.id) === String(pid));
+  if (!prod) return;
+  produitCourant = prod.id;
+  $('nom').value = prod.nom;
+  montrer('bloc-doublons', false); montrer('bloc-compte', false);
+  montrer('bloc-cat', false); montrer('bloc-souscat', false);
+  montrer('bloc-details', true);
+  prefillProduit(prod.id);
+  champsDuProduit(prod);
+  montrer('bloc-achat', true); montrer('bloc-endroits', true); montrer('btn-enregistrer', true);
+}
+
+/* ---------- « Chaque paquet a son poids » (viande) ---------- */
+function modePoids(actif) {
+  montrer('bloc-poids', actif);
+  montrer('bloc-format', !actif);              // les poids REMPLACENT le format commun
+  $('btn-mode-poids').classList.toggle('choix-actif', actif);
+}
+function dessinerPoids() {
+  $('liste-poids').className = POIDS.length ? 'poids-liste' : '';
+  $('liste-poids').innerHTML = POIDS.map((p, i) =>
+    '<button class="bouton bouton-petit" data-poids="' + i + '" type="button">' + esc(p) + '</button>').join('');
+}
+function ajouterPoids() {
+  const v = $('poids').value.trim();
+  if (!v) { $('poids').focus(); return; }
+  POIDS.push(v); $('poids').value = ''; dessinerPoids(); $('poids').focus();
+}
+
+/* ---------- La quantité mesurable : « 2 x 1 L » se lit « 2 L » ---------- */
+/* Un format écrit à la main -> { valeur, unite } ; null si ce n'est pas mesurable. */
+function mesure(format) {
+  const t = String(format || '').toLowerCase().replace(',', '.').trim();
+  const m = t.match(/^([0-9]+(?:\.[0-9]+)?)\s*(kg|g|mg|l|ml|cl)\b/);
+  if (!m) return null;
+  const v = parseFloat(m[1]);
+  if (m[2] === 'kg') return { valeur: v, unite: 'kg' };
+  if (m[2] === 'g')  return { valeur: v / 1000, unite: 'kg' };
+  if (m[2] === 'mg') return { valeur: v / 1000000, unite: 'kg' };
+  if (m[2] === 'l')  return { valeur: v, unite: 'L' };
+  if (m[2] === 'ml') return { valeur: v / 1000, unite: 'L' };
+  if (m[2] === 'cl') return { valeur: v / 100, unite: 'L' };
+  return null;
+}
+/* Un total propre : 0,5 kg, 6 L, 1,25 kg. */
+function ecrireMesure(valeur, unite) {
+  const arrondi = Math.round(valeur * 1000) / 1000;
+  return String(arrondi).replace('.', ',') + ' ' + unite;
 }
 
 /* ---------- Endroits ---------- */
@@ -558,30 +704,42 @@ async function enregistrer() {
   if (!endroits.length) { statut('Mets une quantité sur au moins un endroit.', 'erreur'); return; }
 
   const marque = $('marque').value.trim(), format = $('format').value.trim(), code = $('codebarres').value.trim();
+  const saveur = $('saveur').value.trim(), magasin = $('magasin').value.trim(), prix = $('prix').value.trim();
+  const qui = localStorage.getItem(QUI) || '';        // posé une fois dans Outils, gardé sur l'appareil
+  if (POIDS.length) {                                 // viande : un paquet = une ligne, chacun son poids
+    const parPoids = [];
+    endroits.forEach(e => POIDS.forEach(p => parPoids.push({ emp: e.emp, qte: 1, format: p })));
+    endroits.length = 0; parPoids.forEach(e => endroits.push(e));
+  }
   if (!opCourant) opCourant = 'op-' + Date.now() + '-' + Math.random().toString(36).slice(2, 8);
   statut('Enregistrement…');
   $('btn-enregistrer').disabled = true;
   montrerVoile(true);
   try {
-    const charge = nouveau ? { produit: [nom, scid], marque: marque, format: format, code: code, endroits: endroits, opId: opCourant }
-                           : { produitId: produitId, marque: marque, format: format, code: code, endroits: endroits, opId: opCourant };
+    const commun = { marque: marque, format: format, saveur: saveur, code: code, magasin: magasin, prix: prix,
+                     qui: qui, endroits: endroits, opId: opCourant };
+    const charge = nouveau
+      ? Object.assign({ produit: [nom, scid], marqueCompte: compteNouveau.marque, saveurCompte: compteNouveau.saveur }, commun)
+      : Object.assign({ produitId: produitId }, commun);
     const r = await Coffre.entrerArticle(charge);          // UN seul appel
     if (r && r.ok) { produitId = r.produitId || produitId; }
     else if (r && r.erreur === 'action inconnue') {        // repli si coffre-fort pas encore à jour
       if (nouveau) { const p = await Coffre.ajouter('Produits', ['', nom, scid, '', 'O', '', '']); if (!p.ok) throw new Error(p.erreur || 'refus'); produitId = p.id; }
       const date = dateDuJour();
-      for (const e of endroits) await Coffre.ajouter('Stock', ['', produitId, e.emp, e.qte, date, marque, format, opCourant, code]);
+      for (const e of endroits) await Coffre.ajouter('Stock', ['', produitId, e.emp, e.qte, date, marque, e.format || format, opCourant, code, saveur, qui, magasin, prix]);
     } else { throw new Error((r && r.erreur) || 'refus'); }
     if (nouveau) {
-      PRODUITS.push({ id: produitId, nom: nom, catId: scid });
-      const c = lireCache(); if (c) { (c.prods = c.prods || []).push([produitId, nom, scid, '', 'O', '', '']); ecrireCache(c); }
+      PRODUITS.push({ id: produitId, nom: nom, catId: scid, marqueCompte: compteNouveau.marque, saveurCompte: compteNouveau.saveur });
+      const c = lireCache(); if (c) { (c.prods = c.prods || []).push([produitId, nom, scid, '', 'O', '', '', compteNouveau.marque, compteNouveau.saveur]); ecrireCache(c); }
       remplirProduitsDatalist();                          // le nouveau nom devient suggérable tout de suite
     }
     const dateJour = dateDuJour();
     endroits.forEach(x => {                                   // l'inventaire est à jour sans recharger
-      STOCK.push(['', produitId, x.emp, x.qte, dateJour, marque, format, opCourant, code]);
-      const c2 = lireCache(); if (c2) { (c2.stock = c2.stock || []).push(['', produitId, x.emp, x.qte, dateJour, marque, format, opCourant, code]); ecrireCache(c2); }
+      const ligne = ['', produitId, x.emp, x.qte, dateJour, marque, x.format || format, opCourant, code, saveur, qui, magasin, prix];
+      STOCK.push(ligne);
+      const c2 = lireCache(); if (c2) { (c2.stock = c2.stock || []).push(ligne.slice()); ecrireCache(c2); }
     });
+    if (magasin && MAGASINS.indexOf(magasin) === -1) MAGASINS.push(magasin);
     memoriserVariante(produitId, marque, format, endroits);   // marque/format/emplacements à jour tout de suite
     opCourant = null;                                      // succès : le prochain article aura un nouveau jeton
     statut('Article ajouté ✓', 'succes');
@@ -742,11 +900,19 @@ function stockParEndroit() {
     if (!emp || qte <= 0) return;              // sans endroit (en transit) ou vide : pas ici
     const prod = PRODUITS.find(p => String(p.id) === String(l[1]));
     if (!prod) return;                         // produit disparu : on n'invente rien
-    const marque = String(l[5] || '').trim(), format = String(l[6] || '').trim();
-    const cle = prod.id + '|' + marque + '|' + format;
+    const marque = String(l[5] || '').trim(), format = String(l[6] || '').trim(), saveur = String(l[9] || '').trim();
+    // ce qui « compte » pour ce produit sépare les comptes; le reste se regroupe
+    const cleMarque = prod.marqueCompte === 'O' ? marque : '';
+    const cleSaveur = prod.saveurCompte === 'O' ? saveur : '';
+    const cle = prod.id + '|' + cleMarque + '|' + cleSaveur;
     const liste = (par[emp] = par[emp] || {});
-    if (liste[cle]) liste[cle].qte += qte;
-    else liste[cle] = { nom: prod.nom, marque: marque, format: format, qte: qte };
+    const m = mesure(format);
+    if (!liste[cle]) liste[cle] = { nom: prod.nom, marque: cleMarque, saveur: cleSaveur, formats: [], qte: 0, total: 0, unite: '' };
+    const x = liste[cle];
+    x.qte += qte;
+    if (format && x.formats.indexOf(format) === -1) x.formats.push(format);
+    if (m && (!x.unite || x.unite === m.unite)) { x.unite = m.unite; x.total += m.valeur * qte; }
+    else if (m) x.unite = '';                    // des unités mélangées : on ne totalise pas
   });
   return par;
 }
@@ -757,7 +923,9 @@ function htmlLignesEndroit(par, empId) {
   return Object.keys(dedans).map(k => dedans[k])
     .sort((a, b) => String(a.nom).localeCompare(String(b.nom), 'fr'))
     .map(x => {
-      const detail = [x.marque, x.format].filter(Boolean).join(' · ');
+      const mesureTotale = (x.unite && x.total) ? ecrireMesure(x.total, x.unite) : '';
+      const format = x.formats.length > 1 ? x.formats.join(' + ') : x.formats[0];
+      const detail = [x.marque, x.saveur, format, mesureTotale ? 'total ' + mesureTotale : ''].filter(Boolean).join(' · ');
       return '<div class="item"><div class="item-info"><div class="item-nom">' + esc(x.nom) + '</div>' +
         (detail ? '<div class="item-detail">' + esc(detail) + '</div>' : '') + '</div>' +
         '<span class="item-quantite">' + esc(x.qte) + '</span></div>';
@@ -1140,6 +1308,32 @@ function initEntree() {
   $('nom').addEventListener('input', surNom);    // réagit pendant la saisie : plus besoin de fermer le clavier
   $('nom').addEventListener('change', surNom);
   $('produit').addEventListener('change', surProduit);
+  // « Oui / Non » : la marque et la saveur comptent-elles pour ce nouveau produit ?
+  $('bloc-compte').addEventListener('click', function (ev) {
+    const b = ev.target.closest('[data-compte]');
+    if (!b) return;
+    compteNouveau[b.dataset.compte] = b.dataset.valeur;
+    marquerChoix();
+    champsDuProduit(null);
+  });
+  // un produit proposé parce qu'il ressemble : on le prend
+  $('liste-doublons').addEventListener('click', function (ev) {
+    const b = ev.target.closest('[data-doublon]');
+    if (b) adopterProduit(b.dataset.doublon);
+  });
+  // viande : le mode « chaque paquet a son poids »
+  $('btn-mode-poids').addEventListener('click', () => modePoids($('bloc-poids').hidden));
+  $('btn-poids').addEventListener('click', ajouterPoids);
+  $('poids').addEventListener('keydown', e => { if (e.key === 'Enter') { e.preventDefault(); ajouterPoids(); } });
+  $('liste-poids').addEventListener('click', function (ev) {   // toucher un poids le retire
+    const b = ev.target.closest('[data-poids]');
+    if (!b) return;
+    POIDS.splice(Number(b.dataset.poids), 1); dessinerPoids();
+  });
+  // Outils -> qui entre les articles
+  $('menu-qui').addEventListener('click', montrerQui);
+  $('btn-qui-enr').addEventListener('click', enregistrerQui);
+  $('qui-annuler').addEventListener('click', montrerAccueil);
   $('cat').addEventListener('change', surCategorie);
   $('souscat').addEventListener('change', surSousCategorie);
   $('btn-endroit').addEventListener('click', () => ajouterEndroit());

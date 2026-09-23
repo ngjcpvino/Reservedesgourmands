@@ -475,6 +475,12 @@ select.champ {
    La couleur de la pastille est une DONNÉE : le script la pose.
 ------------------------------------------------------------ */
 .ligne-couleur { display: flex; align-items: center; gap: var(--espace-s); }
+/* Une question à deux réponses : l'intitulé, puis Oui / Non. Le choix retenu se colore. */
+.ligne-choix { display: flex; align-items: center; gap: var(--espace-s); margin-top: var(--espace-s); }
+.choix-quoi { flex: 1; }
+.choix-actif { --c: var(--vert); color: var(--blanc); }
+/* Un poids déjà noté (un paquet de viande) : on le voit, on peut le retirer. */
+.poids-liste { display: flex; flex-wrap: wrap; gap: var(--espace-s); margin-top: var(--espace-s); }
 .pastille { flex-shrink: 0; width: var(--pastille); height: var(--pastille); border-radius: var(--rayon); border: var(--filet) solid var(--champ-bord); }
 .couleur-nom { flex: 1; min-width: 0; }
 .couleur-usage { display: block; font-size: var(--texte-micro); color: var(--brun-clair); }
