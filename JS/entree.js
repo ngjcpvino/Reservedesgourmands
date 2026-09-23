@@ -341,8 +341,13 @@ function options(liste, vide) {
 /* ---------- Fiche : Nom -> (reconnu / nouveau) -> catégorie -> endroits ---------- */
 function remplirCategories() {
   const garde = $('cat').value;
-  $('cat').innerHTML = options(RAYONS, '— Catégorie —');
+  $('cat').innerHTML = options(RAYONS, '— Catégorie —') + '<option value="neuve">Nouvelle catégorie…</option>';
   if (garde) $('cat').value = garde;
+}
+/* Les sous-catégories d'un rayon, plus « Nouvelle sous-catégorie… ». */
+function remplirSousCategories(rid) {
+  $('souscat').innerHTML = options(SOUSCATS[rid] || [], '— Sous-catégorie —') +
+    (rid ? '<option value="neuve">Nouvelle sous-catégorie…</option>' : '');
 }
 function remplirProduitsDatalist() {
   $('dl-produits').innerHTML = PRODUITS.map(p => '<option value="' + esc(p.nom) + '"></option>').join('');
@@ -365,6 +370,8 @@ function reinitFiche() {
   produitCourant = null;
   montrer('bloc-details', false); montrer('bloc-souscat', false); montrer('bloc-produit', false);
   montrer('bloc-doublons', false); montrer('bloc-achat', false);
+  montrer('bloc-cat-neuve', false); montrer('bloc-souscat-neuve', false);
+  $('cat-neuve').value = ''; $('souscat-neuve').value = '';
   montrer('bloc-endroits', false); montrer('btn-enregistrer', false);
   montrer('bloc-cat', modeManuel);      // à la main, l'entonnoir part de la catégorie
   montrer('bloc-nom', !modeManuel);     // le nom ne sert qu'au scan, ou à un nouveau produit
@@ -406,7 +413,13 @@ function surNom() {
 
 function surCategorie() {
   const rid = $('cat').value;
-  $('souscat').innerHTML = options(SOUSCATS[rid] || [], '— Sous-catégorie —');
+  if (rid === 'neuve') {                        // il veut une catégorie qui n'existe pas encore
+    montrer('bloc-cat-neuve', true); montrer('bloc-souscat', false); montrer('bloc-produit', false);
+    $('cat-neuve').focus();
+    return;
+  }
+  montrer('bloc-cat-neuve', false); montrer('bloc-souscat-neuve', false);
+  remplirSousCategories(rid);
   montrer('bloc-souscat', !!rid);
   montrer('bloc-produit', false); montrer('bloc-endroits', false); montrer('btn-enregistrer', false);
   $('endroits').innerHTML = '';
@@ -415,6 +428,13 @@ function surCategorie() {
 
 function surSousCategorie() {
   const scid = $('souscat').value;
+  if (scid === 'neuve') {                       // idem pour la sous-catégorie
+    montrer('bloc-souscat-neuve', true); montrer('bloc-produit', false);
+    montrer('bloc-endroits', false); montrer('btn-enregistrer', false);
+    $('souscat-neuve').focus();
+    return;
+  }
+  montrer('bloc-souscat-neuve', false);
   if (modeManuel) {                             // à la main : la sous-catégorie donne la liste des produits
     produitCourant = null;
     $('nom').value = '';
@@ -515,6 +535,50 @@ function memoriserVariante(pid, marque, format, endroits) {
   const c = lireCache(); if (c) { (c.variantes = c.variantes || {})[pid] = vr; ecrireCache(c); }
 }
 
+
+/* ---------- Ajouter une catégorie ou une sous-catégorie sans quitter la fiche ----------
+   Un nom déjà pris (chez les mêmes frères) ne crée RIEN : on reprend celui qui existe. */
+async function creerCategorie(parentId, champ, bouton) {
+  const nom = $(champ).value.trim();
+  if (!nom) { $(champ).focus(); return null; }
+  const freres = parentId ? (SOUSCATS[parentId] || []) : RAYONS;
+  const deja = freres.find(x => String(x.nom).trim().toLowerCase() === nom.toLowerCase());
+  if (deja) { $(champ).value = ''; return deja; }          // déjà là : on la réutilise
+  $(bouton).disabled = true;
+  montrerVoile(true);
+  try {
+    // Categories : ID · Nom · ParentID · SecteurID · DureeVieJours · Actif
+    const rep = await Coffre.ajouter('Categories', ['', nom, parentId || '', SECTEUR_ID, '', 'O']);
+    if (!rep || !rep.ok) throw new Error((rep && rep.erreur) || 'refus');
+    const neuve = { id: rep.id, nom: nom };
+    if (parentId) (SOUSCATS[parentId] = SOUSCATS[parentId] || []).push(neuve); else RAYONS.push(neuve);
+    const c = lireCache();
+    if (c) { (c.cats = c.cats || []).push([rep.id, nom, parentId || '', SECTEUR_ID, '', 'O']); ecrireCache(c); }
+    $(champ).value = '';
+    return neuve;
+  } catch (e) {
+    statut('Échec : ' + e.message, 'erreur');
+    return null;
+  } finally { $(bouton).disabled = false; montrerVoile(false); }
+}
+async function ajouterCategorie() {
+  const neuve = await creerCategorie('', 'cat-neuve', 'btn-cat-neuve');
+  if (!neuve) return;
+  remplirCategories();
+  $('cat').value = neuve.id;
+  montrer('bloc-cat-neuve', false);
+  surCategorie();                               // la suite de l'entonnoir reprend son cours
+}
+async function ajouterSousCategorie() {
+  const rid = $('cat').value;
+  if (!rid || rid === 'neuve') return;
+  const neuve = await creerCategorie(rid, 'souscat-neuve', 'btn-souscat-neuve');
+  if (!neuve) return;
+  remplirSousCategories(rid);
+  $('souscat').value = neuve.id;
+  montrer('bloc-souscat-neuve', false);
+  surSousCategorie();
+}
 
 /* ---------- Doublons : proposer, jamais deviner ---------- */
 /* Un nom réduit à l'essentiel : sans accent, sans majuscule, sans ponctuation, sans pluriel. */
@@ -719,6 +783,7 @@ async function enregistrer() {
   let scid = '';
   if (nouveau) {
     scid = $('souscat').value;
+    if (scid === 'neuve') { statut('Nomme la nouvelle sous-catégorie, puis touche Ajouter.', 'erreur'); return; }
     if (!scid) { statut('Choisis une catégorie et une sous-catégorie.', 'erreur'); return; }
   }
 
@@ -1362,6 +1427,10 @@ function initEntree() {
   $('btn-qui-enr').addEventListener('click', enregistrerQui);
   $('qui-annuler').addEventListener('click', montrerAccueil);
   $('cat').addEventListener('change', surCategorie);
+  $('btn-cat-neuve').addEventListener('click', ajouterCategorie);
+  $('btn-souscat-neuve').addEventListener('click', ajouterSousCategorie);
+  $('cat-neuve').addEventListener('keydown', e => { if (e.key === 'Enter') { e.preventDefault(); ajouterCategorie(); } });
+  $('souscat-neuve').addEventListener('keydown', e => { if (e.key === 'Enter') { e.preventDefault(); ajouterSousCategorie(); } });
   $('souscat').addEventListener('change', surSousCategorie);
   $('btn-endroit').addEventListener('click', () => ajouterEndroit());
   $('btn-enregistrer').addEventListener('click', enregistrer);
