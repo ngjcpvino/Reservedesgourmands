@@ -89,3 +89,5 @@ Spinner « trois bouteilles de lait » · les 7 icônes dessinées dans le CSS �
 **Les effets de survol s'en vont (22 septembre)** · 9 règles `:hover` retirées (boutons, têtes d'accordéon, lignes, menu, burger, compteur) + `--survol` et `--menu-survol` au root + 2 transitions de fond · inutiles sur iPhone/iPad, et iOS les fait coller après un toucher.
 
 **Le burger reflète les 4 boutons (22 septembre)** · Ajouter (Scanner · À la main · Toute l'épicerie) · Rechercher · Consommer · Listes · Outils (Gérer les bases · Couleurs) · un seul sous-menu ouvert à la fois · les items pas encore bâtis disent « à venir » et referment le menu · « Trouver » devient **Rechercher** partout.
+
+**Menu simplifié (23 septembre)** · « Page d'ouverture » devient **Accueil** · « Ajouter » perd ses sous-items et mène à l'écran de choix, comme le bouton brun · ordre final : Accueil · Ajouter · Rechercher · Consommer · Listes · Outils (Gérer les bases · Couleurs) · Se déconnecter.

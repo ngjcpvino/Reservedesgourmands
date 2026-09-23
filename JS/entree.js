@@ -1067,10 +1067,8 @@ function initEntree() {
   $('menu-bases').addEventListener('click', montrerBases);
   $('menu-couleurs').addEventListener('click', montrerCouleurs);
   // le menu mène exactement où mènent les 4 boutons de l'accueil
-  $('menu-scan').addEventListener('click', () => { if (typeof montrerScanner === 'function') montrerScanner(); });
-  $('menu-manuel').addEventListener('click', () => montrerFormulaire(false));
+  $('menu-ajouter').addEventListener('click', montrerChoixQuoi);
   // « à venir » : le menu se referme quand même, comme s'il avait mené quelque part
-  $('menu-epicerie').addEventListener('click', () => { fermerMenu(); avis("Toute l'épicerie — à venir"); });
   $('menu-rechercher').addEventListener('click', () => { fermerMenu(); avis('Rechercher — à venir'); });
   $('menu-consommer').addEventListener('click', () => { fermerMenu(); avis('Consommer — à venir'); });
   $('menu-listes').addEventListener('click', montrerListes);
