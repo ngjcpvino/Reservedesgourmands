@@ -85,3 +85,5 @@ Spinner « trois bouteilles de lait » · les 7 icônes dessinées dans le CSS �
 **Rafraîchissement automatique (22 septembre)** · au retour dans l'app, les listes se relisent toutes seules en arrière-plan (au plus une fois par 30 s) et l'inventaire se redessine · rien ne bouge pendant une saisie · J-C a écarté le bouton « Rafraîchir » dans Outils; le **bouton de secours « vider la mémoire locale »** reste une idée non retenue, à ressortir si l'affichage déraille un jour.
 
 **⚠️ Corrigé : le contenu collé au titre d'un accordéon (22 septembre)** · l'inventaire enveloppait sa liste dans un `<div>`, ce qui annulait la règle d'espacement (elle ne visait que `.accordeon:first-child`) · l'enveloppe est retirée (le `.accordeon-corps` porte l'id) et la règle vaut maintenant pour **tout** premier élément, `accordeon-bloc` excepté.
+
+**Les effets de survol s'en vont (22 septembre)** · 9 règles `:hover` retirées (boutons, têtes d'accordéon, lignes, menu, burger, compteur) + `--survol` et `--menu-survol` au root + 2 transitions de fond · inutiles sur iPhone/iPad, et iOS les fait coller après un toucher.

@@ -26,7 +26,6 @@
   /* ---- Couleurs de service : DÉRIVÉES des couleurs ci-dessus, jamais écrites en dur.
      Change une couleur de base (écran Outils → Couleurs) : ses dérivées suivent. ---- */
   --separateur:       color-mix(in srgb, var(--beige-moyen) 40%, transparent);
-  --survol:           color-mix(in srgb, var(--creme) 50%, transparent);
   --champ-bord:       var(--beige-moyen);
   --champ-focus:      var(--brun);
   --champ-focus-halo: color-mix(in srgb, var(--brun) 12%, transparent);
@@ -86,7 +85,6 @@
   --menu-largeur:     220px;
   --menu-enfant-fond: color-mix(in srgb, var(--blanc) 8%, transparent);
   --menu-separateur:  color-mix(in srgb, var(--blanc) 6%, transparent);
-  --menu-survol:      color-mix(in srgb, var(--blanc) 13%, transparent);
 
   /* ---- Durees ---- */
   --transition-pli:   0.25s;     /* le triangle qui tourne */
@@ -133,6 +131,9 @@
   --spinner-trait:    var(--creme);            /* le contour de la bouteille */
   --spinner-voile:    color-mix(in srgb, var(--brun-fonce) 55%, transparent);  /* l'écran qui bloque derrière */
 }
+
+/* Aucun effet de survol dans cette feuille (décision de J-C, 2026-09-22) : l'app vit sur
+   iPhone et iPad, où le survol n'existe pas — et où iOS le fait « coller » après un toucher. */
 
 /* ============================================================
    BASE
@@ -257,20 +258,17 @@ html::-webkit-scrollbar, body::-webkit-scrollbar { display: none; }
 /* le reflet : une lueur sur la moitié du haut, qui laisse passer le toucher */
 .bouton::before { content: ''; position: absolute; left: 0; right: 0; top: 0; height: 50%; pointer-events: none;
   background: linear-gradient(to bottom, var(--bouton-reflet), transparent); }
-.bouton:hover { box-shadow: var(--ombre-carte), inset 0 1px 0 var(--bouton-lisere); }
 
 /* forme */
 .bouton-pleine { display: flex; width: 100%; }
 
 /* couleur : chaque variante ne change que --c ; le dégradé, l'ombre et le reflet suivent */
 .bouton-brun   { --c: var(--brun);   color: var(--creme); }
-.bouton-brun:hover   { --c: var(--brun-fonce); }
 .bouton-vert   { --c: var(--vert);   color: var(--blanc); }
 .bouton-orange { --c: var(--orange); color: var(--blanc); }
 .bouton-bleu   { --c: var(--bleu);   color: var(--blanc); }
 .bouton-rouge  { --c: var(--rouge);  color: var(--blanc); }
 .bouton-or     { --c: var(--or);     color: var(--brun-fonce); }   /* Retour : l'or est clair, le texte passe au brun foncé */
-.bouton-vert:hover, .bouton-orange:hover, .bouton-bleu:hover, .bouton-rouge:hover, .bouton-or:hover { filter: brightness(0.93); }
 
 /* taille */
 .bouton-grand {
@@ -352,7 +350,6 @@ select.champ {
   align-items: center;
   justify-content: center;
 }
-.compteur-btn:hover { background: var(--beige); }
 .compteur-valeur {
   min-width: var(--tactile);
   height: var(--tactile);
@@ -405,7 +402,6 @@ select.champ {
   user-select: none;
   transition: var(--transition);
 }
-.accordeon-tete:hover { background: var(--brun-fonce); }
 /* Fond pâle (couleur de meuble claire) : le texte passe au brun foncé, sinon il disparaît.
    La classe est posée par le script, qui seul connaît la couleur choisie. */
 .accordeon-tete.tete-pale { color: var(--brun-fonce); }
@@ -437,9 +433,7 @@ select.champ {
   padding: var(--espace-s) var(--espace-l);
   font-size: var(--texte-normal);
   min-height: var(--tactile);
-  transition: background var(--transition);
 }
-.accordeon-item:hover { background: var(--survol); }
 .accordeon-item-saisie { gap: var(--espace-s); }   /* une ligne ou l'on saisit : un champ + son bouton */
 
 /* ------------------------------------------------------------
@@ -500,9 +494,7 @@ select.champ {
   padding: var(--espace-s) var(--espace-l);
   border-top: var(--filet) solid var(--separateur);
   min-height: var(--tactile);
-  transition: background var(--transition);
 }
-.item:hover { background: var(--survol); }
 .item-info { flex: 1; }
 .item-nom { font-size: var(--texte-moyen); font-weight: var(--poids-normal); color: var(--brun-fonce); }
 .item-detail { font-size: var(--texte-petit); font-weight: var(--poids-leger); color: var(--brun-clair); }
@@ -599,7 +591,6 @@ select.champ {
   cursor: pointer;
   transition: var(--transition);
 }
-.burger:hover { background: var(--beige); }
 .burger span { display: block; width: var(--burger-trait-large); height: var(--burger-trait-haut); background: var(--brun); border-radius: var(--rayon); }
 
 .menu {
@@ -633,7 +624,6 @@ select.champ {
   cursor: pointer;
   transition: var(--transition);
 }
-.menu-item:hover { background: var(--menu-survol); }
 /* Un item de menu qui en ouvre d'autres : le triangle est poussé à droite. */
 .menu-item-parent::after { margin-left: auto; }
 /* Les items qu'il ouvre, en retrait — même valeur que les accordéons. */
