@@ -98,7 +98,8 @@ et la saveur comptent. Confirmé le 23 septembre.
    les poids l'un après l'autre; **chaque paquet devient sa propre ligne** de stock. Toucher
    un poids déjà noté le retire.
 3. **Saveur** : champ propre (STOCK col. J), qui n'apparaît que si la saveur compte.
-4. **Qui entre** : Outils → **Qui entre les articles**. Le nom est gardé **sur l'appareil**
+4. **Qui entre** : **demandé dès le premier usage** sur un appareil (juste après le mot de passe),
+   et modifiable ensuite dans Outils → **Qui entre les articles**. Le nom est gardé **sur l'appareil**
    (pas dans le Sheet) et inscrit sur chaque ligne (col. K). Chacun le pose une fois sur le sien.
 5. **Magasin** : champ avec les magasins déjà utilisés en suggestion (col. L).
 6. **Prix** : champ **facultatif** (col. M).

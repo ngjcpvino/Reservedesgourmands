@@ -92,14 +92,20 @@ async function montrerCouleurs() {
 function montrerQui() {
   toutCacher(); $('vue-qui').hidden = false; $('btn-burger').hidden = false;
   $('qui-nom').value = localStorage.getItem(QUI) || '';
-  $('qui-msg').textContent = '';
+  $('qui-msg').className = 'message';
+  $('qui-msg').textContent = localStorage.getItem(QUI) ? '' : 'Ton nom s\'inscrit sur chaque article que tu entres. Il reste sur cet appareil.';
 }
 function enregistrerQui() {
   const nom = $('qui-nom').value.trim();
-  try { if (nom) localStorage.setItem(QUI, nom); else localStorage.removeItem(QUI); } catch (e) {}
   const msg = $('qui-msg');
-  msg.className = 'message message-succes';
-  msg.textContent = nom ? 'C\'est noté : ' + nom : 'Personne n\'est nommé sur cet appareil.';
+  if (!nom) {                                   // un nom vide ne règle rien : on insiste
+    msg.className = 'message message-erreur';
+    msg.textContent = 'Écris ton nom : il s\'inscrit sur chaque article que tu entres.';
+    return;
+  }
+  try { localStorage.setItem(QUI, nom); } catch (e) {}
+  avis('C\'est noté : ' + nom, 'succes');
+  montrerAccueil();                             // le nom est posé : on passe à la suite
 }
 function montrerMeuble() {
   toutCacher(); $('vue-meuble').hidden = false; $('meuble-msg').textContent = '';
@@ -175,7 +181,8 @@ function entrer() {
   const pw = $('mdp').value.trim();
   if (!pw) return;
   Coffre.definirMotDePasse(pw);   // login optimiste : aucun appel bloquant
-  montrerAccueil();                // → la page d'ouverture
+  if (!localStorage.getItem(QUI)) montrerQui();   // personne de nommé ici : on demande AVANT la 1re entrée
+  else montrerAccueil();           // → la page d'ouverture
   chargerReferences();             // en arrière-plan : les couleurs à jour (et un mauvais mot de passe se voit)
 }
 
@@ -1341,7 +1348,7 @@ function initEntree() {
   $('btn-annuler').addEventListener('click', montrerChoixComment);
   // reste connecté → page d'ouverture directement, puis mise à jour en arrière-plan
   // (les couleurs changées sur l'autre appareil arrivent ainsi, sans rien attendre)
-  if (Coffre.motDePasse()) { montrerAccueil(); chargerReferences(); }
+  if (Coffre.motDePasse()) { if (localStorage.getItem(QUI)) montrerAccueil(); else montrerQui(); chargerReferences(); }
 }
 /* On revient dans l'app (retour d'arrière-plan, réveil de l'iPad) : on relit les listes
    en arrière-plan, sans rien bloquer, et on redessine l'inventaire s'il est à l'écran.
