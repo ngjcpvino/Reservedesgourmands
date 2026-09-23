@@ -169,6 +169,8 @@ html::-webkit-scrollbar, body::-webkit-scrollbar { display: none; }
   padding-top: var(--haut-ecran);
 }
 .contenu { padding: var(--espace-xl) var(--espace-l); }
+/* Le contenu qui suit immédiatement la photo : même écart qu'entre les boutons, pas davantage. */
+.contenu-suite { padding-top: var(--espace-s); }
 
 /* espaceur vertical réutilisable entre deux champs/blocs */
 .bloc { margin-bottom: var(--espace-m); }
