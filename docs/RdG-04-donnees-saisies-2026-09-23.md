@@ -91,26 +91,28 @@ et la saveur comptent. Confirmé le 23 septembre.
 
 **Comment chacun a été réglé :**
 
-1. **Quantité mesurable** : lue dans le **Format** (« 1 L », « 500 g », « 0,54 kg »).
+1. **Quantité mesurable** : le **Format** est devenu **deux champs — un nombre + une unité**
+   (liste : unité · g · kg · ml · L, plus « Autre… » pour en ajouter). Écrit toujours pareil,
+   donc additionnable.
    L'inventaire additionne quand les unités s'accordent — *un 4 L + deux 1 L = 6 L* —
    et se contente de compter les contenants sinon.
-2. **Poids par paquet** : bouton **« Chaque paquet a son poids »** dans la fiche. On tape
-   les poids l'un après l'autre; **chaque paquet devient sa propre ligne** de stock. Toucher
-   un poids déjà noté le retire.
-3. **Saveur** : champ propre (STOCK col. J), qui n'apparaît que si la saveur compte.
+2. **Poids par paquet** : bouton **« Chaque paquet a son poids »**. On tape les nombres l'un
+   après l'autre, **dans l'unité choisie juste au-dessus**; **chaque paquet devient sa propre
+   ligne** de stock. Toucher un poids déjà noté le retire.
+3. **Saveur** : champ propre (STOCK col. J), **toujours offert**.
 4. **Qui entre** : **demandé dès le premier usage** sur un appareil (juste après le mot de passe),
    et modifiable ensuite dans Outils → **Qui entre les articles**. Le nom est gardé **sur l'appareil**
    (pas dans le Sheet) et inscrit sur chaque ligne (col. K). Chacun le pose une fois sur le sien.
 5. **Magasin** : champ avec les magasins déjà utilisés en suggestion (col. L).
 6. **Prix** : champ **facultatif** (col. M).
-7. **« Qu'est-ce qui compte à part ? »** : à la création d'un produit, deux questions
-   **Oui / Non** — la marque, la saveur. C'est ce qui sépare les comptes ensuite
-   (PRODUITS col. H et I). Un produit dont la marque ne compte pas ne demande même plus
-   la marque : un geste de moins à chaque entrée.
+7. **Ce qui sépare les comptes** : essayé en deux questions **Oui / Non** à la création,
+   **retiré le 23 septembre** à la demande de J-C. Règle retenue, plus simple : **la marque et
+   la saveur sont toujours offertes**, on les remplit **s'il y a lieu**, et **ce qui est écrit
+   sépare** (yogourt Liberté fraise ≠ Yoplait fraise; lait sans marque = un seul compte).
+   Les colonnes H et I de PRODUITS restent, inutilisées.
 
-⚠️ Les produits créés **avant** ce jour n'ont pas ces deux réponses : l'app suppose
-**marque = compte**, **saveur = ne compte pas**. À corriger produit par produit quand
-l'écran de correction existera (section 5).
+⚠️ Rien à rattraper sur les produits déjà créés : la règle ne dépend plus d'un réglage,
+seulement de ce qui est écrit sur chaque lot.
 
 ---
 

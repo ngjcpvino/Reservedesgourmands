@@ -15,7 +15,7 @@ var CODES = {};             // { codeBarres: produitId } — reconnaître un pro
 var produitCourant = null;  // id du produit reconnu (existant) ; null = nouveau produit
 var modeManuel = false;     // entrée À LA MAIN : entonnoir catégorie -> sous-catégorie -> produit
 var MAGASINS = [];          // les magasins déjà utilisés (on propose au lieu de faire taper)
-var compteNouveau = { marque: 'N', saveur: 'N' };   // pour un NOUVEAU produit : qu'est-ce qui sépare les comptes
+const UNITES_BASE = ['unité', 'g', 'kg', 'ml', 'L'];   // le départ; toute unité déjà utilisée s'y ajoute
 var POIDS = [];             // viande : le poids de chaque paquet; un paquet = une ligne de stock
 const QUI = 'rdg_qui';      // qui se sert de l'app sur CET appareil
 var opCourant = null;                                   // jeton anti-reclic de l'article en cours
@@ -168,7 +168,7 @@ async function surCode() {
     surNom();
     if (produitCourant === null) {                  // resté « nouveau » : on garde les infos OFF
       if (d.marque) $('marque').value = d.marque;
-      if (d.format) $('format').value = d.format;
+      if (d.format) poserFormat(d.format);   // Open Food Facts donne « 2 L » : on le répartit dans les deux champs
     }
   }                                                 // sinon : on laisse; il remplit le nom à la main
 }
@@ -291,9 +291,8 @@ function appliquer(d) {
   });
   PRODUITS = (d.prods || [])              // [ID,Nom,CategorieID,Unite,Actif,Marque,Format,MarqueCompte,SaveurCompte]
     .filter(r => String(r[4]) !== 'N')
-    .map(r => ({ id: r[0], nom: r[1], catId: r[2],
-                 marqueCompte: String(r[7] || 'O') === 'O' ? 'O' : 'N',   // produits d'avant : la marque compte
-                 saveurCompte: String(r[8] || 'N') === 'O' ? 'O' : 'N' }));
+    .map(r => ({ id: r[0], nom: r[1], catId: r[2]
+               }));
   MAGASINS = d.magasins || [];
   VARIANTES = d.variantes || {};                      // { produitId: { marques:[], formats:[] } }
   CODES = d.codes || {};                              // { codeBarres: produitId }
@@ -358,14 +357,14 @@ function trouverProduitParNom(nom) {
 
 /* Remet la fiche à l'état de départ (champs vides, blocs cachés). */
 function reinitFiche() {
-  $('nom').value = ''; $('marque').value = ''; $('format').value = ''; $('saveur').value = '';
+  $('nom').value = ''; $('marque').value = ''; $('saveur').value = '';
+  poserFormat('');
   $('magasin').value = ''; $('prix').value = ''; $('poids').value = '';
   POIDS = []; dessinerPoids(); modePoids(false);
-  compteNouveau = { marque: 'N', saveur: 'N' }; marquerChoix();
   $('cat').value = ''; $('souscat').innerHTML = ''; $('produit').innerHTML = ''; $('endroits').innerHTML = '';
   produitCourant = null;
   montrer('bloc-details', false); montrer('bloc-souscat', false); montrer('bloc-produit', false);
-  montrer('bloc-compte', false); montrer('bloc-doublons', false); montrer('bloc-achat', false);
+  montrer('bloc-doublons', false); montrer('bloc-achat', false);
   montrer('bloc-endroits', false); montrer('btn-enregistrer', false);
   montrer('bloc-cat', modeManuel);      // à la main, l'entonnoir part de la catégorie
   montrer('bloc-nom', !modeManuel);     // le nom ne sert qu'au scan, ou à un nouveau produit
@@ -393,15 +392,13 @@ function surNom() {
   if (prod) {                                   // produit existant reconnu
     produitCourant = prod.id;
     montrer('bloc-cat', false); montrer('bloc-souscat', false);   // catégorie déjà connue
-    montrer('bloc-compte', false); montrer('bloc-doublons', false);
+    montrer('bloc-doublons', false);
     prefillProduit(prod.id);                    // marque/format (dernières) + endroits habituels
-    champsDuProduit(prod);                      // puis on cache — et on vide — ce qui ne compte pas
     montrer('bloc-achat', true); montrer('bloc-endroits', true); montrer('btn-enregistrer', true);
   } else {                                      // nouveau produit
     produitCourant = null;
     remplirVariantes(null);                     // aucune suggestion marque/format
     proposerRessemblances(val);                 // ... mais peut-être un doublon d'un produit connu
-    montrer('bloc-compte', true); champsDuProduit(null);
     montrer('bloc-cat', true);                  // il choisit la catégorie
     montrer('bloc-souscat', !!$('cat').value);
   }
@@ -451,8 +448,7 @@ function surProduit() {
     produitCourant = null;
     $('nom').value = '';
     remplirVariantes(null);
-    montrer('bloc-nom', true); montrer('bloc-compte', true); montrer('bloc-details', true);
-    champsDuProduit(null);
+    montrer('bloc-nom', true); montrer('bloc-details', true);
     $('nom').focus();
     return;
   }
@@ -460,10 +456,9 @@ function surProduit() {
   if (!prod) return;
   produitCourant = prod.id;
   $('nom').value = prod.nom;                    // le nom sert à l'enregistrement; inutile de le montrer
-  montrer('bloc-nom', false); montrer('bloc-compte', false); montrer('bloc-doublons', false);
+  montrer('bloc-nom', false); montrer('bloc-doublons', false);
   montrer('bloc-details', true);
   prefillProduit(prod.id);                      // marque/format + endroits habituels
-  champsDuProduit(prod);                        // puis on cache — et on vide — ce qui ne compte pas
   montrer('bloc-achat', true); montrer('bloc-endroits', true); montrer('btn-enregistrer', true);
 }
 
@@ -472,21 +467,11 @@ function remplirVariantes(pid) {
   const vr = (pid && VARIANTES[pid]) || { marques: [], formats: [], saveurs: [] };
   const opts = liste => (liste || []).map(x => '<option value="' + esc(x) + '"></option>').join('');
   $('dl-marques').innerHTML = opts(vr.marques);
-  $('dl-formats').innerHTML = opts(vr.formats);
   $('dl-saveurs').innerHTML = opts(vr.saveurs);
+  remplirUnites();
   $('dl-magasins').innerHTML = opts(MAGASINS);
 }
 
-/* Les champs à montrer pour CE produit : la marque et la saveur n'apparaissent que si
-   elles comptent — c'est ce qui a été décidé à la création du produit. */
-function champsDuProduit(prod) {
-  const marque = !prod || prod.marqueCompte === 'O';
-  const saveur = prod ? prod.saveurCompte === 'O' : compteNouveau.saveur === 'O';
-  montrer('bloc-marque', prod ? marque : compteNouveau.marque === 'O');
-  montrer('bloc-saveur', saveur);
-  if (!(prod ? marque : compteNouveau.marque === 'O')) $('marque').value = '';
-  if (!saveur) $('saveur').value = '';
-}
 
 /* Un emplacement (id stocké dans STOCK) -> { pieceId, meubleId, espaceId }.
    L'id est soit un espace (enfant d'un meuble), soit un meuble (rangé directement dessus). */
@@ -509,7 +494,7 @@ function prefillProduit(pid) {
   const vr = (pid && VARIANTES[pid]) || null;
   remplirVariantes(pid);                                   // choix déjà inscrits (datalists)
   $('marque').value = (vr && vr.derniereMarque) || '';
-  $('format').value = (vr && vr.dernierFormat) || '';
+  poserFormat((vr && vr.dernierFormat) || '');
   $('endroits').innerHTML = '';
   let n = 0;
   ((vr && vr.emplacements) || []).forEach(empId => {
@@ -530,11 +515,6 @@ function memoriserVariante(pid, marque, format, endroits) {
   const c = lireCache(); if (c) { (c.variantes = c.variantes || {})[pid] = vr; ecrireCache(c); }
 }
 
-/* Le choix retenu se colore : on voit ce qu'on a répondu. */
-function marquerChoix() {
-  document.querySelectorAll('#bloc-compte [data-compte]').forEach(b =>
-    b.classList.toggle('choix-actif', compteNouveau[b.dataset.compte] === b.dataset.valeur));
-}
 
 /* ---------- Doublons : proposer, jamais deviner ---------- */
 /* Un nom réduit à l'essentiel : sans accent, sans majuscule, sans ponctuation, sans pluriel. */
@@ -584,18 +564,17 @@ function adopterProduit(pid) {
   if (!prod) return;
   produitCourant = prod.id;
   $('nom').value = prod.nom;
-  montrer('bloc-doublons', false); montrer('bloc-compte', false);
+  montrer('bloc-doublons', false);
   montrer('bloc-cat', false); montrer('bloc-souscat', false);
   montrer('bloc-details', true);
   prefillProduit(prod.id);
-  champsDuProduit(prod);
   montrer('bloc-achat', true); montrer('bloc-endroits', true); montrer('btn-enregistrer', true);
 }
 
 /* ---------- « Chaque paquet a son poids » (viande) ---------- */
 function modePoids(actif) {
   montrer('bloc-poids', actif);
-  montrer('bloc-format', !actif);              // les poids REMPLACENT le format commun
+  $('format-nb').parentElement.hidden = actif;   // les poids remplacent LE NOMBRE; l'unité reste commune
   $('btn-mode-poids').classList.toggle('choix-actif', actif);
 }
 function dessinerPoids() {
@@ -607,6 +586,48 @@ function ajouterPoids() {
   const v = $('poids').value.trim();
   if (!v) { $('poids').focus(); return; }
   POIDS.push(v); $('poids').value = ''; dessinerPoids(); $('poids').focus();
+}
+
+/* ---------- Le format : un nombre + une unité ----------
+   Écrit toujours pareil, donc les quantités s'additionnent. La liste d'unités part de
+   UNITES_BASE et s'enrichit de tout ce qui a déjà servi; « Autre… » en ajoute une. */
+function unitesConnues() {
+  const vues = UNITES_BASE.slice();
+  STOCK.forEach(l => {
+    const u = String(l[6] || '').trim().replace(/^[0-9]+([.,][0-9]+)?\s*/, '');
+    if (u && vues.indexOf(u) === -1) vues.push(u);
+  });
+  return vues;
+}
+function remplirUnites() {
+  const garde = $('format-unite').value;
+  $('format-unite').innerHTML = '<option value="">— unité —</option>' +
+    unitesConnues().map(u => '<option value="' + esc(u) + '">' + esc(u) + '</option>').join('') +
+    '<option value="autre">Autre…</option>';
+  if (garde) $('format-unite').value = garde;
+}
+/* Ce que valent les deux champs, mis ensemble : « 2 L ». */
+function formatSaisi() {
+  const nb = $('format-nb').value.trim().replace('.', ',');
+  const u = uniteSaisie();
+  if (!nb && !u) return '';
+  return (nb ? nb + ' ' : '') + u;
+}
+function uniteSaisie() {
+  const u = $('format-unite').value;
+  return u === 'autre' ? $('unite-autre').value.trim() : u;
+}
+/* L'inverse : « 2 L » revient dans les deux champs (produit déjà connu). */
+function poserFormat(txt) {
+  const m = String(txt || '').trim().match(/^([0-9]+(?:[.,][0-9]+)?)?\s*(.*)$/);
+  $('format-nb').value = (m && m[1]) ? m[1].replace('.', ',') : '';
+  const u = (m && m[2]) ? m[2].trim() : '';
+  remplirUnites();
+  if (u && !unitesConnues().includes(u)) {                       // une unité jamais vue : on l'ajoute au vol
+    $('format-unite').insertAdjacentHTML('beforeend', '<option value="' + esc(u) + '">' + esc(u) + '</option>');
+  }
+  $('format-unite').value = u;
+  montrer('bloc-unite-autre', false); $('unite-autre').value = '';
 }
 
 /* ---------- La quantité mesurable : « 2 x 1 L » se lit « 2 L » ---------- */
@@ -710,12 +731,13 @@ async function enregistrer() {
   });
   if (!endroits.length) { statut('Mets une quantité sur au moins un endroit.', 'erreur'); return; }
 
-  const marque = $('marque').value.trim(), format = $('format').value.trim(), code = $('codebarres').value.trim();
+  const marque = $('marque').value.trim(), format = formatSaisi(), code = $('codebarres').value.trim();
   const saveur = $('saveur').value.trim(), magasin = $('magasin').value.trim(), prix = $('prix').value.trim();
   const qui = localStorage.getItem(QUI) || '';        // posé une fois dans Outils, gardé sur l'appareil
   if (POIDS.length) {                                 // viande : un paquet = une ligne, chacun son poids
     const parPoids = [];
-    endroits.forEach(e => POIDS.forEach(p => parPoids.push({ emp: e.emp, qte: 1, format: p })));
+    const u = uniteSaisie();                          // les poids partagent l'unité choisie plus haut
+    endroits.forEach(e => POIDS.forEach(p => parPoids.push({ emp: e.emp, qte: 1, format: (p + ' ' + u).trim() })));
     endroits.length = 0; parPoids.forEach(e => endroits.push(e));
   }
   if (!opCourant) opCourant = 'op-' + Date.now() + '-' + Math.random().toString(36).slice(2, 8);
@@ -726,7 +748,7 @@ async function enregistrer() {
     const commun = { marque: marque, format: format, saveur: saveur, code: code, magasin: magasin, prix: prix,
                      qui: qui, endroits: endroits, opId: opCourant };
     const charge = nouveau
-      ? Object.assign({ produit: [nom, scid], marqueCompte: compteNouveau.marque, saveurCompte: compteNouveau.saveur }, commun)
+      ? Object.assign({ produit: [nom, scid] }, commun)
       : Object.assign({ produitId: produitId }, commun);
     const r = await Coffre.entrerArticle(charge);          // UN seul appel
     if (r && r.ok) { produitId = r.produitId || produitId; }
@@ -736,8 +758,8 @@ async function enregistrer() {
       for (const e of endroits) await Coffre.ajouter('Stock', ['', produitId, e.emp, e.qte, date, marque, e.format || format, opCourant, code, saveur, qui, magasin, prix]);
     } else { throw new Error((r && r.erreur) || 'refus'); }
     if (nouveau) {
-      PRODUITS.push({ id: produitId, nom: nom, catId: scid, marqueCompte: compteNouveau.marque, saveurCompte: compteNouveau.saveur });
-      const c = lireCache(); if (c) { (c.prods = c.prods || []).push([produitId, nom, scid, '', 'O', '', '', compteNouveau.marque, compteNouveau.saveur]); ecrireCache(c); }
+      PRODUITS.push({ id: produitId, nom: nom, catId: scid });
+      const c = lireCache(); if (c) { (c.prods = c.prods || []).push([produitId, nom, scid, '', 'O', '', '']); ecrireCache(c); }
       remplirProduitsDatalist();                          // le nouveau nom devient suggérable tout de suite
     }
     const dateJour = dateDuJour();
@@ -908,9 +930,9 @@ function stockParEndroit() {
     const prod = PRODUITS.find(p => String(p.id) === String(l[1]));
     if (!prod) return;                         // produit disparu : on n'invente rien
     const marque = String(l[5] || '').trim(), format = String(l[6] || '').trim(), saveur = String(l[9] || '').trim();
-    // ce qui « compte » pour ce produit sépare les comptes; le reste se regroupe
-    const cleMarque = prod.marqueCompte === 'O' ? marque : '';
-    const cleSaveur = prod.saveurCompte === 'O' ? saveur : '';
+    // ce qui est écrit sépare : une marque ou une saveur notée fait sa propre ligne;
+    // laissées vides (le lait, la poudre à pâte), tout se regroupe sous le produit.
+    const cleMarque = marque, cleSaveur = saveur;
     const cle = prod.id + '|' + cleMarque + '|' + cleSaveur;
     const liste = (par[emp] = par[emp] || {});
     const m = mesure(format);
@@ -1315,20 +1337,18 @@ function initEntree() {
   $('nom').addEventListener('input', surNom);    // réagit pendant la saisie : plus besoin de fermer le clavier
   $('nom').addEventListener('change', surNom);
   $('produit').addEventListener('change', surProduit);
-  // « Oui / Non » : la marque et la saveur comptent-elles pour ce nouveau produit ?
-  $('bloc-compte').addEventListener('click', function (ev) {
-    const b = ev.target.closest('[data-compte]');
-    if (!b) return;
-    compteNouveau[b.dataset.compte] = b.dataset.valeur;
-    marquerChoix();
-    champsDuProduit(null);
-  });
+
   // un produit proposé parce qu'il ressemble : on le prend
   $('liste-doublons').addEventListener('click', function (ev) {
     const b = ev.target.closest('[data-doublon]');
     if (b) adopterProduit(b.dataset.doublon);
   });
   // viande : le mode « chaque paquet a son poids »
+  $('format-unite').addEventListener('change', function () {
+    const autre = $('format-unite').value === 'autre';
+    montrer('bloc-unite-autre', autre);
+    if (autre) $('unite-autre').focus();
+  });
   $('btn-mode-poids').addEventListener('click', () => modePoids($('bloc-poids').hidden));
   $('btn-poids').addEventListener('click', ajouterPoids);
   $('poids').addEventListener('keydown', e => { if (e.key === 'Enter') { e.preventDefault(); ajouterPoids(); } });

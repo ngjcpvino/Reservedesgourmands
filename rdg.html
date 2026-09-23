@@ -10,7 +10,7 @@
   <!-- Ecran d'accueil iPad : le meme sac, en PNG (iOS n'accepte pas le SVG ici) -->
   <link rel="apple-touch-icon" href="apple-touch-icon.png?v=2">
 
-<link rel="stylesheet" href="CSS/rdg.css?v=38">
+<link rel="stylesheet" href="CSS/rdg.css?v=39">
 </head>
 <body>
 
@@ -166,22 +166,28 @@
         <input class="champ" id="marque" list="dl-marques" autocomplete="off" placeholder="Choisir ou saisir (optionnel)">
         <datalist id="dl-marques"></datalist>
       </div>
-      <div class="bloc" id="bloc-saveur" hidden>
+      <div class="bloc" id="bloc-saveur">
         <div class="label">Saveur</div>
         <input class="champ" id="saveur" list="dl-saveurs" autocomplete="off" placeholder="Fraise, vanille, miel et noix…">
         <datalist id="dl-saveurs"></datalist>
       </div>
       <div class="bloc" id="bloc-format">
         <div class="label">Format</div>
-        <input class="champ" id="format" list="dl-formats" autocomplete="off" placeholder="500 g, 2 L, unité… (optionnel)">
-        <datalist id="dl-formats"></datalist>
+        <div class="ligne-couleur">
+          <input class="champ champ-nombre" id="format-nb" inputmode="decimal" autocomplete="off" placeholder="2">
+          <select class="champ" id="format-unite"></select>
+        </div>
+      </div>
+      <div class="bloc" id="bloc-unite-autre" hidden>
+        <div class="label">Nouvelle unité</div>
+        <input class="champ" id="unite-autre" autocomplete="off" placeholder="douzaine, sac, boîte…">
       </div>
       <!-- Viande : chaque paquet a son poids, donc chaque paquet fait sa propre ligne -->
       <button class="bouton bouton-petit" id="btn-mode-poids" type="button">Chaque paquet a son poids</button>
       <div class="bloc" id="bloc-poids" hidden>
         <div class="label">Poids de chaque paquet</div>
         <div class="ligne-couleur">
-          <input class="champ" id="poids" inputmode="decimal" autocomplete="off" placeholder="0,54 kg">
+          <input class="champ champ-nombre" id="poids" inputmode="decimal" autocomplete="off" placeholder="0,54">
           <button class="bouton bouton-petit" id="btn-poids" type="button">+</button>
         </div>
         <div id="liste-poids"></div>
@@ -192,17 +198,6 @@
     <div class="bloc" id="bloc-produit" hidden>
       <div class="label">Produit</div>
       <select class="champ" id="produit"></select>
-    </div>
-
-    <!-- Nouveau produit : ce qui sépare les comptes. Demandé UNE fois, à sa création. -->
-    <div class="bloc" id="bloc-compte" hidden>
-      <div class="label label-fort">Pour ce produit, qu'est-ce qui compte à part ?</div>
-      <div class="ligne-choix"><span class="choix-quoi">La marque</span>
-        <button class="bouton bouton-petit" data-compte="marque" data-valeur="O" type="button">Oui</button>
-        <button class="bouton bouton-petit" data-compte="marque" data-valeur="N" type="button">Non</button></div>
-      <div class="ligne-choix"><span class="choix-quoi">La saveur</span>
-        <button class="bouton bouton-petit" data-compte="saveur" data-valeur="O" type="button">Oui</button>
-        <button class="bouton bouton-petit" data-compte="saveur" data-valeur="N" type="button">Non</button></div>
     </div>
 
     <!-- Un nom qui ressemble à un produit déjà là : on propose, on ne devine pas -->
@@ -332,7 +327,7 @@
 </div><!-- fin du conteneur -->
 
 <script src="JS/coffre.js?v=3"></script>
-<script src="JS/entree.js?v=45"></script>
+<script src="JS/entree.js?v=46"></script>
 <script src="JS/scan.js?v=4"></script>
 </body>
 </html>
