@@ -68,7 +68,7 @@ et la saveur comptent. Confirmé le 23 septembre.
 
 ---
 
-## 4. CE QUI MANQUE AUJOURD'HUI À L'ENTRÉE (à régler avant les 100 entrées)
+## 4. CE QUI MANQUAIT À L'ENTRÉE — ✅ **BÂTI le 23 septembre**
 
 1. **La quantité mesurable** (litres, poids), pas seulement le nombre de
    contenants. Condition : le format doit être écrit **toujours pareil**
@@ -89,6 +89,30 @@ et la saveur comptent. Confirmé le 23 septembre.
 
 ---
 
+**Comment chacun a été réglé :**
+
+1. **Quantité mesurable** : lue dans le **Format** (« 1 L », « 500 g », « 0,54 kg »).
+   L'inventaire additionne quand les unités s'accordent — *un 4 L + deux 1 L = 6 L* —
+   et se contente de compter les contenants sinon.
+2. **Poids par paquet** : bouton **« Chaque paquet a son poids »** dans la fiche. On tape
+   les poids l'un après l'autre; **chaque paquet devient sa propre ligne** de stock. Toucher
+   un poids déjà noté le retire.
+3. **Saveur** : champ propre (STOCK col. J), qui n'apparaît que si la saveur compte.
+4. **Qui entre** : Outils → **Qui entre les articles**. Le nom est gardé **sur l'appareil**
+   (pas dans le Sheet) et inscrit sur chaque ligne (col. K). Chacun le pose une fois sur le sien.
+5. **Magasin** : champ avec les magasins déjà utilisés en suggestion (col. L).
+6. **Prix** : champ **facultatif** (col. M).
+7. **« Qu'est-ce qui compte à part ? »** : à la création d'un produit, deux questions
+   **Oui / Non** — la marque, la saveur. C'est ce qui sépare les comptes ensuite
+   (PRODUITS col. H et I). Un produit dont la marque ne compte pas ne demande même plus
+   la marque : un geste de moins à chaque entrée.
+
+⚠️ Les produits créés **avant** ce jour n'ont pas ces deux réponses : l'app suppose
+**marque = compte**, **saveur = ne compte pas**. À corriger produit par produit quand
+l'écran de correction existera (section 5).
+
+---
+
 ## 5. LA QUALITÉ DE LA SAISIE — éviter les doublons et les erreurs
 
 - **Nom au scan** : on garde le nom d'Open Food Facts **tel quel**.
@@ -105,6 +129,15 @@ et la saveur comptent. Confirmé le 23 septembre.
   endroit, marque, format, poids, prix…) **après** l'enregistrement.
 - **Pas de résumé à confirmer avant d'enregistrer** (refusé : une touche de
   plus à chaque entrée). La correction après coup suffit.
+
+**État au 23 septembre :**
+- ✅ **Doublons proposés** : dès qu'un nom ressemble à un produit connu (accents, pluriel,
+  espaces, deux lettres d'écart), l'app affiche **« Serait-ce plutôt celui-ci ? »**. Toucher
+  un nom bascule dessus. Vaut au scan **et** à la main.
+- ✅ **Fusion** : le coffre-fort sait fusionner deux produits (les lignes de stock passent au
+  gardé, le doublon est désactivé, jamais supprimé). **L'écran reste à bâtir.**
+- ⛔ **Correction après coup** (quantité, endroit, marque, format, poids, prix…) : **pas encore
+  bâtie**. C'est le prochain chantier, et le dernier avant les 100 entrées.
 
 **Principe pour toute l'app — J-C est dyslexique** (ex. 21 tapé au lieu de 12) :
 **faire choisir plutôt que faire taper**, chaque fois qu'on le peut, et
@@ -142,7 +175,11 @@ document).
 
 ## 7. EN CLAIR
 
-On peut commencer à entrer les aliments **une fois réglés** : le défaut de
-l'heure (priorité), puis les 7 points de la section 4 et les vérifications de
-doublons de la section 5. Les deux trous de la section 6 se règlent avec la
-sortie.
+**Fait le 23 septembre** : le défaut de l'heure, les 7 points de la section 4, et la
+proposition des doublons (section 5).
+
+**Reste avant les 100 entrées** : l'écran de **correction** de ce qui a été entré, et
+l'écran de **fusion** de deux produits (le coffre-fort est prêt, il manque l'écran).
+
+**Reste pour plus tard, avec la sortie** : les deux trous de la section 6 (l'historique
+des sorties et la quantité d'origine du lot).

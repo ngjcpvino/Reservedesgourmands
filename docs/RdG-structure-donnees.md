@@ -40,6 +40,8 @@ endroits en même temps).*
 | E | Actif | O / N |
 | F | Marque | *(legacy — laissé vide : la marque vit sur STOCK, un produit peut en avoir plusieurs)* |
 | G | Format | *(legacy — laissé vide : le format vit sur STOCK)* |
+| H | MarqueCompte | O / N — la marque **sépare-t-elle les comptes** de ce produit ? (yogourt : O; lait : N). Demandé une fois, à la création |
+| I | SaveurCompte | O / N — idem pour la saveur (yogourt fraise ≠ vanille). Demandé au même moment |
 
 ### EMPLACEMENTS — les rangements, en arbre (Meuble → Espace)
 
@@ -70,7 +72,15 @@ endroits en même temps).*
 | G | Format | format de CE lot (« 500 g », « unité »…) — idem |
 | H | OpId | jeton anti-reclic de l'entrée (toutes les lignes d'un même envoi = même jeton). Un renvoi du même jeton n'écrit RIEN |
 | I | CodeBarres | le code-barres scanné pour CE lot — **clé de recherche** (reconnaître le produit au prochain scan). Vide si entré à la main |
+| J | Saveur | la saveur de CE lot (fraise, vanille, miel et noix…). Vide si la saveur ne compte pas |
+| K | QuiEntre | qui a entré l'article. Vient de l'appareil (Outils → Qui entre les articles), pas du mot de passe |
+| L | Magasin | où l'article a été acheté (proposé d'après les magasins déjà utilisés) |
+| M | Prix | **facultatif** — ce que le lot a coûté, pour comparer les épiceries |
 
+> **La quantité mesurable** se lit dans le **Format** : « 1 L », « 500 g », « 0,54 kg ».
+> L'app additionne (un 4 L + deux 1 L = 6 L) quand les unités s'accordent; sinon elle
+> compte les contenants. Un **paquet de viande = une ligne**, avec son propre poids.
+>
 > Le « total » d'un produit = la somme de ses lignes STOCK.
 > Le « 2 sur 4 » et la ligne « en transit » de la fiche viennent d'ici.
 > Consulter (points 3 et 4) = lire ces lignes. Sortir (point 2) = baisser une

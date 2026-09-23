@@ -10,7 +10,7 @@
   <!-- Ecran d'accueil iPad : le meme sac, en PNG (iOS n'accepte pas le SVG ici) -->
   <link rel="apple-touch-icon" href="apple-touch-icon.png?v=2">
 
-<link rel="stylesheet" href="CSS/rdg.css?v=37">
+<link rel="stylesheet" href="CSS/rdg.css?v=38">
 </head>
 <body>
 
@@ -29,6 +29,7 @@
     <button class="menu-item menu-item-parent" id="menu-outils" type="button" data-groupe="outils">Outils</button>
     <button class="menu-item menu-item-enfant" id="menu-bases" type="button" data-parent="outils" hidden>Gérer les bases</button>
     <button class="menu-item menu-item-enfant" id="menu-couleurs" type="button" data-parent="outils" hidden>Couleurs</button>
+    <button class="menu-item menu-item-enfant" id="menu-qui" type="button" data-parent="outils" hidden>Qui entre les articles</button>
     <button class="menu-item" id="menu-deco" type="button">Se déconnecter</button>
   </div>
 </div>
@@ -160,15 +161,30 @@
 
     <!-- Marque / Format -->
     <div id="bloc-details" hidden>
-      <div class="bloc">
+      <div class="bloc" id="bloc-marque">
         <div class="label">Marque</div>
         <input class="champ" id="marque" list="dl-marques" autocomplete="off" placeholder="Choisir ou saisir (optionnel)">
         <datalist id="dl-marques"></datalist>
       </div>
-      <div class="bloc">
+      <div class="bloc" id="bloc-saveur" hidden>
+        <div class="label">Saveur</div>
+        <input class="champ" id="saveur" list="dl-saveurs" autocomplete="off" placeholder="Fraise, vanille, miel et noix…">
+        <datalist id="dl-saveurs"></datalist>
+      </div>
+      <div class="bloc" id="bloc-format">
         <div class="label">Format</div>
         <input class="champ" id="format" list="dl-formats" autocomplete="off" placeholder="500 g, 2 L, unité… (optionnel)">
         <datalist id="dl-formats"></datalist>
+      </div>
+      <!-- Viande : chaque paquet a son poids, donc chaque paquet fait sa propre ligne -->
+      <button class="bouton bouton-petit" id="btn-mode-poids" type="button">Chaque paquet a son poids</button>
+      <div class="bloc" id="bloc-poids" hidden>
+        <div class="label">Poids de chaque paquet</div>
+        <div class="ligne-couleur">
+          <input class="champ" id="poids" inputmode="decimal" autocomplete="off" placeholder="0,54 kg">
+          <button class="bouton bouton-petit" id="btn-poids" type="button">+</button>
+        </div>
+        <div id="liste-poids"></div>
       </div>
     </div>
 
@@ -176,6 +192,23 @@
     <div class="bloc" id="bloc-produit" hidden>
       <div class="label">Produit</div>
       <select class="champ" id="produit"></select>
+    </div>
+
+    <!-- Nouveau produit : ce qui sépare les comptes. Demandé UNE fois, à sa création. -->
+    <div class="bloc" id="bloc-compte" hidden>
+      <div class="label label-fort">Pour ce produit, qu'est-ce qui compte à part ?</div>
+      <div class="ligne-choix"><span class="choix-quoi">La marque</span>
+        <button class="bouton bouton-petit" data-compte="marque" data-valeur="O" type="button">Oui</button>
+        <button class="bouton bouton-petit" data-compte="marque" data-valeur="N" type="button">Non</button></div>
+      <div class="ligne-choix"><span class="choix-quoi">La saveur</span>
+        <button class="bouton bouton-petit" data-compte="saveur" data-valeur="O" type="button">Oui</button>
+        <button class="bouton bouton-petit" data-compte="saveur" data-valeur="N" type="button">Non</button></div>
+    </div>
+
+    <!-- Un nom qui ressemble à un produit déjà là : on propose, on ne devine pas -->
+    <div class="bloc" id="bloc-doublons" hidden>
+      <div class="label label-fort">Serait-ce plutôt celui-ci ?</div>
+      <div id="liste-doublons"></div>
     </div>
 
     <!-- Catégorie / Sous-catégorie (à la main : toujours; au scan : nouveau produit seulement) -->
@@ -186,6 +219,19 @@
     <div class="bloc" id="bloc-souscat" hidden>
       <div class="label">Sous-catégorie</div>
       <select class="champ" id="souscat"></select>
+    </div>
+
+    <!-- L'achat : où, et combien payé (le prix reste facultatif) -->
+    <div id="bloc-achat" hidden>
+      <div class="bloc">
+        <div class="label">Magasin</div>
+        <input class="champ" id="magasin" list="dl-magasins" autocomplete="off" placeholder="Super C, IGA… (optionnel)">
+        <datalist id="dl-magasins"></datalist>
+      </div>
+      <div class="bloc">
+        <div class="label">Prix</div>
+        <input class="champ" id="prix" inputmode="decimal" autocomplete="off" placeholder="Optionnel">
+      </div>
     </div>
 
     <!-- Endroits (1 à N) -->
@@ -232,6 +278,22 @@
   </div>
 </div>
 
+<!-- ============================================================
+     OUTILS — qui se sert de l'app sur CET appareil
+============================================================ -->
+<div id="vue-qui" hidden>
+  <div class="entete"><div class="titre">Qui entre les articles</div></div>
+  <div class="contenu">
+    <div class="bloc">
+      <div class="label">Ton nom, gardé sur cet appareil seulement</div>
+      <input class="champ" id="qui-nom" autocomplete="off" placeholder="Jean-Claude">
+    </div>
+    <button class="bouton bouton-vert bouton-pleine bouton-detache" id="btn-qui-enr" type="button">Enregistrer</button>
+    <div class="message" id="qui-msg"></div>
+    <button class="bouton bouton-pleine bouton-quitter" id="qui-annuler" type="button">Annuler</button>
+  </div>
+</div>
+
 <div id="vue-meuble" hidden>
   <div class="entete">
     <div class="titre">Ajouter un meuble</div>
@@ -270,7 +332,7 @@
 </div><!-- fin du conteneur -->
 
 <script src="JS/coffre.js?v=3"></script>
-<script src="JS/entree.js?v=43"></script>
+<script src="JS/entree.js?v=44"></script>
 <script src="JS/scan.js?v=4"></script>
 </body>
 </html>
