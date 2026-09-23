@@ -5,29 +5,20 @@ m'apercevoir ensuite qu'il manque une info pour nourrir ce que je voulais faire.
 
 ---
 
-## ⛔ À FAIRE EN PRIORITÉ — prochaine conversation de développement
+## ✅ RÉGLÉ (23 septembre) — la date était à l'heure de Londres
 
-**La date d'entrée est à l'heure de Londres, pas du Québec.**
+La date d'entrée est désormais celle **d'ici**, aux deux endroits où elle se calcule :
+- **Dans l'app** (`JS/entree.js`) : une seule fonction, `dateDuJour()`, qui lit la date
+  de l'appareil. Les deux `toISOString()` sont partis; il n'en reste aucun dans `JS/`.
+- **Dans le coffre-fort** (`gas/api.gs`) : c'est **lui** qui écrit la vraie date dans STOCK.
+  Il ne devine plus le fuseau du projet Apps Script (souvent laissé à Londres) : il est
+  écrit noir sur blanc, `var FUSEAU = 'America/Toronto'`. Sert aussi aux **identifiants**,
+  qui portent la date et l'heure.
 
-Dans `JS/entree.js`, la date d'entrée est calculée avec
-`new Date().toISOString().slice(0, 10)`. Or `toISOString()` donne l'heure
-universelle (Londres). Au Québec, une entrée faite **après 20 h** (19 h l'hiver)
-est donc inscrite **au lendemain** dans STOCK, colonne E.
-
-Deux endroits, tous deux dans `enregistrer` :
-- `const date = new Date().toISOString().slice(0, 10);` (la date envoyée au Sheet)
-- `const dateJour = new Date().toISOString().slice(0, 10);` (la date mise dans le cache)
-
-À corriger : prendre la date **locale** de l'appareil (Québec). Chercher aussi
-tout autre `toISOString` dans `JS/` et dans `gas/api.gs` : la même erreur peut
-s'y cacher.
-
-Jean-Claude : « Je parle depuis le début du Québec, des épiceries Super C et
-IGA, et ils placent l'heure de Londres. » Leçon : **tout le projet vit au
-Québec** : l'heure, les magasins, la langue.
+⚠️ **Demande un redéploiement d'`api.gs`.** Les lignes déjà entrées après 20 h gardent
+leur date de lendemain : à corriger à la main dans le Sheet si ça compte.
 
 ---
-
 ## 1. LA MÉTHODE
 
 On trie chaque information en deux piles :
