@@ -133,7 +133,7 @@ code-barres est un attribut du lot au même titre que marque/format.
 
 Un produit peut donc avoir **plusieurs codes** (ses lots l'ont porté), c'est
 correct. Reporté à plus tard : le **multiplicateur par code** (« paquet de 12 »)
-— si besoin, une colonne J s'ajoutera au bout, sans rien casser.
+— si besoin, une colonne s'ajoutera au bout (après M), sans rien casser.
 
 ---
 
