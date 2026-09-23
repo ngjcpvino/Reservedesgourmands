@@ -169,10 +169,20 @@ function deconnexion() {
 }
 
 /* ---------- Menu burger ---------- */
-function fermerMenu() {                 // le menu se ferme -> « Outils » se replie avec lui
+function fermerMenu() {                 // le menu se ferme -> ses sous-menus se replient avec lui
   $('menu').classList.remove('ouvert');
   document.querySelectorAll('#menu .menu-item-enfant').forEach(b => { b.hidden = true; });
-  $('menu-outils').classList.remove('ouvert');
+  document.querySelectorAll('#menu .menu-item-parent').forEach(b => b.classList.remove('ouvert'));
+}
+
+/* Un item de menu qui en ouvre d'autres. Comme les accordéons : un seul groupe ouvert à la fois. */
+function basculerSousMenu(parent) {
+  const ouvrir = !parent.classList.contains('ouvert');
+  document.querySelectorAll('#menu .menu-item-parent').forEach(b => b.classList.remove('ouvert'));
+  document.querySelectorAll('#menu .menu-item-enfant').forEach(b => { b.hidden = true; });
+  if (!ouvrir) return;
+  parent.classList.add('ouvert');
+  document.querySelectorAll('#menu .menu-item-enfant[data-parent="' + parent.dataset.groupe + '"]').forEach(b => { b.hidden = false; });
 }
 function montrerVoile(on){ $('voile').hidden = !on; }   // voile bloquant + les trois bouteilles de lait
 
@@ -1052,13 +1062,18 @@ function initEntree() {
   // page d'ouverture : menu burger + items
   $('btn-burger').addEventListener('click', basculerMenu);
   $('menu-ouverture').addEventListener('click', montrerAccueil);   // 1er item = retour à l'ouverture
-  $('menu-outils').addEventListener('click', function () {   // le triangle doit dire où on en est
-    const ouvrir = !$('menu-outils').classList.contains('ouvert');
-    document.querySelectorAll('#menu .menu-item-enfant').forEach(b => { b.hidden = !ouvrir; });
-    $('menu-outils').classList.toggle('ouvert', ouvrir);
-  });
+  document.querySelectorAll('#menu .menu-item-parent').forEach(p =>
+    p.addEventListener('click', () => basculerSousMenu(p)));          // Ajouter, Outils : ils ouvrent leurs enfants
   $('menu-bases').addEventListener('click', montrerBases);
   $('menu-couleurs').addEventListener('click', montrerCouleurs);
+  // le menu mène exactement où mènent les 4 boutons de l'accueil
+  $('menu-scan').addEventListener('click', () => { if (typeof montrerScanner === 'function') montrerScanner(); });
+  $('menu-manuel').addEventListener('click', () => montrerFormulaire(false));
+  // « à venir » : le menu se referme quand même, comme s'il avait mené quelque part
+  $('menu-epicerie').addEventListener('click', () => { fermerMenu(); avis("Toute l'épicerie — à venir"); });
+  $('menu-rechercher').addEventListener('click', () => { fermerMenu(); avis('Rechercher — à venir'); });
+  $('menu-consommer').addEventListener('click', () => { fermerMenu(); avis('Consommer — à venir'); });
+  $('menu-listes').addEventListener('click', montrerListes);
   // Outils → Couleurs
   $('liste-couleurs').addEventListener('input', surHex);
   $('liste-couleurs').addEventListener('click', function (ev) {

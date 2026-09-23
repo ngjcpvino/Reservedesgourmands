@@ -87,3 +87,5 @@ Spinner « trois bouteilles de lait » · les 7 icônes dessinées dans le CSS �
 **⚠️ Corrigé : le contenu collé au titre d'un accordéon (22 septembre)** · l'inventaire enveloppait sa liste dans un `<div>`, ce qui annulait la règle d'espacement (elle ne visait que `.accordeon:first-child`) · l'enveloppe est retirée (le `.accordeon-corps` porte l'id) et la règle vaut maintenant pour **tout** premier élément, `accordeon-bloc` excepté.
 
 **Les effets de survol s'en vont (22 septembre)** · 9 règles `:hover` retirées (boutons, têtes d'accordéon, lignes, menu, burger, compteur) + `--survol` et `--menu-survol` au root + 2 transitions de fond · inutiles sur iPhone/iPad, et iOS les fait coller après un toucher.
+
+**Le burger reflète les 4 boutons (22 septembre)** · Ajouter (Scanner · À la main · Toute l'épicerie) · Rechercher · Consommer · Listes · Outils (Gérer les bases · Couleurs) · un seul sous-menu ouvert à la fois · les items pas encore bâtis disent « à venir » et referment le menu · « Trouver » devient **Rechercher** partout.
