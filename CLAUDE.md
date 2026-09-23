@@ -48,6 +48,8 @@ Principes structurels non négociables (détail dans `RdG-00`) : rien de fixe (l
 
 ## Où on en est
 
+> ⛔ **PRIORITÉ n° 1 de la prochaine conversation de développement** : la date d'entrée est à l'heure de **Londres** (`toISOString()` dans `JS/entree.js`) — une entrée faite après 20 h au Québec est datée du lendemain. À corriger **avant tout le reste**. Détail + la réflexion du 2026-09-23 sur les données saisies : **`docs/RdG-04-donnees-saisies-2026-09-23.md`**. Le projet vit **au Québec** : l'heure, les magasins, la langue.
+
 **On CONSTRUIT** (bascule du 2026-09-12) : le point 1 (l'entrée), bâti et testé en vrai pour apprendre en voyant. Contrat : **ça marche** + **conçu pour évoluer**. J-C délègue la structure/le code à Claude; il valide les décisions et le comportement. (La règle « zéro code » ci-dessus vaut pour la RÉFLEXION d'un nouveau sujet, pas pour ce qu'on bâtit déjà.)
 
 Brainstorm des 12 actions : **faits 1,2,3,4** · **partiel 8** · restent 5,6,7,11,12. (Point 4 « trouver » = même fiche que le 3 : où + quantité « X sur total », ligne « en transit », statut « déjà dans la liste »; peut lancer un déplacement = point 7.)
@@ -120,6 +122,7 @@ Le dépôt GitHub est **public**. Les fichiers **`.gs`** (Google Apps Script) ne
 - **`RdG-01-entree.md`** — brainstorm de juillet : la méthode complète + les 12 actions + l'entrée (point 1).
 - **`RdG-02-sortie-2026-09-03.md`** — sortie / consommer (point 2).
 - **`RdG-03-en-ai-je-deja-2026-09-03.md`** — « en ai-je déjà? » au magasin (point 3).
+- **`RdG-04-donnees-saisies-2026-09-23.md`** — les données saisies : ce qui manque avant d'entrer les aliments (litres/poids, saveur, qui, magasin, prix facultatif), doublons, correction, J-C dyslexique → faire choisir plutôt que taper.
 - **`RdG-structure-donnees.md`** — LA référence des colonnes (positions exactes) : les 6 tables du point 1, bâties pour évoluer.
 - **`RdG-categories-superc.md`** — la liste finale des catégories Épicerie (12 rayons / 48 sous-cat), taillée avec J-C depuis Super C. Déjà semée.
 
