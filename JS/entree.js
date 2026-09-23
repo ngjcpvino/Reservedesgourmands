@@ -522,6 +522,13 @@ function ajouterEndroit(pref) {
   }
 }
 
+/* La date d'AUJOURD'HUI, ici (Québec). Surtout pas toISOString() : elle donne l'heure de
+   Londres, donc le lendemain pour toute entrée faite après 20 h chez nous. */
+function dateDuJour() {
+  const d = new Date(), deuxChiffres = n => String(n).padStart(2, '0');
+  return d.getFullYear() + '-' + deuxChiffres(d.getMonth() + 1) + '-' + deuxChiffres(d.getDate());
+}
+
 /* ---------- Enregistrer ---------- */
 function statut(txt, type) {
   const m = $('msg');
@@ -562,7 +569,7 @@ async function enregistrer() {
     if (r && r.ok) { produitId = r.produitId || produitId; }
     else if (r && r.erreur === 'action inconnue') {        // repli si coffre-fort pas encore à jour
       if (nouveau) { const p = await Coffre.ajouter('Produits', ['', nom, scid, '', 'O', '', '']); if (!p.ok) throw new Error(p.erreur || 'refus'); produitId = p.id; }
-      const date = new Date().toISOString().slice(0, 10);
+      const date = dateDuJour();
       for (const e of endroits) await Coffre.ajouter('Stock', ['', produitId, e.emp, e.qte, date, marque, format, opCourant, code]);
     } else { throw new Error((r && r.erreur) || 'refus'); }
     if (nouveau) {
@@ -570,7 +577,7 @@ async function enregistrer() {
       const c = lireCache(); if (c) { (c.prods = c.prods || []).push([produitId, nom, scid, '', 'O', '', '']); ecrireCache(c); }
       remplirProduitsDatalist();                          // le nouveau nom devient suggérable tout de suite
     }
-    const dateJour = new Date().toISOString().slice(0, 10);
+    const dateJour = dateDuJour();
     endroits.forEach(x => {                                   // l'inventaire est à jour sans recharger
       STOCK.push(['', produitId, x.emp, x.qte, dateJour, marque, format, opCourant, code]);
       const c2 = lireCache(); if (c2) { (c2.stock = c2.stock || []).push(['', produitId, x.emp, x.qte, dateJour, marque, format, opCourant, code]); ecrireCache(c2); }
