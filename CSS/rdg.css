@@ -112,6 +112,7 @@
   --plan-collant:      10;     /* un bouton collé au bas de l'écran passe par-dessus la liste */
   --pastille:          28px;   /* le carré qui montre une couleur (écran Couleurs, ajout d'un meuble) */
   --champ-hex-large:   110px;  /* le champ où l'on tape un code hex : #6b4f3a */
+  --champ-nombre-large: 100px; /* le champ où l'on tape un nombre : 2 (L), 0,54 (kg) */
 
   /* ---- Respiration en haut de chaque écran ---- */
   --haut-ecran:        10px;    /* sinon le contenu passe sous la barre d'état d'iOS et paraît flou */
@@ -485,6 +486,7 @@ select.champ {
 .couleur-nom { flex: 1; min-width: 0; }
 .couleur-usage { display: block; font-size: var(--texte-micro); color: var(--brun-clair); }
 .champ-hex { flex-shrink: 0; width: var(--champ-hex-large); }
+.champ-nombre { flex-shrink: 0; width: var(--champ-nombre-large); }   /* un nombre n'a pas besoin de toute la largeur */
 .champ-erreur, .champ-erreur:focus { border-color: var(--rouge); }   /* un code mal tapé */
 
 /* Un bouton qui reste collé au bas de l'écran pendant qu'on défile (Enregistrer l'ordre) */
