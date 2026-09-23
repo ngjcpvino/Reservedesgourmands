@@ -211,9 +211,23 @@
       <div class="label">Catégorie</div>
       <select class="champ" id="cat"></select>
     </div>
+    <div class="bloc" id="bloc-cat-neuve" hidden>
+      <div class="label">Nom de la nouvelle catégorie</div>
+      <div class="ligne-couleur">
+        <input class="champ" id="cat-neuve" autocomplete="off" placeholder="Ex. Boulangerie">
+        <button class="bouton bouton-petit" id="btn-cat-neuve" type="button">Ajouter</button>
+      </div>
+    </div>
     <div class="bloc" id="bloc-souscat" hidden>
       <div class="label">Sous-catégorie</div>
       <select class="champ" id="souscat"></select>
+    </div>
+    <div class="bloc" id="bloc-souscat-neuve" hidden>
+      <div class="label">Nom de la nouvelle sous-catégorie</div>
+      <div class="ligne-couleur">
+        <input class="champ" id="souscat-neuve" autocomplete="off" placeholder="Ex. Pains">
+        <button class="bouton bouton-petit" id="btn-souscat-neuve" type="button">Ajouter</button>
+      </div>
     </div>
 
     <!-- L'achat : où, et combien payé (le prix reste facultatif) -->
@@ -327,7 +341,7 @@
 </div><!-- fin du conteneur -->
 
 <script src="JS/coffre.js?v=3"></script>
-<script src="JS/entree.js?v=46"></script>
+<script src="JS/entree.js?v=47"></script>
 <script src="JS/scan.js?v=4"></script>
 </body>
 </html>

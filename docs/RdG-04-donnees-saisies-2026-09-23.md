@@ -186,3 +186,5 @@ l'écran de **fusion** de deux produits (le coffre-fort est prêt, il manque l'�
 
 **Reste pour plus tard, avec la sortie** : les deux trous de la section 6 (l'historique
 des sorties et la quantité d'origine du lot).
+
+**Ajouté le 23 septembre (test de J-C)** · on peut créer une **catégorie** et une **sous-catégorie** sans quitter la fiche d'entrée (« Nouvelle… » au bout de la liste). Un nom déjà pris est réutilisé au lieu d'être recréé.
