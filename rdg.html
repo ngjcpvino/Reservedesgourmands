@@ -10,7 +10,7 @@
   <!-- Ecran d'accueil iPad : le meme sac, en PNG (iOS n'accepte pas le SVG ici) -->
   <link rel="apple-touch-icon" href="apple-touch-icon.png?v=2">
 
-<link rel="stylesheet" href="CSS/rdg.css?v=47">
+<link rel="stylesheet" href="CSS/rdg.css?v=48">
 </head>
 <body>
 
@@ -302,10 +302,7 @@
     </div>
     <div class="bloc">
       <div class="label">Couleur</div>
-      <div class="ligne-couleur">
-        <span class="pastille" id="meuble-pastille"></span>
-        <input class="champ champ-hex" id="meuble-couleur" value="#6b4f3a" maxlength="7" autocomplete="off" autocapitalize="off" spellcheck="false" placeholder="#rrggbb">
-      </div>
+      <div class="palette" id="meuble-palette"></div>
     </div>
     <button class="bouton bouton-vert bouton-pleine bouton-detache" id="btn-meuble-enr" type="button">Enregistrer</button>
     <div class="message" id="meuble-msg"></div>
@@ -329,7 +326,7 @@
 </div><!-- fin du conteneur -->
 
 <script src="JS/coffre.js?v=3"></script>
-<script src="JS/entree.js?v=52"></script>
+<script src="JS/entree.js?v=53"></script>
 <script src="JS/scan.js?v=4"></script>
 </body>
 </html>

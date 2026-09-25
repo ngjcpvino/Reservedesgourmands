@@ -7,43 +7,73 @@
 ============================================================ */
 
 :root {
-  /* ---- Couleurs ---- */
-  --blanc:            #ffffff;
-  --creme:            #f5efe6;
-  --beige:            #e8ddd0;
-  --beige-moyen:      #d4c4b0;
-  --brun-clair:       #a08060;
-  --brun:             #6b4f3a;
-  --brun-fonce:       #3d2b1f;
-  --rouge:            #c0392b;
-  --orange:           #D4835D;
-  --vert:             #5A8A65;
-  --bleu:             #6B9BC8;
-  --or:               #FFD700;   /* l'accent : les boutons Retour */
-  --fond:             #ffffff;
-  --noir:             #000000;   /* le fond de l'image du scan, quand la camera n'a rien */
-  --ivoire-chaud:     #F5F0E6;
-  --sauge-doux:        #AFC5AF;
-  --olive-profond:     #5A6B3C;
-  --jaune-beurre:      #F2EBBF;
-  --taupe-beige:       #C4B896;
-  --rouge-tomate:      #C9372D;
-  --moutarde-or:       #C9952E;
-  --bleu-porcelaine:   #A5C4DE;
-  --bordeaux:          #6B1E25;
-  --rouge-vin:         #5C1D20;
-  --bleu-soir:         #2A4566;
-  --cuivre-metallique: #C77D4B;
-  --anthracite:        #3E4042;
+  /* ---- Couleurs : LA PALETTE, numérotée par famille (2026-09-25).
+     Le numéro est l'IDENTITÉ de la couleur (un meuble retient « 305 ») : ne jamais renuméroter.
+     Une nouvelle couleur prend le prochain numéro libre de sa famille. ---- */
+  /* Blancs et crèmes */
+  --couleur-101: #ffffff;
+  --couleur-102: #ffffff;
+  --couleur-103: #fff9ec;
+  --couleur-104: #fff2d6;
+  --couleur-105: #f5efe6;
+  --couleur-106: #f5f0e6;
+  /* Beiges et sables */
+  --couleur-201: #e8ddd0;
+  --couleur-202: #ffe0b2;
+  --couleur-203: #ffd9a8;
+  --couleur-204: #f2d7a0;
+  --couleur-205: #d4c4b0;
+  --couleur-206: #c4b896;
+  /* Bruns */
+  --couleur-301: #a1887f;
+  --couleur-302: #a08060;
+  --couleur-303: #c77d4b;
+  --couleur-304: #8d4b20;
+  --couleur-305: #6b4f3a;
+  --couleur-306: #3d2b1f;
+  /* Rouges */
+  --couleur-401: #c9372d;
+  --couleur-402: #c0392b;
+  --couleur-403: #6b1e25;
+  --couleur-404: #5c1d20;
+  /* Oranges */
+  --couleur-501: #ffcc80;
+  --couleur-502: #f39c12;
+  --couleur-503: #ff8f00;
+  --couleur-504: #e08a00;
+  --couleur-505: #ef6c00;
+  --couleur-506: #c76a1f;
+  --couleur-507: #b85c00;
+  /* Jaunes et ors */
+  --couleur-601: #fff3c0;
+  --couleur-602: #ffe8b0;
+  --couleur-603: #f2ebbf;
+  --couleur-604: #ffc400;
+  --couleur-605: #ffb300;
+  --couleur-606: #f9a825;
+  --couleur-607: #c9952e;
+  /* Verts */
+  --couleur-701: #afc5af;
+  --couleur-702: #6baf2e;
+  --couleur-703: #5a8a65;
+  --couleur-704: #5a6b3c;
+  /* Bleus */
+  --couleur-801: #a5c4de;
+  --couleur-802: #2a4566;
+  --couleur-803: #2c3e6b;
+  /* Gris et noirs */
+  --couleur-901: #8f939d;
+  --couleur-902: #3e4042;
+  --couleur-903: #000000;
 
   /* ---- Couleurs de service : DÉRIVÉES des couleurs ci-dessus, jamais écrites en dur.
      Change une couleur de base (écran Outils → Couleurs) : ses dérivées suivent. ---- */
-  --separateur:       color-mix(in srgb, var(--beige-moyen) 40%, transparent);
-  --champ-bord:       var(--beige-moyen);
-  --champ-focus:      var(--brun);
-  --champ-focus-halo: color-mix(in srgb, var(--brun) 12%, transparent);
-  --placeholder:      var(--brun-clair);
-  --menu-fond:        color-mix(in srgb, var(--brun-fonce) 80%, transparent);  /* le brun foncé du menu, à 80% d'opacité */
+  --separateur:       color-mix(in srgb, var(--couleur-205) 40%, transparent);
+  --champ-bord:       var(--couleur-205);
+  --champ-focus:      var(--couleur-305);
+  --champ-focus-halo: color-mix(in srgb, var(--couleur-305) 12%, transparent);
+  --placeholder:      var(--couleur-302);
+  --menu-fond:        color-mix(in srgb, var(--couleur-306) 80%, transparent);  /* le brun foncé du menu, à 80% d'opacité */
 
   /* ---- Tailles de texte (échelle neutre : change la valeur, tout suit) ---- */
   --texte-micro:      12px;
@@ -85,7 +115,7 @@
   --titre-site-fluide: 12vw;
   --titre-site-max:   70px;
   --lettrage-titre:   3px;
-  --ombre-titre:      0 2px 16px color-mix(in srgb, var(--brun-fonce) 60%, transparent);
+  --ombre-titre:      0 2px 16px color-mix(in srgb, var(--couleur-306) 60%, transparent);
 
   /* ---- Le burger ---- */
   --burger-gap:       5px;       /* entre les trois traits */
@@ -97,26 +127,26 @@
   /* ---- Le menu ---- */
   --menu-bas:         2vh;       /* il s'arrete a 2% du bas */
   --menu-largeur:     220px;
-  --menu-enfant-fond: color-mix(in srgb, var(--blanc) 8%, transparent);
-  --menu-separateur:  color-mix(in srgb, var(--blanc) 6%, transparent);
+  --menu-enfant-fond: color-mix(in srgb, var(--couleur-101) 8%, transparent);
+  --menu-separateur:  color-mix(in srgb, var(--couleur-101) 6%, transparent);
 
   /* ---- Durees ---- */
   --transition-pli:   0.25s;     /* le triangle qui tourne */
   --transition-menu:  0.3s;      /* le menu qui glisse */
-  --spinner-lueur:    drop-shadow(0 0 10px color-mix(in srgb, var(--blanc) 28%, transparent));
+  --spinner-lueur:    drop-shadow(0 0 10px color-mix(in srgb, var(--couleur-101) 28%, transparent));
   --scan-haut:        25vh;      /* la hauteur de la fenêtre du scan : pleine largeur et basse, comme un code-barres */
   --lettrage-large:   0.04em;    /* l'espacement des lettres du code lu */
   --tactile:          44px;
   --transition:       0.2s ease;
   --police:           'Cabinet Grotesk', system-ui, sans-serif;
-  --ombre-carte:      0 2px 12px color-mix(in srgb, var(--brun-fonce) 10%, transparent);
-  --ombre-bouton:     0 1px 6px color-mix(in srgb, var(--brun-fonce) 10%, transparent);
+  --ombre-carte:      0 2px 12px color-mix(in srgb, var(--couleur-306) 10%, transparent);
+  --ombre-bouton:     0 1px 6px color-mix(in srgb, var(--couleur-306) 10%, transparent);
   /* ---- Les boutons (style A) : dégradé clair → foncé de leur couleur + ombre + reflet en haut ---- */
   --bouton-degrade:    8%;      /* l'écart entre le haut (plus clair) et le bas (plus foncé) */
-  --bouton-ombre:      0 2px 4px color-mix(in srgb, var(--brun-fonce) 22%, transparent);
-  --bouton-lisere:     color-mix(in srgb, var(--blanc) 28%, transparent);   /* le fin trait de lumière tout en haut */
-  --bouton-reflet:     color-mix(in srgb, var(--blanc) 14%, transparent);   /* la lueur sur la moitié du haut */
-  --ombre-forte:      0 6px 24px color-mix(in srgb, var(--brun-fonce) 28%, transparent);
+  --bouton-ombre:      0 2px 4px color-mix(in srgb, var(--couleur-306) 22%, transparent);
+  --bouton-lisere:     color-mix(in srgb, var(--couleur-101) 28%, transparent);   /* le fin trait de lumière tout en haut */
+  --bouton-reflet:     color-mix(in srgb, var(--couleur-101) 14%, transparent);   /* la lueur sur la moitié du haut */
+  --ombre-forte:      0 6px 24px color-mix(in srgb, var(--couleur-306) 28%, transparent);
 
   --fleche-taille:     5px;    /* le triangle « plier/déplier », dessiné en CSS */
   --retrait:           12px;   /* le contenu d'un accordéon recule d'autant : la hiérarchie se voit */
@@ -142,9 +172,9 @@
   --spinner-elance:   2.6;                     /* hauteur = largeur x ce chiffre */
   --spinner-vitesse:  6s;                      /* un cycle complet : se remplit puis se vide */
   --spinner-decalage: 2s;                      /* l'écart entre les trois */
-  --spinner-plein:    var(--blanc);            /* le lait */
-  --spinner-trait:    var(--creme);            /* le contour de la bouteille */
-  --spinner-voile:    color-mix(in srgb, var(--brun-fonce) 55%, transparent);  /* l'écran qui bloque derrière */
+  --spinner-plein:    var(--couleur-101);            /* le lait */
+  --spinner-trait:    var(--couleur-105);            /* le contour de la bouteille */
+  --spinner-voile:    color-mix(in srgb, var(--couleur-306) 55%, transparent);  /* l'écran qui bloque derrière */
 }
 
 /* Aucun effet de survol dans cette feuille (décision de J-C, 2026-09-22) : l'app vit sur
@@ -159,8 +189,8 @@ body {
   font-family: var(--police);
   font-size: var(--texte-normal);
   font-weight: var(--poids-normal);
-  color: var(--brun-fonce);
-  background: var(--fond);
+  color: var(--couleur-306);
+  background: var(--couleur-102);
   min-height: var(--plein-ecran);
   overflow-x: hidden;
 }
@@ -178,7 +208,7 @@ html::-webkit-scrollbar, body::-webkit-scrollbar { display: none; }
 .conteneur {
   max-width: var(--largeur-max);
   margin: 0 auto;
-  background: var(--blanc);
+  background: var(--couleur-101);
   min-height: var(--plein-ecran);
   padding-top: var(--haut-ecran);
 }
@@ -216,7 +246,7 @@ html::-webkit-scrollbar, body::-webkit-scrollbar { display: none; }
   right: var(--espace-xl);
   font-size: clamp(var(--titre-site-min), var(--titre-site-fluide), var(--titre-site-max));
   font-weight: var(--poids-normal);
-  color: var(--blanc);
+  color: var(--couleur-101);
   letter-spacing: var(--lettrage-titre);
   text-transform: uppercase;
   text-shadow: var(--ombre-titre);
@@ -226,17 +256,17 @@ html::-webkit-scrollbar, body::-webkit-scrollbar { display: none; }
 /* ============================================================
    TEXTE — base + variantes de taille / ton / poids
 ============================================================ */
-.texte { font-size: var(--texte-normal); font-weight: var(--poids-normal); color: var(--brun-fonce); line-height: 1.4; }
+.texte { font-size: var(--texte-normal); font-weight: var(--poids-normal); color: var(--couleur-306); line-height: 1.4; }
 .texte-micro  { font-size: var(--texte-micro); }
 .texte-petit  { font-size: var(--texte-petit); }
 .texte-grand  { font-size: var(--texte-grand); }
-.texte-pale   { color: var(--brun-clair); }
+.texte-pale   { color: var(--couleur-302); }
 .texte-leger  { font-weight: var(--poids-leger); }
 .texte-fort   { font-weight: var(--poids-fort); }
 
 /* petit intitulé au-dessus d'un champ */
-.label { font-size: var(--texte-micro); color: var(--brun-clair); margin-bottom: var(--espace-xs); }
-.label-fort { font-size: var(--texte-normal); color: var(--brun-fonce); font-weight: var(--poids-fort); }
+.label { font-size: var(--texte-micro); color: var(--couleur-302); margin-bottom: var(--espace-xs); }
+.label-fort { font-size: var(--texte-normal); color: var(--couleur-306); font-weight: var(--poids-fort); }
 
 /* ============================================================
    TITRE — un titre de section/page (base + variante nue)
@@ -244,9 +274,9 @@ html::-webkit-scrollbar, body::-webkit-scrollbar { display: none; }
 .titre {
   font-size: var(--texte-grand);
   font-weight: var(--poids-normal);
-  color: var(--brun-fonce);
+  color: var(--couleur-306);
   padding-bottom: var(--espace-s);
-  border-bottom: var(--filet-titre) solid var(--beige-moyen);
+  border-bottom: var(--filet-titre) solid var(--couleur-205);
   margin-bottom: var(--espace-l);
   text-align: center;   /* les titres de page, au centre (J-C, 2026-09-25) */
 }
@@ -257,7 +287,7 @@ html::-webkit-scrollbar, body::-webkit-scrollbar { display: none; }
    ex. class="bouton bouton-brun bouton-pleine"
 ============================================================ */
 .bouton {
-  --c: var(--blanc);                      /* la couleur du bouton : chaque variante la change */
+  --c: var(--couleur-101);                      /* la couleur du bouton : chaque variante la change */
   position: relative;
   overflow: hidden;
   display: inline-flex;
@@ -266,9 +296,9 @@ html::-webkit-scrollbar, body::-webkit-scrollbar { display: none; }
   gap: var(--espace-s);
   padding: var(--espace-m) var(--espace-l);
   background: linear-gradient(to bottom,
-    color-mix(in srgb, var(--c), var(--blanc) var(--bouton-degrade)),
-    color-mix(in srgb, var(--c), var(--noir) var(--bouton-degrade)));
-  color: var(--brun);
+    color-mix(in srgb, var(--c), var(--couleur-101) var(--bouton-degrade)),
+    color-mix(in srgb, var(--c), var(--couleur-903) var(--bouton-degrade)));
+  color: var(--couleur-305);
   border: none;
   border-radius: var(--rayon);
   cursor: pointer;
@@ -288,12 +318,12 @@ html::-webkit-scrollbar, body::-webkit-scrollbar { display: none; }
 .bouton-pleine { display: flex; width: 100%; }
 
 /* couleur : chaque variante ne change que --c ; le dégradé, l'ombre et le reflet suivent */
-.bouton-brun   { --c: var(--brun);   color: var(--creme); }
-.bouton-vert   { --c: var(--vert);   color: var(--blanc); }
-.bouton-orange { --c: var(--orange); color: var(--blanc); }
-.bouton-bleu   { --c: var(--bleu);   color: var(--blanc); }
-.bouton-rouge  { --c: var(--rouge);  color: var(--blanc); }
-.bouton-or     { --c: var(--or);     color: var(--brun-fonce); }   /* Retour : l'or est clair, le texte passe au brun foncé */
+.bouton-brun   { --c: var(--couleur-305);   color: var(--couleur-105); }
+.bouton-vert   { --c: var(--couleur-703);   color: var(--couleur-101); }
+.bouton-orange { --c: var(--couleur-502); color: var(--couleur-101); }
+.bouton-bleu   { --c: var(--couleur-803);   color: var(--couleur-101); }
+.bouton-rouge  { --c: var(--couleur-402);  color: var(--couleur-101); }
+.bouton-or     { --c: var(--couleur-604);     color: var(--couleur-306); }   /* Retour : l'or est clair, le texte passe au brun foncé */
 
 /* taille */
 .bouton-grand {
@@ -319,13 +349,13 @@ html::-webkit-scrollbar, body::-webkit-scrollbar { display: none; }
 .champ {
   width: 100%;
   padding: var(--espace-s) var(--espace-m);
-  background: var(--blanc);
+  background: var(--couleur-101);
   border: var(--filet) solid var(--champ-bord);
   border-radius: var(--rayon);
   font-family: var(--police);
   font-size: var(--texte-normal);
   font-weight: var(--poids-leger);
-  color: var(--brun-fonce);
+  color: var(--couleur-306);
   outline: none;
   transition: var(--transition);
   min-height: var(--tactile);
@@ -349,7 +379,7 @@ select.champ {
   display: block;             /* sinon un jour sous la video s'ajoute a l'ecart */
   width: 100%;
   height: var(--scan-haut);   /* hauteur FIXE : sinon iOS garde la forme debout de la caméra */
-  background: var(--noir);
+  background: var(--couleur-903);
   border-radius: var(--rayon-video);
   object-fit: cover;
 }
@@ -360,7 +390,7 @@ select.champ {
 .compteur {
   display: inline-flex;
   align-items: center;
-  background: var(--blanc);
+  background: var(--couleur-101);
   border: var(--filet) solid var(--champ-bord);
   border-radius: var(--rayon);
   overflow: hidden;
@@ -371,7 +401,7 @@ select.champ {
   background: transparent;
   border: none;
   font-size: var(--texte-moyen);
-  color: var(--brun);
+  color: var(--couleur-305);
   cursor: pointer;
   transition: var(--transition);
   display: flex;
@@ -384,7 +414,7 @@ select.champ {
   text-align: center;
   font-size: var(--texte-normal);
   font-weight: var(--poids-fort);
-  color: var(--brun-fonce);
+  color: var(--couleur-306);
   border-left: var(--filet) solid var(--champ-bord);
   border-right: var(--filet) solid var(--champ-bord);
   display: flex;
@@ -400,7 +430,7 @@ select.champ {
 .endroit-meuble { border-left: var(--filet-meuble) solid; }
 
 .carte {
-  background: var(--blanc);
+  background: var(--couleur-101);
   border-radius: var(--rayon);
   box-shadow: var(--ombre-carte);
   padding: var(--espace-l);
@@ -409,7 +439,7 @@ select.champ {
 /* ============================================================
    ACCORDÉON — un bloc repliable (tête brune + items)
 ============================================================ */
-.accordeon { background: var(--blanc); border-radius: var(--rayon); overflow: hidden; margin-bottom: var(--espace-s); }
+.accordeon { background: var(--couleur-101); border-radius: var(--rayon); overflow: hidden; margin-bottom: var(--espace-s); }
 /* Ce qui ouvre le corps d'un accordéon serait collé au titre, car la marge n'existe qu'en dessous.
    La règle vaut pour le PREMIER élément quel qu'il soit : un accordéon, une ligne, un item.
    (`accordeon-bloc` fait exception : il porte déjà son propre rembourrage en haut.) */
@@ -422,8 +452,8 @@ select.champ {
   align-items: center;
   padding: var(--espace-m) var(--espace-l);
   cursor: pointer;
-  background: var(--brun);
-  color: var(--creme);
+  background: var(--couleur-305);
+  color: var(--couleur-105);
   font-weight: var(--poids-fort);
   font-size: var(--texte-moyen);
   min-height: var(--tactile);
@@ -432,7 +462,7 @@ select.champ {
 }
 /* Fond pâle (couleur de meuble claire) : le texte passe au brun foncé, sinon il disparaît.
    La classe est posée par le script, qui seul connaît la couleur choisie. */
-.accordeon-tete.tete-pale { color: var(--brun-fonce); }
+.accordeon-tete.tete-pale { color: var(--couleur-306); }
 /* ------------------------------------------------------------
    LE TRIANGLE « PLIER / DÉPLIER » — dessiné ici, jamais écrit dans le HTML.
    Règle de J-C : un triangle TOURNE, sinon il n'existe pas. Une flèche à
@@ -508,10 +538,16 @@ select.champ {
 .choix-quoi { flex: 1; }
 .pastille { flex-shrink: 0; width: var(--pastille); height: var(--pastille); border-radius: var(--rayon); border: var(--filet) solid var(--champ-bord); }
 .couleur-nom { flex: 1; min-width: 0; }
-.couleur-usage { display: block; font-size: var(--texte-micro); color: var(--brun-clair); }
+.couleur-usage { display: block; font-size: var(--texte-micro); color: var(--couleur-302); }
+/* Choisir une couleur de la palette (pièces, meubles) : une grille de pastilles à toucher. */
+.palette { display: flex; flex-wrap: wrap; gap: var(--espace-s); }
+.accordeon-corps > .palette { padding: var(--espace-s) var(--espace-l); }
+.pastille-choix { -webkit-appearance: none; appearance: none; padding: 0; cursor: pointer; }
+.pastille-choisie { box-shadow: 0 0 0 var(--halo) var(--champ-focus); }
+.couleur-choix { cursor: pointer; }
 .champ-hex { flex-shrink: 0; width: var(--champ-hex-large); }
 .champ-nombre { flex-shrink: 0; width: var(--champ-nombre-large); }   /* un nombre n'a pas besoin de toute la largeur */
-.champ-erreur, .champ-erreur:focus { border-color: var(--rouge); }   /* un code mal tapé */
+.champ-erreur, .champ-erreur:focus { border-color: var(--couleur-402); }   /* un code mal tapé */
 
 /* Un bouton qui reste collé au bas de l'écran pendant qu'on défile (Enregistrer l'ordre) */
 .bouton-collant { position: sticky; bottom: var(--espace-l); z-index: var(--plan-collant); }
@@ -528,13 +564,13 @@ select.champ {
   min-height: var(--tactile);
 }
 .item-info { flex: 1; }
-.item-nom { font-size: var(--texte-moyen); font-weight: var(--poids-normal); color: var(--brun-fonce); }
-.item-detail { font-size: var(--texte-petit); font-weight: var(--poids-leger); color: var(--brun-clair); }
+.item-nom { font-size: var(--texte-moyen); font-weight: var(--poids-normal); color: var(--couleur-306); }
+.item-detail { font-size: var(--texte-petit); font-weight: var(--poids-leger); color: var(--couleur-302); }
 .item-quantite {
   font-size: var(--texte-petit);
   font-weight: var(--poids-fort);
-  color: var(--brun);
-  background: var(--beige);
+  color: var(--couleur-305);
+  background: var(--couleur-201);
   padding: var(--espace-micro) var(--espace-s);
   border-radius: var(--rayon);
 }
@@ -543,8 +579,8 @@ select.champ {
    MESSAGE — petit retour sous une action
 ============================================================ */
 .message { font-size: var(--texte-petit); font-weight: var(--poids-leger); margin-top: var(--espace-s); min-height: var(--message-haut); }
-.message-erreur { color: var(--rouge); }
-.message-succes { color: var(--vert); }
+.message-erreur { color: var(--couleur-402); }
+.message-succes { color: var(--couleur-703); }
 .message-repli:empty { display: none; }   /* vide, il ne garde pas sa place : l'ecart reste egal */
 
 /* ============================================================
@@ -564,7 +600,7 @@ select.champ {
   flex-shrink: 0;
   width: var(--icone-taille);
   height: var(--icone-taille);
-  background-color: var(--creme);   /* le trait suit le crème du root */
+  background-color: var(--couleur-105);   /* le trait suit le crème du root */
   -webkit-mask: var(--dessin) center / contain no-repeat;
           mask: var(--dessin) center / contain no-repeat;
 }
@@ -588,7 +624,7 @@ select.champ {
   transform: translateX(-50%);
   padding: var(--espace-m) var(--espace-l);
   border-radius: var(--rayon);
-  color: var(--blanc);
+  color: var(--couleur-101);
   box-shadow: var(--ombre-forte);
   font-size: var(--texte-petit);
   z-index: 200;
@@ -597,9 +633,9 @@ select.champ {
   transition: opacity var(--transition);
 }
 .toast.visible { opacity: 1; }
-.toast-avis   { background: var(--brun-fonce); }
-.toast-succes { background: var(--vert); }
-.toast-erreur { background: var(--rouge); }
+.toast-avis   { background: var(--couleur-306); }
+.toast-succes { background: var(--couleur-703); }
+.toast-erreur { background: var(--couleur-402); }
 
 /* ============================================================
    MENU BURGER — bouton fixe en haut à DROITE + menu plein écran
@@ -624,9 +660,9 @@ select.champ {
 .burger { right: max(var(--espace-l), calc(50% - var(--largeur-max) / 2 + var(--espace-l))); gap: var(--burger-gap); }   /* collé au conteneur (700px), pas au bord de l'écran */
 .coin-gauche { left: max(var(--espace-l), calc(50% - var(--largeur-max) / 2 + var(--espace-l))); }
 /* la loupe du coin : le brun et l'épaisseur des traits du burger (trait 2 au lieu de 0.8) */
-.coin .icone { width: var(--coin-icone); height: var(--coin-icone); background-color: var(--brun); }
+.coin .icone { width: var(--coin-icone); height: var(--coin-icone); background-color: var(--couleur-305); }
 .coin .icone-trouver { --dessin: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23f5efe6' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Ccircle cx='10.5' cy='10.5' r='7'/%3E%3Cpath d='M15.6 15.6 21 21'/%3E%3C/svg%3E") }
-.burger span { display: block; width: var(--burger-trait-large); height: var(--burger-trait-haut); background: var(--brun); border-radius: var(--rayon); }
+.burger span { display: block; width: var(--burger-trait-large); height: var(--burger-trait-haut); background: var(--couleur-305); border-radius: var(--rayon); }
 
 .menu {
   position: fixed;
@@ -654,7 +690,7 @@ select.champ {
   font-family: var(--police);
   font-size: var(--texte-moyen);
   font-weight: var(--poids-fort);
-  color: var(--creme);
+  color: var(--couleur-105);
   text-align: left;
   cursor: pointer;
   transition: var(--transition);
