@@ -107,14 +107,14 @@ function montrerQui() {
   toutCacher(); $('vue-qui').hidden = false; $('btn-burger').hidden = false;
   $('qui-nom').value = localStorage.getItem(QUI) || '';
   $('qui-msg').className = 'message';
-  $('qui-msg').textContent = localStorage.getItem(QUI) ? '' : 'Ton nom s\'inscrit sur chaque article que tu entres. Il reste sur cet appareil.';
+  $('qui-msg').textContent = '';
 }
 function enregistrerQui() {
   const nom = $('qui-nom').value.trim();
   const msg = $('qui-msg');
   if (!nom) {                                   // un nom vide ne règle rien : on insiste
     msg.className = 'message message-erreur';
-    msg.textContent = 'Écris ton nom : il s\'inscrit sur chaque article que tu entres.';
+    msg.textContent = 'Écris ton nom.';
     return;
   }
   try { localStorage.setItem(QUI, nom); } catch (e) {}
