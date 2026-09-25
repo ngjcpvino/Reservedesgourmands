@@ -242,20 +242,32 @@ function deconnexion() {
 }
 
 /* ---------- Menu burger ---------- */
-function fermerMenu() {                 // le menu se ferme -> ses sous-menus se replient avec lui
+/* Le menu : la page glisse vers le haut, la grille d'icônes apparaît, le burger devient un X. */
+function fermerMenu() {                 // la page redescend ; Outils se replie avec elle
   $('menu').classList.remove('ouvert');
-  document.querySelectorAll('#menu .menu-item-enfant').forEach(b => { b.hidden = true; });
-  document.querySelectorAll('#menu .menu-item-parent').forEach(b => b.classList.remove('ouvert'));
+  document.body.classList.remove('menu-ouvert');
+  $('btn-burger').classList.remove('ouvert');
+  montrerOutils(false);
 }
-
-/* Un item de menu qui en ouvre d'autres. Comme les accordéons : un seul groupe ouvert à la fois. */
-function basculerSousMenu(parent) {
-  const ouvrir = !parent.classList.contains('ouvert');
-  document.querySelectorAll('#menu .menu-item-parent').forEach(b => b.classList.remove('ouvert'));
-  document.querySelectorAll('#menu .menu-item-enfant').forEach(b => { b.hidden = true; });
-  if (!ouvrir) return;
-  parent.classList.add('ouvert');
-  document.querySelectorAll('#menu .menu-item-enfant[data-parent="' + parent.dataset.groupe + '"]').forEach(b => { b.hidden = false; });
+function ouvrirMenu() {
+  $('menu').scrollTop = 0;
+  $('menu').classList.add('ouvert');
+  document.body.classList.add('menu-ouvert');
+  $('btn-burger').classList.add('ouvert');
+}
+/* Outils : ses 4 icônes prennent la place des 6; Retour les rend. */
+function montrerOutils(on) {
+  $('menu-principal').hidden = on;
+  $('menu-outils-grille').hidden = !on;
+}
+/* Glisser le doigt vers le bas sur le menu le ferme (comme retoucher le X). */
+const GLISSER = 60;                     // en pixels : un vrai geste, pas un frôlement
+var glisserDepart = null;
+function surToucheDebut(ev) { glisserDepart = $('menu').scrollTop === 0 ? ev.touches[0].clientY : null; }
+function surToucheFin(ev) {
+  if (glisserDepart === null) return;
+  if (ev.changedTouches[0].clientY - glisserDepart > GLISSER) fermerMenu();
+  glisserDepart = null;
 }
 function montrerVoile(on){ $('voile').hidden = !on; }   // voile bloquant + les trois bouteilles de lait
 
@@ -282,7 +294,7 @@ function toggleAccordeon(tete) {
 }
 function basculerMenu() {                // ouvrir, ou fermer par le seul chemin qui replie tout
   if ($('menu').classList.contains('ouvert')) fermerMenu();
-  else $('menu').classList.add('ouvert');
+  else ouvrirMenu();
 }
 
 /* ---------- Toast « à venir » ---------- */
@@ -1392,8 +1404,10 @@ function initEntree() {
   // page d'ouverture : menu burger + items
   $('btn-burger').addEventListener('click', basculerMenu);
   $('menu-ouverture').addEventListener('click', montrerAccueil);   // 1er item = retour à l'ouverture
-  document.querySelectorAll('#menu .menu-item-parent').forEach(p =>
-    p.addEventListener('click', () => basculerSousMenu(p)));          // Ajouter, Outils : ils ouvrent leurs enfants
+  $('menu-outils').addEventListener('click', () => montrerOutils(true));
+  $('menu-outils-retour').addEventListener('click', () => montrerOutils(false));
+  $('menu').addEventListener('touchstart', surToucheDebut, { passive: true });
+  $('menu').addEventListener('touchend', surToucheFin);
   $('menu-bases').addEventListener('click', montrerBases);
   $('menu-couleurs').addEventListener('click', montrerCouleurs);
   // le menu mène exactement où mènent les 4 boutons de l'accueil
