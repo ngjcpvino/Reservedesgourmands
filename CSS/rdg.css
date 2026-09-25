@@ -187,6 +187,7 @@ html::-webkit-scrollbar, body::-webkit-scrollbar { display: none; }
 
 /* espaceur vertical réutilisable entre deux champs/blocs */
 .bloc { margin-bottom: var(--espace-m); }
+.bloc-suite { margin-top: var(--espace-s); }   /* suit immediatement ce qui precede, au meme ecart que les boutons */
 
 /* ============================================================
    EN-TÊTE PHOTO (le grand visuel d'accueil)
@@ -335,6 +336,7 @@ select.champ {
 
 /* L'image du scan — ce que la camera montre */
 .scan-video {
+  display: block;             /* sinon un jour sous la video s'ajoute a l'ecart */
   width: 100%;
   height: var(--scan-haut);   /* hauteur FIXE : sinon iOS garde la forme debout de la caméra */
   background: var(--noir);
@@ -536,6 +538,7 @@ select.champ {
 .message { font-size: var(--texte-petit); font-weight: var(--poids-leger); margin-top: var(--espace-s); min-height: var(--message-haut); }
 .message-erreur { color: var(--rouge); }
 .message-succes { color: var(--vert); }
+.message-repli:empty { display: none; }   /* vide, il ne garde pas sa place : l'ecart reste egal */
 
 /* ============================================================
    GRILLE — disposition en colonnes (2 par défaut, ou 3)
