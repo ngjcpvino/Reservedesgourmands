@@ -16,7 +16,6 @@ var produitCourant = null;  // id du produit reconnu (existant) ; null = nouveau
 var modeManuel = false;     // entrée À LA MAIN : entonnoir catégorie -> sous-catégorie -> produit
 var MAGASINS = [];          // les magasins déjà utilisés (on propose au lieu de faire taper)
 const UNITES_BASE = ['unité', 'g', 'kg', 'ml', 'L'];   // le départ; toute unité déjà utilisée s'y ajoute
-var POIDS = [];             // viande : le poids de chaque paquet; un paquet = une ligne de stock
 const QUI = 'rdg_qui';      // qui se sert de l'app sur CET appareil
 var opCourant = null;                                   // jeton anti-reclic de l'article en cours
 var SECTEUR_ID = '';                                    // secteur de cette app (Épicerie), déduit des données
@@ -378,8 +377,7 @@ function trouverProduitParNom(nom) {
 function reinitFiche() {
   $('nom').value = ''; $('marque').value = ''; $('saveur').value = '';
   poserFormat('');
-  $('magasin').value = ''; $('prix').value = ''; $('poids').value = '';
-  POIDS = []; dessinerPoids(); modePoids(false);
+  $('magasin').value = ''; $('prix').value = '';
   $('cat').value = ''; $('souscat').innerHTML = ''; $('produit').innerHTML = ''; $('endroits').innerHTML = '';
   produitCourant = null;
   montrer('bloc-details', false); montrer('bloc-souscat', false); montrer('bloc-produit', false);
@@ -649,23 +647,6 @@ function adopterProduit(pid) {
   montrer('bloc-achat', true); montrer('bloc-endroits', true); montrer('btn-enregistrer', true);
 }
 
-/* ---------- « Chaque paquet a son poids » (viande) ---------- */
-function modePoids(actif) {
-  montrer('bloc-poids', actif);
-  $('format-nb').parentElement.hidden = actif;   // les poids remplacent LE NOMBRE; l'unité reste commune
-  $('btn-mode-poids').classList.toggle('choix-actif', actif);
-}
-function dessinerPoids() {
-  $('liste-poids').className = POIDS.length ? 'poids-liste' : '';
-  $('liste-poids').innerHTML = POIDS.map((p, i) =>
-    '<button class="bouton bouton-petit" data-poids="' + i + '" type="button">' + esc(p) + '</button>').join('');
-}
-function ajouterPoids() {
-  const v = $('poids').value.trim();
-  if (!v) { $('poids').focus(); return; }
-  POIDS.push(v); $('poids').value = ''; dessinerPoids(); $('poids').focus();
-}
-
 /* ---------- Le format : un nombre + une unité ----------
    Écrit toujours pareil, donc les quantités s'additionnent. La liste d'unités part de
    UNITES_BASE et s'enrichit de tout ce qui a déjà servi; « Autre… » en ajoute une. */
@@ -813,12 +794,6 @@ async function enregistrer() {
   const marque = $('marque').value.trim(), format = formatSaisi(), code = $('codebarres').value.trim();
   const saveur = $('saveur').value.trim(), magasin = $('magasin').value.trim(), prix = $('prix').value.trim();
   const qui = localStorage.getItem(QUI) || '';        // posé une fois dans Outils, gardé sur l'appareil
-  if (POIDS.length) {                                 // viande : un paquet = une ligne, chacun son poids
-    const parPoids = [];
-    const u = uniteSaisie();                          // les poids partagent l'unité choisie plus haut
-    endroits.forEach(e => POIDS.forEach(p => parPoids.push({ emp: e.emp, qte: 1, format: (p + ' ' + u).trim() })));
-    endroits.length = 0; parPoids.forEach(e => endroits.push(e));
-  }
   if (!opCourant) opCourant = 'op-' + Date.now() + '-' + Math.random().toString(36).slice(2, 8);
   statut('Enregistrement…');
   $('btn-enregistrer').disabled = true;
@@ -1422,19 +1397,11 @@ function initEntree() {
     const b = ev.target.closest('[data-doublon]');
     if (b) adopterProduit(b.dataset.doublon);
   });
-  // viande : le mode « chaque paquet a son poids »
+  // le format : « Autre… » ouvre le champ d'une nouvelle unité
   $('format-unite').addEventListener('change', function () {
     const autre = $('format-unite').value === 'autre';
     montrer('bloc-unite-autre', autre);
     if (autre) $('unite-autre').focus();
-  });
-  $('btn-mode-poids').addEventListener('click', () => modePoids($('bloc-poids').hidden));
-  $('btn-poids').addEventListener('click', ajouterPoids);
-  $('poids').addEventListener('keydown', e => { if (e.key === 'Enter') { e.preventDefault(); ajouterPoids(); } });
-  $('liste-poids').addEventListener('click', function (ev) {   // toucher un poids le retire
-    const b = ev.target.closest('[data-poids]');
-    if (!b) return;
-    POIDS.splice(Number(b.dataset.poids), 1); dessinerPoids();
   });
   // Outils -> qui entre les articles
   $('menu-qui').addEventListener('click', montrerQui);
