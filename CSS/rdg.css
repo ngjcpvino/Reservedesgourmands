@@ -73,7 +73,6 @@
   --champ-focus:      var(--couleur-305);
   --champ-focus-halo: color-mix(in srgb, var(--couleur-305) 12%, transparent);
   --placeholder:      var(--couleur-302);
-  --menu-fond:        color-mix(in srgb, var(--couleur-306) 80%, transparent);  /* le brun foncé du menu, à 80% d'opacité */
 
   /* ---- Tailles de texte (échelle neutre : change la valeur, tout suit) ---- */
   --texte-micro:      12px;
@@ -124,15 +123,10 @@
   --burger-fond:      transparent;   /* les trois traits seuls, sans fond (J-C, 2026-09-25) */
   --coin-icone:       32px;      /* la loupe en haut à gauche, à l'échelle des traits du burger */
 
-  /* ---- Le menu ---- */
-  --menu-bas:         2vh;       /* il s'arrete a 2% du bas */
-  --menu-largeur:     220px;
-  --menu-enfant-fond: color-mix(in srgb, var(--couleur-101) 8%, transparent);
-  --menu-separateur:  color-mix(in srgb, var(--couleur-101) 6%, transparent);
 
   /* ---- Durees ---- */
   --transition-pli:   0.25s;     /* le triangle qui tourne */
-  --transition-menu:  0.3s;      /* le menu qui glisse */
+  --transition-menu:  0.3s;      /* la page qui glisse vers le haut pour montrer le menu */
   --spinner-lueur:    drop-shadow(0 0 10px color-mix(in srgb, var(--couleur-101) 28%, transparent));
   --scan-haut:        25vh;      /* la hauteur de la fenêtre du scan : pleine largeur et basse, comme un code-barres */
   --lettrage-large:   0.04em;    /* l'espacement des lettres du code lu */
@@ -470,8 +464,7 @@ select.champ {
    Il prend currentColor, donc il suit le texte : sur un meuble pâle il
    devient brun foncé tout seul.
 ------------------------------------------------------------ */
-.accordeon-tete::after,
-.menu-item-parent::after {
+.accordeon-tete::after {
   content: '';
   flex-shrink: 0;
   width: 0;
@@ -482,8 +475,7 @@ select.champ {
   opacity: 0.55;
   transition: transform var(--transition-pli) ease;
 }
-.accordeon-tete.ouvert::after,
-.menu-item-parent.ouvert::after { transform: rotate(180deg); }
+.accordeon-tete.ouvert::after { transform: rotate(180deg); }
 .accordeon-item {
   display: flex;
   justify-content: space-between;
@@ -613,6 +605,12 @@ select.champ {
 .icone-epicerie { --dessin: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23f5efe6' stroke-width='0.8' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M3 8h18l-1.8 9.7a2 2 0 0 1-2 1.6H6.8a2 2 0 0 1-2-1.6z'/%3E%3Cpath d='M8 8V6a4 4 0 0 1 8 0v2'/%3E%3Cpath d='M10 12v3.5M14 12v3.5'/%3E%3C/svg%3E") }   /* le panier */
 .icone-manuel { --dessin: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23f5efe6' stroke-width='0.8' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M4 20.5l1.2-4.4L16.8 4.5l3.2 3.2L8.4 19.3z'/%3E%3Cpath d='M14.3 7l3.2 3.2'/%3E%3Cpath d='M4 20.5l3.6-1.2'/%3E%3C/svg%3E") }   /* le crayon */
 .icone-plus { --dessin: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='0.8' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M12 5v14M5 12h14'/%3E%3C/svg%3E"); }   /* entrer un article : le + , pas le scan */
+.icone-accueil { --dessin: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 600 600' fill='none' stroke='black' stroke-width='24' stroke-linecap='round' stroke-linejoin='round'%3E%3Cg transform='translate(300,300) scale(0.62) translate(-281.5,-312)'%3E%3Cpath d='M80 180H483V548a24 24 0 0 1-24 24H104a24 24 0 0 1-24-24Z'/%3E%3Cpath d='M205 258V130a77.5 77.5 0 0 1 155 0V258'/%3E%3C/g%3E%3C/svg%3E"); }   /* Accueil : le sac, le même tracé que le favicon */
+.icone-outils { --dessin: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='0.8' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z'/%3E%3C/svg%3E"); }   /* Outils : la clé */
+.icone-bases { --dessin: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='0.8' stroke-linecap='round' stroke-linejoin='round'%3E%3Crect x='5' y='3' width='14' height='18' rx='1'/%3E%3Cpath d='M5 9h14M5 15h14'/%3E%3C/svg%3E"); }   /* Gérer les bases : l'armoire à tablettes */
+.icone-couleurs { --dessin: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='0.8' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M12 22a1 1 0 0 1 0-20 10 9 0 0 1 10 9 5 5 0 0 1-5 5h-2.25a1.75 1.75 0 0 0-1.4 2.8l.3.4a1.75 1.75 0 0 1-1.4 2.8z'/%3E%3Ccircle cx='13.5' cy='6.5' r='1'/%3E%3Ccircle cx='17.5' cy='10.5' r='1'/%3E%3Ccircle cx='6.5' cy='12.5' r='1'/%3E%3Ccircle cx='8.5' cy='7.5' r='1'/%3E%3C/svg%3E"); }   /* Couleurs : la palette de peintre */
+.icone-qui { --dessin: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='0.8' stroke-linecap='round' stroke-linejoin='round'%3E%3Ccircle cx='12' cy='8' r='4'/%3E%3Cpath d='M4.5 21a7.5 7.5 0 0 1 15 0'/%3E%3C/svg%3E"); }   /* Qui entre les articles : une personne */
+.icone-deco { --dessin: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='0.8' stroke-linecap='round' stroke-linejoin='round'%3E%3Crect x='5' y='11' width='14' height='10' rx='1.5'/%3E%3Cpath d='M8 11V7a4 4 0 0 1 7.7-1.5'/%3E%3C/svg%3E"); }   /* Se déconnecter : le cadenas ouvert */
 
 /* ============================================================
    TOAST — petit avis flottant (confirmation / à venir)
@@ -664,41 +662,28 @@ select.champ {
 .coin .icone-trouver { --dessin: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23f5efe6' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Ccircle cx='10.5' cy='10.5' r='7'/%3E%3Cpath d='M15.6 15.6 21 21'/%3E%3C/svg%3E") }
 .burger span { display: block; width: var(--burger-trait-large); height: var(--burger-trait-haut); background: var(--couleur-305); border-radius: var(--rayon); }
 
+/* Le menu : il attend DERRIÈRE la page. Ouvert, la page glisse vers le haut et le laisse voir. */
 .menu {
   position: fixed;
-  top: calc(var(--haut-ecran) + var(--espace-xl));   /* démarre au bord haut de la photo */
-  right: 0;
-  bottom: var(--menu-bas);                           /* s'arrête à 2% du bas */
-  z-index: 220;
-  min-width: var(--menu-largeur);
-  background: var(--menu-fond);           /* brun translucide, sans flou */
+  inset: 0;
+  z-index: 1;
   overflow-y: auto;
-  transform: translateX(100%);            /* caché hors écran à droite */
-  transition: transform var(--transition-menu) ease;
+  background: var(--couleur-101);
+  padding-top: calc(var(--haut-ecran) + var(--espace-xl) + var(--tactile));   /* sous le X */
+  visibility: hidden;                                                         /* fermé : caché une fois la page redescendue */
+  transition: visibility 0s var(--transition-menu);
 }
-.menu.ouvert { transform: translateX(0); }
-.menu-contenu { padding: calc(var(--tactile) + var(--espace-s)) var(--espace-l) var(--espace-xl); white-space: nowrap; }   /* juste ce qu'il faut pour passer sous le burger */
-.menu-item {
-  display: flex;
-  align-items: center;
-  width: 100%;
-  min-height: var(--tactile);
-  padding: var(--espace-m) var(--espace-l);
-  background: var(--menu-enfant-fond);
-  border: none;
-  border-top: var(--filet) solid var(--menu-separateur);
-  font-family: var(--police);
-  font-size: var(--texte-moyen);
-  font-weight: var(--poids-fort);
-  color: var(--couleur-105);
-  text-align: left;
-  cursor: pointer;
-  transition: var(--transition);
-}
-/* Un item de menu qui en ouvre d'autres : le triangle est poussé à droite. */
-.menu-item-parent::after { margin-left: auto; }
-/* Les items qu'il ouvre, en retrait — même valeur que les accordéons. */
-.menu-item-enfant { padding-left: calc(var(--espace-l) + var(--retrait)); }
+.menu.ouvert { visibility: visible; transition: none; }
+.menu-contenu { max-width: var(--largeur-max); margin: 0 auto; }
+.conteneur { position: relative; z-index: 2; transition: transform var(--transition-menu) ease; }
+body.menu-ouvert { overflow: hidden; }                          /* la page partie, rien ne défile derrière */
+body.menu-ouvert .conteneur { transform: translateY(-100%); }   /* la page glisse vers le haut, complètement */
+body.menu-ouvert .coin-gauche { visibility: hidden; }           /* la loupe : Rechercher est déjà dans la grille */
+/* Le burger devient un X : le trait du milieu s'efface, les deux autres se croisent. */
+.burger span { transition: transform var(--transition-menu) ease, opacity var(--transition-menu) ease; }
+.burger.ouvert span:nth-child(1) { transform: translateY(calc(var(--burger-gap) + var(--burger-trait-haut))) rotate(45deg); }
+.burger.ouvert span:nth-child(2) { opacity: 0; }
+.burger.ouvert span:nth-child(3) { transform: translateY(calc(-1 * (var(--burger-gap) + var(--burger-trait-haut)))) rotate(-45deg); }
 
 /* ============================================================
    VOILE — écran bloquant + les trois bouteilles de lait

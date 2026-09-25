@@ -10,7 +10,7 @@
   <!-- Ecran d'accueil iPad : le meme sac, en PNG (iOS n'accepte pas le SVG ici) -->
   <link rel="apple-touch-icon" href="apple-touch-icon.png?v=2">
 
-<link rel="stylesheet" href="CSS/rdg.css?v=49">
+<link rel="stylesheet" href="CSS/rdg.css?v=50">
 </head>
 <body>
 
@@ -20,19 +20,27 @@
 </button>
 <!-- La loupe — la même place que le burger, mais à GAUCHE ; affichée avec lui -->
 <button class="coin coin-gauche" id="btn-rechercher" type="button" aria-label="Rechercher" hidden><span class="icone icone-trouver"></span></button>
+<!-- Le menu : la page glisse vers le haut et laisse voir la grille d'icônes. Le burger devient un X. -->
 <div id="menu" class="menu">
-  <div class="menu-contenu">
-    <button class="menu-item" id="menu-ouverture" type="button">Accueil</button>
-    <!-- les 4 boutons de l'accueil, au menu aussi -->
-    <button class="menu-item" id="menu-ajouter" type="button">Ajouter</button>
-    <button class="menu-item" id="menu-rechercher" type="button">Rechercher</button>
-    <button class="menu-item" id="menu-consommer" type="button">Consommer</button>
-    <button class="menu-item" id="menu-listes" type="button">Listes</button>
-    <button class="menu-item menu-item-parent" id="menu-outils" type="button" data-groupe="outils">Outils</button>
-    <button class="menu-item menu-item-enfant" id="menu-bases" type="button" data-parent="outils" hidden>Gérer les bases</button>
-    <button class="menu-item menu-item-enfant" id="menu-couleurs" type="button" data-parent="outils" hidden>Couleurs</button>
-    <button class="menu-item menu-item-enfant" id="menu-qui" type="button" data-parent="outils" hidden>Qui entre les articles</button>
-    <button class="menu-item" id="menu-deco" type="button">Se déconnecter</button>
+  <div class="contenu menu-contenu">
+    <div class="grille" id="menu-principal">
+      <button class="bouton bouton-brun bouton-grand" id="menu-ouverture" type="button" aria-label="Accueil"><span class="icone icone-accueil"></span></button>
+      <button class="bouton bouton-brun bouton-grand" id="menu-ajouter" type="button" aria-label="Ajouter"><span class="icone icone-plus"></span></button>
+      <button class="bouton bouton-vert bouton-grand" id="menu-rechercher" type="button" aria-label="Rechercher"><span class="icone icone-trouver"></span></button>
+      <button class="bouton bouton-orange bouton-grand" id="menu-consommer" type="button" aria-label="Consommer"><span class="icone icone-consommer"></span></button>
+      <button class="bouton bouton-bleu bouton-grand" id="menu-listes" type="button" aria-label="Listes"><span class="icone icone-listes"></span></button>
+      <button class="bouton bouton-brun bouton-grand" id="menu-outils" type="button" aria-label="Outils"><span class="icone icone-outils"></span></button>
+    </div>
+    <!-- Outils : ses 4 icônes prennent la place des 6 -->
+    <div id="menu-outils-grille" hidden>
+      <div class="grille">
+        <button class="bouton bouton-brun bouton-grand" id="menu-bases" type="button" aria-label="Gérer les bases"><span class="icone icone-bases"></span></button>
+        <button class="bouton bouton-brun bouton-grand" id="menu-couleurs" type="button" aria-label="Couleurs"><span class="icone icone-couleurs"></span></button>
+        <button class="bouton bouton-brun bouton-grand" id="menu-qui" type="button" aria-label="Qui entre les articles"><span class="icone icone-qui"></span></button>
+        <button class="bouton bouton-brun bouton-grand" id="menu-deco" type="button" aria-label="Se déconnecter"><span class="icone icone-deco"></span></button>
+      </div>
+      <button class="bouton bouton-or bouton-pleine bouton-suite" id="menu-outils-retour" type="button">Retour</button>
+    </div>
   </div>
 </div>
 
@@ -325,7 +333,7 @@
 </div><!-- fin du conteneur -->
 
 <script src="JS/coffre.js?v=3"></script>
-<script src="JS/entree.js?v=54"></script>
+<script src="JS/entree.js?v=55"></script>
 <script src="JS/scan.js?v=4"></script>
 </body>
 </html>
