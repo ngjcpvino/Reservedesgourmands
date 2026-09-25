@@ -248,6 +248,7 @@ html::-webkit-scrollbar, body::-webkit-scrollbar { display: none; }
   padding-bottom: var(--espace-s);
   border-bottom: var(--filet-titre) solid var(--beige-moyen);
   margin-bottom: var(--espace-l);
+  text-align: center;   /* les titres de page, au centre (J-C, 2026-09-25) */
 }
 .titre-nu { border-bottom: none; padding-bottom: 0; }
 
