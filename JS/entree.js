@@ -1304,23 +1304,6 @@ function surHex(ev) {
   montrer('btn-couleurs', true);
 }
 
-/* « Revenir aux couleurs d'origine » : la palette seulement (les pièces et meubles gardent leur numéro).
-   Deux touches : la première demande confirmation, pour ne pas perdre une palette par accident. */
-function couleursOrigine() {
-  const b = $('btn-couleurs-origine');
-  if (!b.dataset.confirmer) {
-    b.dataset.confirmer = '1';
-    b.textContent = 'Toucher encore pour confirmer';
-    clearTimeout(b._h);
-    b._h = setTimeout(() => { delete b.dataset.confirmer; b.textContent = "Revenir aux couleurs d'origine"; }, 3000);
-    return;
-  }
-  clearTimeout(b._h); delete b.dataset.confirmer; b.textContent = "Revenir aux couleurs d'origine";
-  COULEURS_SITE.forEach(([nom]) => { couleursModif.site[nom] = ''; document.documentElement.style.removeProperty('--' + nom); });
-  remplirCouleurs(true);
-  montrer('btn-couleurs', true);
-}
-
 /* « Enregistrer les couleurs » (ou on quitte l'écran) : gardées ici, puis envoyées sans rien bloquer. */
 function envoyerCouleurs() {
   const site = couleursModif.site, meubles = couleursModif.meubles;
@@ -1426,7 +1409,6 @@ function initEntree() {
     if (tete) toggleAccordeon(tete); else surChoixCouleur(ev);
   });
   $('btn-couleurs').addEventListener('click', envoyerCouleurs);
-  $('btn-couleurs-origine').addEventListener('click', couleursOrigine);
   $('meuble-palette').addEventListener('click', surPaletteMeuble);
   $('menu-deco').addEventListener('click', deconnexion);
   // Outils → gérer les bases → ajouter un meuble
