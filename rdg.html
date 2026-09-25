@@ -10,7 +10,7 @@
   <!-- Ecran d'accueil iPad : le meme sac, en PNG (iOS n'accepte pas le SVG ici) -->
   <link rel="apple-touch-icon" href="apple-touch-icon.png?v=2">
 
-<link rel="stylesheet" href="CSS/rdg.css?v=41">
+<link rel="stylesheet" href="CSS/rdg.css?v=42">
 </head>
 <body>
 
@@ -153,7 +153,7 @@
     <!-- Nom : suggère les produits déjà existants -->
     <div class="bloc" id="bloc-nom">
       <div class="label">Nom du produit</div>
-      <input class="champ" id="nom" list="dl-produits" autocomplete="off" placeholder="Nom du produit">
+      <input class="champ champ-fort" id="nom" list="dl-produits" autocomplete="off" placeholder="Nom du produit">
       <datalist id="dl-produits"></datalist>
     </div>
 
@@ -195,7 +195,7 @@
     <!-- Produit : la liste de la sous-catégorie (entrée à la main) -->
     <div class="bloc" id="bloc-produit" hidden>
       <div class="label">Produit</div>
-      <select class="champ" id="produit"></select>
+      <select class="champ champ-fort" id="produit"></select>
     </div>
 
     <!-- Un nom qui ressemble à un produit déjà là : on propose, on ne devine pas -->

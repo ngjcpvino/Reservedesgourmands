@@ -324,6 +324,8 @@ html::-webkit-scrollbar, body::-webkit-scrollbar { display: none; }
 }
 .champ:focus { border-color: var(--champ-focus); box-shadow: 0 0 0 var(--halo) var(--champ-focus-halo); }
 .champ::placeholder { color: var(--placeholder); opacity: 0.6; }
+.champ-fort { font-weight: var(--poids-fort); }   /* le nom du produit, dans la fiche */
+.champ-fort::placeholder { font-weight: var(--poids-normal); }
 .champ-code { font-weight: var(--poids-fort); letter-spacing: var(--lettrage-large); }   /* le code lu apres un scan */
 select.champ {
   appearance: none;
