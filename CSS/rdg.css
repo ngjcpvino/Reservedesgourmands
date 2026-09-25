@@ -202,6 +202,12 @@ html::-webkit-scrollbar, body::-webkit-scrollbar { display: none; }
   border-radius: var(--rayon);
 }
 .entete-photo img { width: 100%; height: 100%; object-fit: cover; object-position: top; display: block; }
+/* Une feuille posée au bas de l'écran (le mot de passe) : la photo s'allonge pour remplir
+   l'espace libre, jamais plus courte que d'habitude; le contenu se pose au bas. */
+.conteneur:has(> .pose-au-bas:not([hidden])) { display: flex; flex-direction: column; }
+.conteneur:has(> .pose-au-bas:not([hidden])) .entete { flex: 1; display: flex; flex-direction: column; }
+.conteneur:has(> .pose-au-bas:not([hidden])) .entete-photo { flex: 1; height: auto; min-height: var(--photo-haut); }
+.conteneur:has(> .pose-au-bas:not([hidden])) .entete-photo img { position: absolute; top: 0; left: 0; }
 .entete-titre {
   position: absolute;
   bottom: var(--espace-xl);
