@@ -679,7 +679,7 @@ function unitesConnues() {
 }
 function remplirUnites() {
   const garde = $('format-unite').value;
-  $('format-unite').innerHTML = '<option value="">— unité —</option>' +
+  $('format-unite').innerHTML = '<option value="">— Choisir —</option>' +
     unitesConnues().map(u => '<option value="' + esc(u) + '">' + esc(u) + '</option>').join('') +
     '<option value="autre">Autre…</option>';
   if (garde) $('format-unite').value = garde;
