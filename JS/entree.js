@@ -40,7 +40,21 @@ const COULEURS_SITE = [
   ['vert',        'Vert',        'boutons verts, succès'],
   ['bleu',        'Bleu',        'bouton Listes'],
   ['or',          'Or',          'boutons Retour'],
-  ['fond',        'Fond',        "autour du cadre, sur les grands écrans"]
+  ['fond',        'Fond',        "autour du cadre, sur les grands écrans"],
+  ['noir',        'Noir',        'bas foncé des boutons, fond du scan'],
+  ['ivoire-chaud',      'Ivoire chaud',      'pas encore utilisée'],
+  ['sauge-doux',        'Sauge doux',        'pas encore utilisée'],
+  ['olive-profond',     'Olive profond',     'pas encore utilisée'],
+  ['jaune-beurre',      'Jaune beurre',      'pas encore utilisée'],
+  ['taupe-beige',       'Taupe beige',       'pas encore utilisée'],
+  ['rouge-tomate',      'Rouge tomate',      'pas encore utilisée'],
+  ['moutarde-or',       'Moutarde or',       'pas encore utilisée'],
+  ['bleu-porcelaine',   'Bleu porcelaine',   'pas encore utilisée'],
+  ['bordeaux',          'Bordeaux',          'pas encore utilisée'],
+  ['rouge-vin',         'Rouge vin',         'pas encore utilisée'],
+  ['bleu-soir',         'Bleu soir',         'pas encore utilisée'],
+  ['cuivre-metallique', 'Cuivre métallique', 'pas encore utilisée'],
+  ['anthracite',        'Anthracite',        'pas encore utilisée']
 ];
 const ATTENTE_COULEURS = 'rdg_couleurs_attente';   // couleurs pas encore confirmées par le coffre-fort
 var STOCK = [];                                     // lignes de STOCK : ce qu'on possède, pour la liste « Inventaire »
