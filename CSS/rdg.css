@@ -22,6 +22,19 @@
   --or:               #FFD700;   /* l'accent : les boutons Retour */
   --fond:             #ffffff;
   --noir:             #000000;   /* le fond de l'image du scan, quand la camera n'a rien */
+  --ivoire-chaud:     #F5F0E6;
+  --sauge-doux:        #AFC5AF;
+  --olive-profond:     #5A6B3C;
+  --jaune-beurre:      #F2EBBF;
+  --taupe-beige:       #C4B896;
+  --rouge-tomate:      #C9372D;
+  --moutarde-or:       #C9952E;
+  --bleu-porcelaine:   #A5C4DE;
+  --bordeaux:          #6B1E25;
+  --rouge-vin:         #5C1D20;
+  --bleu-soir:         #2A4566;
+  --cuivre-metallique: #C77D4B;
+  --anthracite:        #3E4042;
 
   /* ---- Couleurs de service : DÉRIVÉES des couleurs ci-dessus, jamais écrites en dur.
      Change une couleur de base (écran Outils → Couleurs) : ses dérivées suivent. ---- */
