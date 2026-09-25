@@ -91,7 +91,7 @@
   --burger-gap:       5px;       /* entre les trois traits */
   --burger-trait-large: 18px;
   --burger-trait-haut:  2px;
-  --burger-fond:      color-mix(in srgb, var(--blanc) 75%, transparent);
+  --burger-fond:      transparent;   /* les trois traits seuls, sans fond (J-C, 2026-09-25) */
 
   /* ---- Le menu ---- */
   --menu-bas:         2vh;       /* il s'arrete a 2% du bas */
@@ -618,7 +618,6 @@ select.champ {
   background: var(--burger-fond);
   border: none;
   border-radius: var(--rayon);
-  box-shadow: var(--ombre-bouton);
   cursor: pointer;
   transition: var(--transition);
 }
