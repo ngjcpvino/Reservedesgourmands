@@ -10,7 +10,7 @@
   <!-- Ecran d'accueil iPad : le meme sac, en PNG (iOS n'accepte pas le SVG ici) -->
   <link rel="apple-touch-icon" href="apple-touch-icon.png?v=2">
 
-<link rel="stylesheet" href="CSS/rdg.css?v=42">
+<link rel="stylesheet" href="CSS/rdg.css?v=43">
 </head>
 <body>
 
@@ -180,16 +180,6 @@
         <div class="label">Nouvelle unité</div>
         <input class="champ" id="unite-autre" autocomplete="off" placeholder="douzaine, sac, boîte…">
       </div>
-      <!-- Viande : chaque paquet a son poids, donc chaque paquet fait sa propre ligne -->
-      <button class="bouton bouton-petit" id="btn-mode-poids" type="button">Chaque paquet a son poids</button>
-      <div class="bloc" id="bloc-poids" hidden>
-        <div class="label">Poids de chaque paquet</div>
-        <div class="ligne-couleur">
-          <input class="champ champ-nombre" id="poids" inputmode="decimal" autocomplete="off" placeholder="0,54">
-          <button class="bouton bouton-petit" id="btn-poids" type="button">+</button>
-        </div>
-        <div id="liste-poids"></div>
-      </div>
     </div>
 
     <!-- Produit : la liste de la sous-catégorie (entrée à la main) -->
@@ -339,7 +329,7 @@
 </div><!-- fin du conteneur -->
 
 <script src="JS/coffre.js?v=3"></script>
-<script src="JS/entree.js?v=50"></script>
+<script src="JS/entree.js?v=51"></script>
 <script src="JS/scan.js?v=4"></script>
 </body>
 </html>
