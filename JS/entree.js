@@ -81,6 +81,7 @@ function toutCacher() {
   const vs = $('vue-scan'); if (vs) vs.hidden = true;
   if (window.stopScanner) window.stopScanner();   // coupe la caméra en quittant la vue scan
   $('btn-burger').hidden = true;   // burger caché par défaut ; ré-affiché sur accueil + choix + bases
+  $('btn-rechercher').hidden = true;   // la loupe : sur les écrans à photo seulement (ailleurs elle couvrirait le titre)
   $('entete-photo').hidden = true; // l'en-tête photo est écrit UNE fois dans le HTML ; on le montre écran par écran
   fermerMenu();   // tout changement d'écran ferme le menu : personne d'autre n'a à le faire
 }
@@ -125,15 +126,15 @@ function montrerMeuble() {
   surHexMeuble();                              // la pastille montre la couleur de départ
 }
 function montrerPiece()  { toutCacher(); $('vue-piece').hidden = false; $('piece-msg').textContent = ''; }
-function montrerChoixQuoi()    { toutCacher(); $('vue-choix-quoi').hidden = false; $('btn-burger').hidden = false; $('entete-photo').hidden = false; }
-function montrerChoixComment() { toutCacher(); $('vue-choix-comment').hidden = false; $('btn-burger').hidden = false; $('entete-photo').hidden = false; }
+function montrerChoixQuoi()    { toutCacher(); $('vue-choix-quoi').hidden = false; $('btn-burger').hidden = false; $('btn-rechercher').hidden = false; $('entete-photo').hidden = false; }
+function montrerChoixComment() { toutCacher(); $('vue-choix-comment').hidden = false; $('btn-burger').hidden = false; $('btn-rechercher').hidden = false; $('entete-photo').hidden = false; }
 async function montrerListes() {
   toutCacher(); $('vue-listes').hidden = false; $('btn-burger').hidden = false;
   remplirInventaire();                         // instantané : ce qu'on a déjà en mémoire
   if (!MEUBLES.length) await chargerReferences();
   remplirInventaire();                         // puis la version fraîche, quand elle arrive
 }
-function montrerAccueil()    { toutCacher(); $('vue-accueil').hidden = false; $('btn-burger').hidden = false; $('entete-photo').hidden = false; }
+function montrerAccueil()    { toutCacher(); $('vue-accueil').hidden = false; $('btn-burger').hidden = false; $('btn-rechercher').hidden = false; $('entete-photo').hidden = false; }
 function montrerFormulaire(avecCode) {
   toutCacher(); $('vue-app').hidden = false;
   modeManuel = !avecCode;                    // à la main : on descend l'entonnoir; au scan : le code donne l'identité
@@ -1374,7 +1375,7 @@ function initEntree() {
     tete.addEventListener('click', () => toggleAccordeon(tete)));
   // bouton 1 → choix « quoi » (un produit / toute l'épicerie) → choix « comment » (scanner / à la main)
   $('btn-entree').addEventListener('click', montrerChoixQuoi);
-  $('btn-listes').addEventListener('click', montrerListes);
+  $('btn-rechercher').addEventListener('click', () => avis('Rechercher — à venir'));   // la loupe, en haut à gauche
   $('liste-inventaire').addEventListener('click', function (ev) {   // pièces et meubles de l'inventaire
     const tete = ev.target.closest('.accordeon-tete');
     if (tete) toggleAccordeon(tete);

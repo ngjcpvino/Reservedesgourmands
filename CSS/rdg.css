@@ -92,6 +92,7 @@
   --burger-trait-large: 18px;
   --burger-trait-haut:  2px;
   --burger-fond:      transparent;   /* les trois traits seuls, sans fond (J-C, 2026-09-25) */
+  --coin-icone:       24px;      /* la loupe en haut à gauche, à l'échelle des traits du burger */
 
   /* ---- Le menu ---- */
   --menu-bas:         2vh;       /* il s'arrete a 2% du bas */
@@ -550,7 +551,6 @@ select.champ {
 ============================================================ */
 .grille   { display: grid; grid-template-columns: 1fr 1fr; gap: var(--espace-s); }
 .grille-3 { grid-template-columns: 1fr 1fr 1fr; }
-.grille-espacee { margin-bottom: var(--espace-xl); }   /* la grille de l'accueil, avant les accordeons */
 
 /* icône au centre d'un bouton (image ou symbole) */
 /* ------------------------------------------------------------
@@ -602,11 +602,11 @@ select.champ {
 
 /* ============================================================
    MENU BURGER — bouton fixe en haut à DROITE + menu plein écran
+   La loupe : même bouton de coin, en haut à GAUCHE.
 ============================================================ */
-.burger {
+.coin {
   position: fixed;
   top: calc(var(--haut-ecran) + var(--espace-xl));   /* aligné avec le haut de la photo — suit --haut-ecran tout seul */
-  right: max(var(--espace-l), calc(50% - var(--largeur-max) / 2 + var(--espace-l)));   /* collé au conteneur (700px), pas au bord de l'écran */
   z-index: 230;
   width: var(--tactile);
   height: var(--tactile);
@@ -614,13 +614,17 @@ select.champ {
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  gap: var(--burger-gap);
   background: var(--burger-fond);
   border: none;
   border-radius: var(--rayon);
   cursor: pointer;
   transition: var(--transition);
 }
+.burger { right: max(var(--espace-l), calc(50% - var(--largeur-max) / 2 + var(--espace-l))); gap: var(--burger-gap); }   /* collé au conteneur (700px), pas au bord de l'écran */
+.coin-gauche { left: max(var(--espace-l), calc(50% - var(--largeur-max) / 2 + var(--espace-l))); }
+/* la loupe du coin : le brun et l'épaisseur des traits du burger (trait 2 au lieu de 0.8) */
+.coin .icone { width: var(--coin-icone); height: var(--coin-icone); background-color: var(--brun); }
+.coin .icone-trouver { --dessin: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23f5efe6' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Ccircle cx='10.5' cy='10.5' r='7'/%3E%3Cpath d='M15.6 15.6 21 21'/%3E%3C/svg%3E") }
 .burger span { display: block; width: var(--burger-trait-large); height: var(--burger-trait-haut); background: var(--brun); border-radius: var(--rayon); }
 
 .menu {
