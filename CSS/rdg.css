@@ -127,6 +127,7 @@
 
   /* ---- Durees ---- */
   --transition-pli:   0.25s;     /* le triangle qui tourne */
+  --titre-bas:        166px;     /* le bas du titre du site, au départ : juste au-dessus du champ du mot de passe (J-C, 2026-09-27) */
   --titre-monte:      0px;       /* de combien le titre du site monte pour rester au-dessus de ce qui se pose sur la photo (le script le calcule) */
   --transition-menu:  0.8s;      /* la page qui glisse vers le haut pour montrer le menu */
   --spinner-lueur:    drop-shadow(0 0 10px color-mix(in srgb, var(--couleur-101) 28%, transparent));
@@ -240,7 +241,7 @@ html::-webkit-scrollbar, body::-webkit-scrollbar { display: none; }
 .sur-photo > .contenu { padding: 0 calc(var(--espace-l) + var(--espace-xl)) calc(var(--espace-xl) * 2); }   /* dans la photo, aligné sur le titre */
 .entete-titre {
   position: absolute;
-  bottom: var(--espace-xl);
+  bottom: var(--titre-bas);
   left: var(--espace-xl);
   right: var(--espace-xl);
   font-size: clamp(var(--titre-site-min), var(--titre-site-fluide), var(--titre-site-max));

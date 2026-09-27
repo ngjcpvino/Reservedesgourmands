@@ -1417,6 +1417,7 @@ async function ajouterEspace(meubleId, btn) {
 
 /* ---------- Branchements ---------- */
 function initEntree() {
+  requestAnimationFrame(placerTitre);   // dès l'ouverture : le titre au-dessus de ce qui est posé sur la photo
   // connexion
   $('btn-entrer').addEventListener('click', entrer);
   $('mdp').addEventListener('keydown', e => { if (e.key === 'Enter') entrer(); });
