@@ -238,7 +238,8 @@ html::-webkit-scrollbar, body::-webkit-scrollbar { display: none; }
 .conteneur:has(> .sur-photo:not([hidden])) .entete { flex: 1; display: flex; flex-direction: column; padding-bottom: var(--espace-xl); }
 .conteneur:has(> .sur-photo:not([hidden])) .entete-photo { flex: 1; height: auto; }
 .sur-photo { position: absolute; left: 0; right: 0; bottom: 0; }
-.sur-photo > .contenu { padding: 0 calc(var(--espace-l) + var(--espace-xl)) calc(var(--espace-xl) * 2); }   /* dans la photo, aligné sur le titre */
+.sur-photo > .contenu,
+.menu-contenu.contenu { padding: 0 calc(var(--espace-l) + var(--espace-xl)) calc(var(--espace-xl) * 2); }   /* dans la photo, aligné sur le titre — les icônes du menu aussi : mêmes tailles que les boutons d'action */   /* dans la photo, aligné sur le titre */
 .entete-titre {
   position: absolute;
   bottom: var(--titre-bas);
@@ -696,7 +697,9 @@ select.champ {
 }
 .menu.ouvert .menu-contenu { transform: translateY(0); }
 body.menu-ouvert { overflow: hidden; }                          /* rien ne défile derrière */
-body.menu-ouvert .coin-gauche { visibility: hidden; }           /* la loupe : Rechercher est déjà dans la grille */
+body.menu-ouvert .coin-gauche { visibility: hidden; }
+.sur-photo { transition: opacity var(--transition-menu) ease-in-out; }
+body.menu-ouvert .sur-photo { opacity: 0; pointer-events: none; }   /* menu ouvert : les boutons de la page s'effacent, on ne les voit plus derrière */           /* la loupe : Rechercher est déjà dans la grille */
 /* Le burger devient un X : le trait du milieu s'efface, les deux autres se croisent. */
 .burger span { transition: transform var(--transition-menu) ease, opacity var(--transition-menu) ease; }
 .burger.ouvert span:nth-child(1) { transform: translateY(calc(var(--burger-gap) + var(--burger-trait-haut))) rotate(45deg); }
