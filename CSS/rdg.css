@@ -165,13 +165,12 @@
   --icone-taille:      40px;   /* le dessin dedans, sur un bouton ordinaire */
   --icone-part:        60%;    /* sur un gros bouton, le dessin suit la hauteur */
 
-  /* ---- Spinner (le contenant qui se remplit — change de dessin par secteur) ---- */
-  --spinner-largeur:  42px;                    /* largeur d'UNE bouteille */
-  --spinner-elance:   2.6;                     /* hauteur = largeur x ce chiffre */
-  --spinner-vitesse:  6s;                      /* un cycle complet : se remplit puis se vide */
-  --spinner-decalage: 2s;                      /* l'écart entre les trois */
-  --spinner-plein:    var(--couleur-101);            /* le lait */
-  --spinner-trait:    var(--couleur-105);            /* le contour de la bouteille */
+  /* ---- Spinner : un chariot d'épicerie qui traverse l'écran (change de dessin par secteur) ---- */
+  --spinner-taille:   96px;                    /* le chariot */
+  --spinner-vitesse:  6s;                      /* une traversée, lentement */
+  --spinner-trait:    var(--couleur-105);            /* le trait du chariot */
+  --plein-largeur:    100vw;                   /* la largeur d'un écran complet */
+  --spinner-dessin:   url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='0.8' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M1.5 4.5h3l3.2 11.5h13.3'/%3E%3Cpath d='M5.6 9H21.5V14H7.2'/%3E%3Cpath d='M10 9v5M13.5 9v5M17 9v5'/%3E%3Cpath d='M9 9l3.4-5.2a0.9 0.9 0 0 1 1.5 1L11.2 9'/%3E%3Cpath d='M15.6 9V5.6l0.6-0.8V3.4h1.2v1.4l0.6 0.8V9'/%3E%3Ccircle cx='9.5' cy='19.3' r='1.4'/%3E%3Ccircle cx='19' cy='19.3' r='1.4'/%3E%3C/svg%3E");   /* chariot à grillage, devant droit, baguette + bouteille (J-C, choix B, trait fin) */
   --voile-page:       color-mix(in srgb, var(--couleur-101) 85%, transparent);  /* les pages de travail : la photo très pâlie sous ce voile blanc (J-C, 2026-09-27 : blanc 85 %, pas crème) */
   --spinner-voile:    color-mix(in srgb, var(--couleur-306) 55%, transparent);  /* l'écran qui bloque derrière */
 }
@@ -730,64 +729,32 @@ body.menu-ouvert .conteneur > [id^="vue-"] { opacity: 0; pointer-events: none; }
 .burger.ouvert span:nth-child(3) { transform: translateY(calc(-1 * (var(--burger-gap) + var(--burger-trait-haut)))) rotate(-45deg); }
 
 /* ============================================================
-   VOILE — écran bloquant + les trois bouteilles de lait
+   VOILE — écran bloquant + le chariot qui traverse
    Structure attendue (neutre, aucun décor dans le HTML) :
-     <div id="voile" class="voile" hidden>
-       <div class="spinner"><span><i></i></span><span><i></i></span><span><i></i></span></div>
-     </div>
-   .spinner      = la rangée · span = une bouteille (le trait) · i = le lait
-   Le dessin vit ICI : un autre secteur remplace juste l'image de fond.
+     <div id="voile" class="voile" hidden><div class="spinner"><span></span></div></div>
+   Le dessin vit ICI (--spinner-dessin) : un autre secteur remplace juste l'image.
 ============================================================ */
 .voile {
   position: fixed;
   inset: 0;
   z-index: 300;
-  display: flex;
-  align-items: center;
-  justify-content: center;
   background: var(--spinner-voile);
+  overflow: hidden;
 }
-
-.spinner {
-  display: flex;
-  align-items: flex-end;
-  gap: calc(var(--spinner-largeur) * 0.34);
-}
-
-/* une bouteille : le contour */
 .spinner span {
-  position: relative;
-  display: block;
-  width: var(--spinner-largeur);
-  height: calc(var(--spinner-largeur) * var(--spinner-elance));
-  filter: var(--spinner-lueur);
-}
-.spinner span::after {
-  content: '';
   position: absolute;
-  inset: 0;
-  background-color: var(--spinner-trait);   /* le contour suit le crème du root */
-  -webkit-mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 40 104' fill='none' stroke='%23f5efe6' stroke-width='2.4' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M13.5 4h13'/%3E%3Cpath d='M15 4v24c0 4-9.5 8-9.5 16v52c0 2.2 1.8 4 4 4h21c2.2 0 4-1.8 4-4V44c0-8-9.5-12-9.5-16V4'/%3E%3C/svg%3E") center / contain no-repeat;
-          mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 40 104' fill='none' stroke='%23f5efe6' stroke-width='2.4' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M13.5 4h13'/%3E%3Cpath d='M15 4v24c0 4-9.5 8-9.5 16v52c0 2.2 1.8 4 4 4h21c2.2 0 4-1.8 4-4V44c0-8-9.5-12-9.5-16V4'/%3E%3C/svg%3E") center / contain no-repeat;
-}
-
-/* le lait, découpé à la forme intérieure de la bouteille */
-.spinner i {
-  position: absolute;
-  inset: 0;
-  display: block;
-  clip-path: polygon(41% 6%, 59% 6%, 59% 28%, 83% 43%, 83% 92%, 80% 95%, 20% 95%, 17% 92%, 17% 43%, 41% 28%);
-}
-.spinner i::after {
-  content: '';
-  position: absolute;
+  top: 50%;
   left: 0;
-  right: 0;
-  bottom: 0;
-  background: var(--spinner-plein);
-  animation: remplir var(--spinner-vitesse) ease-in-out infinite;
+  width: var(--spinner-taille);
+  height: var(--spinner-taille);
+  margin-top: calc(var(--spinner-taille) / -2);
+  background-color: var(--spinner-trait);
+  -webkit-mask: var(--spinner-dessin) center / contain no-repeat;
+          mask: var(--spinner-dessin) center / contain no-repeat;
+  filter: var(--spinner-lueur);
+  animation: traverse var(--spinner-vitesse) linear infinite;
 }
-.spinner span:nth-child(2) i::after { animation-delay: calc(var(--spinner-decalage) * -1); }
-.spinner span:nth-child(3) i::after { animation-delay: calc(var(--spinner-decalage) * -2); }
-
-@keyframes remplir { 0%, 100% { height: 8%; } 50% { height: 86%; } }
+@keyframes traverse {
+  from { transform: translateX(calc(var(--spinner-taille) * -1)); }
+  to   { transform: translateX(var(--plein-largeur)); }
+}
