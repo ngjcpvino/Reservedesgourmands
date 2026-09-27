@@ -1506,7 +1506,6 @@ function initEntree() {
   // Outils -> qui entre les articles
   $('menu-qui').addEventListener('click', montrerQui);
   $('btn-qui-enr').addEventListener('click', enregistrerQui);
-  $('qui-annuler').addEventListener('click', montrerAccueil);
   $('cat').addEventListener('change', surCategorie);
   $('btn-cat-neuve').addEventListener('click', ajouterCategorie);
   $('btn-souscat-neuve').addEventListener('click', ajouterSousCategorie);
