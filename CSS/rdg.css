@@ -579,6 +579,8 @@ select.champ {
 ============================================================ */
 .message { font-size: var(--texte-petit); font-weight: var(--poids-leger); margin-top: var(--espace-s); min-height: var(--message-haut); }
 .message-erreur { color: var(--couleur-402); }
+/* Sur la photo, une erreur se lirait mal : elle se pose dans un rectangle rouge, texte blanc. */
+.sur-photo .message-erreur:not(:empty) { background: var(--couleur-402); color: var(--couleur-101); padding: var(--espace-s) var(--espace-m); border-radius: var(--rayon); }
 .message-succes { color: var(--couleur-703); }
 .message-repli:empty { display: none; }   /* vide, il ne garde pas sa place : l'ecart reste egal */
 
