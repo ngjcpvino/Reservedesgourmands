@@ -86,13 +86,13 @@
   /* Open Food Facts : code -> { code, nom, marque, format, trouve }. */
   async function chercherOFF(code) {
     var url = 'https://world.openfoodfacts.org/api/v2/product/' + encodeURIComponent(code)
-            + '.json?fields=code,product_name_fr,product_name,generic_name,brands,quantity';
+            + '.json?fields=code,product_name_fr,generic_name_fr,brands,quantity';
     try {
       var r = await fetch(url, { headers: { 'Accept': 'application/json' } });
       var j = await r.json();
       if (j && j.status === 1 && j.product) {
         var p = j.product;
-        var nom = (p.product_name_fr || p.product_name || p.generic_name || '').trim();
+        var nom = (p.product_name_fr || p.generic_name_fr || '').trim();   // le français seulement (J-C) : sinon vide, il choisit lui-même
         var marque = (p.brands || '').split(',')[0].trim();
         return { code: code, nom: nom, marque: marque, format: nettoyerFormat(p.quantity), trouve: true };
       }
