@@ -224,6 +224,7 @@ async function surCode() {
 }
 function revenirConnexion(msg) {
   toutCacher(); $('vue-connexion').hidden = false; $('entete-photo').hidden = false;
+  if (msg) $('mdp').value = '';   // refusé : le champ se vide, on retape
   $('msg-connexion').textContent = msg || '';
 }
 
