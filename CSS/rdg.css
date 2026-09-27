@@ -115,6 +115,7 @@
   --titre-site-fluide: 12vw;
   --titre-site-max:   70px;
   --lettrage-titre:   3px;
+  --lettrage-page:    1.5px;     /* l'écart entre les lettres d'un titre de page : moins que le titre du site, mais pas tassé */
   --ombre-titre:      0 2px 16px color-mix(in srgb, var(--couleur-306) 60%, transparent);
 
   /* ---- Le burger ---- */
@@ -302,6 +303,7 @@ body:has(.sur-photo:not([hidden]))::before { display: none; }
   margin-bottom: var(--espace-l);
   text-align: center;   /* les titres de page, au centre (J-C, 2026-09-25) */
   text-transform: uppercase;   /* en capitales, comme le titre du site (J-C, 2026-09-27) */
+  letter-spacing: var(--lettrage-page);
 }
 .titre-nu { border-bottom: none; padding-bottom: 0; }
 
