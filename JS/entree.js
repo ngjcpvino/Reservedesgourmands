@@ -153,7 +153,6 @@ function enregistrerQui() {
     return;
   }
   try { localStorage.setItem(QUI, nom); } catch (e) {}
-  avis('C\'est noté : ' + nom, 'succes');
   montrerAccueil();                             // le nom est posé : on passe à la suite
 }
 function montrerMeuble() {
