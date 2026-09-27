@@ -139,6 +139,7 @@
   --burger-trait-haut:  3.5px;
   --burger-fond:      transparent;   /* les trois traits seuls, sans fond (J-C, 2026-09-25) */
   --coin-icone:       46px;      /* la loupe en haut à gauche (J-C, 2026-09-27 : 46, un cran plus grosse que le burger) */
+  --bandeau-teinte:   22%;       /* la force de la couleur du meuble dans le bandeau d'un espace */
   --coin-taille:      52px;      /* la zone à toucher du burger et de la loupe : plus grande que la loupe */
 
 
@@ -518,7 +519,7 @@ select.champ {
   align-items: center;
   padding: var(--espace-m) var(--espace-l);
   cursor: pointer;
-  --c: var(--couleur-305);                      /* brun par défaut ; un meuble pose sa couleur, Listes pose la suite */
+  --c: var(--meuble, var(--couleur-305));       /* brun par défaut ; un meuble pose sa couleur (--meuble), Listes pose la suite */
   position: relative;
   overflow: hidden;
   border-radius: var(--rayon);
@@ -560,6 +561,17 @@ select.champ {
   min-height: var(--tactile);
 }
 .accordeon-item-saisie { gap: var(--espace-s); }   /* une ligne ou l'on saisit : un champ + son bouton */
+/* Le nom d'un espace, dans l'inventaire : un bandeau de la couleur du meuble, pâlie (J-C, 2026-09-27, piste A) */
+.espace-bandeau {
+  background: color-mix(in srgb, var(--meuble, var(--couleur-305)) var(--bandeau-teinte), transparent);
+  border-radius: var(--rayon);
+  padding: var(--espace-xs) var(--espace-l);
+  margin: var(--espace-s) 0 var(--espace-xs);
+  font-size: var(--texte-normal);
+  font-weight: var(--poids-fort);
+  color: var(--couleur-306);
+}
+.espace-bandeau + .item { border-top: none; }   /* le bandeau sépare déjà : pas de trait dessous */
 
 /* ------------------------------------------------------------
    LES FLÈCHES ↑↓ « DÉPLACER » — flèche à tige, jamais un triangle.
