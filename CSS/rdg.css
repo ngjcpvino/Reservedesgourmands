@@ -115,7 +115,7 @@
   --titre-site-fluide: 12vw;
   --titre-site-max:   70px;
   --lettrage-titre:   3px;
-  --lettrage-label:   1px;       /* l'écart entre les lettres d'un titre de champ */
+  --lettrage-label:   1.5px;       /* l'écart entre les lettres d'un titre de champ */
   --lettrage-page:    1.5px;     /* l'écart entre les lettres d'un titre de page : moins que le titre du site, mais pas tassé */
   --ombre-titre:      0 2px 16px color-mix(in srgb, var(--couleur-306) 60%, transparent);
 
