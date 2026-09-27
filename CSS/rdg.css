@@ -376,6 +376,8 @@ body:has(.sur-photo:not([hidden]))::before { display: none; }
   height: auto;
   aspect-ratio: var(--bouton-grand-forme);   /* garde la proportion de l'iPhone à toutes les largeurs */
   min-height: var(--bouton-grand-haut);
+  width: 100%;                               /* la largeur vient de la colonne, jamais de la hauteur minimale : sans ça, sur iPhone, les boutons débordaient et se chevauchaient */
+  min-width: 0;
   flex-direction: column;
   padding: var(--espace-xs);
 }
@@ -383,7 +385,7 @@ body:has(.sur-photo:not([hidden]))::before { display: none; }
 /* Grille impaire : le dernier prend toute la largeur, à la même hauteur (J-C, 2026-09-27) */
 .grille > .bouton-grand:last-child:nth-child(odd) { grid-column: 1 / -1; aspect-ratio: var(--bouton-large-forme); }
 /* Le bouton qui suit une grille (Retour) : la même hauteur que ceux de la grille, pour que rien ne bouge */
-.grille + .bouton { aspect-ratio: var(--bouton-large-forme); min-height: var(--bouton-grand-haut); }
+.grille + .bouton { aspect-ratio: var(--bouton-large-forme); min-height: var(--bouton-grand-haut); width: 100%; min-width: 0; }
 
 /* LA SUITE : un groupe de frères se colore selon la position — les grilles d'icônes et les accordéons de Listes.
    Le HTML ne porte aucune couleur : ajouter un frère le colore tout seul. */
@@ -682,7 +684,7 @@ select.champ {
 /* ============================================================
    GRILLE — disposition en colonnes (2 par défaut, ou 3)
 ============================================================ */
-.grille   { display: grid; grid-template-columns: 1fr 1fr; gap: var(--espace-s); }
+.grille   { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: var(--espace-s); }   /* minmax(0, …) : une colonne ne s'élargit jamais au-delà de sa moitié */
 .grille-3 { grid-template-columns: 1fr 1fr 1fr; }
 
 /* icône au centre d'un bouton (image ou symbole) */
