@@ -127,6 +127,7 @@ async function montrerBases() {
     await chargerReferences();
   }
   remplirMeubles();
+  remplirNoms();
   expedierOrdre();                             // un ordre resté en attente (échec, fermeture) repart
 }
 async function montrerCouleurs() {
@@ -1013,7 +1014,7 @@ function fleches(type, id, i, n) {
 /* Un espace = une ligne, avec ses flèches. i = sa place parmi les espaces du meuble (groupe). */
 function htmlEspace(e, i, groupe) {
   return '<div class="accordeon-item" data-type="e" data-id="' + esc(e.id) + '">' +
-    '<span>' + esc(e.nom) + '</span>' + fleches('e', e.id, i, groupe.length) + '</div>';
+    '<span>' + esc(e.nom) + '</span>' + crayon('e:' + e.id) + fleches('e', e.id, i, groupe.length) + '</div>';
 }
 /* Un meuble = accordéon (à sa couleur) : menu Pièce + ses espaces + « + un espace ». */
 function htmlMeuble(m, i, groupe) {
@@ -1023,7 +1024,7 @@ function htmlMeuble(m, i, groupe) {
   const style = teinte ? ' style="background:' + esc(teinte) + '"' : '';   // la couleur est une DONNÉE
   const pale = (teinte && couleurPale(teinte)) ? ' tete-pale' : '';
   return '<div class="accordeon" data-type="m" data-id="' + esc(m.id) + '">' +
-    '<div class="accordeon-tete' + pale + '"' + style + '><span>' + esc(m.nom) + '</span>' + fleches('m', m.id, i, groupe.length) + '</div>' +
+    '<div class="accordeon-tete' + pale + '"' + style + '><span>' + esc(m.nom) + '</span>' + crayon('e:' + m.id) + fleches('m', m.id, i, groupe.length) + '</div>' +
     '<div class="accordeon-corps" hidden>' +
       '<div class="bloc accordeon-bloc"><div class="label">Pièce</div>' +
         '<select class="champ choix-piece" data-meuble="' + esc(m.id) + '">' + optionsPieces(m.pieceId) + '</select></div>' +
@@ -1051,13 +1052,89 @@ function remplirMeubles(garderOuverts) {
     const meubles = MEUBLES.filter(function (m) { return String(m.pieceId) === String(p.id); });
     const contenu = meubles.length ? meubles.map(htmlMeuble).join('')
                                    : '<div class="accordeon-item"><span class="texte-petit texte-pale">Aucun meuble</span></div>';
-    return '<div class="accordeon" data-type="p" data-id="' + esc(p.id) + '"><div class="accordeon-tete"><span>' + esc(p.nom) + '</span>' +
+    return '<div class="accordeon" data-type="p" data-id="' + esc(p.id) + '"><div class="accordeon-tete"><span>' + esc(p.nom) + '</span>' + crayon('e:' + p.id) +
       fleches('p', p.id, i, PIECES.length) + '</div>' +
       '<div class="accordeon-corps" hidden>' + contenu + '</div></div>';
   }).join('');
   $('liste-meubles').innerHTML = html || '<div class="texte-petit texte-pale">Aucune pièce ni meuble.</div>';
   $('liste-meubles').querySelectorAll('.accordeon').forEach(function (a) {
     if (ouverts.indexOf(a.dataset.type + ':' + a.dataset.id) === -1) return;
+    a.firstElementChild.classList.add('ouvert');
+    a.children[1].hidden = false;
+  });
+}
+
+/* ---------- Corriger un nom (Gérer les bases) : le crayon ----------
+   Tout est relié par identifiant : corriger un nom ici le corrige partout (inventaire, anciennes entrées, listes).
+   Clé = type + id : « e » pièce/meuble/espace (Emplacements) · « c » catégorie · « a » aliment (Produits). */
+const TABLES_NOM = { e: ['Emplacements', 'emps'], c: ['Categories', 'cats'], a: ['Produits', 'prods'] };
+function crayon(cle) {
+  return '<button class="crayon" type="button" data-renommer="' + esc(cle) + '" aria-label="Corriger le nom"></button>';
+}
+/* Les objets en mémoire qui portent ce nom (pour que tout l'écran suive tout de suite). */
+function objetsNommes(type) {
+  if (type === 'e') return PIECES.concat(MEUBLES, ...Object.values(ESPACES));
+  if (type === 'c') return RAYONS.concat(...Object.values(SOUSCATS));
+  return PRODUITS;
+}
+function rafraichirBases() { remplirMeubles(true); remplirNoms(true); }
+/* Le crayon touché : le nom devient un champ. Entrée ou toucher ailleurs = enregistrer; Échap = laisser tel quel. */
+function ouvrirRenommer(btn) {
+  const span = btn.previousElementSibling;
+  const input = document.createElement('input');
+  input.className = 'champ champ-renommer';
+  input.value = span.textContent;
+  input.setAttribute('autocomplete', 'off');
+  span.replaceWith(input);
+  btn.hidden = true;
+  input.focus(); input.select();
+  let fini = false;
+  const finir = ok => { if (fini) return; fini = true; if (ok) renommer(btn.dataset.renommer, input.value); else rafraichirBases(); };
+  input.addEventListener('keydown', e => { if (e.key === 'Enter') { e.preventDefault(); finir(true); } else if (e.key === 'Escape') finir(false); });
+  input.addEventListener('blur', () => finir(true));
+  input.addEventListener('click', e => e.stopPropagation());   // toucher le champ ne plie pas l'accordéon
+}
+async function renommer(cle, nom) {
+  const type = cle.charAt(0), id = cle.slice(2), T = TABLES_NOM[type];
+  nom = String(nom || '').trim();
+  const c = lireCache();
+  const row = c && c[T[1]] && c[T[1]].find(r => String(r[0]) === String(id));
+  if (!nom || !row || String(row[1]) === nom) { rafraichirBases(); return; }   // vide ou inchangé : rien à faire
+  const ligne = row.slice(); ligne[1] = nom;
+  montrerVoile(true);
+  try {
+    const r = await Coffre.modifier(T[0], id, ligne);          // réécrit la même ligne : un 2e envoi ne change rien
+    if (!r || !r.ok) throw new Error((r && r.erreur) || 'refus');
+    row[1] = nom; ecrireCache(c);
+    objetsNommes(type).forEach(x => { if (String(x.id) === String(id)) x.nom = nom; });
+    remplirListes();
+  } catch (e) {
+    avis('Nom pas corrigé — réessaie', 'erreur');
+  } finally { montrerVoile(false); rafraichirBases(); }
+}
+/* Catégories et Aliments, sous les pièces : chaque nom avec son crayon. */
+function remplirNoms(garderOuverts) {
+  const liste = $('liste-noms');
+  const ouverts = garderOuverts ? [...liste.querySelectorAll('.accordeon-tete.ouvert')].map(t => t.parentElement.dataset.cle) : [];
+  const acc = (cle, tete, corps) => '<div class="accordeon" data-cle="' + esc(cle) + '"><div class="accordeon-tete">' + tete + '</div><div class="accordeon-corps" hidden>' + corps + '</div></div>';
+  const ligne = (cle, nom) => '<div class="accordeon-item"><span>' + esc(nom) + '</span>' + crayon(cle) + '</div>';
+  const vide = t => '<div class="accordeon-item"><span class="texte-petit texte-pale">' + t + '</span></div>';
+  const cats = RAYONS.map(r => acc('c:' + r.id, '<span>' + esc(r.nom) + '</span>' + crayon('c:' + r.id),
+    (SOUSCATS[r.id] || []).map(sc => ligne('c:' + sc.id, sc.nom)).join('') || vide('Aucune sous-catégorie'))).join('');
+  const classes = {};                                   // les aliments déjà rangés sous une sous-catégorie
+  let alim = RAYONS.map(r => {
+    const corps = (SOUSCATS[r.id] || []).map(sc => {
+      const ps = PRODUITS.filter(p => String(p.catId) === String(sc.id));
+      ps.forEach(p => { classes[p.id] = true; });
+      return ps.length ? '<div class="accordeon-item"><span class="texte-fort">' + esc(sc.nom) + '</span></div>' + ps.map(p => ligne('a:' + p.id, p.nom)).join('') : '';
+    }).join('');
+    return corps ? acc('a:' + r.id, esc(r.nom), corps) : '';
+  }).join('');
+  const seuls = PRODUITS.filter(p => !classes[p.id]);
+  if (seuls.length) alim += acc('a:', 'Sans catégorie', seuls.map(p => ligne('a:' + p.id, p.nom)).join(''));
+  liste.innerHTML = acc('cats', 'Catégories', cats || vide('Aucune catégorie')) + acc('alim', 'Aliments', alim || vide('Aucun aliment'));
+  liste.querySelectorAll('.accordeon').forEach(a => {
+    if (ouverts.indexOf(a.dataset.cle) === -1) return;
     a.firstElementChild.classList.add('ouvert');
     a.children[1].hidden = false;
   });
@@ -1475,10 +1552,18 @@ function initEntree() {
   });
   // liste des meubles (éléments générés) : ouvrir/fermer un accordéon, ajouter un espace
   $('liste-meubles').addEventListener('click', function (ev) {
+    const cr = ev.target.closest('.crayon');               // avant la tête : le crayon n'ouvre ni ne ferme rien
+    if (cr) { ouvrirRenommer(cr); return; }
     const fl = ev.target.closest('.fleche');               // avant la tête : une flèche n'ouvre ni ne ferme rien
     if (fl) { if (!fl.classList.contains('fleche-eteinte')) deplacer(fl.dataset.type, fl.dataset.id, Number(fl.dataset.sens)); return; }
     const bAjout = ev.target.closest('.ajout-espace');
     if (bAjout) { ajouterEspace(bAjout.getAttribute('data-meuble'), bAjout); return; }
+    const tete = ev.target.closest('.accordeon-tete');
+    if (tete) toggleAccordeon(tete);
+  });
+  $('liste-noms').addEventListener('click', function (ev) {   // catégories et aliments : le crayon, ou plier/déplier
+    const cr = ev.target.closest('.crayon');
+    if (cr) { ouvrirRenommer(cr); return; }
     const tete = ev.target.closest('.accordeon-tete');
     if (tete) toggleAccordeon(tete);
   });
@@ -1539,7 +1624,7 @@ async function retourDansApp() {
   if (!$('vue-app').hidden || !$('vue-meuble').hidden || !$('vue-piece').hidden) return;   // une saisie en cours : on ne touche à rien
   await chargerReferences();
   if (!$('vue-listes').hidden) remplirInventaire();
-  if (!$('vue-bases').hidden && !Object.keys(ordreModifie).length) remplirMeubles(true);
+  if (!$('vue-bases').hidden && !Object.keys(ordreModifie).length && !document.querySelector('.champ-renommer')) rafraichirBases();   // pas pendant une correction de nom
 }
 
 document.addEventListener('DOMContentLoaded', initEntree);
