@@ -1188,13 +1188,13 @@ function htmlMeubleInventaire(m, par) {
   let corps = htmlLignesEndroit(par, m.id);    // posé sur le meuble, sans espace précis
   (ESPACES[m.id] || []).forEach(esp => {
     const lignes = htmlLignesEndroit(par, esp.id);
-    if (lignes) corps += '<div class="accordeon-item"><span class="texte-fort">' + esc(esp.nom) + '</span></div>' + lignes;
+    if (lignes) corps += '<div class="espace-bandeau">' + esc(esp.nom) + '</div>' + lignes;
   });
   if (!corps) return '';
   const teinte = couleurDe(m.couleur);
-  const style = teinte ? ' style="--c:' + esc(teinte) + '"' : '';   // la couleur est une DONNÉE ; le relief la suit
+  const style = teinte ? ' style="--meuble:' + esc(teinte) + '"' : '';   // la couleur est une DONNÉE ; la tête et les bandeaux des espaces la suivent
   const pale = (teinte && couleurPale(teinte)) ? ' tete-pale' : '';
-  return '<div class="accordeon"><div class="accordeon-tete' + pale + '"' + style + '>' + esc(m.nom) + '</div>' +
+  return '<div class="accordeon"' + style + '><div class="accordeon-tete' + pale + '">' + esc(m.nom) + '</div>' +
     '<div class="accordeon-corps" hidden>' + corps + '</div></div>';
 }
 /* La liste complète : pièce -> meuble -> espace -> produits. Les endroits vides ne paraissent pas. */
