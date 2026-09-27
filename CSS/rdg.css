@@ -220,6 +220,7 @@ body::before {
   background: linear-gradient(var(--voile-page), var(--voile-page)), var(--photo) center top / cover no-repeat;
 }
 .conteneur:has(> .sur-photo:not([hidden])) { background: var(--couleur-101); }
+body:has(.sur-photo:not([hidden]))::before { display: none; }   /* sur la photo nette, pas de photo pâlie autour (grand écran) */
 .contenu { padding: var(--espace-xl) var(--espace-l); }
 /* Le contenu qui suit immédiatement la photo : même écart qu'entre les boutons, pas davantage. */
 .contenu-suite { padding-top: var(--espace-s); }
