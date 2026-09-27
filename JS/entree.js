@@ -141,14 +141,14 @@ async function montrerCouleurs() {
 function montrerQui() {
   toutCacher(); $('vue-qui').hidden = false; $('btn-burger').hidden = false; $('entete-photo').hidden = false;
   $('qui-nom').value = localStorage.getItem(QUI) || '';
-  $('qui-msg').className = 'message';
+  $('qui-msg').className = 'message message-repli';
   $('qui-msg').textContent = '';
 }
 function enregistrerQui() {
   const nom = $('qui-nom').value.trim();
   const msg = $('qui-msg');
   if (!nom) {                                   // un nom vide ne règle rien : on insiste
-    msg.className = 'message message-erreur';
+    msg.className = 'message message-repli message-erreur';
     msg.textContent = 'Écris ton nom.';
     return;
   }
