@@ -1506,6 +1506,7 @@ function initEntree() {
   // Outils -> qui entre les articles
   $('menu-qui').addEventListener('click', montrerQui);
   $('btn-qui-enr').addEventListener('click', enregistrerQui);
+  $('qui-nom').addEventListener('keydown', e => { if (e.key === 'Enter') enregistrerQui(); });   // comme le mot de passe
   $('cat').addEventListener('change', surCategorie);
   $('btn-cat-neuve').addEventListener('click', ajouterCategorie);
   $('btn-souscat-neuve').addEventListener('click', ajouterSousCategorie);
