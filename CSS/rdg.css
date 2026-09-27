@@ -288,7 +288,7 @@ body:has(.sur-photo:not([hidden]))::before { display: none; }
 .texte-fort   { font-weight: var(--poids-fort); }
 
 /* petit intitulé au-dessus d'un champ */
-.label { font-size: var(--texte-micro); color: var(--couleur-302); margin-bottom: var(--espace-xs); }
+.label { font-size: var(--texte-petit); color: var(--couleur-302); margin-bottom: var(--espace-xs); }   /* 14 px (avant 12 : trop petit, J-C 2026-09-27) */
 .label-fort { font-size: var(--texte-normal); color: var(--couleur-306); font-weight: var(--poids-fort); }
 
 /* ============================================================
