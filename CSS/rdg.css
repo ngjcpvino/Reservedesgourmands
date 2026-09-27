@@ -127,7 +127,7 @@
 
   /* ---- Durees ---- */
   --transition-pli:   0.25s;     /* le triangle qui tourne */
-  --titre-monte:      0px;       /* de combien le titre du site monte pour rester au-dessus de ce qui se pose sur la photo (le script le calcule) */
+  --titre-bas:        40%;       /* le titre du site, aligné par le bas, à 40 % de la hauteur de la photo : au-dessus de tout ce qui s'y pose (J-C, 2026-09-27) */
   --transition-menu:  0.8s;      /* la page qui glisse vers le haut pour montrer le menu */
   --spinner-lueur:    drop-shadow(0 0 10px color-mix(in srgb, var(--couleur-101) 28%, transparent));
   --scan-haut:        25vh;      /* la hauteur de la fenêtre du scan : pleine largeur et basse, comme un code-barres */
@@ -231,8 +231,8 @@ html::-webkit-scrollbar, body::-webkit-scrollbar { display: none; }
 }
 .entete-photo { background: var(--photo) center top / cover no-repeat; }   /* la photo vit ici, pas dans le HTML */
 /* Une feuille posée SUR la photo (mot de passe, qui entre, les choix d'Ajouter, l'accueil) :
-   la photo remplit l'écran, le contenu se pose par-dessus, au bas. Le titre du site monte
-   juste au-dessus (placerTitre() dans entree.js), comme pour les icônes du menu. */
+   la photo remplit l'écran, le contenu se pose par-dessus, au bas. Le titre du site est placé
+   assez haut (--titre-bas) pour rester au-dessus, sans bouger. */
 .conteneur:has(> .sur-photo:not([hidden])) { display: flex; flex-direction: column; }
 .conteneur:has(> .sur-photo:not([hidden])) .entete { flex: 1; display: flex; flex-direction: column; padding-bottom: var(--espace-xl); }
 .conteneur:has(> .sur-photo:not([hidden])) .entete-photo { flex: 1; height: auto; }
@@ -240,7 +240,7 @@ html::-webkit-scrollbar, body::-webkit-scrollbar { display: none; }
 .sur-photo > .contenu { padding: 0 calc(var(--espace-l) + var(--espace-xl)) calc(var(--espace-xl) * 2); }   /* dans la photo, aligné sur le titre */
 .entete-titre {
   position: absolute;
-  bottom: var(--espace-xl);
+  bottom: var(--titre-bas);
   left: var(--espace-xl);
   right: var(--espace-xl);
   font-size: clamp(var(--titre-site-min), var(--titre-site-fluide), var(--titre-site-max));
@@ -250,9 +250,7 @@ html::-webkit-scrollbar, body::-webkit-scrollbar { display: none; }
   text-transform: uppercase;
   text-shadow: var(--ombre-titre);
   line-height: 1.2;
-  transition: transform var(--transition-menu) ease-in-out;
 }
-.entete-titre { transform: translateY(calc(-1 * var(--titre-monte))); }   /* il monte au-dessus de ce qui se pose sur la photo, jamais caché dessous */
 
 /* ============================================================
    TEXTE — base + variantes de taille / ton / poids
