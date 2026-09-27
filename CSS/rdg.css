@@ -100,6 +100,7 @@
   --plein-ecran:      100vh;     /* la hauteur d'un ecran complet */
   --largeur-max:      700px;     /* la largeur du cadre de l'app */
   --photo-haut:       75vh;      /* la hauteur de la photo d'en-tete */
+  --photo-menu:       url("https://res.cloudinary.com/dym93w23h/image/upload/q_auto,f_auto,w_1600/v1790279843/IMG_3602_ucgqrg.jpg");   /* le fond du menu : la même photo que l'en-tête (déjà en cache, aucun appel de plus) — à changer avec elle */
   --message-haut:     18px;      /* la place reservee au petit message, pour qu'il ne fasse pas sauter la page */
   --espace-micro:     3px;       /* le plus petit rembourrage : une etiquette */
 
@@ -668,7 +669,7 @@ select.champ {
   inset: 0;
   z-index: 1;
   overflow-y: auto;
-  background: var(--couleur-101);
+  background: var(--couleur-101) var(--photo-menu) center top / cover no-repeat;   /* la photo en fond, pas une page blanche */
   padding-top: calc(var(--haut-ecran) + var(--espace-xl) + var(--tactile));   /* sous le X */
   visibility: hidden;                                                         /* fermé : caché une fois la page redescendue */
   transition: visibility 0s var(--transition-menu);
