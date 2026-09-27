@@ -171,7 +171,7 @@
   --spinner-decalage: 2s;                      /* l'écart entre les trois */
   --spinner-plein:    var(--couleur-101);            /* le lait */
   --spinner-trait:    var(--couleur-105);            /* le contour de la bouteille */
-  --voile-page:       color-mix(in srgb, var(--couleur-101) 90%, transparent);  /* les pages de travail : la photo très pâlie sous ce voile blanc (J-C, 2026-09-27 : blanc 90 %, pas crème) */
+  --voile-page:       color-mix(in srgb, var(--couleur-101) 85%, transparent);  /* les pages de travail : la photo très pâlie sous ce voile blanc (J-C, 2026-09-27 : blanc 85 %, pas crème) */
   --spinner-voile:    color-mix(in srgb, var(--couleur-306) 55%, transparent);  /* l'écran qui bloque derrière */
 }
 
@@ -224,7 +224,11 @@ body::before {
   background: linear-gradient(var(--voile-page), var(--voile-page)), var(--photo) center top / cover no-repeat;
 }
 .conteneur:has(> .sur-photo:not([hidden])) { background: var(--couleur-101); }
-body:has(.sur-photo:not([hidden]))::before { display: none; }   /* sur la photo nette, pas de photo pâlie autour (grand écran) */
+body:has(.sur-photo:not([hidden]))::before { display: none; }
+/* Une page de travail qui s'ouvre monte du bas de l'écran, comme les icônes du menu (J-C : « pas boom »). */
+.conteneur > [id^="vue-"]:not(.sur-photo) { animation: monte-du-bas var(--transition-menu) ease-in-out; }
+@keyframes monte-du-bas { from { transform: translateY(var(--plein-ecran)); } to { transform: none; } }
+.conteneur { overflow-x: clip; overflow-y: clip; }   /* pendant qu'elle monte, rien ne dépasse du cadre */   /* sur la photo nette, pas de photo pâlie autour (grand écran) */
 .contenu { padding: var(--espace-xl) var(--espace-l); }
 /* Le contenu qui suit immédiatement la photo : même écart qu'entre les boutons, pas davantage. */
 .contenu-suite { padding-top: var(--espace-s); }
