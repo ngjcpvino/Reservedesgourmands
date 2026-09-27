@@ -464,6 +464,7 @@ function reinitFiche() {
   montrer('bloc-cat-neuve', false); montrer('bloc-souscat-neuve', false);
   $('cat-neuve').value = ''; $('souscat-neuve').value = '';
   montrer('bloc-endroits', false); montrer('btn-enregistrer', false);
+  pasEncoreRange(false);
   montrer('bloc-cat', modeManuel);      // à la main, l'entonnoir part de la catégorie
   montrer('bloc-nom', !modeManuel);     // le nom ne sert qu'au scan, ou à un nouveau produit
   statut('');
@@ -480,6 +481,7 @@ function surNom() {
   }
   $('endroits').innerHTML = '';
   montrer('bloc-endroits', false); montrer('btn-enregistrer', false);
+  pasEncoreRange(false);
   if (!val) {
     produitCourant = null;
     montrer('bloc-details', false); montrer('bloc-cat', false); montrer('bloc-souscat', false);
@@ -522,6 +524,7 @@ function surSousCategorie() {
   if (scid === 'neuve') {                       // idem pour la sous-catégorie
     montrer('bloc-souscat-neuve', true); montrer('bloc-produit', false);
     montrer('bloc-endroits', false); montrer('btn-enregistrer', false);
+  pasEncoreRange(false);
     $('souscat-neuve').focus();
     return;
   }
@@ -531,6 +534,7 @@ function surSousCategorie() {
     $('nom').value = '';
     montrer('bloc-nom', false); montrer('bloc-details', false);
     montrer('bloc-endroits', false); montrer('btn-enregistrer', false);
+  pasEncoreRange(false);
     $('endroits').innerHTML = '';
     if (!scid) { montrer('bloc-produit', false); return; }
     remplirProduits(scid);
@@ -554,6 +558,7 @@ function surProduit() {
   const v = $('produit').value;
   $('endroits').innerHTML = '';
   montrer('bloc-endroits', false); montrer('btn-enregistrer', false);
+  pasEncoreRange(false);
   if (!v) { produitCourant = null; montrer('bloc-nom', false); montrer('bloc-details', false); return; }
   if (v === 'nouveau') {                        // il le nomme; la catégorie, elle, est déjà choisie
     produitCourant = null;
@@ -790,6 +795,11 @@ function ecrireMesure(valeur, unite) {
 }
 
 /* ---------- Endroits ---------- */
+/* « Pas encore rangé » (on) : les endroits font place à la seule quantité. « Choisir un endroit » (off) : l'inverse. */
+function pasEncoreRange(on) {
+  montrer('bloc-ranger', !on); montrer('bloc-transit', on);
+  if (on) { $('qte-transit').value = '1'; $('qte-transit').focus(); }
+}
 /* Pièce -> Meuble -> Espace : les trois listes d'un endroit. Les mêmes partout (fiche, corriger un endroit). */
 function htmlChoixEndroit() {
   return '<div class="bloc"><div class="label">Pièce</div><select class="champ piece"></select></div>' +
@@ -868,13 +878,19 @@ async function enregistrer() {
   }
 
   const endroits = [];
-  [...$('endroits').children].forEach(row => {
-    const mid = row.querySelector('.meuble').value;
-    const eid = row.querySelector('.espace').value;
-    const qte = parseInt(row.querySelector('.qte').value, 10) || 0;
-    if (mid && qte > 0) endroits.push({ emp: eid || mid, qte: qte });   // qté vide/0 = pas rangé ici
-  });
-  if (!endroits.length) { statut('Mets une quantité sur au moins un endroit.', 'erreur'); return; }
+  if (!$('bloc-transit').hidden) {                     // « Pas encore rangé » : compté, sans endroit (en transit)
+    const qte = parseInt($('qte-transit').value, 10) || 0;
+    if (qte <= 0) { statut('Mets une quantité.', 'erreur'); return; }
+    endroits.push({ emp: '', qte: qte });
+  } else {
+    [...$('endroits').children].forEach(row => {
+      const mid = row.querySelector('.meuble').value;
+      const eid = row.querySelector('.espace').value;
+      const qte = parseInt(row.querySelector('.qte').value, 10) || 0;
+      if (mid && qte > 0) endroits.push({ emp: eid || mid, qte: qte });   // qté vide/0 = pas rangé ici
+    });
+    if (!endroits.length) { statut('Mets une quantité sur au moins un endroit.', 'erreur'); return; }
+  }
 
   const marque = $('marque').value.trim(), format = formatSaisi(), code = $('codebarres').value.trim();
   const saveur = $('saveur').value.trim(), magasin = $('magasin').value.trim(), prix = $('prix').value.trim();
@@ -1118,16 +1134,17 @@ async function renommer(cle, nom) {
     avis('Nom pas corrigé — réessaie', 'erreur');
   } finally { montrerVoile(false); rafraichirBases(); }
 }
-/* ---------- Corriger l'endroit d'un lot (Gérer les bases → Aliments) ----------
-   Une erreur de saisie (tablette 2 au lieu de 3) : TOUT le lot change d'endroit.
-   Déplacer une partie, c'est autre chose (plus tard, avec Consommer).
-   Un lot = ce que l'Inventaire montre sur une ligne : aliment + marque + saveur, à un endroit. */
-var LOTS = {};                                        // { produitId: [lot…] }, refait à chaque dessin de la liste
+/* ---------- Corriger l'endroit d'un lot, ou ranger ce qui n'est pas encore rangé ----------
+   Un lot = ce que l'Inventaire montre sur une ligne : aliment + marque + saveur, à un endroit.
+   Déjà rangé : le crayon CORRIGE une erreur de saisie (tablette 2 au lieu de 3) -> TOUT le lot bouge.
+   Pas encore rangé (endroit vide, « en transit ») : le crayon RANGE, avec une quantité -> le reste attend.
+   Déplacer une partie d'un lot déjà rangé, c'est autre chose (plus tard, avec Consommer). */
+var LOTS = {};                                        // { produitId: [lot…] }, refait à chaque dessin d'une liste
 function lotsParProduit() {
   const par = {};
   STOCK.forEach(l => {
     const emp = String(l[2] || ''), qte = Number(l[3]) || 0;
-    if (!emp || qte <= 0) return;                     // mêmes règles que l'Inventaire
+    if (qte <= 0) return;                             // vide : rien à montrer
     const pid = String(l[1]);
     const marque = String(l[5] || '').trim(), saveur = String(l[9] || '').trim(), format = String(l[6] || '').trim();
     const lots = (par[pid] = par[pid] || []);
@@ -1142,6 +1159,7 @@ function lotsParProduit() {
 }
 /* « Cuisine · Frigo · Tablette 2 » — le dernier mot seul si on le veut court. */
 function libelleEndroit(emp, court) {
+  if (!emp) return 'Pas encore rangé';
   const r = resoudreEmp(emp);
   if (!r) return 'Endroit disparu';
   const nom = (liste, id) => { const x = liste.find(y => String(y.id) === String(id)); return x ? x.nom : ''; };
@@ -1149,47 +1167,75 @@ function libelleEndroit(emp, court) {
   if (court) return esp || nom(MEUBLES, r.meubleId);
   return [nom(PIECES, r.pieceId), nom(MEUBLES, r.meubleId), esp].filter(Boolean).join(' · ');
 }
-function htmlLot(pid, i, l) {
+/* Une ligne de lot avec son crayon. titre = ce qui s'écrit en gros (l'endroit sous un aliment, l'aliment dans « Pas encore rangé »). */
+function htmlLot(pid, i, l, titre) {
   const detail = [l.marque, l.saveur, l.formats.join(' + ')].filter(Boolean).join(' · ');
-  return '<div class="item"><div class="item-info"><div class="item-nom">' + esc(libelleEndroit(l.emp)) + '</div>' +
+  const nom = l.emp ? 'Corriger l\'endroit' : 'Ranger';
+  return '<div class="item"><div class="item-info"><div class="item-nom">' + esc(titre || libelleEndroit(l.emp)) + '</div>' +
     (detail ? '<div class="item-detail">' + esc(detail) + '</div>' : '') + '</div>' +
     '<span class="item-quantite">' + esc(l.qte) + '</span>' +
-    '<button class="crayon" type="button" data-lot="' + esc(pid) + '|' + i + '" aria-label="Corriger l\'endroit"></button></div>';
+    '<button class="crayon" type="button" data-lot="' + esc(pid) + '|' + i + '" aria-label="' + nom + '"></button></div>';
 }
-/* Le crayon d'un lot : la ligne devient la carte d'endroit de la fiche, placée sur l'endroit actuel.
-   Un autre endroit choisi -> la question; Oui corrige, Non laisse tout tel quel. */
+/* « Pas encore rangé », en tête de l'Inventaire : n'apparaît que s'il y a quelque chose. */
+function htmlPasEncoreRange() {
+  const lignes = [];
+  PRODUITS.forEach(p => (LOTS[p.id] || []).forEach((l, i) => { if (!l.emp) lignes.push({ nom: p.nom, html: htmlLot(p.id, i, l, p.nom) }); }));
+  if (!lignes.length) return '';
+  lignes.sort((a, b) => String(a.nom).localeCompare(String(b.nom), 'fr'));
+  return '<div class="accordeon" data-transit><div class="accordeon-tete">Pas encore rangé</div>' +
+    '<div class="accordeon-corps" hidden>' + lignes.map(x => x.html).join('') + '</div></div>';
+}
+/* Le crayon d'un lot : la ligne devient la carte d'endroit de la fiche.
+   Déjà rangé : placée sur l'endroit actuel. Pas encore rangé : vierge, avec la quantité (le total d'avance).
+   Un autre endroit choisi -> la question; Oui fait le geste, Non laisse tout tel quel. */
 function ouvrirLot(btn) {
   const k = btn.dataset.lot.split('|'), lot = (LOTS[k[0]] || [])[Number(k[1])];
   if (!lot) return;
+  const ranger = !lot.emp;
   const carte = document.createElement('div');
   carte.className = 'endroit carte';
-  carte.innerHTML = htmlChoixEndroit() + '<div class="message"></div>' +
+  carte.innerHTML = htmlChoixEndroit() +
+    (ranger ? '<div class="bloc"><div class="label">Quantité</div><input class="champ qte" type="text" inputmode="numeric" pattern="[0-9]*" value="' + esc(lot.qte) + '"></div>' : '') +
+    '<div class="message"></div>' +
     '<div class="grille"><button class="bouton bouton-petit bouton-vert lot-oui" type="button" hidden>Oui</button>' +
     '<button class="bouton bouton-petit lot-non" type="button">Non</button></div>';
   btn.closest('.item').replaceWith(carte);
   brancherEndroit(carte, resoudreEmp(lot.emp));
   const cible = () => carte.querySelector('.espace').value || carte.querySelector('.meuble').value;
+  const combien = () => ranger ? (parseInt(carte.querySelector('.qte').value, 10) || 0) : lot.qte;
   const question = () => {
-    const emp = cible(), m = carte.querySelector('.message'), oui = carte.querySelector('.lot-oui');
-    const ok = !!emp && emp !== lot.emp;
+    const emp = cible(), q = combien(), m = carte.querySelector('.message'), oui = carte.querySelector('.lot-oui');
+    const ok = !!emp && emp !== lot.emp && q > 0 && q <= lot.qte;
     const a = resoudreEmp(lot.emp), b = resoudreEmp(emp);
     const court = !!(a && b && a.meubleId === b.meubleId);   // même meuble : « Tablette 2 vers Tablette 3 » suffit
-    m.textContent = ok ? 'Déplacer ' + (lot.qte > 1 ? 'les ' + lot.qte : 'le ' + lot.qte) + ' de ' + libelleEndroit(lot.emp, court) + ' vers ' + libelleEndroit(emp, court) + ' ?' : '';
+    const les = q > 1 ? 'les ' + q : 'le ' + q;
+    m.className = 'message';
+    if (ranger && q > lot.qte) { m.className = 'message message-erreur'; m.textContent = 'Il y en a ' + lot.qte + ' à ranger.'; }
+    else if (!ok) m.textContent = '';
+    else if (ranger) m.textContent = 'Ranger ' + les + ' à ' + libelleEndroit(emp) + ' ?' + (q < lot.qte ? ' (' + (lot.qte - q) + ' attendront)' : '');
+    else m.textContent = 'Déplacer ' + les + ' de ' + libelleEndroit(lot.emp, court) + ' vers ' + libelleEndroit(emp, court) + ' ?';
     oui.hidden = !ok;
   };
   carte.addEventListener('change', question);
-  carte.querySelector('.lot-non').onclick = () => rafraichirBases();
-  carte.querySelector('.lot-oui').onclick = () => corrigerLot(lot, cible());
+  carte.addEventListener('input', question);           // la quantité : la question suit pendant la saisie
+  carte.querySelector('.lot-non').onclick = redessinerLots;
+  carte.querySelector('.lot-oui').onclick = () => deplacerLot(lot, cible(), combien());
   question();
 }
+function redessinerLots() { rafraichirBases(); remplirInventaire(); }
 /* Une date lue du Sheet peut revenir en format long (2026-09-23T04:00:00.000Z) : on la réécrit comme à l'entrée. */
 function dateCourte(v) {
   const t = String(v || '');
   if (!/^\d{4}-\d{2}-\d{2}T/.test(t)) return v;
   return new Date(t).toLocaleDateString('en-CA', { timeZone: 'America/Toronto' });   // AAAA-MM-JJ, heure du Québec
 }
-async function corrigerLot(lot, emp) {
-  if (!emp || emp === lot.emp) { rafraichirBases(); return; }
+/* Porte q du lot vers emp, ligne de STOCK par ligne, une à la fois (jamais en parallèle).
+   Une ligne qui entre au complet : on réécrit son endroit. Une ligne coupée en deux (ranger une partie) :
+   la part rangée devient une nouvelle entrée (entrerArticle, jeton anti-reclic), puis la ligne d'origine
+   garde le reste. Le jeton est fait de la ligne, de sa quantité, de l'endroit et de la part :
+   un 2e appui après une erreur renvoie le même jeton, et le coffre-fort n'écrit rien deux fois. */
+async function deplacerLot(lot, emp, q) {
+  if (!emp || emp === lot.emp || !(q > 0)) { redessinerLots(); return; }
   montrerVoile(true);
   let c = null;
   try {
@@ -1197,23 +1243,42 @@ async function corrigerLot(lot, emp) {
       if (!await chargerReferences()) throw new Error('réseau');
       lot = (lotsParProduit()[lot.pid] || []).find(x => x.emp === lot.emp && x.marque === lot.marque && x.saveur === lot.saveur);
       if (!lot || lot.lignes.some(id => !id)) throw new Error('introuvable');
+      q = Math.min(q, lot.qte);
     }
     c = lireCache();
-    for (const id of lot.lignes) {                    // chaque ligne du lot, une à la fois (jamais en parallèle)
+    const enCache = id => c && (c.stock || []).find(x => String(x[0]) === id);
+    let reste = q;
+    for (const id of lot.lignes) {
+      if (reste <= 0) break;
       const row = STOCK.find(r => String(r[0]) === id);
-      if (!row || String(row[2]) === emp) continue;   // déjà corrigée (2e appui après une erreur) : rien à refaire
-      const ligne = row.slice(); ligne[2] = emp; ligne[4] = dateCourte(ligne[4]);
-      const r = await Coffre.modifier('Stock', id, ligne);   // réécrit la même ligne : un 2e envoi ne change rien
-      if (!r || !r.ok) throw new Error((r && r.erreur) || 'refus');
-      row[2] = emp;
-      const rc = c && (c.stock || []).find(x => String(x[0]) === id);
-      if (rc) rc[2] = emp;
+      if (!row || String(row[2]) === emp) continue;   // déjà faite (2e appui après une erreur) : rien à refaire
+      const qte = Number(row[3]) || 0;
+      if (qte <= 0) continue;
+      if (qte <= reste) {                             // toute la ligne va à l'endroit
+        const ligne = row.slice(); ligne[2] = emp; ligne[4] = dateCourte(ligne[4]);
+        const r = await Coffre.modifier('Stock', id, ligne);   // réécrit la même ligne : un 2e envoi ne change rien
+        if (!r || !r.ok) throw new Error((r && r.erreur) || 'refus');
+        row[2] = emp; const rc = enCache(id); if (rc) rc[2] = emp;
+        reste -= qte;
+      } else {                                        // la ligne se coupe : « reste » part, le reste attend
+        const part = reste, op = 'ranger-' + id + '-' + qte + '-' + emp + '-' + part;
+        const r1 = await Coffre.entrerArticle({ produitId: row[1], marque: row[5], format: row[6], saveur: row[9], code: row[8],
+          magasin: row[11], prix: row[12], qui: row[10], endroits: [{ emp: emp, qte: part }], opId: op });
+        if (!r1 || !r1.ok) throw new Error((r1 && r1.erreur) || 'refus');
+        const ligne = row.slice(); ligne[3] = qte - part; ligne[4] = dateCourte(ligne[4]);
+        const r2 = await Coffre.modifier('Stock', id, ligne);
+        if (!r2 || !r2.ok) throw new Error((r2 && r2.erreur) || 'refus');
+        row[3] = qte - part; const rc = enCache(id); if (rc) rc[3] = qte - part;
+        const neuve = ['', row[1], emp, part, dateDuJour(), row[5], row[6], op, row[8], row[9], row[10], row[11], row[12]];
+        STOCK.push(neuve); if (c) (c.stock = c.stock || []).push(neuve.slice());
+        reste = 0;
+      }
     }
   } catch (e) {
-    avis('Endroit pas corrigé — réessaie', 'erreur');
+    avis((lot && !lot.emp ? 'Pas rangé' : 'Endroit pas corrigé') + ' — réessaie', 'erreur');
   } finally {
     if (c) ecrireCache(c);
-    montrerVoile(false); rafraichirBases(); remplirInventaire();
+    montrerVoile(false); redessinerLots();
   }
 }
 /* Catégories et Aliments, sous les pièces : chaque nom avec son crayon. */
@@ -1308,7 +1373,10 @@ function remplirInventaire() {
   const cible = $('liste-inventaire');
   if (!cible) return;
   let html = '';
+  const transitOuvert = !!cible.querySelector('[data-transit] > .ouvert');   // on range l'un après l'autre : il reste ouvert
   const par = stockParEndroit();                 // calculé UNE fois pour toute la liste
+  LOTS = lotsParProduit();
+  html += htmlPasEncoreRange();                  // en tête : ce qui attend d'être rangé
   const groupe = (titre, meubles) => {
     const dedans = meubles.map(m => htmlMeubleInventaire(m, par)).join('');
     return dedans ? '<div class="accordeon"><div class="accordeon-tete">' + esc(titre) + '</div>' +
@@ -1317,6 +1385,8 @@ function remplirInventaire() {
   PIECES.forEach(p => { html += groupe(p.nom, MEUBLES.filter(m => String(m.pieceId) === String(p.id))); });
   html += groupe('À ranger', MEUBLES.filter(m => !m.pieceId));
   cible.innerHTML = html || '<div class="accordeon-item"><span class="texte-petit texte-pale">Rien d\'entré pour le moment.</span></div>';
+  const transit = cible.querySelector('[data-transit] > .accordeon-tete');
+  if (transitOuvert && transit) toggleAccordeon(transit);
 }
 
 /* ---------- Réordonner (flèches ↑↓) — instantané à l'écran, envoyé en arrière-plan ---------- */
@@ -1680,6 +1750,9 @@ function initEntree() {
     tete.addEventListener('click', () => toggleAccordeon(tete)));
   $('btn-rechercher').addEventListener('click', () => avis('Rechercher — à venir'));   // la loupe, en haut à gauche
   $('liste-inventaire').addEventListener('click', function (ev) {   // pièces et meubles de l'inventaire
+    const lot = ev.target.closest('.crayon[data-lot]');    // « Pas encore rangé » : le crayon range
+    if (lot) { ouvrirLot(lot); return; }
+    if (ev.target.closest('.endroit')) return;             // toucher la carte ouverte ne plie pas l'accordéon
     const tete = ev.target.closest('.accordeon-tete');
     if (tete) toggleAccordeon(tete);
   });            // bouton bleu → la page des listes
@@ -1718,6 +1791,8 @@ function initEntree() {
   $('souscat-neuve').addEventListener('keydown', e => { if (e.key === 'Enter') { e.preventDefault(); ajouterSousCategorie(); } });
   $('souscat').addEventListener('change', surSousCategorie);
   $('btn-endroit').addEventListener('click', () => ajouterEndroit());
+  $('btn-transit').addEventListener('click', () => pasEncoreRange(true));
+  $('btn-ranger').addEventListener('click', () => pasEncoreRange(false));
   $('btn-enregistrer').addEventListener('click', enregistrer);
   $('btn-annuler').addEventListener('click', montrerChoixComment);
   // reste connecté → page d'ouverture directement, puis mise à jour en arrière-plan
@@ -1732,7 +1807,7 @@ async function retourDansApp() {
   if (Date.now() - dernierChargement < FRAICHEUR) return;
   if (!$('vue-app').hidden || !$('vue-meuble').hidden || !$('vue-piece').hidden) return;   // une saisie en cours : on ne touche à rien
   await chargerReferences();
-  if (!$('vue-listes').hidden) remplirInventaire();
+  if (!$('vue-listes').hidden && !document.querySelector('#liste-inventaire .endroit')) remplirInventaire();   // pas pendant un rangement
   if (!$('vue-bases').hidden && !Object.keys(ordreModifie).length && !document.querySelector('.champ-renommer, #liste-noms .endroit')) rafraichirBases();   // pas pendant une correction de nom ou d'endroit
 }
 
