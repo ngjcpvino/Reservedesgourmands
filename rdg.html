@@ -232,8 +232,18 @@
     <!-- Endroits (1 à N) -->
     <div id="bloc-endroits" hidden>
       <div class="label label-fort">Où ça va</div>
-      <div id="endroits"></div>
-      <button class="bouton bouton-petit bouton-suite" id="btn-endroit" type="button">+ un autre endroit</button>
+      <div id="bloc-ranger">
+        <div id="endroits"></div>
+        <button class="bouton bouton-petit bouton-suite" id="btn-endroit" type="button">+ un autre endroit</button>
+        <button class="bouton bouton-petit bouton-suite" id="btn-transit" type="button">Pas encore rangé</button>
+      </div>
+      <div id="bloc-transit" hidden>   <!-- entré, compté, pas encore rangé : la quantité seulement -->
+        <div class="bloc">
+          <div class="label">Quantité</div>
+          <input class="champ" id="qte-transit" type="text" inputmode="numeric" pattern="[0-9]*" value="1">
+        </div>
+        <button class="bouton bouton-petit" id="btn-ranger" type="button">Choisir un endroit</button>
+      </div>
     </div>
 
     <button class="bouton bouton-vert bouton-pleine bouton-detache" id="btn-enregistrer" hidden>Enregistrer</button>
@@ -321,7 +331,7 @@
 </div><!-- fin du conteneur -->
 
 <script src="JS/coffre.js?v=3"></script>
-<script src="JS/entree.js?v=72"></script>
+<script src="JS/entree.js?v=73"></script>
 <script src="JS/scan.js?v=5"></script>
 </body>
 </html>
