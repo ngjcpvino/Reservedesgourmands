@@ -42,19 +42,19 @@ const COULEURS_SITE = [
   ['couleur-206', 'Couleur 206', ''],
   ['couleur-301', 'Couleur 301', ''],
   ['couleur-302', 'Couleur 302', 'petits intitulés, texte pâle'],
-  ['couleur-303', 'Couleur 303', ''],
-  ['couleur-304', 'Couleur 304', ''],
+  ['couleur-303', 'Couleur 303', 'suite n° 7'],
+  ['couleur-304', 'Couleur 304', 'suite n° 5'],
   ['couleur-305', 'Couleur 305', "boutons bruns, têtes d'accordéon, burger, loupe"],
   ['couleur-306', 'Couleur 306', 'texte, menu, ombres'],
-  ['couleur-401', 'Couleur 401', ''],
+  ['couleur-401', 'Couleur 401', 'suite n° 4'],
   ['couleur-402', 'Couleur 402', 'erreurs'],
-  ['couleur-403', 'Couleur 403', ''],
+  ['couleur-403', 'Couleur 403', 'suite n° 9'],
   ['couleur-404', 'Couleur 404', ''],
   ['couleur-501', 'Couleur 501', ''],
-  ['couleur-502', 'Couleur 502', 'bouton Consommer'],
+  ['couleur-502', 'Couleur 502', ''],
   ['couleur-503', 'Couleur 503', ''],
   ['couleur-504', 'Couleur 504', ''],
-  ['couleur-505', 'Couleur 505', ''],
+  ['couleur-505', 'Couleur 505', 'suite n° 1 (grilles, Listes)'],
   ['couleur-506', 'Couleur 506', ''],
   ['couleur-507', 'Couleur 507', ''],
   ['couleur-601', 'Couleur 601', ''],
@@ -65,12 +65,12 @@ const COULEURS_SITE = [
   ['couleur-606', 'Couleur 606', ''],
   ['couleur-607', 'Couleur 607', ''],
   ['couleur-701', 'Couleur 701', ''],
-  ['couleur-702', 'Couleur 702', ''],
-  ['couleur-703', 'Couleur 703', 'boutons verts, succès'],
-  ['couleur-704', 'Couleur 704', ''],
+  ['couleur-702', 'Couleur 702', 'suite n° 3'],
+  ['couleur-703', 'Couleur 703', 'boutons verts, succès, suite n° 8'],
+  ['couleur-704', 'Couleur 704', 'suite n° 10'],
   ['couleur-801', 'Couleur 801', ''],
-  ['couleur-802', 'Couleur 802', ''],
-  ['couleur-803', 'Couleur 803', ''],
+  ['couleur-802', 'Couleur 802', 'suite n° 6'],
+  ['couleur-803', 'Couleur 803', 'suite n° 2'],
   ['couleur-901', 'Couleur 901', ''],
   ['couleur-902', 'Couleur 902', ''],
   ['couleur-903', 'Couleur 903', 'bas foncé des boutons, fond du scan']
@@ -1021,7 +1021,7 @@ function htmlMeuble(m, i, groupe) {
   const liste = ESPACES[m.id] || [];
   const espaces = liste.map(htmlEspace).join('');
   const teinte = couleurDe(m.couleur);
-  const style = teinte ? ' style="background:' + esc(teinte) + '"' : '';   // la couleur est une DONNÉE
+  const style = teinte ? ' style="--c:' + esc(teinte) + '"' : '';   // la couleur est une DONNÉE ; le relief la suit
   const pale = (teinte && couleurPale(teinte)) ? ' tete-pale' : '';
   return '<div class="accordeon" data-type="m" data-id="' + esc(m.id) + '">' +
     '<div class="accordeon-tete' + pale + '"' + style + '><span>' + esc(m.nom) + '</span>' + crayon('e:' + m.id) + fleches('m', m.id, i, groupe.length) + '</div>' +
@@ -1192,7 +1192,7 @@ function htmlMeubleInventaire(m, par) {
   });
   if (!corps) return '';
   const teinte = couleurDe(m.couleur);
-  const style = teinte ? ' style="background:' + esc(teinte) + '"' : '';   // la couleur est une DONNÉE
+  const style = teinte ? ' style="--c:' + esc(teinte) + '"' : '';   // la couleur est une DONNÉE ; le relief la suit
   const pale = (teinte && couleurPale(teinte)) ? ' tete-pale' : '';
   return '<div class="accordeon"><div class="accordeon-tete' + pale + '"' + style + '>' + esc(m.nom) + '</div>' +
     '<div class="accordeon-corps" hidden>' + corps + '</div></div>';
