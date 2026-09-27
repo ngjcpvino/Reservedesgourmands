@@ -127,6 +127,7 @@
 
   /* ---- Durees ---- */
   --transition-pli:   0.25s;     /* le triangle qui tourne */
+  --titre-monte:      0px;       /* menu ouvert : de combien le titre du site monte pour rester au-dessus des icônes (le script le calcule) */
   --transition-menu:  0.8s;      /* la page qui glisse vers le haut pour montrer le menu */
   --spinner-lueur:    drop-shadow(0 0 10px color-mix(in srgb, var(--couleur-101) 28%, transparent));
   --scan-haut:        25vh;      /* la hauteur de la fenêtre du scan : pleine largeur et basse, comme un code-barres */
@@ -246,7 +247,9 @@ html::-webkit-scrollbar, body::-webkit-scrollbar { display: none; }
   text-transform: uppercase;
   text-shadow: var(--ombre-titre);
   line-height: 1.2;
+  transition: transform var(--transition-menu) ease-in-out;
 }
+body.menu-ouvert .entete-titre { transform: translateY(calc(-1 * var(--titre-monte))); }   /* il monte avec les icônes, jamais caché dessous */
 
 /* ============================================================
    TEXTE — base + variantes de taille / ton / poids
