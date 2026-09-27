@@ -100,7 +100,7 @@
   --plein-ecran:      100vh;     /* la hauteur d'un ecran complet */
   --largeur-max:      700px;     /* la largeur du cadre de l'app */
   --photo-haut:       75vh;      /* la hauteur de la photo d'en-tete */
-  --photo-menu:       url("https://res.cloudinary.com/dym93w23h/image/upload/q_auto,f_auto,w_1600/v1790279843/IMG_3602_ucgqrg.jpg");   /* le fond du menu : la même photo que l'en-tête (déjà en cache, aucun appel de plus) — à changer avec elle */
+  --photo:            url("https://res.cloudinary.com/dym93w23h/image/upload/q_auto,f_auto,w_1600/v1790279843/IMG_3602_ucgqrg.jpg");   /* LA photo du site : l'en-tête ET le fond du menu. Changer ici = partout. */
   --message-haut:     18px;      /* la place reservee au petit message, pour qu'il ne fasse pas sauter la page */
   --espace-micro:     3px;       /* le plus petit rembourrage : une etiquette */
 
@@ -227,13 +227,12 @@ html::-webkit-scrollbar, body::-webkit-scrollbar { display: none; }
   overflow: hidden;
   border-radius: var(--rayon);
 }
-.entete-photo img { width: 100%; height: 100%; object-fit: cover; object-position: top; display: block; }
+.entete-photo { background: var(--photo) center top / cover no-repeat; }   /* la photo vit ici, pas dans le HTML */
 /* Une feuille posée au bas de l'écran (le mot de passe) : la photo s'allonge pour remplir
    l'espace libre, jamais plus courte que d'habitude; le contenu se pose au bas. */
 .conteneur:has(> .pose-au-bas:not([hidden])) { display: flex; flex-direction: column; }
 .conteneur:has(> .pose-au-bas:not([hidden])) .entete { flex: 1; display: flex; flex-direction: column; }
 .conteneur:has(> .pose-au-bas:not([hidden])) .entete-photo { flex: 1; height: auto; min-height: var(--photo-haut); }
-.conteneur:has(> .pose-au-bas:not([hidden])) .entete-photo img { position: absolute; top: 0; left: 0; }
 .entete-titre {
   position: absolute;
   bottom: var(--espace-xl);
@@ -669,7 +668,7 @@ select.champ {
   inset: 0;
   z-index: 1;
   overflow-y: auto;
-  background: var(--couleur-101) var(--photo-menu) center top / cover no-repeat;   /* la photo en fond, pas une page blanche */
+  background: var(--couleur-101) var(--photo) center top / cover no-repeat;   /* la photo en fond, pas une page blanche */
   padding-top: calc(var(--haut-ecran) + var(--espace-xl) + var(--tactile));   /* sous le X */
   visibility: hidden;                                                         /* fermé : caché une fois la page redescendue */
   transition: visibility 0s var(--transition-menu);
