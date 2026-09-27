@@ -99,6 +99,7 @@ const FRAICHEUR = 30000;                            // au retour dans l'app, on 
 
 /* ---------- Vues : connexion → page d'ouverture → formulaire ---------- */
 function toutCacher() {
+  requestAnimationFrame(placerTitre);   // la nouvelle feuille affichée : le titre du site se place au-dessus d'elle
   if (!$('vue-bases').hidden) envoyerOrdre();   // on quitte « Gérer les bases » : l'ordre part tout seul
   if (!$('vue-couleurs').hidden) envoyerCouleurs();   // idem pour « Couleurs »
   $('vue-connexion').hidden = true;
@@ -248,17 +249,35 @@ function fermerMenu() {                 // la page redescend ; Outils se replie 
   document.body.classList.remove('menu-ouvert');
   $('btn-burger').classList.remove('ouvert');
   montrerOutils(false);
+  placerTitre();
 }
 function ouvrirMenu() {
   $('menu').scrollTop = 0;
   $('menu').classList.add('ouvert');
   document.body.classList.add('menu-ouvert');
   $('btn-burger').classList.add('ouvert');
+  placerTitre();
+}
+/* Menu ouvert : le titre du site monte juste au-dessus des icônes, pour ne pas être caché dessous. */
+function placerTitre() {
+  const titre = document.querySelector('.entete-titre');
+  if (!titre.offsetParent) return;                    // pas de photo sur cet écran : rien à déplacer
+  const bas = titre.offsetParent.getBoundingClientRect().top + titre.offsetTop + titre.offsetHeight;   // sa place d'origine (sans le décalage)
+  let haut = window.innerHeight;                      // rien par-dessus la photo : le titre reste en place
+  if ($('menu').classList.contains('ouvert')) haut -= document.querySelector('.menu-contenu').offsetHeight;
+  else {
+    const feuille = document.querySelector('.sur-photo:not([hidden])');
+    if (feuille && feuille.offsetHeight) haut = feuille.getBoundingClientRect().top -
+      parseFloat(getComputedStyle(document.documentElement).getPropertyValue('--espace-xl'));   // le même écart qu'au-dessus des icônes
+  }
+  document.documentElement.style.setProperty('--titre-monte', Math.max(0, bas - haut) + 'px');
 }
 /* Outils : ses 4 icônes prennent la place des 6; Retour les rend. */
+window.addEventListener('resize', () => placerTitre());
 function montrerOutils(on) {
   $('menu-principal').hidden = on;
   $('menu-outils-grille').hidden = !on;
+  if ($('menu').classList.contains('ouvert')) placerTitre();   // la grille change de hauteur : le titre suit
 }
 /* Glisser le doigt vers le bas sur le menu le ferme (comme retoucher le X). */
 const GLISSER = 60;                     // en pixels : un vrai geste, pas un frôlement
