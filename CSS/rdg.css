@@ -464,7 +464,8 @@ select.champ {
 /* ============================================================
    ACCORDÉON — un bloc repliable (tête brune + items)
 ============================================================ */
-.accordeon { background: var(--couleur-101); border-radius: var(--rayon); overflow: hidden; margin-bottom: var(--espace-s); }
+/* pas de fond : la page (photo pâlie) passe au travers — un fond blanc y faisait une tache (J-C, 2026-09-27) */
+.accordeon { border-radius: var(--rayon); overflow: hidden; margin-bottom: var(--espace-s); }
 /* Ce qui ouvre le corps d'un accordéon serait collé au titre, car la marge n'existe qu'en dessous.
    La règle vaut pour le PREMIER élément quel qu'il soit : un accordéon, une ligne, un item.
    (`accordeon-bloc` fait exception : il porte déjà son propre rembourrage en haut.) */
@@ -720,8 +721,8 @@ select.champ {
 .menu.ouvert .menu-contenu { transform: translateY(0); }
 body.menu-ouvert { overflow: hidden; }                          /* rien ne défile derrière */
 body.menu-ouvert .coin-gauche { visibility: hidden; }
-.sur-photo { transition: opacity var(--transition-menu) ease-in-out; }
-body.menu-ouvert .sur-photo { opacity: 0; pointer-events: none; }   /* menu ouvert : les boutons de la page s'effacent, on ne les voit plus derrière */           /* la loupe : Rechercher est déjà dans la grille */
+.conteneur > [id^="vue-"] { transition: opacity var(--transition-menu) ease-in-out; }
+body.menu-ouvert .conteneur > [id^="vue-"] { opacity: 0; pointer-events: none; }   /* menu ouvert : la page consultée s'efface, on ne la voit plus derrière */           /* la loupe : Rechercher est déjà dans la grille */
 /* Le burger devient un X : le trait du milieu s'efface, les deux autres se croisent. */
 .burger span { transition: transform var(--transition-menu) ease, opacity var(--transition-menu) ease; }
 .burger.ouvert span:nth-child(1) { transform: translateY(calc(var(--burger-gap) + var(--burger-trait-haut))) rotate(45deg); }
