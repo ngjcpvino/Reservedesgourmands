@@ -301,6 +301,7 @@ body:has(.sur-photo:not([hidden]))::before { display: none; }
   border-bottom: var(--filet-titre) solid var(--couleur-205);
   margin-bottom: var(--espace-l);
   text-align: center;   /* les titres de page, au centre (J-C, 2026-09-25) */
+  text-transform: uppercase;   /* en capitales, comme le titre du site (J-C, 2026-09-27) */
 }
 .titre-nu { border-bottom: none; padding-bottom: 0; }
 
