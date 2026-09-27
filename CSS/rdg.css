@@ -126,7 +126,7 @@
 
   /* ---- Durees ---- */
   --transition-pli:   0.25s;     /* le triangle qui tourne */
-  --transition-menu:  0.3s;      /* la page qui glisse vers le haut pour montrer le menu */
+  --transition-menu:  0.8s;      /* la page qui glisse vers le haut pour montrer le menu */
   --spinner-lueur:    drop-shadow(0 0 10px color-mix(in srgb, var(--couleur-101) 28%, transparent));
   --scan-haut:        25vh;      /* la hauteur de la fenêtre du scan : pleine largeur et basse, comme un code-barres */
   --lettrage-large:   0.04em;    /* l'espacement des lettres du code lu */
@@ -675,7 +675,7 @@ select.champ {
 }
 .menu.ouvert { visibility: visible; transition: none; }
 .menu-contenu { max-width: var(--largeur-max); margin: 0 auto; }
-.conteneur { position: relative; z-index: 2; transition: transform var(--transition-menu) ease; }
+.conteneur { position: relative; z-index: 2; transition: transform var(--transition-menu) ease-in-out; }
 body.menu-ouvert { overflow: hidden; }                          /* la page partie, rien ne défile derrière */
 body.menu-ouvert .conteneur { transform: translateY(-100%); }   /* la page glisse vers le haut, complètement */
 body.menu-ouvert .coin-gauche { visibility: hidden; }           /* la loupe : Rechercher est déjà dans la grille */
