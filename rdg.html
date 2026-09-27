@@ -10,7 +10,7 @@
   <!-- Ecran d'accueil iPad : le meme sac, en PNG (iOS n'accepte pas le SVG ici) -->
   <link rel="apple-touch-icon" href="apple-touch-icon.png?v=2">
 
-<link rel="stylesheet" href="CSS/rdg.css?v=55">
+<link rel="stylesheet" href="CSS/rdg.css?v=56">
 </head>
 <body>
 
@@ -63,7 +63,7 @@
 <!-- ============================================================
      CONNEXION
 ============================================================ -->
-<div id="vue-connexion" class="pose-au-bas">
+<div id="vue-connexion" class="sur-photo">
   <div class="contenu">
     <div class="bloc">
       <input class="champ" id="mdp" type="password" autocomplete="current-password" placeholder="Mot de passe">
@@ -76,7 +76,7 @@
 <!-- ============================================================
      PAGE D'OUVERTURE (accueil) — s'affiche après le mot de passe
 ============================================================ -->
-<div id="vue-accueil" class="pose-au-bas" hidden></div>   <!-- la photo seule : tout passe par le menu -->
+<div id="vue-accueil" class="sur-photo" hidden></div>   <!-- la photo seule : tout passe par le menu -->
 
 <!-- ============================================================
      LISTES — les 5 accordeons, ouverts par le bouton bleu de l'accueil
@@ -97,7 +97,7 @@
 <!-- ============================================================
      CHOIX — 1) quoi entrer  2) comment
 ============================================================ -->
-<div id="vue-choix-quoi" hidden>
+<div id="vue-choix-quoi" class="sur-photo" hidden>
   <div class="contenu contenu-suite">
     <div class="grille">
       <button class="bouton bouton-brun bouton-grand" id="choix-produit" type="button"><span class="icone icone-produit"></span></button>
@@ -107,7 +107,7 @@
   </div>
 </div>
 
-<div id="vue-choix-comment" hidden>
+<div id="vue-choix-comment" class="sur-photo" hidden>
   <div class="contenu contenu-suite">
     <div class="grille">
       <button class="bouton bouton-brun bouton-grand" id="choix-scan" type="button"><span class="icone icone-entrer"></span></button>
@@ -275,16 +275,14 @@
 <!-- ============================================================
      OUTILS — qui se sert de l'app sur CET appareil
 ============================================================ -->
-<div id="vue-qui" hidden>
-  <div class="entete"><div class="titre">Qui entre les articles</div></div>
+<div id="vue-qui" class="sur-photo" hidden>
   <div class="contenu">
     <div class="bloc">
-      <div class="label">Ton nom, gardé sur cet appareil seulement</div>
       <input class="champ" id="qui-nom" autocomplete="off" placeholder="Inscrire son nom">
     </div>
-    <button class="bouton bouton-vert bouton-pleine bouton-detache" id="btn-qui-enr" type="button">Enregistrer</button>
-    <div class="message" id="qui-msg"></div>
-    <button class="bouton bouton-pleine bouton-quitter" id="qui-annuler" type="button">Annuler</button>
+    <button class="bouton bouton-vert bouton-pleine" id="btn-qui-enr" type="button">Enregistrer</button>
+    <div class="message message-repli" id="qui-msg"></div>
+    <button class="bouton bouton-pleine bouton-suite" id="qui-annuler" type="button">Annuler</button>
   </div>
 </div>
 
@@ -323,7 +321,7 @@
 </div><!-- fin du conteneur -->
 
 <script src="JS/coffre.js?v=3"></script>
-<script src="JS/entree.js?v=58"></script>
+<script src="JS/entree.js?v=59"></script>
 <script src="JS/scan.js?v=4"></script>
 </body>
 </html>

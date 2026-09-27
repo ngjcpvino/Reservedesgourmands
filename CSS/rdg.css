@@ -127,7 +127,7 @@
 
   /* ---- Durees ---- */
   --transition-pli:   0.25s;     /* le triangle qui tourne */
-  --titre-monte:      0px;       /* menu ouvert : de combien le titre du site monte pour rester au-dessus des icônes (le script le calcule) */
+  --titre-monte:      0px;       /* de combien le titre du site monte pour rester au-dessus de ce qui se pose sur la photo (le script le calcule) */
   --transition-menu:  0.8s;      /* la page qui glisse vers le haut pour montrer le menu */
   --spinner-lueur:    drop-shadow(0 0 10px color-mix(in srgb, var(--couleur-101) 28%, transparent));
   --scan-haut:        25vh;      /* la hauteur de la fenêtre du scan : pleine largeur et basse, comme un code-barres */
@@ -207,6 +207,7 @@ html::-webkit-scrollbar, body::-webkit-scrollbar { display: none; }
   background: var(--couleur-101);
   min-height: var(--plein-ecran);
   padding-top: var(--haut-ecran);
+  position: relative;   /* une feuille posée sur la photo se cale sur son bas */
 }
 .contenu { padding: var(--espace-xl) var(--espace-l); }
 /* Le contenu qui suit immédiatement la photo : même écart qu'entre les boutons, pas davantage. */
@@ -229,12 +230,14 @@ html::-webkit-scrollbar, body::-webkit-scrollbar { display: none; }
   border-radius: var(--rayon);
 }
 .entete-photo { background: var(--photo) center top / cover no-repeat; }   /* la photo vit ici, pas dans le HTML */
-/* Une feuille posée au bas de l'écran (le mot de passe) : la photo s'allonge pour remplir
-   l'espace libre, jamais plus courte que d'habitude; le contenu se pose au bas. */
-.conteneur:has(> .pose-au-bas:not([hidden])) { display: flex; flex-direction: column; }
-.conteneur:has(> .pose-au-bas:not([hidden])) .entete { flex: 1; display: flex; flex-direction: column; }
-.conteneur:has(> .pose-au-bas:not([hidden])) .entete-photo { flex: 1; height: auto; min-height: var(--photo-haut); }
-.conteneur:has(> .pose-au-bas:not([hidden]):empty) .entete { padding-bottom: var(--espace-xl); }   /* rien sous la photo (l'accueil) : même marge en bas qu'en haut */
+/* Une feuille posée SUR la photo (mot de passe, qui entre, les choix d'Ajouter, l'accueil) :
+   la photo remplit l'écran, le contenu se pose par-dessus, au bas. Le titre du site monte
+   juste au-dessus (placerTitre() dans entree.js), comme pour les icônes du menu. */
+.conteneur:has(> .sur-photo:not([hidden])) { display: flex; flex-direction: column; }
+.conteneur:has(> .sur-photo:not([hidden])) .entete { flex: 1; display: flex; flex-direction: column; padding-bottom: var(--espace-xl); }
+.conteneur:has(> .sur-photo:not([hidden])) .entete-photo { flex: 1; height: auto; }
+.sur-photo { position: absolute; left: 0; right: 0; bottom: 0; }
+.sur-photo > .contenu { padding: 0 calc(var(--espace-l) + var(--espace-xl)) calc(var(--espace-xl) * 2); }   /* dans la photo, aligné sur le titre */
 .entete-titre {
   position: absolute;
   bottom: var(--espace-xl);
@@ -249,7 +252,7 @@ html::-webkit-scrollbar, body::-webkit-scrollbar { display: none; }
   line-height: 1.2;
   transition: transform var(--transition-menu) ease-in-out;
 }
-body.menu-ouvert .entete-titre { transform: translateY(calc(-1 * var(--titre-monte))); }   /* il monte avec les icônes, jamais caché dessous */
+.entete-titre { transform: translateY(calc(-1 * var(--titre-monte))); }   /* il monte au-dessus de ce qui se pose sur la photo, jamais caché dessous */
 
 /* ============================================================
    TEXTE — base + variantes de taille / ton / poids
