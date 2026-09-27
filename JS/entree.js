@@ -254,11 +254,20 @@ function ouvrirMenu() {
   $('menu').classList.add('ouvert');
   document.body.classList.add('menu-ouvert');
   $('btn-burger').classList.add('ouvert');
+  placerTitre();
+}
+/* Menu ouvert : le titre du site monte juste au-dessus des icônes, pour ne pas être caché dessous. */
+function placerTitre() {
+  const titre = document.querySelector('.entete-titre');
+  const bas = titre.offsetParent.getBoundingClientRect().top + titre.offsetTop + titre.offsetHeight;   // sa place d'origine (sans le décalage)
+  const hautIcones = window.innerHeight - document.querySelector('.menu-contenu').offsetHeight;
+  document.documentElement.style.setProperty('--titre-monte', Math.max(0, bas - hautIcones) + 'px');
 }
 /* Outils : ses 4 icônes prennent la place des 6; Retour les rend. */
 function montrerOutils(on) {
   $('menu-principal').hidden = on;
   $('menu-outils-grille').hidden = !on;
+  if ($('menu').classList.contains('ouvert')) placerTitre();   // la grille change de hauteur : le titre suit
 }
 /* Glisser le doigt vers le bas sur le menu le ferme (comme retoucher le X). */
 const GLISSER = 60;                     // en pixels : un vrai geste, pas un frôlement
