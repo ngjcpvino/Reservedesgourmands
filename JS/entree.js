@@ -259,6 +259,7 @@ function ouvrirMenu() {
 /* Menu ouvert : le titre du site monte juste au-dessus des icônes, pour ne pas être caché dessous. */
 function placerTitre() {
   const titre = document.querySelector('.entete-titre');
+  if (!titre.offsetParent) return;                    // pas de photo sur cet écran : rien à déplacer
   const bas = titre.offsetParent.getBoundingClientRect().top + titre.offsetTop + titre.offsetHeight;   // sa place d'origine (sans le décalage)
   const hautIcones = window.innerHeight - document.querySelector('.menu-contenu').offsetHeight;
   document.documentElement.style.setProperty('--titre-monte', Math.max(0, bas - hautIcones) + 'px');
