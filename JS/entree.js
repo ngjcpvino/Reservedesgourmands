@@ -790,16 +790,14 @@ function ecrireMesure(valeur, unite) {
 }
 
 /* ---------- Endroits ---------- */
-function ajouterEndroit(pref) {
-  const row = document.createElement('div');
-  row.className = 'endroit carte';
-  row.innerHTML =
-    '<div class="bloc"><div class="label">Pièce</div><select class="champ piece"></select></div>' +
+/* Pièce -> Meuble -> Espace : les trois listes d'un endroit. Les mêmes partout (fiche, corriger un endroit). */
+function htmlChoixEndroit() {
+  return '<div class="bloc"><div class="label">Pièce</div><select class="champ piece"></select></div>' +
     '<div class="bloc"><div class="label">Meuble</div><select class="champ meuble"></select></div>' +
-    '<div class="bloc"><div class="label">Espace</div><select class="champ espace"></select></div>' +
-    '<div class="bloc"><div class="label">Quantité</div><input class="champ qte" type="text" inputmode="numeric" pattern="[0-9]*" value="1"></div>' +
-    '<button class="bouton bouton-petit retirer" type="button">Retirer</button>';
-
+    '<div class="bloc"><div class="label">Espace</div><select class="champ espace"></select></div>';
+}
+/* Branche les trois listes d'une carte d'endroit (row) et les place sur pref s'il y en a un. */
+function brancherEndroit(row, pref) {
   const piece = row.querySelector('.piece');
   const meuble = row.querySelector('.meuble');
   const espace = row.querySelector('.espace');
@@ -823,15 +821,23 @@ function ajouterEndroit(pref) {
     row.classList.toggle('endroit-meuble', !!couleur);
     row.style.borderLeftColor = couleur;
   };
-  row.querySelector('.retirer').onclick = () => { if ($('endroits').children.length > 1) row.remove(); };
-  $('endroits').appendChild(row);
 
-  if (pref) {                                  // pré-remplir un endroit habituel (tout reste modifiable)
+  if (pref) {                                  // pré-remplir un endroit (tout reste modifiable)
     if (pref.pieceId)  { piece.value  = String(pref.pieceId);  piece.onchange(); }
     if (pref.meubleId) { meuble.value = String(pref.meubleId); meuble.onchange(); }
     if (pref.espaceId) { espace.value = String(pref.espaceId); }
-    if (pref.qte !== undefined) row.querySelector('.qte').value = pref.qte;
   }
+}
+function ajouterEndroit(pref) {
+  const row = document.createElement('div');
+  row.className = 'endroit carte';
+  row.innerHTML = htmlChoixEndroit() +
+    '<div class="bloc"><div class="label">Quantité</div><input class="champ qte" type="text" inputmode="numeric" pattern="[0-9]*" value="1"></div>' +
+    '<button class="bouton bouton-petit retirer" type="button">Retirer</button>';
+  row.querySelector('.retirer').onclick = () => { if ($('endroits').children.length > 1) row.remove(); };
+  $('endroits').appendChild(row);
+  brancherEndroit(row, pref);
+  if (pref && pref.qte !== undefined) row.querySelector('.qte').value = pref.qte;
 }
 
 /* La date d'AUJOURD'HUI, ici (Québec). Surtout pas toISOString() : elle donne l'heure de
@@ -1112,12 +1118,112 @@ async function renommer(cle, nom) {
     avis('Nom pas corrigé — réessaie', 'erreur');
   } finally { montrerVoile(false); rafraichirBases(); }
 }
+/* ---------- Corriger l'endroit d'un lot (Gérer les bases → Aliments) ----------
+   Une erreur de saisie (tablette 2 au lieu de 3) : TOUT le lot change d'endroit.
+   Déplacer une partie, c'est autre chose (plus tard, avec Consommer).
+   Un lot = ce que l'Inventaire montre sur une ligne : aliment + marque + saveur, à un endroit. */
+var LOTS = {};                                        // { produitId: [lot…] }, refait à chaque dessin de la liste
+function lotsParProduit() {
+  const par = {};
+  STOCK.forEach(l => {
+    const emp = String(l[2] || ''), qte = Number(l[3]) || 0;
+    if (!emp || qte <= 0) return;                     // mêmes règles que l'Inventaire
+    const pid = String(l[1]);
+    const marque = String(l[5] || '').trim(), saveur = String(l[9] || '').trim(), format = String(l[6] || '').trim();
+    const lots = (par[pid] = par[pid] || []);
+    let lot = lots.find(x => x.emp === emp && x.marque === marque && x.saveur === saveur);
+    if (!lot) lots.push(lot = { pid: pid, emp: emp, marque: marque, saveur: saveur, formats: [], qte: 0, lignes: [] });
+    lot.qte += qte;
+    if (format && lot.formats.indexOf(format) === -1) lot.formats.push(format);
+    lot.lignes.push(String(l[0]));                    // les lignes de STOCK du lot, par ID
+  });
+  Object.keys(par).forEach(pid => par[pid].sort((a, b) => libelleEndroit(a.emp).localeCompare(libelleEndroit(b.emp), 'fr')));
+  return par;
+}
+/* « Cuisine · Frigo · Tablette 2 » — le dernier mot seul si on le veut court. */
+function libelleEndroit(emp, court) {
+  const r = resoudreEmp(emp);
+  if (!r) return 'Endroit disparu';
+  const nom = (liste, id) => { const x = liste.find(y => String(y.id) === String(id)); return x ? x.nom : ''; };
+  const esp = r.espaceId ? nom(ESPACES[r.meubleId] || [], r.espaceId) : '';
+  if (court) return esp || nom(MEUBLES, r.meubleId);
+  return [nom(PIECES, r.pieceId), nom(MEUBLES, r.meubleId), esp].filter(Boolean).join(' · ');
+}
+function htmlLot(pid, i, l) {
+  const detail = [l.marque, l.saveur, l.formats.join(' + ')].filter(Boolean).join(' · ');
+  return '<div class="item"><div class="item-info"><div class="item-nom">' + esc(libelleEndroit(l.emp)) + '</div>' +
+    (detail ? '<div class="item-detail">' + esc(detail) + '</div>' : '') + '</div>' +
+    '<span class="item-quantite">' + esc(l.qte) + '</span>' +
+    '<button class="crayon" type="button" data-lot="' + esc(pid) + '|' + i + '" aria-label="Corriger l\'endroit"></button></div>';
+}
+/* Le crayon d'un lot : la ligne devient la carte d'endroit de la fiche, placée sur l'endroit actuel.
+   Un autre endroit choisi -> la question; Oui corrige, Non laisse tout tel quel. */
+function ouvrirLot(btn) {
+  const k = btn.dataset.lot.split('|'), lot = (LOTS[k[0]] || [])[Number(k[1])];
+  if (!lot) return;
+  const carte = document.createElement('div');
+  carte.className = 'endroit carte';
+  carte.innerHTML = htmlChoixEndroit() + '<div class="message"></div>' +
+    '<div class="grille"><button class="bouton bouton-petit bouton-vert lot-oui" type="button" hidden>Oui</button>' +
+    '<button class="bouton bouton-petit lot-non" type="button">Non</button></div>';
+  btn.closest('.item').replaceWith(carte);
+  brancherEndroit(carte, resoudreEmp(lot.emp));
+  const cible = () => carte.querySelector('.espace').value || carte.querySelector('.meuble').value;
+  const question = () => {
+    const emp = cible(), m = carte.querySelector('.message'), oui = carte.querySelector('.lot-oui');
+    const ok = !!emp && emp !== lot.emp;
+    const a = resoudreEmp(lot.emp), b = resoudreEmp(emp);
+    const court = !!(a && b && a.meubleId === b.meubleId);   // même meuble : « Tablette 2 vers Tablette 3 » suffit
+    m.textContent = ok ? 'Déplacer ' + (lot.qte > 1 ? 'les ' + lot.qte : 'le ' + lot.qte) + ' de ' + libelleEndroit(lot.emp, court) + ' vers ' + libelleEndroit(emp, court) + ' ?' : '';
+    oui.hidden = !ok;
+  };
+  carte.addEventListener('change', question);
+  carte.querySelector('.lot-non').onclick = () => rafraichirBases();
+  carte.querySelector('.lot-oui').onclick = () => corrigerLot(lot, cible());
+  question();
+}
+/* Une date lue du Sheet peut revenir en format long (2026-09-23T04:00:00.000Z) : on la réécrit comme à l'entrée. */
+function dateCourte(v) {
+  const t = String(v || '');
+  if (!/^\d{4}-\d{2}-\d{2}T/.test(t)) return v;
+  return new Date(t).toLocaleDateString('en-CA', { timeZone: 'America/Toronto' });   // AAAA-MM-JJ, heure du Québec
+}
+async function corrigerLot(lot, emp) {
+  if (!emp || emp === lot.emp) { rafraichirBases(); return; }
+  montrerVoile(true);
+  let c = null;
+  try {
+    if (lot.lignes.some(id => !id)) {                 // une entrée toute fraîche n'a pas encore son ID : on relit STOCK d'abord
+      if (!await chargerReferences()) throw new Error('réseau');
+      lot = (lotsParProduit()[lot.pid] || []).find(x => x.emp === lot.emp && x.marque === lot.marque && x.saveur === lot.saveur);
+      if (!lot || lot.lignes.some(id => !id)) throw new Error('introuvable');
+    }
+    c = lireCache();
+    for (const id of lot.lignes) {                    // chaque ligne du lot, une à la fois (jamais en parallèle)
+      const row = STOCK.find(r => String(r[0]) === id);
+      if (!row || String(row[2]) === emp) continue;   // déjà corrigée (2e appui après une erreur) : rien à refaire
+      const ligne = row.slice(); ligne[2] = emp; ligne[4] = dateCourte(ligne[4]);
+      const r = await Coffre.modifier('Stock', id, ligne);   // réécrit la même ligne : un 2e envoi ne change rien
+      if (!r || !r.ok) throw new Error((r && r.erreur) || 'refus');
+      row[2] = emp;
+      const rc = c && (c.stock || []).find(x => String(x[0]) === id);
+      if (rc) rc[2] = emp;
+    }
+  } catch (e) {
+    avis('Endroit pas corrigé — réessaie', 'erreur');
+  } finally {
+    if (c) ecrireCache(c);
+    montrerVoile(false); rafraichirBases(); remplirInventaire();
+  }
+}
 /* Catégories et Aliments, sous les pièces : chaque nom avec son crayon. */
 function remplirNoms(garderOuverts) {
   const liste = $('liste-noms');
   const ouverts = garderOuverts ? [...liste.querySelectorAll('.accordeon-tete.ouvert')].map(t => t.parentElement.dataset.cle) : [];
   const acc = (cle, tete, corps) => '<div class="accordeon" data-cle="' + esc(cle) + '"><div class="accordeon-tete">' + tete + '</div><div class="accordeon-corps" hidden>' + corps + '</div></div>';
   const ligne = (cle, nom) => '<div class="accordeon-item"><span>' + esc(nom) + '</span>' + crayon(cle) + '</div>';
+  LOTS = lotsParProduit();                              // les lots de chaque aliment, sous son nom (corriger l'endroit)
+  const aliment = p => ligne('a:' + p.id, p.nom) + (LOTS[p.id] || []).map((l, i) => htmlLot(p.id, i, l)).join('');
   const vide = t => '<div class="accordeon-item"><span class="texte-petit texte-pale">' + t + '</span></div>';
   const cats = RAYONS.map(r => acc('c:' + r.id, '<span>' + esc(r.nom) + '</span>' + crayon('c:' + r.id),
     (SOUSCATS[r.id] || []).map(sc => ligne('c:' + sc.id, sc.nom)).join('') || vide('Aucune sous-catégorie'))).join('');
@@ -1126,12 +1232,12 @@ function remplirNoms(garderOuverts) {
     const corps = (SOUSCATS[r.id] || []).map(sc => {
       const ps = PRODUITS.filter(p => String(p.catId) === String(sc.id));
       ps.forEach(p => { classes[p.id] = true; });
-      return ps.length ? '<div class="accordeon-item"><span class="texte-fort">' + esc(sc.nom) + '</span></div>' + ps.map(p => ligne('a:' + p.id, p.nom)).join('') : '';
+      return ps.length ? '<div class="accordeon-item"><span class="texte-fort">' + esc(sc.nom) + '</span></div>' + ps.map(aliment).join('') : '';
     }).join('');
     return corps ? acc('a:' + r.id, esc(r.nom), corps) : '';
   }).join('');
   const seuls = PRODUITS.filter(p => !classes[p.id]);
-  if (seuls.length) alim += acc('a:', 'Sans catégorie', seuls.map(p => ligne('a:' + p.id, p.nom)).join(''));
+  if (seuls.length) alim += acc('a:', 'Sans catégorie', seuls.map(aliment).join(''));
   liste.innerHTML = acc('cats', 'Catégories', cats || vide('Aucune catégorie')) + acc('alim', 'Aliments', alim || vide('Aucun aliment'));
   liste.querySelectorAll('.accordeon').forEach(a => {
     if (ouverts.indexOf(a.dataset.cle) === -1) return;
@@ -1562,6 +1668,9 @@ function initEntree() {
     if (tete) toggleAccordeon(tete);
   });
   $('liste-noms').addEventListener('click', function (ev) {   // catégories et aliments : le crayon, ou plier/déplier
+    const lot = ev.target.closest('.crayon[data-lot]');    // le crayon d'un lot : corriger son endroit
+    if (lot) { ouvrirLot(lot); return; }
+    if (ev.target.closest('.endroit')) return;             // toucher la carte ouverte ne plie pas l'accordéon
     const cr = ev.target.closest('.crayon');
     if (cr) { ouvrirRenommer(cr); return; }
     const tete = ev.target.closest('.accordeon-tete');
@@ -1624,7 +1733,7 @@ async function retourDansApp() {
   if (!$('vue-app').hidden || !$('vue-meuble').hidden || !$('vue-piece').hidden) return;   // une saisie en cours : on ne touche à rien
   await chargerReferences();
   if (!$('vue-listes').hidden) remplirInventaire();
-  if (!$('vue-bases').hidden && !Object.keys(ordreModifie).length && !document.querySelector('.champ-renommer')) rafraichirBases();   // pas pendant une correction de nom
+  if (!$('vue-bases').hidden && !Object.keys(ordreModifie).length && !document.querySelector('.champ-renommer, #liste-noms .endroit')) rafraichirBases();   // pas pendant une correction de nom ou d'endroit
 }
 
 document.addEventListener('DOMContentLoaded', initEntree);
