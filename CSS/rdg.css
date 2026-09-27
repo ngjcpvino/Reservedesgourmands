@@ -171,6 +171,7 @@
   --spinner-decalage: 2s;                      /* l'écart entre les trois */
   --spinner-plein:    var(--couleur-101);            /* le lait */
   --spinner-trait:    var(--couleur-105);            /* le contour de la bouteille */
+  --voile-page:       color-mix(in srgb, var(--couleur-105) 85%, transparent);  /* les pages de travail : la photo très pâlie sous ce voile crème (J-C, piste C, 2026-09-27) */
   --spinner-voile:    color-mix(in srgb, var(--couleur-306) 55%, transparent);  /* l'écran qui bloque derrière */
 }
 
@@ -205,11 +206,20 @@ html::-webkit-scrollbar, body::-webkit-scrollbar { display: none; }
 .conteneur {
   max-width: var(--largeur-max);
   margin: 0 auto;
-  background: var(--couleur-101);
   min-height: var(--plein-ecran);
   padding-top: var(--haut-ecran);
   position: relative;   /* une feuille posée sur la photo se cale sur son bas */
 }
+/* Les pages de travail (fiche, listes, bases, couleurs…) : la photo très pâlie en fond, fixe, qui ne défile pas.
+   Les pages « sur la photo » gardent leur cadre blanc autour de la photo nette. */
+body::before {
+  content: '';
+  position: fixed;
+  inset: 0;
+  z-index: -1;
+  background: linear-gradient(var(--voile-page), var(--voile-page)), var(--photo) center top / cover no-repeat;
+}
+.conteneur:has(> .sur-photo:not([hidden])) { background: var(--couleur-101); }
 .contenu { padding: var(--espace-xl) var(--espace-l); }
 /* Le contenu qui suit immédiatement la photo : même écart qu'entre les boutons, pas davantage. */
 .contenu-suite { padding-top: var(--espace-s); }
