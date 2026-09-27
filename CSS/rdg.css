@@ -115,6 +115,7 @@
   --titre-site-fluide: 12vw;
   --titre-site-max:   70px;
   --lettrage-titre:   3px;
+  --lettrage-label:   1px;       /* l'écart entre les lettres d'un titre de champ */
   --lettrage-page:    1.5px;     /* l'écart entre les lettres d'un titre de page : moins que le titre du site, mais pas tassé */
   --ombre-titre:      0 2px 16px color-mix(in srgb, var(--couleur-306) 60%, transparent);
 
@@ -287,7 +288,7 @@ body:has(.sur-photo:not([hidden]))::before { display: none; }
 .texte-fort   { font-weight: var(--poids-fort); }
 
 /* petit intitulé au-dessus d'un champ */
-.label { font-size: var(--texte-petit); color: var(--couleur-302); margin-bottom: var(--espace-xs); }   /* 14 px (avant 12 : trop petit, J-C 2026-09-27) */
+.label { font-size: var(--texte-normal); letter-spacing: var(--lettrage-label); color: var(--couleur-302); margin-bottom: var(--espace-xs); }   /* 16 px, lettres écartées (J-C 2026-09-27 : trop petit, tassé) */
 .label-fort { font-size: var(--texte-normal); color: var(--couleur-306); font-weight: var(--poids-fort); }
 
 /* ============================================================

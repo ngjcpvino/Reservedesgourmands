@@ -186,8 +186,8 @@ function montrerFormulaire(avecCode) {
 function ordonnerFiche() {
   const parent = $('vue-app').querySelector('.contenu');
   const ordre = modeManuel
-    ? ['bloc-code', 'bloc-cat', 'bloc-souscat', 'bloc-produit', 'bloc-nom', 'bloc-details', 'bloc-endroits']
-    : ['bloc-code', 'bloc-nom', 'bloc-details', 'bloc-cat', 'bloc-souscat', 'bloc-produit', 'bloc-endroits'];
+    ? ['bloc-code', 'bloc-cat', 'bloc-souscat', 'bloc-produit', 'bloc-nom', 'bloc-details', 'bloc-achat', 'bloc-endroits']
+    : ['bloc-code', 'bloc-nom', 'bloc-details', 'bloc-achat', 'bloc-cat', 'bloc-souscat', 'bloc-produit', 'bloc-endroits'];   // magasin + prix : juste sous le format
   ordre.forEach(id => parent.insertBefore($(id), $('btn-enregistrer')));
 }
 
