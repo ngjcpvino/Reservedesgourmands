@@ -1067,7 +1067,7 @@ function remplirMeubles(garderOuverts) {
   let html = '';
   const nonRanges = MEUBLES.filter(function (m) { return !m.pieceId; });
   if (nonRanges.length) {
-    html += '<div class="accordeon" data-type="r" data-id=""><div class="accordeon-tete">À ranger (' + nonRanges.length + ')</div>' +
+    html += '<div class="accordeon" data-type="r" data-id=""><div class="accordeon-tete">Meubles sans pièce (' + nonRanges.length + ')</div>' +
       '<div class="accordeon-corps" hidden>' + nonRanges.map(htmlMeuble).join('') + '</div></div>';
   }
   html += PIECES.map(function (p, i) {
@@ -1383,7 +1383,7 @@ function remplirInventaire() {
       '<div class="accordeon-corps" hidden>' + dedans + '</div></div>' : '';
   };
   PIECES.forEach(p => { html += groupe(p.nom, MEUBLES.filter(m => String(m.pieceId) === String(p.id))); });
-  html += groupe('À ranger', MEUBLES.filter(m => !m.pieceId));
+  html += groupe('Meubles sans pièce', MEUBLES.filter(m => !m.pieceId));
   cible.innerHTML = html || '<div class="accordeon-item"><span class="texte-petit texte-pale">Rien d\'entré pour le moment.</span></div>';
   const transit = cible.querySelector('[data-transit] > .accordeon-tete');
   if (transitOuvert && transit) toggleAccordeon(transit);
@@ -1551,7 +1551,7 @@ function remplirCouleurs(garderOuverts) {
       .map(([nom, libelle, usage]) => htmlLigneCouleur('data-site', nom, libelle, usageCouleur(nom.slice(8), usage), couleurActuelle(nom))).join(''))).join('');
   let lieux = '';
   const aRanger = MEUBLES.filter(m => !m.pieceId);
-  if (aRanger.length) lieux += accordeon('r', 'À ranger', aRanger.map(m => htmlLigneChoix(m)).join(''));
+  if (aRanger.length) lieux += accordeon('r', 'Meubles sans pièce', aRanger.map(m => htmlLigneChoix(m)).join(''));
   lieux += PIECES.map(p => accordeon('p:' + p.id, p.nom,
     htmlLigneChoix(p, true) + MEUBLES.filter(m => String(m.pieceId) === String(p.id)).map(m => htmlLigneChoix(m)).join(''))).join('');
   liste.innerHTML = accordeon('site', 'Palette', site) +
