@@ -1452,13 +1452,8 @@ function initEntree() {
     const tete = ev.target.closest('.accordeon-tete');
     if (tete) toggleAccordeon(tete);
   });
-  // boutons de l'accueil : éteints pour l'instant (avis « à venir »)
-  document.querySelectorAll('#vue-accueil .bouton[data-avenir]').forEach(b =>
-    b.addEventListener('click', () => avis(b.dataset.avenir + ' — à venir')));
   document.querySelectorAll('.accordeon-tete[data-toggle]').forEach(tete =>
     tete.addEventListener('click', () => toggleAccordeon(tete)));
-  // bouton 1 → choix « quoi » (un produit / toute l'épicerie) → choix « comment » (scanner / à la main)
-  $('btn-entree').addEventListener('click', montrerChoixQuoi);
   $('btn-rechercher').addEventListener('click', () => avis('Rechercher — à venir'));   // la loupe, en haut à gauche
   $('liste-inventaire').addEventListener('click', function (ev) {   // pièces et meubles de l'inventaire
     const tete = ev.target.closest('.accordeon-tete');

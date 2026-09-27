@@ -233,6 +233,7 @@ html::-webkit-scrollbar, body::-webkit-scrollbar { display: none; }
 .conteneur:has(> .pose-au-bas:not([hidden])) { display: flex; flex-direction: column; }
 .conteneur:has(> .pose-au-bas:not([hidden])) .entete { flex: 1; display: flex; flex-direction: column; }
 .conteneur:has(> .pose-au-bas:not([hidden])) .entete-photo { flex: 1; height: auto; min-height: var(--photo-haut); }
+.conteneur:has(> .pose-au-bas:not([hidden]):empty) .entete { padding-bottom: var(--espace-xl); }   /* rien sous la photo (l'accueil) : même marge en bas qu'en haut */
 .entete-titre {
   position: absolute;
   bottom: var(--espace-xl);
@@ -662,22 +663,30 @@ select.champ {
 .coin .icone-trouver { --dessin: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23f5efe6' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Ccircle cx='10.5' cy='10.5' r='7'/%3E%3Cpath d='M15.6 15.6 21 21'/%3E%3C/svg%3E") }
 .burger span { display: block; width: var(--burger-trait-large); height: var(--burger-trait-haut); background: var(--couleur-305); border-radius: var(--rayon); }
 
-/* Le menu : il attend DERRIÈRE la page. Ouvert, la page glisse vers le haut et le laisse voir. */
+/* Le menu : la page ne bouge pas; les icônes montent du bas de l'écran et se posent par-dessus. */
 .menu {
   position: fixed;
   inset: 0;
-  z-index: 1;
+  z-index: 220;                          /* par-dessus la page, sous le X */
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-end;             /* les icônes se posent au bas de l'écran */
   overflow-y: auto;
-  background: var(--couleur-101) var(--photo) center top / cover no-repeat;   /* la photo en fond, pas une page blanche */
-  padding-top: calc(var(--haut-ecran) + var(--espace-xl) + var(--tactile));   /* sous le X */
-  visibility: hidden;                                                         /* fermé : caché une fois la page redescendue */
+  pointer-events: none;                  /* hors des icônes, le toucher traverse */
+  visibility: hidden;                    /* fermé : caché une fois les icônes redescendues */
   transition: visibility 0s var(--transition-menu);
 }
 .menu.ouvert { visibility: visible; transition: none; }
-.menu-contenu { max-width: var(--largeur-max); margin: 0 auto; }
-.conteneur { position: relative; z-index: 2; transition: transform var(--transition-menu) ease-in-out; }
-body.menu-ouvert { overflow: hidden; }                          /* la page partie, rien ne défile derrière */
-body.menu-ouvert .conteneur { transform: translateY(-100%); }   /* la page glisse vers le haut, complètement */
+.menu-contenu {
+  width: 100%;
+  max-width: var(--largeur-max);
+  margin: 0 auto;
+  pointer-events: auto;
+  transform: translateY(100%);           /* fermé : sous le bas de l'écran */
+  transition: transform var(--transition-menu) ease-in-out;
+}
+.menu.ouvert .menu-contenu { transform: translateY(0); }
+body.menu-ouvert { overflow: hidden; }                          /* rien ne défile derrière */
 body.menu-ouvert .coin-gauche { visibility: hidden; }           /* la loupe : Rechercher est déjà dans la grille */
 /* Le burger devient un X : le trait du milieu s'efface, les deux autres se croisent. */
 .burger span { transition: transform var(--transition-menu) ease, opacity var(--transition-menu) ease; }
