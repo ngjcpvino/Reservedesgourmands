@@ -171,7 +171,7 @@
   --spinner-decalage: 2s;                      /* l'écart entre les trois */
   --spinner-plein:    var(--couleur-101);            /* le lait */
   --spinner-trait:    var(--couleur-105);            /* le contour de la bouteille */
-  --voile-page:       color-mix(in srgb, var(--couleur-105) 85%, transparent);  /* les pages de travail : la photo très pâlie sous ce voile crème (J-C, piste C, 2026-09-27) */
+  --voile-page:       color-mix(in srgb, var(--couleur-101) 90%, transparent);  /* les pages de travail : la photo très pâlie sous ce voile blanc (J-C, 2026-09-27 : blanc 90 %, pas crème) */
   --spinner-voile:    color-mix(in srgb, var(--couleur-306) 55%, transparent);  /* l'écran qui bloque derrière */
 }
 
@@ -215,7 +215,11 @@ html::-webkit-scrollbar, body::-webkit-scrollbar { display: none; }
 body::before {
   content: '';
   position: fixed;
-  inset: 0;
+  top: 0;
+  bottom: 0;
+  left: 50%;
+  width: min(100%, var(--largeur-max));   /* pas plus large que le cadre des pages */
+  transform: translateX(-50%);
   z-index: -1;
   background: linear-gradient(var(--voile-page), var(--voile-page)), var(--photo) center top / cover no-repeat;
 }
