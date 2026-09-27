@@ -228,13 +228,20 @@ function revenirConnexion(msg) {
   $('msg-connexion').textContent = msg || '';
 }
 
-function entrer() {
+async function entrer() {
   const pw = $('mdp').value.trim();
   if (!pw) return;
-  Coffre.definirMotDePasse(pw);   // login optimiste : aucun appel bloquant
-  if (!localStorage.getItem(QUI)) montrerQui();   // personne de nommé ici : on demande AVANT la 1re entrée
-  else montrerAccueil();           // → la page d'ouverture
-  chargerReferences();             // en arrière-plan : les couleurs à jour (et un mauvais mot de passe se voit)
+  Coffre.definirMotDePasse(pw);
+  if (!localStorage.getItem(QUI)) {  // 1re fois sur cet appareil : on VÉRIFIE avant de demander le nom (une seule attente)
+    montrerVoile(true);
+    const ok = await chargerReferences();
+    montrerVoile(false);
+    if (ok === false) return;        // refusé : on est déjà revenu au mot de passe
+    montrerQui();                    // personne de nommé ici : on demande AVANT la 1re entrée
+    return;
+  }
+  montrerAccueil();                  // login optimiste : aucun appel bloquant
+  chargerReferences();               // en arrière-plan : les couleurs à jour (et un mauvais mot de passe se voit)
 }
 
 function deconnexion() {
@@ -385,6 +392,7 @@ function appliquer(d) {
   appliquerCouleursSite();
 }
 
+/* Rend true (chargé), false (mot de passe refusé) ou null (réseau). */
 async function chargerReferences() {
   const cache = lireCache();
   if (cache) { appliquer(cache); remplirListes(); statut(''); }   // instantané si déjà vu
@@ -397,9 +405,11 @@ async function chargerReferences() {
     appliquer(data); ecrireCache(data); remplirListes(); statut('');
     expedierOrdre();                              // le réseau répond : on en profite pour renvoyer l'attente
     expedierCouleurs();                           // idem pour les couleurs (sinon un appareil garde les siennes)
+    return true;
   } catch (e) {
-    if (e.message === 'non autorisé') { Coffre.oublier(); revenirConnexion('Mot de passe refusé.'); }
-    else if (!cache) statut('Réseau lent — patiente un instant ou recharge la page.', 'erreur');
+    if (e.message === 'non autorisé') { Coffre.oublier(); revenirConnexion('Mot de passe refusé.'); return false; }
+    if (!cache) statut('Réseau lent — patiente un instant ou recharge la page.', 'erreur');
+    return null;
   }
 }
 
