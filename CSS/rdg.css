@@ -174,7 +174,8 @@
   --champ-nombre-large: 100px; /* le champ où l'on tape un nombre : 2 (L), 0,54 (kg) */
   --bouton-scanner:    56px;   /* Rechercher : le bouton du scan, collé au champ */
   --icone-scanner:     34px;   /* son dessin */
-  --fond-liste:        color-mix(in srgb, var(--couleur-101) 70%, transparent);   /* une liste posée sur la photo pâlie : suggestions, voisins */
+  --photo-produit:     100px;  /* « Tu n'en as pas » : la photo d'Open Food Facts (J-C, choix A sur aperçu) */
+  --fond-liste:       color-mix(in srgb, var(--couleur-101) 70%, transparent);   /* une liste posée sur la photo pâlie : suggestions, voisins */
 
   /* ---- Respiration en haut de chaque écran ---- */
   --haut-ecran:        10px;    /* sinon le contenu passe sous la barre d'état d'iOS et paraît flou */
@@ -720,6 +721,9 @@ select.champ {
 /* Rien à montrer : « Aucun aliment ne correspond », « Tu n'en as pas », « Tu n'en as plus » */
 .vide { text-align: center; padding: var(--espace-l) var(--espace-s) var(--espace-xs); }
 .vide-titre { font-size: var(--texte-grand); font-weight: var(--poids-fort); margin-bottom: var(--espace-xs); }
+/* La photo du produit scanné (une DONNÉE d'Open Food Facts) et son code-barres */
+.photo-produit { display: block; width: var(--photo-produit); height: var(--photo-produit); margin: 0 auto var(--espace-m); padding: var(--espace-xs); object-fit: contain; background: var(--couleur-101); border-radius: var(--rayon); box-shadow: var(--ombre-carte); }
+.code-barres { font-size: var(--texte-petit); color: var(--couleur-302); letter-spacing: var(--lettrage-large); margin-top: var(--espace-micro); }
 
 /* ============================================================
    MESSAGE — petit retour sous une action
