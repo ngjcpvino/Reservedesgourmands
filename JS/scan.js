@@ -10,6 +10,7 @@
   var readBarcodes = null;
   var stream = null, timer = null, scanning = false;
   var video = null, canvas = null, ctx = null;
+  var mode = null;   // { lu(code), retour() } : la recherche s'en sert; sans mode, le code va à la fiche d'entrée
 
   function el(id) { return document.getElementById(id); }
   function msg(t) { var m = el('scan-msg'); if (m) m.textContent = t || ''; }
@@ -27,7 +28,8 @@
     }
   }
 
-  async function montrerScanner() {
+  async function montrerScanner(m) {
+    mode = (m && typeof m.lu === 'function') ? m : null;
     if (typeof toutCacher === 'function') toutCacher();
     el('vue-scan').hidden = false;
     var b = el('btn-burger'); if (b) b.hidden = false;
@@ -77,6 +79,7 @@
   function trouve(code) {
     arreter();                                   // on tient un code : on coupe la caméra
     msg('Lu : ' + code);
+    if (mode) { mode.lu(code); return; }         // -> la recherche
     if (typeof ouvrirFicheScan === 'function') { ouvrirFicheScan(code); return; }   // -> la fiche (mode code)
     el('scan-code').textContent = code;          // filet : fiche pas branchée
     el('scan-resultat').hidden = false;
@@ -117,10 +120,11 @@
     var r = el('scan-retour');
     if (r) r.addEventListener('click', function () {
       arreter();
+      if (mode && typeof mode.retour === 'function') { mode.retour(); return; }   // on revient d'où l'on vient
       if (typeof montrerChoixComment === 'function') montrerChoixComment();
     });
     var encore = el('scan-encore');
-    if (encore) encore.addEventListener('click', function () { montrerScanner(); });
+    if (encore) encore.addEventListener('click', function () { montrerScanner(mode); });
   }
   if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', init);
   else init();

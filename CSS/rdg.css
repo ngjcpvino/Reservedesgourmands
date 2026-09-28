@@ -172,6 +172,9 @@
   --pastille:          28px;   /* le carré qui montre une couleur (écran Couleurs, ajout d'un meuble) */
   --champ-hex-large:   110px;  /* le champ où l'on tape un code hex : #6b4f3a */
   --champ-nombre-large: 100px; /* le champ où l'on tape un nombre : 2 (L), 0,54 (kg) */
+  --bouton-scanner:    56px;   /* Rechercher : le bouton du scan, collé au champ */
+  --icone-scanner:     34px;   /* son dessin */
+  --fond-liste:        color-mix(in srgb, var(--couleur-101) 70%, transparent);   /* une liste posée sur la photo pâlie : suggestions, voisins */
 
   /* ---- Respiration en haut de chaque écran ---- */
   --haut-ecran:        10px;    /* sinon le contenu passe sous la barre d'état d'iOS et paraît flou */
@@ -352,14 +355,14 @@ body:has(.sur-photo:not([hidden]))::before { display: none; }
   text-align: center;
 }
 /* LE RELIEF — le même pour un bouton et une tête d'accordéon : dégradé de sa couleur --c, ombre, liseré */
-.bouton, .accordeon-tete {
+.bouton, .accordeon-tete, .vedette-tete {
   background: linear-gradient(to bottom,
     color-mix(in srgb, var(--c), var(--couleur-101) var(--bouton-degrade)),
     color-mix(in srgb, var(--c), var(--couleur-903) var(--bouton-degrade)));
   box-shadow: var(--bouton-ombre), inset 0 1px 0 var(--bouton-lisere);
 }
 /* le reflet : une lueur sur la moitié du haut, qui laisse passer le toucher */
-.bouton::before, .accordeon-tete::before { content: ''; position: absolute; left: 0; right: 0; top: 0; height: 50%; pointer-events: none;
+.bouton::before, .accordeon-tete::before, .vedette-tete::before { content: ''; position: absolute; left: 0; right: 0; top: 0; height: 50%; pointer-events: none;
   background: linear-gradient(to bottom, var(--bouton-reflet), transparent); }
 
 /* forme */
@@ -684,6 +687,39 @@ select.champ {
   padding: var(--espace-micro) var(--espace-s);
   border-radius: var(--rayon);
 }
+
+/* Une liste de lignes posée sur la photo pâlie (Rechercher : les suggestions, les voisins) */
+.liste-blanche { background: var(--fond-liste); border-radius: var(--rayon); margin-top: var(--espace-m); }
+.liste-blanche > .item:first-child { border-top: none; }
+.liste-blanche > [data-pid] { cursor: pointer; }
+.item-eteint .item-nom { color: var(--couleur-302); }   /* un aliment qu'on n'a plus */
+
+/* ============================================================
+   RECHERCHER — le champ + le scan, puis l'écran de rayon
+============================================================ */
+.bouton-scanner { flex-shrink: 0; align-self: stretch; width: var(--bouton-scanner); padding: 0; }
+.bouton-scanner .icone { width: var(--icone-scanner); height: var(--icone-scanner); }
+/* L'aliment cherché, en gros : une tête colorée (le relief des boutons) + ce qu'on a, endroit par endroit */
+.vedette { margin-bottom: var(--espace-l); }
+.vedette-tete {
+  --c: var(--suite-1);
+  position: relative;
+  overflow: hidden;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: var(--espace-m);
+  padding: var(--espace-m) var(--espace-l);
+  min-height: var(--tactile);
+  border-radius: var(--rayon);
+  color: var(--couleur-105);
+  font-size: var(--texte-grand);
+  font-weight: var(--poids-fort);
+}
+.vedette-corps { background: var(--couleur-101); border-radius: var(--rayon); box-shadow: var(--ombre-carte); margin-top: var(--espace-xs); padding: var(--espace-xs) var(--espace-s) var(--espace-s); }
+/* Rien à montrer : « Aucun aliment ne correspond », « Tu n'en as pas », « Tu n'en as plus » */
+.vide { text-align: center; padding: var(--espace-l) var(--espace-s) var(--espace-xs); }
+.vide-titre { font-size: var(--texte-grand); font-weight: var(--poids-fort); margin-bottom: var(--espace-xs); }
 
 /* ============================================================
    MESSAGE — petit retour sous une action

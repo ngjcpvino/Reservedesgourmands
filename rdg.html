@@ -10,7 +10,7 @@
   <!-- Ecran d'accueil iPad : le meme sac, en PNG (iOS n'accepte pas le SVG ici) -->
   <link rel="apple-touch-icon" href="apple-touch-icon.png?v=2">
 
-<link rel="stylesheet" href="CSS/rdg.css?v=78">
+<link rel="stylesheet" href="CSS/rdg.css?v=79">
 </head>
 <body>
 
@@ -91,6 +91,25 @@
     <div class="accordeon"><div class="accordeon-tete" data-toggle>En spécial cette semaine</div><div class="accordeon-corps" hidden><div class="accordeon-item"><span class="texte-petit texte-pale">—</span></div></div></div>
     <div class="accordeon"><div class="accordeon-tete" data-toggle>Listes en attente</div><div class="accordeon-corps" hidden><div class="accordeon-item"><span class="texte-petit texte-pale">—</span></div></div></div>
     <button class="bouton bouton-or bouton-pleine bouton-suite" id="btn-retour-listes" type="button">Retour</button>
+  </div>
+</div>
+
+<!-- ============================================================
+     RECHERCHER — la loupe : un champ (nom, marque, saveur) + le scan.
+     Toucher un aliment ouvre son écran de rayon : lui en gros, ses voisins en dessous.
+============================================================ -->
+<div id="vue-recherche" hidden>
+  <div class="entete"><div class="titre" id="recherche-titre">Rechercher</div></div>
+  <div class="contenu">
+    <div id="recherche-saisie">
+      <div class="ligne-couleur">
+        <input class="champ champ-fort" id="recherche-texte" type="search" enterkeyhint="search" autocomplete="off" autocorrect="off" spellcheck="false" placeholder="Nom, marque ou saveur">
+        <button class="bouton bouton-brun bouton-scanner" id="recherche-scan" type="button" aria-label="Scanner"><span class="icone icone-entrer"></span></button>
+      </div>
+      <div id="recherche-resultats"></div>
+    </div>
+    <div id="recherche-rayon" hidden></div>
+    <button class="bouton bouton-or bouton-pleine bouton-detache" id="recherche-retour" type="button">Retour</button>
   </div>
 </div>
 
@@ -331,7 +350,7 @@
 </div><!-- fin du conteneur -->
 
 <script src="JS/coffre.js?v=3"></script>
-<script src="JS/entree.js?v=74"></script>
-<script src="JS/scan.js?v=5"></script>
+<script src="JS/entree.js?v=75"></script>
+<script src="JS/scan.js?v=6"></script>
 </body>
 </html>
