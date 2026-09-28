@@ -89,7 +89,7 @@
   /* Open Food Facts : code -> { code, nom, marque, format, trouve }. */
   async function chercherOFF(code) {
     var url = 'https://world.openfoodfacts.org/api/v2/product/' + encodeURIComponent(code)
-            + '.json?fields=code,product_name_fr,generic_name_fr,brands,quantity,image_front_small_url,image_front_url';
+            + '.json?fields=code,product_name_fr,generic_name_fr,brands,quantity,image_front_small_url,image_front_url,product_name_en,product_name';
     try {
       var r = await fetch(url, { headers: { 'Accept': 'application/json' } });
       var j = await r.json();
@@ -98,10 +98,12 @@
         var nom = (p.product_name_fr || p.generic_name_fr || '').trim();   // le français seulement (J-C) : sinon vide, il choisit lui-même
         var marque = (p.brands || '').split(',')[0].trim();
         var photo = p.image_front_small_url || p.image_front_url || '';   // la photo de face : on reconnaît la boîte d'un coup d'œil
-        return { code: code, nom: nom, marque: marque, format: nettoyerFormat(p.quantity), photo: photo, trouve: true };
+        // le nom dans une autre langue : à LIRE seulement (« Tu n'en as pas »), jamais écrit dans la fiche ni le Sheet (J-C, 2026-09-28)
+        var nomAutre = (p.product_name_en || p.product_name || '').trim();
+        return { code: code, nom: nom, nomAutre: nomAutre, marque: marque, format: nettoyerFormat(p.quantity), photo: photo, trouve: true };
       }
     } catch (e) { /* réseau / inconnu : on retombe sur « non trouvé » */ }
-    return { code: code, nom: '', marque: '', format: '', photo: '', trouve: false };
+    return { code: code, nom: '', nomAutre: '', marque: '', format: '', photo: '', trouve: false };
   }
 
   function nettoyerFormat(q) { return String(q || '').replace(/\s*e\s*$/i, '').trim(); }
