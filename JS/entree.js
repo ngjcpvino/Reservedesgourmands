@@ -1534,7 +1534,8 @@ async function chercherParCode(code) {
   const connu = d && d.nom && trouverProduitParNom(d.nom);             // le code n'est pas noté, mais le nom est à nous
   if (connu) { montrerRayon(connu.id); return; }
   const trouve = !!(d && d.trouve);
-  const qui = trouve ? [[d.nom, d.marque].filter(Boolean).join(' — '), d.format].filter(Boolean).join(' · ') : '';
+  const nomLu = trouve ? (d.nom || d.nomAutre || '') : '';   // pas de nom français : l'anglais, à lire ici seulement
+  const qui = trouve ? [[nomLu, d.marque].filter(Boolean).join(' — '), d.format].filter(Boolean).join(' · ') : '';
   const photo = trouve && /^https:\/\//.test(d.photo || '') ? '<img class="photo-produit" src="' + esc(d.photo) + '" alt="">' : '';
   $('recherche-resultats').innerHTML = htmlVide('Tu n\'en as pas', qui || 'Produit inconnu', 'data-ajouter-code="' + esc(code) + '"',
     photo, '<div class="code-barres">Code ' + esc(code) + '</div>');
