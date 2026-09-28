@@ -58,6 +58,18 @@ Magasins gérés décidés le 2026-09-27 (voir `CLAUDE.md`, « À BÂTIR —
 Magasins, Marques, Saveurs ») : elle sert à l'entrée **et** aux spéciaux.
 → Les Magasins en liste gérée passent donc **avant** les spéciaux.
 
+**Pas de commerces de l'autre côté du fleuve** (J-C : « je n'ai pas de bateau
+ni d'hélicoptère »). Partout ailleurs, le code postal lui propose des
+magasins de l'autre rive. Ici, le code postal sert **seulement** à demander à
+Flipp les circulaires de la région. L'app ne garde ensuite **que les magasins
+de sa liste**. Un seul cas peut rester : **la même bannière sur les deux
+rives** (un Metro ici, un Metro en face). En général, une chaîne publie la
+même circulaire pour toute une région, et ça ne change rien. ⚠️ **Pas
+vérifié.** Si l'usage montre des circulaires différentes selon la rive, il
+faudra choisir **la circulaire de sa succursale** (Flipp donne un `flyer_id`
+par circulaire; qu'une succursale précise soit reliée à une circulaire reste
+à vérifier).
+
 **Reconnaître un aliment dans une circulaire : proposer, jamais deviner
 (choix B).** Quand l'app croit qu'un spécial correspond à un aliment, elle
 **le propose une fois** : « Ce spécial, ce sont tes Cheerios ? » **Oui / Non**.
