@@ -65,6 +65,13 @@ Même liste à deux vitesses qu'à l'entrée, pour l'uniformité :
 magasin). Ce qui roule beaucoup dans la maison roule beaucoup partout. Pas
 trois listes à entretenir.
 
+**Mise à jour du 2026-09-28 — bâti.** La porte 2 est devenue un **champ de
+texte** (nom, marque ou saveur), à côté du bouton scanner, derrière la loupe.
+Jean-Claude l'a choisi. L'entonnoir par sections de magasin et les populaires
+restent à faire. Les voisins affichés sont ceux de la **sous-catégorie de la
+maison**, en attendant les sections de magasin. Le détail est dans `CLAUDE.md`,
+à « Rechercher ».
+
 ---
 
 ## 4. DÉCOUVERTE DE LA SESSION — LA DEUXIÈME GÉOGRAPHIE

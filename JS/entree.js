@@ -107,6 +107,7 @@ function toutCacher() {
   $('vue-qui').hidden = true;
   $('vue-accueil').hidden = true;
   $('vue-listes').hidden = true;
+  $('vue-recherche').hidden = true;
   $('vue-choix-quoi').hidden = true;
   $('vue-choix-comment').hidden = true;
   $('vue-app').hidden = true;
@@ -679,7 +680,8 @@ async function ajouterSousCategorie() {
 /* ---------- Doublons : proposer, jamais deviner ---------- */
 /* Un nom réduit à l'essentiel : sans accent, sans majuscule, sans ponctuation, sans pluriel. */
 function nomNu(nom) {
-  return String(nom || '').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '')
+  return String(nom || '').toLowerCase().replace(/\u0153/g, 'oe').replace(/\u00e6/g, 'ae')   // \u00ab \u0152ufs \u00bb = \u00ab oeufs \u00bb
+    .normalize('NFD').replace(/[\u0300-\u036f]/g, '')
     .replace(/[^a-z0-9 ]/g, ' ').replace(/s\b/g, '').replace(/\s+/g, ' ').trim();
 }
 /* Distance entre deux mots : combien de lettres il faut changer pour passer de l'un à l'autre. */
@@ -1389,6 +1391,174 @@ function remplirInventaire() {
   if (transitOuvert && transit) toggleAccordeon(transit);
 }
 
+/* ---------- Rechercher (la loupe) : par le texte ou par le scan ----------
+   Tout vient de ce que l'app a déjà en mémoire : aucun appel réseau, la réponse est instantanée.
+   Le texte cherche dans le nom, la marque et la saveur (sans accent, sans pluriel, une faute permise).
+   Un aliment touché ouvre son ÉCRAN DE RAYON (RdG-03) : lui en gros, ses voisins de sous-catégorie dessous. */
+var retourRecherche = montrerAccueil;   // où ramène le Retour : l'écran d'où l'on a touché la loupe
+var rechercheJeton = 0;                 // un scan plus ancien qui répond en retard ne remplace pas l'écran
+const RETOURS = { 'vue-accueil': () => montrerAccueil(), 'vue-choix-quoi': () => montrerChoixQuoi(), 'vue-choix-comment': () => montrerChoixComment(),
+                  'vue-listes': () => montrerListes(), 'vue-bases': () => montrerBases(), 'vue-couleurs': () => montrerCouleurs() };
+/* depuis : true = on arrive de la loupe ou du menu (on retient d'où); false = on revient d'ailleurs (scan, rayon) */
+function montrerRecherche(depuis) {
+  if (depuis) {
+    const ici = Object.keys(RETOURS).find(id => !$(id).hidden);
+    if ($('vue-recherche').hidden) retourRecherche = ici ? RETOURS[ici] : montrerAccueil;   // la fiche en cours ne se rouvre pas vide : l'accueil
+    $('recherche-texte').value = '';
+  }
+  toutCacher(); $('vue-recherche').hidden = false; $('btn-burger').hidden = false;
+  montrer('recherche-saisie', true); montrer('recherche-rayon', false);
+  $('recherche-titre').textContent = 'Rechercher';
+  surRecherche();
+  if (depuis) $('recherche-texte').focus();   // prêt à taper : le clavier s'ouvre
+}
+/* Un mot tapé colle-t-il à un mot de l'aliment ? Le début suffit (« fra » → fraise); une faute permise dès 4 lettres. */
+function motColle(q, mot) {
+  if (mot.indexOf(q) === 0) return true;
+  if (q.length >= 4 && distance(q, mot.slice(0, q.length)) <= 1) return true;
+  return q.length >= 5 && distance(q, mot) <= 2;
+}
+function texteColle(requete, texte) {
+  const mots = nomNu(texte).split(' ').filter(Boolean);
+  return requete.every(q => mots.some(m => motColle(q, m)));
+}
+/* Le total d'un aliment, tous endroits confondus. */
+function totalLots(lots) { return (lots || []).reduce((s, l) => s + l.qte, 0); }
+/* Les marques + saveurs déjà entrées, par aliment : { produitId: ['Liberté fraise', …] }. Lu UNE fois par recherche. */
+function variantesParProduit() {
+  const par = {};
+  STOCK.forEach(l => {
+    const v = [String(l[5] || '').trim(), String(l[9] || '').trim()].filter(Boolean).join(' ');
+    if (!v) return;
+    const liste = (par[String(l[1])] = par[String(l[1])] || []);
+    if (liste.indexOf(v) === -1) liste.push(v);
+  });
+  return par;
+}
+function htmlVide(titre, texte, ajouter) {
+  return '<div class="vide">' + (titre ? '<div class="vide-titre">' + esc(titre) + '</div>' : '') +
+    (texte ? '<div class="texte texte-pale">' + esc(texte) + '</div>' : '') + '</div>' +
+    (ajouter ? '<button class="bouton bouton-vert bouton-pleine bouton-suite" type="button" ' + ajouter + '>L\'ajouter</button>' : '');
+}
+/* Une ligne par aliment. Le nom d'abord (ceux dont le NOM colle), puis ceux trouvés par marque ou saveur. */
+function surRecherche() {
+  rechercheJeton++;
+  const brut = $('recherche-texte').value.trim();
+  const requete = nomNu(brut).split(' ').filter(Boolean);
+  const cible = $('recherche-resultats');
+  if (!requete.length || nomNu(brut).length < 2) { cible.innerHTML = ''; return; }
+  const par = lotsParProduit(), variantes = variantesParProduit();
+  const parNom = [], parVariante = [];
+  PRODUITS.forEach(p => {
+    if (texteColle(requete, p.nom)) { parNom.push({ p: p, detail: [] }); return; }
+    const v = (variantes[String(p.id)] || []).filter(x => texteColle(requete, x));   // ce qui l'a fait trouver : « Liberté fraise »
+    if (v.length) parVariante.push({ p: p, detail: v });
+  });
+  const alpha = (a, b) => String(a.p.nom).localeCompare(String(b.p.nom), 'fr');
+  const trouves = parNom.sort(alpha).concat(parVariante.sort(alpha));
+  if (!trouves.length) { cible.innerHTML = htmlVide('', 'Aucun aliment ne correspond', 'data-ajouter-nom'); return; }
+  cible.innerHTML = '<div class="liste-blanche">' + trouves.map(x => htmlLigneAliment(x.p, totalLots(par[x.p.id]), x.detail.join(' · '))).join('') + '</div>';
+}
+/* Une ligne à toucher : le nom, en petit ce qui l'a fait trouver (ou « plus en réserve »), la quantité. */
+function htmlLigneAliment(p, total, detail) {
+  const d = [detail, total ? '' : 'plus en réserve'].filter(Boolean).join(' · ');
+  return '<div class="item' + (total ? '' : ' item-eteint') + '" data-pid="' + esc(p.id) + '"><div class="item-info"><div class="item-nom">' + esc(p.nom) + '</div>' +
+    (d ? '<div class="item-detail">' + esc(d) + '</div>' : '') + '</div>' +
+    (total ? '<span class="item-quantite">' + esc(total) + '</span>' : '') + '</div>';
+}
+/* Le nom d'une catégorie ou sous-catégorie, d'après son id. */
+function nomCategorie(id) {
+  const toutes = RAYONS.concat(...Object.values(SOUSCATS));
+  const c = toutes.find(x => String(x.id) === String(id));
+  return c ? c.nom : '';
+}
+/* L'écran de rayon : l'aliment en gros (où, combien, ce qui n'est pas encore rangé), puis ses voisins.
+   Toucher un voisin le fait passer en gros, sur le même écran. */
+function montrerRayon(pid) {
+  const prod = PRODUITS.find(p => String(p.id) === String(pid));
+  if (!prod) return;
+  rechercheJeton++;
+  if ($('vue-recherche').hidden) { toutCacher(); $('vue-recherche').hidden = false; $('btn-burger').hidden = false; }
+  $('recherche-texte').blur();                     // le clavier se ferme : on regarde
+  const par = lotsParProduit();
+  const lots = par[prod.id] || [], total = totalLots(lots);
+  let corps;
+  if (!total) corps = htmlVide('Tu n\'en as plus', '', 'data-ajouter-produit="' + esc(prod.id) + '"');
+  else {
+    const endroits = [];                             // les lots, regroupés par endroit; « Pas encore rangé » à la fin
+    lots.forEach(l => { let e = endroits.find(x => x.emp === l.emp); if (!e) endroits.push(e = { emp: l.emp, lots: [] }); e.lots.push(l); });
+    endroits.sort((a, b) => (a.emp ? 0 : 1) - (b.emp ? 0 : 1));
+    corps = endroits.map(e => {
+      const r = e.emp ? resoudreEmp(e.emp) : null;
+      const m = r && MEUBLES.find(x => String(x.id) === String(r.meubleId));
+      const teinte = m ? couleurDe(m.couleur) : '';
+      const style = teinte ? ' style="--meuble:' + esc(teinte) + '"' : '';   // la couleur du meuble est une DONNÉE
+      return '<div class="espace-bandeau"' + style + '>' + esc(libelleEndroit(e.emp)) + '</div>' + e.lots.map(l => {
+        const nom = [l.marque, l.saveur].filter(Boolean).join(' ') || prod.nom;
+        const format = l.formats.join(' + ');
+        return '<div class="item"><div class="item-info"><div class="item-nom">' + esc(nom) + '</div>' +
+          (format ? '<div class="item-detail">' + esc(format) + '</div>' : '') + '</div>' +
+          '<span class="item-quantite">' + esc(l.qte) + '</span></div>';
+      }).join('');
+    }).join('');
+  }
+  let html = '<div class="vedette"><div class="vedette-tete"><span>' + esc(prod.nom) + '</span><span>' + esc(total) + '</span></div>' +
+    '<div class="vedette-corps">' + corps + '</div></div>';
+  const cat = nomCategorie(prod.catId);
+  const voisins = prod.catId ? PRODUITS.filter(p => String(p.catId) === String(prod.catId) && String(p.id) !== String(prod.id))
+                                       .sort((a, b) => String(a.nom).localeCompare(String(b.nom), 'fr')) : [];
+  if (voisins.length) html += '<div class="label">' + (cat ? 'Aussi dans « ' + esc(cat) + ' »' : 'Aussi dans la même catégorie') + '</div>' +
+    '<div class="liste-blanche">' + voisins.map(p => htmlLigneAliment(p, totalLots(par[p.id]), '')).join('') + '</div>';
+  $('recherche-rayon').innerHTML = html;
+  $('recherche-titre').textContent = cat || 'Rechercher';
+  montrer('recherche-saisie', false); montrer('recherche-rayon', true);
+  window.scrollTo(0, 0);
+}
+/* Le scan de la recherche : un code à nous -> son écran de rayon; sinon « Tu n'en as pas », avec le nom d'Open Food Facts. */
+function scannerPourChercher() {
+  if (typeof montrerScanner !== 'function') return;
+  montrerScanner({ lu: chercherParCode, retour: () => montrerRecherche(false) });
+}
+async function chercherParCode(code) {
+  code = String(code || '').trim();
+  $('recherche-texte').value = '';
+  montrerRecherche(false);
+  const pid = CODES[code];
+  if (pid && PRODUITS.some(p => String(p.id) === String(pid))) { montrerRayon(pid); return; }
+  const jeton = ++rechercheJeton;
+  $('recherche-resultats').innerHTML = htmlVide('', 'Recherche du produit…');
+  let d = null;
+  if (typeof window.chercherOFF === 'function') { try { d = await window.chercherOFF(code); } catch (e) {} }
+  if (jeton !== rechercheJeton || $('vue-recherche').hidden) return;   // il est passé à autre chose entre-temps
+  const connu = d && d.nom && trouverProduitParNom(d.nom);             // le code n'est pas noté, mais le nom est à nous
+  if (connu) { montrerRayon(connu.id); return; }
+  const qui = d && d.trouve ? [d.nom, d.marque].filter(Boolean).join(' — ') : '';
+  $('recherche-resultats').innerHTML = htmlVide('Tu n\'en as pas', qui || 'Produit inconnu', 'data-ajouter-code="' + esc(code) + '"');
+}
+/* « L'ajouter » : la fiche d'entrée, déjà remplie — le code scanné, ou le nom (tapé, ou l'aliment qu'on n'a plus). */
+function ouvrirFicheNom(nom) {
+  montrerFormulaire(true);                 // le chemin « identité d'abord », comme au scan…
+  montrer('bloc-code', false);             // … sans code-barres
+  $('nom').value = nom || '';
+  surNom();
+}
+function surClicRecherche(ev) {
+  const b = ev.target.closest('[data-ajouter-code], [data-ajouter-nom], [data-ajouter-produit], [data-pid]');
+  if (!b) return;
+  if (b.hasAttribute('data-pid')) { montrerRayon(b.dataset.pid); return; }
+  if (b.hasAttribute('data-ajouter-code')) { ouvrirFicheScan(b.dataset.ajouterCode); return; }
+  if (b.hasAttribute('data-ajouter-produit')) {
+    const p = PRODUITS.find(x => String(x.id) === String(b.dataset.ajouterProduit));
+    ouvrirFicheNom(p ? p.nom : ''); return;
+  }
+  ouvrirFicheNom($('recherche-texte').value.trim());
+}
+/* Retour : de l'écran de rayon, on revient à la recherche (le texte tapé est gardé); de la recherche, d'où l'on vient. */
+function retourDeRecherche() {
+  if (!$('recherche-rayon').hidden) { montrerRecherche(false); return; }
+  retourRecherche();
+}
+
 /* ---------- Réordonner (flèches ↑↓) — instantané à l'écran, envoyé en arrière-plan ---------- */
 /* Les frères d'une ligne : la liste qui la porte, le groupe où elle bouge, et le nom du groupe. */
 function freres(type, id) {
@@ -1696,7 +1866,7 @@ function initEntree() {
   // le menu mène exactement où mènent les 4 boutons de l'accueil
   $('menu-ajouter').addEventListener('click', montrerChoixQuoi);
   // « à venir » : le menu se referme quand même, comme s'il avait mené quelque part
-  $('menu-rechercher').addEventListener('click', () => { fermerMenu(); avis('Rechercher — à venir'); });
+  $('menu-rechercher').addEventListener('click', () => montrerRecherche(true));
   $('menu-consommer').addEventListener('click', () => { fermerMenu(); avis('Consommer — à venir'); });
   $('menu-listes').addEventListener('click', montrerListes);
   // Outils → Couleurs
@@ -1748,7 +1918,18 @@ function initEntree() {
   });
   document.querySelectorAll('.accordeon-tete[data-toggle]').forEach(tete =>
     tete.addEventListener('click', () => toggleAccordeon(tete)));
-  $('btn-rechercher').addEventListener('click', () => avis('Rechercher — à venir'));   // la loupe, en haut à gauche
+  $('btn-rechercher').addEventListener('click', () => montrerRecherche(true));   // la loupe, en haut à gauche
+  // Rechercher : chaque lettre tapée relance la recherche (en mémoire, instantané)
+  $('recherche-texte').addEventListener('input', surRecherche);
+  $('recherche-texte').addEventListener('keydown', e => {
+    if (e.key !== 'Enter') return;
+    e.preventDefault();
+    const seul = $('recherche-resultats').querySelectorAll('[data-pid]');
+    if (seul.length === 1) montrerRayon(seul[0].dataset.pid); else $('recherche-texte').blur();   // un seul trouvé : on l'ouvre; sinon le clavier se ferme
+  });
+  $('recherche-scan').addEventListener('click', scannerPourChercher);
+  $('recherche-retour').addEventListener('click', retourDeRecherche);
+  $('vue-recherche').addEventListener('click', surClicRecherche);
   $('liste-inventaire').addEventListener('click', function (ev) {   // pièces et meubles de l'inventaire
     const lot = ev.target.closest('.crayon[data-lot]');    // « Pas encore rangé » : le crayon range
     if (lot) { ouvrirLot(lot); return; }
