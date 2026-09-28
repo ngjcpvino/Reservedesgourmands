@@ -1435,9 +1435,10 @@ function variantesParProduit() {
   });
   return par;
 }
-function htmlVide(titre, texte, ajouter) {
-  return '<div class="vide">' + (titre ? '<div class="vide-titre">' + esc(titre) + '</div>' : '') +
-    (texte ? '<div class="texte texte-pale">' + esc(texte) + '</div>' : '') + '</div>' +
+/* avant / apres : du HTML déjà fait (la photo au-dessus, le code-barres dessous) */
+function htmlVide(titre, texte, ajouter, avant, apres) {
+  return '<div class="vide">' + (avant || '') + (titre ? '<div class="vide-titre">' + esc(titre) + '</div>' : '') +
+    (texte ? '<div class="texte texte-pale">' + esc(texte) + '</div>' : '') + (apres || '') + '</div>' +
     (ajouter ? '<button class="bouton bouton-vert bouton-pleine bouton-suite" type="button" ' + ajouter + '>L\'ajouter</button>' : '');
 }
 /* Une ligne par aliment. Le nom d'abord (ceux dont le NOM colle), puis ceux trouvés par marque ou saveur. */
@@ -1532,8 +1533,13 @@ async function chercherParCode(code) {
   if (jeton !== rechercheJeton || $('vue-recherche').hidden) return;   // il est passé à autre chose entre-temps
   const connu = d && d.nom && trouverProduitParNom(d.nom);             // le code n'est pas noté, mais le nom est à nous
   if (connu) { montrerRayon(connu.id); return; }
-  const qui = d && d.trouve ? [d.nom, d.marque].filter(Boolean).join(' — ') : '';
-  $('recherche-resultats').innerHTML = htmlVide('Tu n\'en as pas', qui || 'Produit inconnu', 'data-ajouter-code="' + esc(code) + '"');
+  const trouve = !!(d && d.trouve);
+  const qui = trouve ? [[d.nom, d.marque].filter(Boolean).join(' — '), d.format].filter(Boolean).join(' · ') : '';
+  const photo = trouve && /^https:\/\//.test(d.photo || '') ? '<img class="photo-produit" src="' + esc(d.photo) + '" alt="">' : '';
+  $('recherche-resultats').innerHTML = htmlVide('Tu n\'en as pas', qui || 'Produit inconnu', 'data-ajouter-code="' + esc(code) + '"',
+    photo, '<div class="code-barres">Code ' + esc(code) + '</div>');
+  const img = $('recherche-resultats').querySelector('.photo-produit');
+  if (img) img.addEventListener('error', () => img.remove());   // photo introuvable : rien à sa place, pas de case vide
 }
 /* « L'ajouter » : la fiche d'entrée, déjà remplie — le code scanné, ou le nom (tapé, ou l'aliment qu'on n'a plus). */
 function ouvrirFicheNom(nom) {
