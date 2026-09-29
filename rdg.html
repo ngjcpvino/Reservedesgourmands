@@ -10,7 +10,7 @@
   <!-- Ecran d'accueil iPad : le meme sac, en PNG (iOS n'accepte pas le SVG ici) -->
   <link rel="apple-touch-icon" href="apple-touch-icon.png?v=2">
 
-<link rel="stylesheet" href="CSS/rdg.css?v=82">
+<link rel="stylesheet" href="CSS/rdg.css?v=83">
 </head>
 <body>
 
@@ -126,16 +126,6 @@
   </div>
 </div>
 
-<div id="vue-choix-comment" class="sur-photo" hidden>
-  <div class="contenu contenu-suite">
-    <div class="grille">
-      <button class="bouton bouton-grand" id="choix-scan" type="button"><span class="icone icone-entrer"></span></button>
-      <button class="bouton bouton-grand" id="choix-manuel" type="button"><span class="icone icone-manuel"></span></button>
-    </div>
-    <button class="bouton bouton-or bouton-pleine bouton-suite" id="btn-retour-comment" type="button">Retour</button>
-  </div>
-</div>
-
 <!-- ============================================================
      SCANNER (tranche 1 : lire un code)
 ============================================================ -->
@@ -214,7 +204,10 @@
     <!-- Catégorie / Sous-catégorie (à la main : toujours; au scan : nouveau produit seulement) -->
     <div class="bloc" id="bloc-cat" hidden>
       <div class="label">Catégorie</div>
-      <select class="champ" id="cat"></select>
+      <div class="ligne-couleur">
+        <select class="champ" id="cat"></select>
+        <button class="bouton bouton-brun bouton-scanner" id="fiche-scan" type="button" aria-label="Scanner"><span class="icone icone-entrer"></span></button>
+      </div>
     </div>
     <div class="bloc" id="bloc-cat-neuve" hidden>
       <div class="label">Nom de la nouvelle catégorie</div>
@@ -350,7 +343,7 @@
 </div><!-- fin du conteneur -->
 
 <script src="JS/coffre.js?v=4"></script>
-<script src="JS/entree.js?v=79"></script>
-<script src="JS/scan.js?v=8"></script>
+<script src="JS/entree.js?v=80"></script>
+<script src="JS/scan.js?v=9"></script>
 </body>
 </html>

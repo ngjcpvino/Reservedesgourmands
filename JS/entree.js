@@ -111,7 +111,6 @@ function toutCacher() {
   $('vue-listes').hidden = true;
   $('vue-recherche').hidden = true;
   $('vue-choix-quoi').hidden = true;
-  $('vue-choix-comment').hidden = true;
   $('vue-app').hidden = true;
   $('vue-bases').hidden = true;
   $('vue-meuble').hidden = true;
@@ -166,7 +165,6 @@ function montrerMeuble() {
 }
 function montrerPiece()  { toutCacher(); $('vue-piece').hidden = false; $('piece-msg').textContent = ''; }
 function montrerChoixQuoi()    { toutCacher(); $('vue-choix-quoi').hidden = false; $('btn-burger').hidden = false; $('btn-rechercher').hidden = false; $('entete-photo').hidden = false; }
-function montrerChoixComment() { toutCacher(); $('vue-choix-comment').hidden = false; $('btn-burger').hidden = false; $('btn-rechercher').hidden = false; $('entete-photo').hidden = false; }
 async function montrerListes() {
   toutCacher(); $('vue-listes').hidden = false; $('btn-burger').hidden = false;
   remplirInventaire();                         // instantané : ce qu'on a déjà en mémoire
@@ -180,6 +178,7 @@ function montrerFormulaire(avecCode) {
   ordonnerFiche();
   reinitFiche();
   montrer('bloc-code', !!avecCode);          // le champ code n'apparaît qu'au scan
+  montrer('fiche-scan', !avecCode);          // à la main : le scan reste à côté de la catégorie (plus d'écran « scan ou à la main »)
   $('codebarres').value = ''; codeScan = '';
   chargerReferences();                        // catégories + liste des produits
 }
@@ -1410,7 +1409,7 @@ var retourRecherche = montrerAccueil;   // où ramène le Retour : l'écran d'o�
 var rechercheJeton = 0;                 // un scan plus ancien qui répond en retard ne remplace pas l'écran
 var modeRecherche = '';                 // '' = Rechercher · 'deplacer' · 'consommer' : le même écran, le lot touché fait le geste
 const TITRES_RECHERCHE = { '': 'Rechercher', deplacer: 'Déplacer', consommer: 'Consommer' };
-const RETOURS = { 'vue-accueil': () => montrerAccueil(), 'vue-choix-quoi': () => montrerChoixQuoi(), 'vue-choix-comment': () => montrerChoixComment(),
+const RETOURS = { 'vue-accueil': () => montrerAccueil(), 'vue-choix-quoi': () => montrerChoixQuoi(),
                   'vue-listes': () => montrerListes(), 'vue-bases': () => montrerBases(), 'vue-couleurs': () => montrerCouleurs() };
 /* depuis : true = on arrive de la loupe ou du menu (on retient d'où); false = on revient d'ailleurs (scan, rayon) */
 function montrerRecherche(depuis) {
@@ -2108,7 +2107,6 @@ function initEntree() {
   // le menu mène exactement où mènent les 4 boutons de l'accueil
   $('menu-ajouter').addEventListener('click', montrerChoixQuoi);
   $('menu-deplacer').addEventListener('click', montrerDeplacer);   // Rechercher reste la loupe, en haut à gauche
-  // « à venir » : le menu se referme quand même, comme s'il avait mené quelque part
   $('menu-consommer').addEventListener('click', montrerConsommer);
   $('menu-listes').addEventListener('click', montrerListes);
   // Outils → Couleurs
@@ -2182,12 +2180,12 @@ function initEntree() {
     if (tete) toggleAccordeon(tete);
   });            // bouton bleu → la page des listes
   $('btn-retour-listes').addEventListener('click', montrerAccueil);
-  $('choix-produit').addEventListener('click', montrerChoixComment);
+  $('choix-produit').addEventListener('click', () => montrerFormulaire(false));   // l'entonnoir, et le scan à côté
   $('choix-epicerie').addEventListener('click', () => avis("Toute l'épicerie — à venir"));
-  $('choix-scan').addEventListener('click', () => { if (typeof montrerScanner === 'function') montrerScanner(); });
-  $('choix-manuel').addEventListener('click', () => montrerFormulaire(false));
+  $('fiche-scan').addEventListener('click', () => {
+    if (typeof montrerScanner === 'function') montrerScanner({ lu: ouvrirFicheScan, retour: () => montrerFormulaire(false) });
+  });
   $('btn-retour-quoi').addEventListener('click', montrerAccueil);        // retour : choix « quoi » → accueil
-  $('btn-retour-comment').addEventListener('click', montrerChoixQuoi);   // retour : choix « comment » → choix « quoi »
   // formulaire d'entrée
   $('codebarres').addEventListener('change', surCode);
   $('nom').addEventListener('input', surNom);    // réagit pendant la saisie : plus besoin de fermer le clavier
@@ -2219,7 +2217,7 @@ function initEntree() {
   $('btn-transit').addEventListener('click', () => pasEncoreRange(true));
   $('btn-ranger').addEventListener('click', () => pasEncoreRange(false));
   $('btn-enregistrer').addEventListener('click', enregistrer);
-  $('btn-annuler').addEventListener('click', montrerChoixComment);
+  $('btn-annuler').addEventListener('click', montrerChoixQuoi);
   // reste connecté → page d'ouverture directement, puis mise à jour en arrière-plan
   // (les couleurs changées sur l'autre appareil arrivent ainsi, sans rien attendre)
   if (Coffre.motDePasse()) { if (localStorage.getItem(QUI)) montrerAccueil(); else montrerQui(); chargerReferences(); }

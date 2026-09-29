@@ -648,6 +648,7 @@ select.champ {
    La couleur de la pastille est une DONNÉE : le script la pose.
 ------------------------------------------------------------ */
 .ligne-couleur { display: flex; align-items: center; gap: var(--espace-s); }
+.ligne-couleur > .champ { flex: 1; min-width: 0; }   /* une liste aux longs noms ne pousse pas le bouton scanner hors du cadre */
 /* Une question à deux réponses : l'intitulé, puis Oui / Non. Le choix retenu se colore. */
 .ligne-choix { display: flex; align-items: center; gap: var(--espace-s); margin-top: var(--espace-s); }
 .choix-quoi { flex: 1; }
