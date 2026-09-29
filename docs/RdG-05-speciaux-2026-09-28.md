@@ -128,3 +128,62 @@ ralentirait le reste.
   cette semaine ».
 - Le prix payé (STOCK, colonne Prix) permettra un jour de dire si un
   « spécial » en est vraiment un pour la maison.
+
+---
+
+## 7. PLUS LOIN : LE COMPARATEUR DE PRIX (29 septembre 2026)
+*Réflexion ouverte, rien n'est bâti. Née d'un article de La Presse sur les
+rabais en circulaire : « avec ce qu'on développe, on pourrait aller plus loin ».*
+
+**L'idée** : connaître le prix de **tous les jours** (pas seulement les
+spéciaux) de ce que la maison achète, dans chaque épicerie suivie, et
+comparer. Ça **élargit** la section 2 : Flipp ne donne que la circulaire,
+un comparateur a besoin des sites des épiceries.
+
+**Les décisions de Jean-Claude :**
+- **Avant de partir** : la liste d'achats (point 5) **en entier**, avec sur
+  chaque ligne le prix dans chaque épicerie. L'app ne répartit rien à sa
+  place.
+- **Sur place, s'il le veut** : trier par épicerie (**choix A**) = toute la
+  liste, avec **seulement le prix de ce magasin**.
+- **En vert** : le prix le plus bas des épiceries, dans la liste complète
+  comme dans le tri.
+- **Les formats (choix C)** : le prix de la boîte, et **le prix au 100 g**
+  (au litre, à l'unité) en petit dessous. **Le vert se décide sur le prix au
+  100 g.**
+- **Un spécial (choix C)** : le mot « spécial » + sa date de fin + **le prix
+  régulier** du magasin + un **avis de l'app d'après l'historique** qu'elle
+  garde semaine après semaine (« vrai rabais » / « prix habituel ici depuis
+  2 mois »). L'avis n'est fiable qu'après quelques semaines d'historique.
+- **Où (choix B)** : dans la **liste d'achats** et sur l'**écran de rayon**
+  de la loupe. **Pas de page Prix à part** (un seul endroit à retenir; à
+  ajouter plus tard seulement si l'usage la demande).
+
+**Les sources (voir `RdG-sources-donnees.md`, source B) :**
+- **Super C** : la **porte trouvée le 20 septembre** — la page de recherche
+  par nom donne code-barres, format, prix et prix régulier. Le raccourci
+  « code → prix en 1 appel » (`/produit/skus`) attend toujours un jeton.
+- **Metro, Richelieu** : même compagnie (Metro inc.), **probablement la même
+  porte. Pas vérifié.**
+- **IGA** (Sobeys) : **jamais regardé.** ⚠️ La Presse (23 janv. 2023) : les
+  prix de **Voilà** (l'épicerie en ligne d'IGA) diffèrent parfois de ceux du
+  magasin, et les promotions ne s'y appliquent pas toujours. **Le prix d'un
+  site n'est peut-être pas celui de la tablette** — à vérifier avec un vrai
+  reçu, pour chaque bannière.
+- Le **code-barres** est la clé : il permet de comparer **le même produit**
+  d'un magasin à l'autre.
+- Le **prix payé** (STOCK, col. M) reste une source à nous.
+
+**⚠️ À VÉRIFIER SUR L'ORDI (la session dans le nuage n'atteint pas ces
+sites : son réseau les bloque).** La conversation sur l'ordi de J-C :
+1. `metro.ca` et le site de Richelieu : la même recherche par nom que Super C
+   (`/recherche?freeText=true&filter=nutella`) donne-t-elle les mêmes tuiles
+   (code-barres, format, prix, prix régulier) ?
+2. `iga.net` : y a-t-il une recherche qui donne le prix, et le code-barres ?
+3. Flipp : lire une circulaire **en entier** (section 2, toujours ouvert).
+4. Le prix est-il celui **d'une succursale** (Ormstown ≠ une autre) ? Comment
+   choisir la sienne ?
+Consigner les réponses ici, puis on reprend la réflexion.
+
+**Pas encore discuté** : un prix inconnu dans un magasin (case vide ?);
+l'âge d'un prix (lu jeudi, affiché quand ?).
