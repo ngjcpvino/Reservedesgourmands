@@ -152,6 +152,7 @@
   --scan-haut:        25vh;      /* la hauteur de la fenêtre du scan : pleine largeur et basse, comme un code-barres */
   --lettrage-large:   0.04em;    /* l'espacement des lettres du code lu */
   --tactile:          44px;
+  --case-taille:      24px;   /* une case à cocher (« Ne pas racheter ») */
   --transition:       0.2s ease;
   --police:           'Cabinet Grotesk', system-ui, sans-serif;
   --ombre-carte:      0 2px 12px color-mix(in srgb, var(--couleur-306) 10%, transparent);
@@ -728,6 +729,9 @@ select.champ {
 /* ============================================================
    MESSAGE — petit retour sous une action
 ============================================================ */
+/* Une case à cocher et son texte, sur une ligne à toucher en entier (« Ne pas racheter ») */
+.case-ligne { display: flex; align-items: center; gap: var(--espace-s); min-height: var(--tactile); margin-top: var(--espace-s); font-size: var(--texte-normal); color: var(--couleur-306); }
+.case { flex-shrink: 0; width: var(--case-taille); height: var(--case-taille); margin: 0; accent-color: var(--couleur-402); }
 .message { font-size: var(--texte-petit); font-weight: var(--poids-leger); margin-top: var(--espace-s); min-height: var(--message-haut); }
 .message-erreur { color: var(--couleur-402); }
 /* Sur la photo, une erreur se lirait mal : elle se pose dans un rectangle rouge, texte blanc. */

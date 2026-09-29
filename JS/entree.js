@@ -91,6 +91,8 @@ const ANCIENS_HEX = {
 const ATTENTE_COULEURS = 'rdg_couleurs_attente';   // couleurs pas encore confirmées par le coffre-fort
 var STOCK = [];                                     // lignes de STOCK : ce qu'on possède, pour la liste « Inventaire »
 var COULEURS = [];                                  // lignes de l'onglet Couleurs : [ID, SecteurID, Nom, Valeur]
+var PAS_AIMES = [];                                 // onglet PasAimes : [ID, ProduitID, Marque, Saveur, Date, Qui] — « Ne pas racheter », pour la maison
+var opsConso = {};                                  // jeton anti-reclic d'une sortie pas encore confirmée, par ligne touchée
 var couleursModif = { site: {}, meubles: {} };      // changées à l'écran, pas encore envoyées
 var envoiCouleurs = false;
 var couleurNouveau = '305';                         // « Ajouter un meuble » : le numéro choisi                          // un envoi de couleurs est en route
@@ -387,6 +389,7 @@ function appliquer(d) {
   CODES = d.codes || {};                              // { codeBarres: produitId }
   STOCK = d.stock || [];
   COULEURS = d.couleurs || [];                        // [ID, SecteurID, Nom, Valeur]
+  PAS_AIMES = d.pasAimes || [];
   // une couleur pas encore confirmée (attente) ou en cours d'essai (écran) l'emporte sur le Sheet
   const cm = Object.assign({}, lireAttenteCouleurs().meubles, couleursModif.meubles);
   PIECES.concat(MEUBLES).forEach(m => { if (cm[m.id] !== undefined) m.couleur = cm[m.id]; });
@@ -417,7 +420,7 @@ async function chargerReferences() {
 async function chargerData() {
   try {
     const r = await Coffre.references();          // chemin rapide : UN seul appel
-    if (r && r.ok && r.categories !== undefined) return { cats: r.categories, emps: r.emplacements, prods: r.produits, stock: r.stock, variantes: r.variantes, codes: r.codes, couleurs: r.couleurs, magasins: r.magasins };
+    if (r && r.ok && r.categories !== undefined) return { cats: r.categories, emps: r.emplacements, prods: r.produits, stock: r.stock, variantes: r.variantes, codes: r.codes, couleurs: r.couleurs, magasins: r.magasins, pasAimes: r.pasAimes };
     if (r && r.erreur === 'non autorisé') throw new Error('non autorisé');
   } catch (e) { if (e.message === 'non autorisé') throw e; }   // sinon on tente le repli
   const cats = await lireRetry('Categories');     // repli : 3 appels un à la fois
@@ -1293,7 +1296,12 @@ function remplirNoms(garderOuverts) {
   const acc = (cle, tete, corps) => '<div class="accordeon" data-cle="' + esc(cle) + '"><div class="accordeon-tete">' + tete + '</div><div class="accordeon-corps" hidden>' + corps + '</div></div>';
   const ligne = (cle, nom) => '<div class="accordeon-item"><span>' + esc(nom) + '</span>' + crayon(cle) + '</div>';
   LOTS = lotsParProduit();                              // les lots de chaque aliment, sous son nom (corriger l'endroit)
-  const aliment = p => ligne('a:' + p.id, p.nom) + (LOTS[p.id] || []).map((l, i) => htmlLot(p.id, i, l)).join('');
+  const pasAime = p => PAS_AIMES.filter(r => String(r[1]) === String(p.id)).map(r => {
+    const m = String(r[2] || '').trim(), sv = String(r[3] || '').trim();
+    return '<div class="accordeon-item"><span>Pas aimé : ' + esc([m, sv].filter(Boolean).join(' ') || p.nom) + '</span>' +
+      '<button class="bouton bouton-petit" type="button" data-pas-aime="' + esc(p.id + '|' + m + '|' + sv) + '">Enlever</button></div>';
+  }).join('');
+  const aliment = p => ligne('a:' + p.id, p.nom) + (LOTS[p.id] || []).map((l, i) => htmlLot(p.id, i, l)).join('') + pasAime(p);
   const vide = t => '<div class="accordeon-item"><span class="texte-petit texte-pale">' + t + '</span></div>';
   const cats = RAYONS.map(r => acc('c:' + r.id, '<span>' + esc(r.nom) + '</span>' + crayon('c:' + r.id),
     (SOUSCATS[r.id] || []).map(sc => ligne('c:' + sc.id, sc.nom)).join('') || vide('Aucune sous-catégorie'))).join('');
@@ -1400,7 +1408,8 @@ function remplirInventaire() {
    Un aliment touché ouvre son ÉCRAN DE RAYON (RdG-03) : lui en gros, ses voisins de sous-catégorie dessous. */
 var retourRecherche = montrerAccueil;   // où ramène le Retour : l'écran d'où l'on a touché la loupe
 var rechercheJeton = 0;                 // un scan plus ancien qui répond en retard ne remplace pas l'écran
-var modeDeplacer = false;               // Déplacer (menu) : le même écran, mais on touche un lot pour le changer d'endroit
+var modeRecherche = '';                 // '' = Rechercher · 'deplacer' · 'consommer' : le même écran, le lot touché fait le geste
+const TITRES_RECHERCHE = { '': 'Rechercher', deplacer: 'Déplacer', consommer: 'Consommer' };
 const RETOURS = { 'vue-accueil': () => montrerAccueil(), 'vue-choix-quoi': () => montrerChoixQuoi(), 'vue-choix-comment': () => montrerChoixComment(),
                   'vue-listes': () => montrerListes(), 'vue-bases': () => montrerBases(), 'vue-couleurs': () => montrerCouleurs() };
 /* depuis : true = on arrive de la loupe ou du menu (on retient d'où); false = on revient d'ailleurs (scan, rayon) */
@@ -1412,13 +1421,14 @@ function montrerRecherche(depuis) {
   }
   toutCacher(); $('vue-recherche').hidden = false; $('btn-burger').hidden = false;
   montrer('recherche-saisie', true); montrer('recherche-rayon', false);
-  $('recherche-titre').textContent = modeDeplacer ? 'Déplacer' : 'Rechercher';
+  $('recherche-titre').textContent = TITRES_RECHERCHE[modeRecherche];
   surRecherche();
   if (depuis) $('recherche-texte').focus();   // prêt à taper : le clavier s'ouvre
 }
 /* Déplacer : la même recherche (nom ou scan). Un lot touché change d'endroit; ensuite, on revient au champ vide. */
-function montrerDeplacer() { modeDeplacer = true; montrerRecherche(true); }
-function ouvrirRecherche() { modeDeplacer = false; montrerRecherche(true); }
+function montrerDeplacer() { modeRecherche = 'deplacer'; montrerRecherche(true); }
+function montrerConsommer() { modeRecherche = 'consommer'; montrerRecherche(true); }
+function ouvrirRecherche() { modeRecherche = ''; montrerRecherche(true); }
 /* Un mot tapé colle-t-il à un mot de l'aliment ? Le début suffit (« fra » → fraise); une faute permise dès 4 lettres. */
 function motColle(q, mot) {
   if (mot.indexOf(q) === 0) return true;
@@ -1464,7 +1474,7 @@ function surRecherche() {
   });
   const alpha = (a, b) => String(a.p.nom).localeCompare(String(b.p.nom), 'fr');
   const trouves = parNom.sort(alpha).concat(parVariante.sort(alpha));
-  if (!trouves.length) { cible.innerHTML = htmlVide('', 'Aucun aliment ne correspond', modeDeplacer ? '' : 'data-ajouter-nom'); return; }
+  if (!trouves.length) { cible.innerHTML = htmlVide('', 'Aucun aliment ne correspond', modeRecherche ? '' : 'data-ajouter-nom'); return; }
   cible.innerHTML = '<div class="liste-blanche">' + trouves.map(x => htmlLigneAliment(x.p, totalLots(par[x.p.id]), x.detail.join(' · '))).join('') + '</div>';
 }
 /* Une ligne à toucher : le nom, en petit ce qui l'a fait trouver (ou « plus en réserve »), la quantité. */
@@ -1491,26 +1501,30 @@ function montrerRayon(pid, sansDefiler) {
   const par = lotsParProduit();
   const lots = par[prod.id] || [], total = totalLots(lots);
   let corps;
-  if (!total) corps = htmlVide('Tu n\'en as plus', '', modeDeplacer ? '' : 'data-ajouter-produit="' + esc(prod.id) + '"');
-  else corps = htmlLotsParEndroit(prod, lots, modeDeplacer) || htmlVide('Rien à déplacer', 'Tout est encore à ranger', '');
+  if (!total) corps = htmlVide('Tu n\'en as plus', '', modeRecherche ? '' : 'data-ajouter-produit="' + esc(prod.id) + '"');
+  else if (modeRecherche === 'deplacer') corps = htmlLotsParEndroit(prod, lots, true, (l, i) => htmlLigneLot(prod, l, 'data-bouger="' + esc(prod.id) + '|' + i + '"'))
+                                            || htmlVide('Rien à déplacer', 'Tout est encore à ranger', '');
+  else if (modeRecherche === 'consommer') corps = htmlLotsParEndroit(prod, lots, false, (l, i) => htmlPartsConsommer(prod, l, i));
+  else corps = htmlLotsParEndroit(prod, lots, false, l => htmlLigneLot(prod, l, ''));
+  if (!modeRecherche) corps += htmlPasAimes(prod);   // au magasin : ce qu'on n'a pas aimé, même quand on n'en a plus
   let html = '<div class="vedette"><div class="vedette-tete"><span>' + esc(prod.nom) + '</span><span>' + esc(total) + '</span></div>' +
     '<div class="vedette-corps">' + corps + '</div></div>';
   const cat = nomCategorie(prod.catId);
-  const voisins = (prod.catId && !modeDeplacer) ? PRODUITS.filter(p => String(p.catId) === String(prod.catId) && String(p.id) !== String(prod.id))
+  const voisins = (prod.catId && !modeRecherche) ? PRODUITS.filter(p => String(p.catId) === String(prod.catId) && String(p.id) !== String(prod.id))
                                        .sort((a, b) => String(a.nom).localeCompare(String(b.nom), 'fr')) : [];
   if (voisins.length) html += '<div class="label">' + (cat ? 'Aussi dans « ' + esc(cat) + ' »' : 'Aussi dans la même catégorie') + '</div>' +
     '<div class="liste-blanche">' + voisins.map(p => htmlLigneAliment(p, totalLots(par[p.id]), '')).join('') + '</div>';
   $('recherche-rayon').innerHTML = html;
-  $('recherche-titre').textContent = modeDeplacer ? 'Déplacer' : (cat || 'Rechercher');
+  $('recherche-titre').textContent = modeRecherche ? TITRES_RECHERCHE[modeRecherche] : (cat || 'Rechercher');
   montrer('recherche-saisie', false); montrer('recherche-rayon', true);
   if (!sansDefiler) window.scrollTo(0, 0);
 }
 /* Les lots d'un aliment, regroupés par endroit sous le bandeau de la couleur du meuble; « Pas encore rangé » à la fin.
-   bouger (Déplacer) : chaque lot se touche, et ce qui n'est pas encore rangé ne paraît pas. '' s'il ne reste rien. */
-function htmlLotsParEndroit(prod, lots, bouger) {
+   sansTransit (Déplacer) : ce qui n'est pas encore rangé ne paraît pas. ligne(lot, i) écrit les lignes d'un lot. '' s'il ne reste rien. */
+function htmlLotsParEndroit(prod, lots, sansTransit, ligne) {
   const endroits = [];
   lots.forEach((l, i) => {
-    if (bouger && !l.emp) return;
+    if (sansTransit && !l.emp) return;
     let e = endroits.find(x => x.emp === l.emp);
     if (!e) endroits.push(e = { emp: l.emp, lots: [] });
     e.lots.push({ l: l, i: i });
@@ -1521,14 +1535,16 @@ function htmlLotsParEndroit(prod, lots, bouger) {
     const m = r && MEUBLES.find(x => String(x.id) === String(r.meubleId));
     const teinte = m ? couleurDe(m.couleur) : '';
     const style = teinte ? ' style="--meuble:' + esc(teinte) + '"' : '';   // la couleur du meuble est une DONNÉE
-    return '<div class="espace-bandeau"' + style + '>' + esc(libelleEndroit(e.emp)) + '</div>' + e.lots.map(x => {
-      const l = x.l, nom = [l.marque, l.saveur].filter(Boolean).join(' ') || prod.nom;
-      const format = l.formats.join(' + ');
-      return '<div class="item"' + (bouger ? ' data-bouger="' + esc(prod.id) + '|' + x.i + '"' : '') + '><div class="item-info"><div class="item-nom">' + esc(nom) + '</div>' +
-        (format ? '<div class="item-detail">' + esc(format) + '</div>' : '') + '</div>' +
-        '<span class="item-quantite">' + esc(l.qte) + '</span></div>';
-    }).join('');
+    return '<div class="espace-bandeau"' + style + '>' + esc(libelleEndroit(e.emp)) + '</div>' + e.lots.map(x => ligne(x.l, x.i)).join('');
   }).join('');
+}
+/* Une ligne de lot : marque + saveur (ou l'aliment), ses formats, sa quantité. attr : de quoi la rendre touchable. */
+function htmlLigneLot(prod, l, attr) {
+  const nom = [l.marque, l.saveur].filter(Boolean).join(' ') || prod.nom;
+  const detail = [l.formats.join(' + '), estPasAime(prod.id, l.marque, l.saveur) ? 'Pas aimé' : ''].filter(Boolean).join(' · ');
+  return '<div class="item"' + (attr ? ' ' + attr : '') + '><div class="item-info"><div class="item-nom">' + esc(nom) + '</div>' +
+    (detail ? '<div class="item-detail">' + esc(detail) + '</div>' : '') + '</div>' +
+    '<span class="item-quantite">' + esc(l.qte) + '</span></div>';
 }
 /* Déplacer : le lot touché devient la carte d'endroit. D'office : l'emplacement 1 de l'aliment
    (le 2 si le lot y est déjà) et la quantité 1. Rien ne bouge avant le bouton « Déplacer ». */
@@ -1572,6 +1588,166 @@ function ouvrirDeplacement(cle) {
   });
   verifier();
 }
+/* ---------- Consommer ----------
+   Le même écran que Rechercher. Chaque lot montre une ligne par FORMAT (le gros pot ≠ le pack) : on touche ce qu'on consomme.
+   Un format en unités (« 6 unité ») se compte à l'unité : les packs du lot ne font qu'une ligne, la quantité = le nombre de pots.
+   Un contenant sort quand il est fini. On sort le plus vieux d'abord (à l'unité : le pack entamé d'abord). */
+function nbUnites(format) { const m = String(format || '').trim().match(/^([0-9]+)\s*unit/i); return m ? parseInt(m[1], 10) : 0; }
+function estPasAime(pid, marque, saveur) {
+  return PAS_AIMES.some(r => String(r[1]) === String(pid) && String(r[2] || '').trim() === marque && String(r[3] || '').trim() === saveur);
+}
+/* Les lignes de STOCK d'un lot (les objets eux-mêmes : une entrée toute fraîche n'a pas encore d'ID). */
+function lignesDuLot(lot) {
+  return STOCK.filter(l => String(l[1]) === lot.pid && String(l[2] || '') === lot.emp && String(l[5] || '').trim() === lot.marque &&
+                           String(l[9] || '').trim() === lot.saveur && (Number(l[3]) || 0) > 0);
+}
+function partsDuLot(lot) {
+  const parts = [];
+  lignesDuLot(lot).forEach(row => {
+    const f = String(row[6] || '').trim(), n = nbUnites(f), cle = n ? 'unite' : f;
+    let p = parts.find(x => x.cle === cle);
+    if (!p) parts.push(p = { cle: cle, unites: !!n, format: f, pack: 0, qte: 0, rows: [] });
+    p.rows.push(row);
+    p.qte += (Number(row[3]) || 0) * (n || 1);
+    if (n > p.pack) { p.pack = n; p.format = f; }
+  });
+  return parts;
+}
+function libellePart(p) { return p.unites ? (p.pack > 1 ? 'à l\'unité · pack de ' + p.pack : 'à l\'unité') : p.format; }
+function htmlPartsConsommer(prod, l, i) {
+  const nom = [l.marque, l.saveur].filter(Boolean).join(' ') || prod.nom;
+  const pas = estPasAime(prod.id, l.marque, l.saveur);
+  return partsDuLot(l).map(p => {
+    const detail = [libellePart(p), pas ? 'Pas aimé' : ''].filter(Boolean).join(' · ');
+    return '<div class="item" data-consommer="' + esc(prod.id + '|' + i + '|' + p.cle) + '"><div class="item-info"><div class="item-nom">' + esc(nom) + '</div>' +
+      (detail ? '<div class="item-detail">' + esc(detail) + '</div>' : '') + '</div><span class="item-quantite">' + esc(p.qte) + '</span></div>';
+  }).join('');
+}
+/* Rechercher : ce qu'on n'a pas aimé de cet aliment (pour la maison), sous ce qu'on a. */
+function htmlPasAimes(prod) {
+  const noms = PAS_AIMES.filter(r => String(r[1]) === String(prod.id))
+    .map(r => [String(r[2] || '').trim(), String(r[3] || '').trim()].filter(Boolean).join(' ') || prod.nom);
+  if (!noms.length) return '';
+  return '<div class="espace-bandeau">Pas aimé</div>' + noms.map(n => '<div class="item"><div class="item-info"><div class="item-nom">' + esc(n) + '</div>' +
+    '<div class="item-detail">Ne pas racheter</div></div></div>').join('');
+}
+/* Ce que devient STOCK quand on sort k de la part p : les lignes réécrites, et un reste de pack s'il faut une ligne de plus. */
+function planSortie(p, k) {
+  const date = r => String(dateCourte(r[4]) || '');
+  const rows = p.rows.slice().sort((a, b) => (p.unites ? nbUnites(a[6]) - nbUnites(b[6]) : 0) || date(a).localeCompare(date(b)));
+  const modifs = [], ajouts = [];
+  let reste = k;
+  for (const row of rows) {
+    if (reste <= 0) break;
+    const n = p.unites ? nbUnites(row[6]) : 1, total = (Number(row[3]) || 0) * n;
+    const pris = Math.min(reste, total), r = total - pris, pleins = Math.floor(r / n), bout = r % n;
+    reste -= pris;
+    const ligne = row.slice(); ligne[4] = dateCourte(ligne[4]);
+    if (!bout) ligne[3] = pleins;                                            // des contenants entiers (ou plus rien : 0)
+    else if (!pleins) { ligne[3] = 1; ligne[6] = bout + ' unité'; }          // un seul pack, entamé
+    else { ligne[3] = pleins; ajouts.push(['', row[1], row[2], 1, ligne[4], row[5], bout + ' unité', '', row[8], row[9], row[10], row[11], row[12]]); }
+    modifs.push({ row: row, ligne: ligne });
+  }
+  return { modifs: modifs, ajouts: ajouts };
+}
+/* La ligne touchée ouvre sa carte, juste dessous : la quantité (1), « Ne pas racheter », Consommer / Annuler. */
+function ouvrirConsommation(cle) {
+  const k = cle.split('|'), lot = (lotsParProduit()[k[0]] || [])[Number(k[1])];
+  const p = lot && partsDuLot(lot).find(x => x.cle === k.slice(2).join('|'));
+  if (!p) return;
+  if ($('recherche-rayon').querySelector('.carte')) montrerRayon(lot.pid, true);   // une seule carte ouverte à la fois
+  const item = [...$('recherche-rayon').querySelectorAll('[data-consommer]')].find(x => x.dataset.consommer === cle);
+  if (!item) return;
+  const pas = estPasAime(lot.pid, lot.marque, lot.saveur);
+  const carte = document.createElement('div');
+  carte.className = 'endroit carte';
+  carte.innerHTML = '<div class="bloc"><div class="label">Quantité</div><input class="champ qte" type="text" inputmode="numeric" pattern="[0-9]*" value="1"></div>' +
+    (pas ? '' : '<label class="case-ligne"><input class="case pas-aime" type="checkbox"><span>Ne pas racheter</span></label>') +
+    '<div class="message"></div>' +
+    '<div class="grille"><button class="bouton bouton-petit bouton-vert conso-oui" type="button">Consommer</button>' +
+    '<button class="bouton bouton-petit conso-non" type="button">Annuler</button></div>';
+  item.after(carte);
+  const combien = () => parseInt(carte.querySelector('.qte').value, 10) || 0;
+  const verifier = () => {
+    const q = combien(), m = carte.querySelector('.message');
+    const ok = q > 0 && q <= p.qte;
+    m.className = ok ? 'message' : 'message message-erreur';
+    m.textContent = ok || !q ? '' : 'Il y en a ' + p.qte + '.';
+    carte.querySelector('.conso-oui').hidden = !ok;
+  };
+  carte.addEventListener('input', verifier);
+  carte.querySelector('.conso-non').onclick = () => montrerRayon(lot.pid, true);
+  carte.querySelector('.conso-oui').onclick = () => {
+    const case_ = carte.querySelector('.pas-aime');
+    consommerPart(lot, p.cle, combien(), !!(case_ && case_.checked));
+  };
+  verifier();
+}
+/* La sortie, en UN appel : les lignes de STOCK réécrites (+ un reste de pack), la trace dans Sorties, et « Pas aimé » s'il est coché.
+   Le jeton (opId) est gardé tant que la sortie n'est pas confirmée : un 2e appui après une erreur renvoie le même,
+   et le coffre-fort, qui le trouve déjà dans Sorties, n'écrit rien deux fois. */
+async function consommerPart(lot, cleP, q, pasAime) {
+  const cleOp = [lot.pid, lot.emp, lot.marque, lot.saveur, cleP].join('|');
+  const op = opsConso[cleOp] || (opsConso[cleOp] = 'conso-' + Date.now() + '-' + Math.random().toString(36).slice(2, 8));
+  montrerVoile(true);
+  let ok = false, c = null;
+  try {
+    let p = partsDuLot(lot).find(x => x.cle === cleP);
+    if (p && p.rows.some(r => !r[0])) {                // une entrée toute fraîche n'a pas encore son ID : on relit STOCK d'abord
+      if (!await chargerReferences()) throw new Error('réseau');
+      p = partsDuLot(lot).find(x => x.cle === cleP);
+      if (p && p.rows.some(r => !r[0])) throw new Error('introuvable');
+    }
+    if (!p || !(q > 0) || q > p.qte) throw new Error('quantité');
+    const plan = planSortie(p, q);
+    const qui = localStorage.getItem(QUI) || '', date = dateDuJour();
+    plan.ajouts.forEach(a => { a[7] = op + '-reste'; });
+    const sortie = ['', lot.pid, lot.emp, q, date, lot.marque, p.format, lot.saveur, qui, op];
+    const pas = pasAime ? ['', lot.pid, lot.marque, lot.saveur, date, qui] : null;
+    const r = await Coffre.consommer({ opId: op, sortie: sortie, modifs: plan.modifs.map(m => ({ id: String(m.row[0]), ligne: m.ligne })),
+                                       ajouts: plan.ajouts, pasAime: pas });
+    if (!r || !r.ok) throw new Error((r && r.erreur) || 'refus');
+    c = lireCache();                                   // la mémoire suit, sans relire le Sheet
+    plan.modifs.forEach(m => {
+      m.row.splice(0, m.ligne.length, ...m.ligne);
+      const rc = c && (c.stock || []).find(x => String(x[0]) === String(m.ligne[0]));
+      if (rc) rc.splice(0, m.ligne.length, ...m.ligne);
+    });
+    plan.ajouts.forEach(a => { STOCK.push(a); if (c) (c.stock = c.stock || []).push(a.slice()); });
+    if (pas && !estPasAime(lot.pid, lot.marque, lot.saveur)) { PAS_AIMES.push(pas); if (c) (c.pasAimes = c.pasAimes || []).push(pas.slice()); }
+    delete opsConso[cleOp];
+    ok = true;
+  } catch (e) {
+    avis('Pas consommé — réessaie', 'erreur');
+  } finally {
+    if (c) ecrireCache(c);
+    montrerVoile(false);
+  }
+  if (!ok) { montrerRayon(lot.pid, true); return; }
+  avis('Consommé', 'succes');
+  $('recherche-texte').value = '';
+  montrerRecherche(false);                             // le champ vide : on enchaîne avec le suivant
+  $('recherche-texte').focus();
+}
+/* Gérer les bases → Aliments : « Enlever » retire un « Pas aimé ». */
+async function enleverPasAime(btn) {
+  const k = btn.dataset.pasAime.split('|');
+  const pid = k[0], marque = k[1] || '', saveur = k.slice(2).join('|');
+  montrerVoile(true);
+  let c = null;
+  try {
+    const r = await Coffre.pasAime({ retirer: true, produitId: pid, marque: marque, saveur: saveur });
+    if (!r || !r.ok) throw new Error((r && r.erreur) || 'refus');
+    const garder = x => !(String(x[1]) === pid && String(x[2] || '').trim() === marque && String(x[3] || '').trim() === saveur);
+    PAS_AIMES = PAS_AIMES.filter(garder);
+    c = lireCache(); if (c) c.pasAimes = (c.pasAimes || []).filter(garder);
+  } catch (e) {
+    avis('Pas enlevé — réessaie', 'erreur');
+  } finally {
+    if (c) ecrireCache(c);
+    montrerVoile(false); remplirNoms(true);
+  }
+}
 /* Le scan de la recherche : un code à nous -> son écran de rayon; sinon « Tu n'en as pas », avec le nom d'Open Food Facts. */
 function scannerPourChercher() {
   if (typeof montrerScanner !== 'function') return;
@@ -1594,7 +1770,7 @@ async function chercherParCode(code) {
   const nomLu = trouve ? (d.nom || d.nomAutre || '') : '';   // pas de nom français : l'anglais, à lire ici seulement
   const qui = trouve ? [[nomLu, d.marque].filter(Boolean).join(' — '), d.format].filter(Boolean).join(' · ') : '';
   const photo = trouve && /^https:\/\//.test(d.photo || '') ? '<img class="photo-produit" src="' + esc(d.photo) + '" alt="">' : '';
-  $('recherche-resultats').innerHTML = htmlVide('Tu n\'en as pas', qui || 'Produit inconnu', modeDeplacer ? '' : 'data-ajouter-code="' + esc(code) + '"',
+  $('recherche-resultats').innerHTML = htmlVide('Tu n\'en as pas', qui || 'Produit inconnu', modeRecherche ? '' : 'data-ajouter-code="' + esc(code) + '"',
     photo, '<div class="code-barres">Code ' + esc(code) + '</div>');
   const img = $('recherche-resultats').querySelector('.photo-produit');
   if (img) img.addEventListener('error', () => img.remove());   // photo introuvable : rien à sa place, pas de case vide
@@ -1607,9 +1783,10 @@ function ouvrirFicheNom(nom) {
   surNom();
 }
 function surClicRecherche(ev) {
-  const b = ev.target.closest('[data-ajouter-code], [data-ajouter-nom], [data-ajouter-produit], [data-pid], [data-bouger]');
+  const b = ev.target.closest('[data-ajouter-code], [data-ajouter-nom], [data-ajouter-produit], [data-pid], [data-bouger], [data-consommer]');
   if (!b) return;
   if (b.hasAttribute('data-bouger')) { ouvrirDeplacement(b.dataset.bouger); return; }
+  if (b.hasAttribute('data-consommer')) { ouvrirConsommation(b.dataset.consommer); return; }
   if (b.hasAttribute('data-pid')) { montrerRayon(b.dataset.pid); return; }
   if (b.hasAttribute('data-ajouter-code')) { ouvrirFicheScan(b.dataset.ajouterCode); return; }
   if (b.hasAttribute('data-ajouter-produit')) {
@@ -1932,7 +2109,7 @@ function initEntree() {
   $('menu-ajouter').addEventListener('click', montrerChoixQuoi);
   $('menu-deplacer').addEventListener('click', montrerDeplacer);   // Rechercher reste la loupe, en haut à gauche
   // « à venir » : le menu se referme quand même, comme s'il avait mené quelque part
-  $('menu-consommer').addEventListener('click', () => { fermerMenu(); avis('Consommer — à venir'); });
+  $('menu-consommer').addEventListener('click', montrerConsommer);
   $('menu-listes').addEventListener('click', montrerListes);
   // Outils → Couleurs
   $('liste-couleurs').addEventListener('input', surHex);
@@ -1975,6 +2152,8 @@ function initEntree() {
   $('liste-noms').addEventListener('click', function (ev) {   // catégories et aliments : le crayon, ou plier/déplier
     const lot = ev.target.closest('.crayon[data-lot]');    // le crayon d'un lot : corriger son endroit
     if (lot) { ouvrirLot(lot); return; }
+    const pas = ev.target.closest('[data-pas-aime]');      // « Pas aimé » : Enlever
+    if (pas) { enleverPasAime(pas); return; }
     if (ev.target.closest('.endroit')) return;             // toucher la carte ouverte ne plie pas l'accordéon
     const cr = ev.target.closest('.crayon');
     if (cr) { ouvrirRenommer(cr); return; }
