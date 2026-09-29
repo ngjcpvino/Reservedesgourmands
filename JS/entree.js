@@ -99,6 +99,7 @@ const ATTENTE_GESTES = 'rdg_consos_attente';        // consommations et déplace
 var envoiGestes = false;                            // la file des gestes est en route
 var couleursModif = { site: {}, meubles: {} };      // changées à l'écran, pas encore envoyées
 var envoiCouleurs = false;
+var pieceNouveau = '';                             // « Ajouter un meuble » : la pièce choisie (gardée pour le suivant)
 var couleurNouveau = '305';                         // « Ajouter un meuble » : le numéro choisi                          // un envoi de couleurs est en route
 var dernierChargement = 0;                          // quand les listes ont été relues (pour ne pas appeler pour rien)
 const FRAICHEUR = 30000;                            // au retour dans l'app, on relit si ça date de plus de 30 s
@@ -165,6 +166,7 @@ function enregistrerQui() {
 function montrerMeuble() {
   toutCacher(); $('vue-meuble').hidden = false; $('meuble-msg').textContent = '';
   couleurNouveau = '305';                      // la couleur de départ : le brun
+  $('meuble-piece').innerHTML = optionsPieces(pieceNouveau);   // la pièce du meuble d'avant : on en ajoute souvent plusieurs d'affilée
   $('meuble-palette').innerHTML = htmlPalette(couleurNouveau);
 }
 function montrerPiece()  { toutCacher(); $('vue-piece').hidden = false; $('piece-msg').textContent = ''; }
@@ -1033,15 +1035,16 @@ async function enregistrerMeuble() {
   const msg = $('meuble-msg');
   if (!nom) { msg.className = 'message message-erreur'; msg.textContent = 'Donne un nom au meuble.'; return; }
   const couleur = couleurNouveau;               // un numéro de la palette
+  const pieceId = pieceNouveau = $('meuble-piece').value;   // vide = « Meubles sans pièce »
   msg.className = 'message'; msg.textContent = 'Enregistrement…';
   $('btn-meuble-enr').disabled = true;
   montrerVoile(true);
   try {
-    // Emplacements : ID · Nom · ParentID(vide = meuble) · SecteurID · Actif · Couleur
-    const r = await Coffre.ajouter('Emplacements', ['', nom, '', SECTEUR_ID, 'O', couleur]);
+    // Emplacements : ID · Nom · ParentID (la pièce; vide = sans pièce) · SecteurID · Actif · Couleur
+    const r = await Coffre.ajouter('Emplacements', ['', nom, pieceId, SECTEUR_ID, 'O', couleur]);
     if (!r || !r.ok) throw new Error((r && r.erreur) || 'refus');
-    MEUBLES.push({ id: r.id, nom: nom, couleur: couleur });   // dispo tout de suite dans l'entrée
-    const c = lireCache(); if (c) { (c.emps = c.emps || []).push([r.id, nom, '', SECTEUR_ID, 'O', couleur]); ecrireCache(c); }
+    MEUBLES.push({ id: r.id, nom: nom, couleur: couleur, pieceId: pieceId });   // dispo tout de suite dans l'entrée
+    const c = lireCache(); if (c) { (c.emps = c.emps || []).push([r.id, nom, pieceId, SECTEUR_ID, 'O', couleur]); ecrireCache(c); }
     msg.className = 'message message-succes'; msg.textContent = 'Meuble ajouté ✓';
     $('meuble-nom').value = '';
   } catch (e) {
@@ -1087,7 +1090,7 @@ async function assignerPiece(meubleId, pieceId, sel) {
 
 /* Liste des meubles (accordéons, à leur couleur) + leurs espaces, dans « Gérer les bases ». */
 function optionsPieces(sel) {
-  return '<option value="">— à ranger —</option>' + PIECES.map(function (p) {
+  return '<option value="">— Sans pièce —</option>' + PIECES.map(function (p) {
     return '<option value="' + esc(p.id) + '"' + (String(p.id) === String(sel) ? ' selected' : '') + '>' + esc(p.nom) + '</option>';
   }).join('');
 }
