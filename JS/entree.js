@@ -92,7 +92,8 @@ const ATTENTE_COULEURS = 'rdg_couleurs_attente';   // couleurs pas encore confir
 var STOCK = [];                                     // lignes de STOCK : ce qu'on possède, pour la liste « Inventaire »
 var COULEURS = [];                                  // lignes de l'onglet Couleurs : [ID, SecteurID, Nom, Valeur]
 var PAS_AIMES = [];                                 // onglet PasAimes : [ID, ProduitID, Marque, Saveur, Date, Qui] — « Ne pas racheter », pour la maison
-var opsConso = {};                                  // jeton anti-reclic d'une sortie pas encore confirmée, par ligne touchée
+const ATTENTE_CONSOS = 'rdg_consos_attente';        // consommations pas encore confirmées par le coffre-fort, dans l'ordre
+var envoiConsos = false;                            // une file de consommations est en route
 var couleursModif = { site: {}, meubles: {} };      // changées à l'écran, pas encore envoyées
 var envoiCouleurs = false;
 var couleurNouveau = '305';                         // « Ajouter un meuble » : le numéro choisi                          // un envoi de couleurs est en route
@@ -390,9 +391,12 @@ async function chargerReferences() {
     const data = await chargerData();
     if (Object.keys(ordreModifie).length) envoyerOrdre();   // des flèches touchées pendant le chargement : on les garde
     reordonnerLignes(data.emps, lireAttente());   // un ordre pas encore confirmé l'emporte sur l'ancien
+    data.stock = data.stock || []; data.pasAimes = data.pasAimes || [];
+    lireAttenteConsos().forEach(e => appliquerConso(e, data.stock, data.pasAimes));   // idem : une consommation en route reste faite
     appliquer(data); ecrireCache(data); remplirListes(); statut('');
     expedierOrdre();                              // le réseau répond : on en profite pour renvoyer l'attente
     expedierCouleurs();                           // idem pour les couleurs (sinon un appareil garde les siennes)
+    expedierConsos();                             // idem pour les consommations
     return true;
   } catch (e) {
     if (e.message === 'non autorisé') { Coffre.oublier(); revenirConnexion('Mot de passe refusé.'); return false; }
@@ -901,7 +905,8 @@ async function enregistrer() {
       ? Object.assign({ produit: [nom, scid] }, commun)
       : Object.assign({ produitId: produitId }, commun);
     const r = await Coffre.entrerArticle(charge);          // UN seul appel
-    if (r && r.ok) { produitId = r.produitId || produitId; }
+    let ids = [];                                          // les ID des lignes créées : on peut les consommer sans relire
+    if (r && r.ok) { produitId = r.produitId || produitId; ids = r.ids || []; }
     else if (r && r.erreur === 'action inconnue') {        // repli si coffre-fort pas encore à jour
       if (nouveau) { const p = await Coffre.ajouter('Produits', ['', nom, scid, '', 'O', '', '']); if (!p.ok) throw new Error(p.erreur || 'refus'); produitId = p.id; }
       const date = dateDuJour();
@@ -913,8 +918,8 @@ async function enregistrer() {
       remplirProduitsDatalist();                          // le nouveau nom devient suggérable tout de suite
     }
     const dateJour = dateDuJour();
-    endroits.forEach(x => {                                   // l'inventaire est à jour sans recharger
-      const ligne = ['', produitId, x.emp, x.qte, dateJour, marque, x.format || format, opCourant, code, saveur, qui, magasin, prix];
+    endroits.forEach((x, i) => {                              // l'inventaire est à jour sans recharger
+      const ligne = [ids[i] || '', produitId, x.emp, x.qte, dateJour, marque, x.format || format, opCourant, code, saveur, qui, magasin, prix];
       STOCK.push(ligne);
       const c2 = lireCache(); if (c2) { (c2.stock = c2.stock || []).push(ligne.slice()); ecrireCache(c2); }
     });
@@ -1266,7 +1271,7 @@ async function deplacerLot(lot, emp, q, fin) {
         const r2 = await Coffre.modifier('Stock', id, ligne);
         if (!r2 || !r2.ok) throw new Error((r2 && r2.erreur) || 'refus');
         row[3] = qte - part; const rc = enCache(id); if (rc) rc[3] = qte - part;
-        const neuve = ['', row[1], emp, part, dateDuJour(), row[5], row[6], op, row[8], row[9], row[10], row[11], row[12]];
+        const neuve = [(r1.ids || [])[0] || '', row[1], emp, part, dateDuJour(), row[5], row[6], op, row[8], row[9], row[10], row[11], row[12]];
         STOCK.push(neuve); if (c) (c.stock = c.stock || []).push(neuve.slice());
         reste = 0;
       }
@@ -1693,51 +1698,85 @@ function ouvrirConsommation(cle) {
   };
   verifier();
 }
-/* La sortie, en UN appel : les lignes de STOCK réécrites (+ un reste de pack), la trace dans Sorties, et « Pas aimé » s'il est coché.
-   Le jeton (opId) est gardé tant que la sortie n'est pas confirmée : un 2e appui après une erreur renvoie le même,
-   et le coffre-fort, qui le trouve déjà dans Sorties, n'écrit rien deux fois. */
+/* La sortie est INSTANTANÉE à l'écran (J-C : « si j'attends pour chaque aliment d'une recette… ») :
+   la mémoire et le cache changent tout de suite, et l'envoi part en arrière-plan, gardé en attente (localStorage)
+   jusqu'à ce que le coffre-fort dise oui — un échec repart tout seul, comme l'ordre et les couleurs.
+   Un envoi = les lignes de STOCK réécrites (+ un reste de pack), la trace dans Sorties, et « Pas aimé » s'il est coché.
+   Le jeton (opId) voyage avec l'envoi : renvoyé après une coupure, le coffre-fort le trouve dans Sorties et n'écrit rien deux fois.
+   Le reste d'un pack reçoit son ID ICI (idLocal) : une 2e sortie du même pack le vise sans attendre le coffre-fort. */
 async function consommerPart(lot, cleP, q, pasAime) {
-  const cleOp = [lot.pid, lot.emp, lot.marque, lot.saveur, cleP].join('|');
-  const op = opsConso[cleOp] || (opsConso[cleOp] = 'conso-' + Date.now() + '-' + Math.random().toString(36).slice(2, 8));
-  montrerVoile(true);
-  let ok = false, c = null;
-  try {
-    let p = partsDuLot(lot).find(x => x.cle === cleP);
-    if (p && p.rows.some(r => !r[0])) {                // une entrée toute fraîche n'a pas encore son ID : on relit STOCK d'abord
-      if (!await chargerReferences()) throw new Error('réseau');
-      p = partsDuLot(lot).find(x => x.cle === cleP);
-      if (p && p.rows.some(r => !r[0])) throw new Error('introuvable');
-    }
-    if (!p || !(q > 0) || q > p.qte) throw new Error('quantité');
-    const plan = planSortie(p, q);
-    const qui = localStorage.getItem(QUI) || '', date = dateDuJour();
-    plan.ajouts.forEach(a => { a[7] = op + '-reste'; });
-    const sortie = ['', lot.pid, lot.emp, q, date, lot.marque, p.format, lot.saveur, qui, op];
-    const pas = pasAime ? ['', lot.pid, lot.marque, lot.saveur, date, qui] : null;
-    const r = await Coffre.consommer({ opId: op, sortie: sortie, modifs: plan.modifs.map(m => ({ id: String(m.row[0]), ligne: m.ligne })),
-                                       ajouts: plan.ajouts, pasAime: pas });
-    if (!r || !r.ok) throw new Error((r && r.erreur) || 'refus');
-    c = lireCache();                                   // la mémoire suit, sans relire le Sheet
-    plan.modifs.forEach(m => {
-      m.row.splice(0, m.ligne.length, ...m.ligne);
-      const rc = c && (c.stock || []).find(x => String(x[0]) === String(m.ligne[0]));
-      if (rc) rc.splice(0, m.ligne.length, ...m.ligne);
-    });
-    plan.ajouts.forEach(a => { STOCK.push(a); if (c) (c.stock = c.stock || []).push(a.slice()); });
-    if (pas && !estPasAime(lot.pid, lot.marque, lot.saveur)) { PAS_AIMES.push(pas); if (c) (c.pasAimes = c.pasAimes || []).push(pas.slice()); }
-    delete opsConso[cleOp];
-    ok = true;
-  } catch (e) {
-    avis('Pas consommé — réessaie', 'erreur');
-  } finally {
-    if (c) ecrireCache(c);
+  let p = partsDuLot(lot).find(x => x.cle === cleP);
+  if (p && p.rows.some(r => !r[0])) {                  // filet : une ligne sans ID (ne devrait plus arriver) -> on relit d'abord
+    montrerVoile(true);
+    const lu = await chargerReferences();
     montrerVoile(false);
+    p = lu ? partsDuLot(lot).find(x => x.cle === cleP) : null;
+    if (p && p.rows.some(r => !r[0])) p = null;
   }
-  if (!ok) { montrerRayon(lot.pid, true); return; }
+  if (!p || !(q > 0) || q > p.qte) { avis('Pas consommé — réessaie', 'erreur'); montrerRayon(lot.pid, true); return; }
+  const op = 'conso-' + Date.now() + '-' + Math.random().toString(36).slice(2, 8);
+  const plan = planSortie(p, q);
+  const qui = localStorage.getItem(QUI) || '', date = dateDuJour();
+  plan.ajouts.forEach(a => { a[0] = idLocal(); a[7] = op + '-reste'; });
+  const envoi = {
+    opId: op,
+    sortie: ['', lot.pid, lot.emp, q, date, lot.marque, p.format, lot.saveur, qui, op],
+    modifs: plan.modifs.map(m => ({ id: String(m.row[0]), ligne: m.ligne })),
+    ajouts: plan.ajouts,
+    pasAime: pasAime && !estPasAime(lot.pid, lot.marque, lot.saveur) ? ['', lot.pid, lot.marque, lot.saveur, date, qui] : null
+  };
+  ecrireAttenteConsos(lireAttenteConsos().concat([envoi]));   // gardé AVANT tout : un appareil éteint en route ne perd rien
+  appliquerConso(envoi, STOCK, PAS_AIMES);
+  const c = lireCache();
+  if (c) { appliquerConso(envoi, c.stock = c.stock || [], c.pasAimes = c.pasAimes || []); ecrireCache(c); }
   avis('Consommé', 'succes');
   $('recherche-texte').value = '';
   montrerRecherche(false);                             // le champ vide : on enchaîne avec le suivant
   $('recherche-texte').focus();
+  expedierConsos();
+}
+/* Pose une consommation sur des lignes (la mémoire, le cache, ou des données fraîchement relues). Par ID, en valeurs finales :
+   la poser deux fois ne change rien. */
+function appliquerConso(e, stock, pasAimes) {
+  (e.modifs || []).forEach(m => {
+    const row = stock.find(x => String(x[0]) === String(m.id));
+    if (row) row.splice(0, m.ligne.length, ...m.ligne);
+  });
+  (e.ajouts || []).forEach(a => { if (!stock.some(x => String(x[0]) === String(a[0]))) stock.push(a.slice()); });
+  const pa = e.pasAime;
+  if (pa && !pasAimes.some(r => String(r[1]) === String(pa[1]) && String(r[2] || '').trim() === pa[2] && String(r[3] || '').trim() === pa[3])) pasAimes.push(pa.slice());
+}
+function lireAttenteConsos() { try { return JSON.parse(localStorage.getItem(ATTENTE_CONSOS) || '[]') || []; } catch (e) { return []; } }
+function ecrireAttenteConsos(a) { try { localStorage.setItem(ATTENTE_CONSOS, JSON.stringify(a)); } catch (e) {} }
+/* Envoie l'attente, une consommation à la fois, dans l'ordre (la 2e peut viser le reste de pack créé par la 1re).
+   Oui : retirée. Refus définitif (ligne disparue…) : retirée, et on relit la réserve pour que l'écran dise vrai.
+   Réseau : on s'arrête, tout reste, et repart au prochain chargement ou à la prochaine consommation. */
+async function expedierConsos() {
+  if (envoiConsos) return;
+  envoiConsos = true;
+  let relire = false;
+  try {
+    let file = lireAttenteConsos();
+    while (file.length) {
+      const e = file[0];
+      let r = null;
+      try { r = await Coffre.consommer(e); } catch (x) {}
+      const definitif = r && !r.ok && (r.definitif || /introuvable|jeton manquant/.test(r.erreur || ''));   // (ou un coffre-fort pas encore à jour)
+      if (r && r.ok || definitif) ecrireAttenteConsos(lireAttenteConsos().filter(x => x.opId !== e.opId));
+      if (definitif) { relire = true; avis('Une consommation a été refusée — la réserve est relue', 'erreur'); }
+      else if (!(r && r.ok)) { avis('Consommation pas encore enregistrée — elle repartira toute seule', 'erreur'); break; }
+      file = lireAttenteConsos();
+    }
+  } finally { envoiConsos = false; }
+  if (relire) chargerReferences();
+}
+/* Un ID fait ici, de la même forme que ceux du coffre-fort (date/heure du Québec) + un tirage : unique sans lui demander. */
+function idLocal() {
+  const p = new Intl.DateTimeFormat('en-CA', { timeZone: 'America/Toronto', year: 'numeric', month: '2-digit', day: '2-digit',
+    hour: '2-digit', minute: '2-digit', second: '2-digit', hourCycle: 'h23' }).formatToParts(new Date());
+  const v = t => (p.find(x => x.type === t) || {}).value || '';
+  return v('year') + v('month') + v('day') + v('hour') + v('minute') + v('second') +
+    String(Date.now() % 1000).padStart(3, '0') + '-' + Math.random().toString(36).slice(2, 7);
 }
 /* Gérer les bases → Aliments : « Enlever » retire un « Pas aimé ». */
 async function enleverPasAime(btn) {
