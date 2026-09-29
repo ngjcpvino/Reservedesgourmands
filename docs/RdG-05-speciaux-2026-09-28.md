@@ -122,6 +122,27 @@ ralentirait le reste.
 
 ---
 
+## 5 bis. BÂTI CÔTÉ SERVEUR (29 septembre 2026, conversation sur l'ordi)
+
+- `lireSpeciaux()` dans `api.gs` : liste des circulaires en cours pour le code postal (Propriété du script
+  `CODE_POSTAL`) → celles de **nos** magasins (nom de bannière comparé à la liste Magasins) → chaque circulaire
+  **en entier** (`/flipp/flyers/<id>`) → les articles où l'on reconnaît **un de nos aliments** → le **détail** de
+  ceux-là seulement (`/flipp/items/<id>` : format, économie) → onglet **Speciaux**, remplacé d'un coup.
+- **Reconnaître** : tous les mots de l'aliment (sans accent, sans pluriel, sans petits mots) sont dans l'article,
+  et le premier est **en tête** (« courge Ambercup orange » ne propose pas les oranges). C'est une **proposition** (« ? »).
+- **Retenir la réponse** : onglet **Correspondances**, par « genre d'article » = les deux premiers mots
+  (« lait au chocolat Québon » → « lait chocolat »). Un **Non** ne revient plus; un **Oui** s'affiche d'office.
+- **Chaque jeudi, 7 h** : déclencheur posé par `installerDeclencheur()` (J-C la lance une fois, depuis l'éditeur).
+- **Panne** : l'erreur est notée (`SPECIAUX_ETAT`, renvoyé par `references`), la semaine d'avant reste.
+- **Essai réel (24 sept., code postal générique d'Ormstown, 7 aliments d'essai)** : IGA (3 circulaires), Super C,
+  Metro → 78 propositions, 59 avec prix régulier, ~35 s (appels un par un; Apps Script les fait en parallèle).
+  Richelieu n'est **pas** sorti avec ce code postal : à revoir avec le vrai.
+- **Qualité** : beaucoup de « ? » la première semaine (« Pommes » propose aussi les pommes de terre, « Lait » le
+  lait de coco); chaque Non les efface pour de bon. À juger à l'usage.
+- **Reste** : les écrans (section 3) — pas besoin de l'ordi.
+
+---
+
 ## 6. PARENTHÈSES (à ne pas perdre)
 
 - La liste d'achats (point 5) pourra un jour dire « achète-le chez Metro

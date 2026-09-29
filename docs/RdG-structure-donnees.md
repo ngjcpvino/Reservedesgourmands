@@ -152,6 +152,36 @@ aliment + marque + saveur, tous formats. S'enlève dans Gérer les bases → Ali
 | C | Marque | la marque visée, ID dans MARQUES (vide = sans marque) |
 | D | Saveur | la saveur visée, ID dans SAVEURS (vide = sans saveur) |
 
+### SPECIAUX — les spéciaux de la semaine (2026-09-29)
+*Remplacé en entier chaque jeudi par le coffre-fort (`lireSpeciaux`, circulaires Flipp). Seulement NOS magasins et NOS aliments.*
+
+| Col | Nom | Sens |
+|-----|-----|------|
+| A | ID | date/heure de la lecture |
+| B | Magasin | ID dans MAGASINS |
+| C | ProduitID | l'aliment reconnu (lien vers PRODUITS) |
+| D | Texte | le nom de l'article dans la circulaire (en français) |
+| E | Prix | le prix en spécial |
+| F | Regulier | le prix régulier, s'il est connu (prix + économie, ou « Rég. » de la description) |
+| G | Unite | ce qui entoure le prix (« /lb », « prix membre », « 2 pour »…) |
+| H | Description | format et précisions de la circulaire (« 650 g, choix varié ») |
+| I | Debut | premier jour du spécial |
+| J | Fin | dernier jour |
+| K | Cle | « le même genre d'article » : les deux premiers mots (« lait chocolat ») |
+| L | Etat | ? = proposé (jamais affiché comme un fait) · O = J-C a dit oui · N = non (n'est plus renvoyé) |
+| M | FlippId | l'article chez Flipp |
+
+### CORRESPONDANCES — les réponses Oui / Non aux spéciaux (2026-09-29)
+
+| Col | Nom | Sens |
+|-----|-----|------|
+| A | ID | date/heure de création |
+| B | Cle | le genre d'article (col. K de SPECIAUX) |
+| C | ProduitID | l'aliment proposé |
+| D | Reponse | O / N — retenue pour les semaines suivantes |
+| E | Date | quand J-C a répondu |
+| F | Qui | qui a répondu |
+
 ### MAGASINS · MARQUES · SAVEURS — les listes gérées (2026-09-29)
 *Trois onglets pareils, créés tout seuls par le coffre-fort. MAGASINS naît avec Super C, Metro, IGA, Richelieu.
 On choisit dans la fiche, « Nouveau… » au bout; on corrige au crayon dans Gérer les bases.*
