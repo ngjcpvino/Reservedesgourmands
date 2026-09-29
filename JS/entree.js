@@ -92,8 +92,8 @@ const ATTENTE_COULEURS = 'rdg_couleurs_attente';   // couleurs pas encore confir
 var STOCK = [];                                     // lignes de STOCK : ce qu'on possède, pour la liste « Inventaire »
 var COULEURS = [];                                  // lignes de l'onglet Couleurs : [ID, SecteurID, Nom, Valeur]
 var PAS_AIMES = [];                                 // onglet PasAimes : [ID, ProduitID, Marque, Saveur, Date, Qui] — « Ne pas racheter », pour la maison
-const ATTENTE_CONSOS = 'rdg_consos_attente';        // consommations pas encore confirmées par le coffre-fort, dans l'ordre
-var envoiConsos = false;                            // une file de consommations est en route
+const ATTENTE_GESTES = 'rdg_consos_attente';        // consommations et déplacements pas encore confirmés, dans l'ordre (le nom date de Consommer seul)
+var envoiGestes = false;                            // la file des gestes est en route
 var couleursModif = { site: {}, meubles: {} };      // changées à l'écran, pas encore envoyées
 var envoiCouleurs = false;
 var couleurNouveau = '305';                         // « Ajouter un meuble » : le numéro choisi                          // un envoi de couleurs est en route
@@ -392,11 +392,11 @@ async function chargerReferences() {
     if (Object.keys(ordreModifie).length) envoyerOrdre();   // des flèches touchées pendant le chargement : on les garde
     reordonnerLignes(data.emps, lireAttente());   // un ordre pas encore confirmé l'emporte sur l'ancien
     data.stock = data.stock || []; data.pasAimes = data.pasAimes || [];
-    lireAttenteConsos().forEach(e => appliquerConso(e, data.stock, data.pasAimes));   // idem : une consommation en route reste faite
+    lireAttenteGestes().forEach(e => appliquerGeste(e, data.stock, data.pasAimes));   // idem : une consommation en route reste faite
     appliquer(data); ecrireCache(data); remplirListes(); statut('');
     expedierOrdre();                              // le réseau répond : on en profite pour renvoyer l'attente
     expedierCouleurs();                           // idem pour les couleurs (sinon un appareil garde les siennes)
-    expedierConsos();                             // idem pour les consommations
+    expedierGestes();                             // idem pour les consommations
     return true;
   } catch (e) {
     if (e.message === 'non autorisé') { Coffre.oublier(); revenirConnexion('Mot de passe refusé.'); return false; }
@@ -1229,60 +1229,43 @@ function dateCourte(v) {
   if (!/^\d{4}-\d{2}-\d{2}T/.test(t)) return v;
   return new Date(t).toLocaleDateString('en-CA', { timeZone: 'America/Toronto' });   // AAAA-MM-JJ, heure du Québec
 }
-/* Porte q du lot vers emp, ligne de STOCK par ligne, une à la fois (jamais en parallèle).
-   Une ligne qui entre au complet : on réécrit son endroit. Une ligne coupée en deux (ranger une partie) :
-   la part rangée devient une nouvelle entrée (entrerArticle, jeton anti-reclic), puis la ligne d'origine
-   garde le reste. Le jeton est fait de la ligne, de sa quantité, de l'endroit et de la part :
-   un 2e appui après une erreur renvoie le même jeton, et le coffre-fort n'écrit rien deux fois. */
+/* Porte q du lot vers emp — INSTANTANÉ (J-C) : la mémoire change tout de suite, l'envoi part dans la file des gestes.
+   Une ligne qui entre au complet : on réécrit son endroit. Une ligne coupée en deux (déplacer ou ranger une partie) :
+   la ligne d'origine garde le reste, la part qui part devient une ligne neuve (ID donné ici) qui GARDE sa date
+   d'entrée — un aliment ne rajeunit pas en changeant de tablette (« le plus vieux d'abord » reste juste). */
 async function deplacerLot(lot, emp, q, fin) {
   const parDeplacer = !!fin;                          // Déplacer (menu) décide lui-même de la suite
   fin = fin || redessinerLots;
   if (!emp || emp === lot.emp || !(q > 0)) { fin(false); return; }
-  montrerVoile(true);
-  let c = null, ok = false;
-  try {
-    if (lot.lignes.some(id => !id)) {                 // une entrée toute fraîche n'a pas encore son ID : on relit STOCK d'abord
-      if (!await chargerReferences()) throw new Error('réseau');
-      lot = (lotsParProduit()[lot.pid] || []).find(x => x.emp === lot.emp && x.marque === lot.marque && x.saveur === lot.saveur);
-      if (!lot || lot.lignes.some(id => !id)) throw new Error('introuvable');
-      q = Math.min(q, lot.qte);
-    }
-    c = lireCache();
-    const enCache = id => c && (c.stock || []).find(x => String(x[0]) === id);
-    let reste = q;
-    for (const id of lot.lignes) {
-      if (reste <= 0) break;
-      const row = STOCK.find(r => String(r[0]) === id);
-      if (!row || String(row[2]) === emp) continue;   // déjà faite (2e appui après une erreur) : rien à refaire
-      const qte = Number(row[3]) || 0;
-      if (qte <= 0) continue;
-      if (qte <= reste) {                             // toute la ligne va à l'endroit
-        const ligne = row.slice(); ligne[2] = emp; ligne[4] = dateCourte(ligne[4]);
-        const r = await Coffre.modifier('Stock', id, ligne);   // réécrit la même ligne : un 2e envoi ne change rien
-        if (!r || !r.ok) throw new Error((r && r.erreur) || 'refus');
-        row[2] = emp; const rc = enCache(id); if (rc) rc[2] = emp;
-        reste -= qte;
-      } else {                                        // la ligne se coupe : « reste » part, le reste attend
-        const part = reste, op = 'ranger-' + id + '-' + qte + '-' + emp + '-' + part;
-        const r1 = await Coffre.entrerArticle({ produitId: row[1], marque: row[5], format: row[6], saveur: row[9], code: row[8],
-          magasin: row[11], prix: row[12], qui: row[10], endroits: [{ emp: emp, qte: part }], opId: op });
-        if (!r1 || !r1.ok) throw new Error((r1 && r1.erreur) || 'refus');
-        const ligne = row.slice(); ligne[3] = qte - part; ligne[4] = dateCourte(ligne[4]);
-        const r2 = await Coffre.modifier('Stock', id, ligne);
-        if (!r2 || !r2.ok) throw new Error((r2 && r2.erreur) || 'refus');
-        row[3] = qte - part; const rc = enCache(id); if (rc) rc[3] = qte - part;
-        const neuve = [(r1.ids || [])[0] || '', row[1], emp, part, dateDuJour(), row[5], row[6], op, row[8], row[9], row[10], row[11], row[12]];
-        STOCK.push(neuve); if (c) (c.stock = c.stock || []).push(neuve.slice());
-        reste = 0;
-      }
-    }
-    ok = true;
-  } catch (e) {
-    avis((parDeplacer ? 'Pas déplacé' : lot && !lot.emp ? 'Pas rangé' : 'Endroit pas corrigé') + ' — réessaie', 'erreur');
-  } finally {
-    if (c) ecrireCache(c);
-    montrerVoile(false); fin(ok);
+  const rate = (parDeplacer ? 'Pas déplacé' : !lot.emp ? 'Pas rangé' : 'Endroit pas corrigé') + ' — réessaie';
+  if (lot.lignes.some(id => !id)) {                   // filet : une ligne sans ID (ne devrait plus arriver) -> on relit d'abord
+    montrerVoile(true);
+    const lu = await chargerReferences();
+    montrerVoile(false);
+    lot = lu ? (lotsParProduit()[lot.pid] || []).find(x => x.emp === lot.emp && x.marque === lot.marque && x.saveur === lot.saveur) : null;
+    if (!lot || lot.lignes.some(id => !id)) { avis(rate, 'erreur'); fin(false); return; }
+    q = Math.min(q, lot.qte);
   }
+  const op = 'dep-' + Date.now() + '-' + Math.random().toString(36).slice(2, 8);
+  const modifs = [], ajouts = [];
+  let reste = q;
+  for (const id of lot.lignes) {
+    if (reste <= 0) break;
+    const row = STOCK.find(r => String(r[0]) === id);
+    if (!row || String(row[2]) === emp) continue;
+    const qte = Number(row[3]) || 0;
+    if (qte <= 0) continue;
+    const ligne = row.slice(); ligne[4] = dateCourte(ligne[4]);
+    if (qte <= reste) { ligne[2] = emp; reste -= qte; }   // toute la ligne va à l'endroit
+    else {                                             // la ligne se coupe : « reste » part, le reste attend
+      ligne[3] = qte - reste;
+      ajouts.push([idLocal(), row[1], emp, reste, ligne[4], row[5], row[6], op, row[8], row[9], row[10], row[11], row[12]]);
+      reste = 0;
+    }
+    modifs.push({ id: id, ligne: ligne });
+  }
+  if (modifs.length) poserGeste({ action: 'deplacer', opId: op, modifs: modifs, ajouts: ajouts });
+  fin(true);
 }
 /* Catégories et Aliments, sous les pièces : chaque nom avec son crayon. */
 function remplirNoms(garderOuverts) {
@@ -1718,26 +1701,33 @@ async function consommerPart(lot, cleP, q, pasAime) {
   const plan = planSortie(p, q);
   const qui = localStorage.getItem(QUI) || '', date = dateDuJour();
   plan.ajouts.forEach(a => { a[0] = idLocal(); a[7] = op + '-reste'; });
-  const envoi = {
+  poserGeste({
+    action: 'consommer',
     opId: op,
     sortie: ['', lot.pid, lot.emp, q, date, lot.marque, p.format, lot.saveur, qui, op],
     modifs: plan.modifs.map(m => ({ id: String(m.row[0]), ligne: m.ligne })),
     ajouts: plan.ajouts,
     pasAime: pasAime && !estPasAime(lot.pid, lot.marque, lot.saveur) ? ['', lot.pid, lot.marque, lot.saveur, date, qui] : null
-  };
-  ecrireAttenteConsos(lireAttenteConsos().concat([envoi]));   // gardé AVANT tout : un appareil éteint en route ne perd rien
-  appliquerConso(envoi, STOCK, PAS_AIMES);
-  const c = lireCache();
-  if (c) { appliquerConso(envoi, c.stock = c.stock || [], c.pasAimes = c.pasAimes || []); ecrireCache(c); }
+  });
   avis('Consommé', 'succes');
   $('recherche-texte').value = '';
   montrerRecherche(false);                             // le champ vide : on enchaîne avec le suivant
   $('recherche-texte').focus();
-  expedierConsos();
 }
-/* Pose une consommation sur des lignes (la mémoire, le cache, ou des données fraîchement relues). Par ID, en valeurs finales :
-   la poser deux fois ne change rien. */
-function appliquerConso(e, stock, pasAimes) {
+/* ---------- LES GESTES INSTANTANÉS (Consommer, Déplacer) ----------
+   Un geste change la mémoire et le cache TOUT DE SUITE, puis part en arrière-plan, gardé en attente jusqu'au oui du coffre-fort.
+   UNE seule file pour les deux, dans l'ordre où on les a faits : un yogourt déplacé au frigo puis mangé = la consommation
+   vise la ligne que le déplacement a créée, elle doit partir après lui. */
+function poserGeste(envoi) {
+  ecrireAttenteGestes(lireAttenteGestes().concat([envoi]));   // gardé AVANT tout : un appareil éteint en route ne perd rien
+  appliquerGeste(envoi, STOCK, PAS_AIMES);
+  const c = lireCache();
+  if (c) { appliquerGeste(envoi, c.stock = c.stock || [], c.pasAimes = c.pasAimes || []); ecrireCache(c); }
+  expedierGestes();
+}
+/* Pose un geste sur des lignes (la mémoire, le cache, ou des données fraîchement relues). Par ID, en valeurs finales :
+   le poser deux fois ne change rien. */
+function appliquerGeste(e, stock, pasAimes) {
   (e.modifs || []).forEach(m => {
     const row = stock.find(x => String(x[0]) === String(m.id));
     if (row) row.splice(0, m.ligne.length, ...m.ligne);
@@ -1746,28 +1736,28 @@ function appliquerConso(e, stock, pasAimes) {
   const pa = e.pasAime;
   if (pa && !pasAimes.some(r => String(r[1]) === String(pa[1]) && String(r[2] || '').trim() === pa[2] && String(r[3] || '').trim() === pa[3])) pasAimes.push(pa.slice());
 }
-function lireAttenteConsos() { try { return JSON.parse(localStorage.getItem(ATTENTE_CONSOS) || '[]') || []; } catch (e) { return []; } }
-function ecrireAttenteConsos(a) { try { localStorage.setItem(ATTENTE_CONSOS, JSON.stringify(a)); } catch (e) {} }
-/* Envoie l'attente, une consommation à la fois, dans l'ordre (la 2e peut viser le reste de pack créé par la 1re).
-   Oui : retirée. Refus définitif (ligne disparue…) : retirée, et on relit la réserve pour que l'écran dise vrai.
-   Réseau : on s'arrête, tout reste, et repart au prochain chargement ou à la prochaine consommation. */
-async function expedierConsos() {
-  if (envoiConsos) return;
-  envoiConsos = true;
+function lireAttenteGestes() { try { return JSON.parse(localStorage.getItem(ATTENTE_GESTES) || '[]') || []; } catch (e) { return []; } }
+function ecrireAttenteGestes(a) { try { localStorage.setItem(ATTENTE_GESTES, JSON.stringify(a)); } catch (e) {} }
+/* Envoie l'attente, un geste à la fois, dans l'ordre (le 2e peut viser une ligne créée par le 1er).
+   Oui : retiré. Refus définitif (ligne disparue…) : retiré, et on relit la réserve pour que l'écran dise vrai.
+   Réseau : on s'arrête, tout reste, et repart au prochain chargement ou au prochain geste. */
+async function expedierGestes() {
+  if (envoiGestes) return;
+  envoiGestes = true;
   let relire = false;
   try {
-    let file = lireAttenteConsos();
+    let file = lireAttenteGestes();
     while (file.length) {
       const e = file[0];
       let r = null;
-      try { r = await Coffre.consommer(e); } catch (x) {}
+      try { r = await (e.action === 'deplacer' ? Coffre.deplacer(e) : Coffre.consommer(e)); } catch (x) {}
       const definitif = r && !r.ok && (r.definitif || /introuvable|jeton manquant/.test(r.erreur || ''));   // (ou un coffre-fort pas encore à jour)
-      if (r && r.ok || definitif) ecrireAttenteConsos(lireAttenteConsos().filter(x => x.opId !== e.opId));
-      if (definitif) { relire = true; avis('Une consommation a été refusée — la réserve est relue', 'erreur'); }
-      else if (!(r && r.ok)) { avis('Consommation pas encore enregistrée — elle repartira toute seule', 'erreur'); break; }
-      file = lireAttenteConsos();
+      if (r && r.ok || definitif) ecrireAttenteGestes(lireAttenteGestes().filter(x => x.opId !== e.opId));
+      if (definitif) { relire = true; avis('Un changement a été refusé — la réserve est relue', 'erreur'); }
+      else if (!(r && r.ok)) { avis('Pas encore enregistré — ça repartira tout seul', 'erreur'); break; }
+      file = lireAttenteGestes();
     }
-  } finally { envoiConsos = false; }
+  } finally { envoiGestes = false; }
   if (relire) chargerReferences();
 }
 /* Un ID fait ici, de la même forme que ceux du coffre-fort (date/heure du Québec) + un tirage : unique sans lui demander. */
