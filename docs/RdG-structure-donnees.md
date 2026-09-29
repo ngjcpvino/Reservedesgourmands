@@ -123,6 +123,36 @@ Une ligne par couleur changée; une couleur absente ou vide = celle d'origine du
 
 > Les couleurs des **meubles** ne sont pas ici : elles restent dans EMPLACEMENTS, colonne F.
 
+### SORTIES — la trace de ce qui a été consommé (2026-09-29)
+*Créé tout seul par le coffre-fort à la première sortie (Consommer). Une ligne par geste.
+Servira à prévoir le rachat (le rythme de chaque aliment).*
+
+| Col | Nom | Sens |
+|-----|-----|------|
+| A | ID | date/heure de création |
+| B | ProduitID | lien vers PRODUITS |
+| C | Emp | lien vers EMPLACEMENTS — d'où c'est sorti. Vide = pas encore rangé |
+| D | Qte | combien (à l'unité pour un pack : 1 pot d'un pack de 6 = 1) |
+| E | Date | date de la sortie (heure du Québec) |
+| F | Marque | du lot sorti |
+| G | Format | du lot sorti (« 6 unité », « 650 g »…) |
+| H | Saveur | du lot sorti |
+| I | Qui | qui a consommé (le nom de l'appareil, comme QuiEntre) |
+| J | OpId | jeton anti-reclic : écrit **en dernier**, c'est lui qui dit « fait ». Un renvoi du même jeton n'écrit RIEN |
+
+### PASAIMES — « Ne pas racheter », pour la maison (2026-09-29)
+*Créé tout seul au premier « Ne pas racheter » coché. Vise exactement ce produit :
+aliment + marque + saveur, tous formats. S'enlève dans Gérer les bases → Aliments.*
+
+| Col | Nom | Sens |
+|-----|-----|------|
+| A | ID | date/heure de création |
+| B | ProduitID | lien vers PRODUITS |
+| C | Marque | la marque visée (vide = sans marque) |
+| D | Saveur | la saveur visée (vide = sans saveur) |
+| E | Date | quand c'est arrivé |
+| F | Qui | qui l'a coché |
+
 ### CODES-BARRES — PAS de table séparée (décision 2026-09-20)
 
 Le code-barres vit sur **STOCK, colonne I** (ci-dessus), comme la marque et le
