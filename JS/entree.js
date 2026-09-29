@@ -1140,7 +1140,7 @@ async function renommer(cle, nom) {
    Un lot = ce que l'Inventaire montre sur une ligne : aliment + marque + saveur, à un endroit.
    Déjà rangé : le crayon CORRIGE une erreur de saisie (tablette 2 au lieu de 3) -> TOUT le lot bouge.
    Pas encore rangé (endroit vide, « en transit ») : le crayon RANGE, avec une quantité -> le reste attend.
-   Déplacer une partie d'un lot déjà rangé, c'est autre chose (plus tard, avec Consommer). */
+   Déplacer une partie d'un lot déjà rangé : le bouton Déplacer du menu (ouvrirDeplacement), qui passe aussi par deplacerLot(). */
 var LOTS = {};                                        // { produitId: [lot…] }, refait à chaque dessin d'une liste
 function lotsParProduit() {
   const par = {};
@@ -1236,10 +1236,12 @@ function dateCourte(v) {
    la part rangée devient une nouvelle entrée (entrerArticle, jeton anti-reclic), puis la ligne d'origine
    garde le reste. Le jeton est fait de la ligne, de sa quantité, de l'endroit et de la part :
    un 2e appui après une erreur renvoie le même jeton, et le coffre-fort n'écrit rien deux fois. */
-async function deplacerLot(lot, emp, q) {
-  if (!emp || emp === lot.emp || !(q > 0)) { redessinerLots(); return; }
+async function deplacerLot(lot, emp, q, fin) {
+  const parDeplacer = !!fin;                          // Déplacer (menu) décide lui-même de la suite
+  fin = fin || redessinerLots;
+  if (!emp || emp === lot.emp || !(q > 0)) { fin(false); return; }
   montrerVoile(true);
-  let c = null;
+  let c = null, ok = false;
   try {
     if (lot.lignes.some(id => !id)) {                 // une entrée toute fraîche n'a pas encore son ID : on relit STOCK d'abord
       if (!await chargerReferences()) throw new Error('réseau');
@@ -1276,11 +1278,12 @@ async function deplacerLot(lot, emp, q) {
         reste = 0;
       }
     }
+    ok = true;
   } catch (e) {
-    avis((lot && !lot.emp ? 'Pas rangé' : 'Endroit pas corrigé') + ' — réessaie', 'erreur');
+    avis((parDeplacer ? 'Pas déplacé' : lot && !lot.emp ? 'Pas rangé' : 'Endroit pas corrigé') + ' — réessaie', 'erreur');
   } finally {
     if (c) ecrireCache(c);
-    montrerVoile(false); redessinerLots();
+    montrerVoile(false); fin(ok);
   }
 }
 /* Catégories et Aliments, sous les pièces : chaque nom avec son crayon. */
@@ -1397,6 +1400,7 @@ function remplirInventaire() {
    Un aliment touché ouvre son ÉCRAN DE RAYON (RdG-03) : lui en gros, ses voisins de sous-catégorie dessous. */
 var retourRecherche = montrerAccueil;   // où ramène le Retour : l'écran d'où l'on a touché la loupe
 var rechercheJeton = 0;                 // un scan plus ancien qui répond en retard ne remplace pas l'écran
+var modeDeplacer = false;               // Déplacer (menu) : le même écran, mais on touche un lot pour le changer d'endroit
 const RETOURS = { 'vue-accueil': () => montrerAccueil(), 'vue-choix-quoi': () => montrerChoixQuoi(), 'vue-choix-comment': () => montrerChoixComment(),
                   'vue-listes': () => montrerListes(), 'vue-bases': () => montrerBases(), 'vue-couleurs': () => montrerCouleurs() };
 /* depuis : true = on arrive de la loupe ou du menu (on retient d'où); false = on revient d'ailleurs (scan, rayon) */
@@ -1408,10 +1412,13 @@ function montrerRecherche(depuis) {
   }
   toutCacher(); $('vue-recherche').hidden = false; $('btn-burger').hidden = false;
   montrer('recherche-saisie', true); montrer('recherche-rayon', false);
-  $('recherche-titre').textContent = 'Rechercher';
+  $('recherche-titre').textContent = modeDeplacer ? 'Déplacer' : 'Rechercher';
   surRecherche();
   if (depuis) $('recherche-texte').focus();   // prêt à taper : le clavier s'ouvre
 }
+/* Déplacer : la même recherche (nom ou scan). Un lot touché change d'endroit; ensuite, on revient au champ vide. */
+function montrerDeplacer() { modeDeplacer = true; montrerRecherche(true); }
+function ouvrirRecherche() { modeDeplacer = false; montrerRecherche(true); }
 /* Un mot tapé colle-t-il à un mot de l'aliment ? Le début suffit (« fra » → fraise); une faute permise dès 4 lettres. */
 function motColle(q, mot) {
   if (mot.indexOf(q) === 0) return true;
@@ -1457,7 +1464,7 @@ function surRecherche() {
   });
   const alpha = (a, b) => String(a.p.nom).localeCompare(String(b.p.nom), 'fr');
   const trouves = parNom.sort(alpha).concat(parVariante.sort(alpha));
-  if (!trouves.length) { cible.innerHTML = htmlVide('', 'Aucun aliment ne correspond', 'data-ajouter-nom'); return; }
+  if (!trouves.length) { cible.innerHTML = htmlVide('', 'Aucun aliment ne correspond', modeDeplacer ? '' : 'data-ajouter-nom'); return; }
   cible.innerHTML = '<div class="liste-blanche">' + trouves.map(x => htmlLigneAliment(x.p, totalLots(par[x.p.id]), x.detail.join(' · '))).join('') + '</div>';
 }
 /* Une ligne à toucher : le nom, en petit ce qui l'a fait trouver (ou « plus en réserve »), la quantité. */
@@ -1475,7 +1482,7 @@ function nomCategorie(id) {
 }
 /* L'écran de rayon : l'aliment en gros (où, combien, ce qui n'est pas encore rangé), puis ses voisins.
    Toucher un voisin le fait passer en gros, sur le même écran. */
-function montrerRayon(pid) {
+function montrerRayon(pid, sansDefiler) {
   const prod = PRODUITS.find(p => String(p.id) === String(pid));
   if (!prod) return;
   rechercheJeton++;
@@ -1484,36 +1491,86 @@ function montrerRayon(pid) {
   const par = lotsParProduit();
   const lots = par[prod.id] || [], total = totalLots(lots);
   let corps;
-  if (!total) corps = htmlVide('Tu n\'en as plus', '', 'data-ajouter-produit="' + esc(prod.id) + '"');
-  else {
-    const endroits = [];                             // les lots, regroupés par endroit; « Pas encore rangé » à la fin
-    lots.forEach(l => { let e = endroits.find(x => x.emp === l.emp); if (!e) endroits.push(e = { emp: l.emp, lots: [] }); e.lots.push(l); });
-    endroits.sort((a, b) => (a.emp ? 0 : 1) - (b.emp ? 0 : 1));
-    corps = endroits.map(e => {
-      const r = e.emp ? resoudreEmp(e.emp) : null;
-      const m = r && MEUBLES.find(x => String(x.id) === String(r.meubleId));
-      const teinte = m ? couleurDe(m.couleur) : '';
-      const style = teinte ? ' style="--meuble:' + esc(teinte) + '"' : '';   // la couleur du meuble est une DONNÉE
-      return '<div class="espace-bandeau"' + style + '>' + esc(libelleEndroit(e.emp)) + '</div>' + e.lots.map(l => {
-        const nom = [l.marque, l.saveur].filter(Boolean).join(' ') || prod.nom;
-        const format = l.formats.join(' + ');
-        return '<div class="item"><div class="item-info"><div class="item-nom">' + esc(nom) + '</div>' +
-          (format ? '<div class="item-detail">' + esc(format) + '</div>' : '') + '</div>' +
-          '<span class="item-quantite">' + esc(l.qte) + '</span></div>';
-      }).join('');
-    }).join('');
-  }
+  if (!total) corps = htmlVide('Tu n\'en as plus', '', modeDeplacer ? '' : 'data-ajouter-produit="' + esc(prod.id) + '"');
+  else corps = htmlLotsParEndroit(prod, lots, modeDeplacer) || htmlVide('Rien à déplacer', 'Tout est encore à ranger', '');
   let html = '<div class="vedette"><div class="vedette-tete"><span>' + esc(prod.nom) + '</span><span>' + esc(total) + '</span></div>' +
     '<div class="vedette-corps">' + corps + '</div></div>';
   const cat = nomCategorie(prod.catId);
-  const voisins = prod.catId ? PRODUITS.filter(p => String(p.catId) === String(prod.catId) && String(p.id) !== String(prod.id))
+  const voisins = (prod.catId && !modeDeplacer) ? PRODUITS.filter(p => String(p.catId) === String(prod.catId) && String(p.id) !== String(prod.id))
                                        .sort((a, b) => String(a.nom).localeCompare(String(b.nom), 'fr')) : [];
   if (voisins.length) html += '<div class="label">' + (cat ? 'Aussi dans « ' + esc(cat) + ' »' : 'Aussi dans la même catégorie') + '</div>' +
     '<div class="liste-blanche">' + voisins.map(p => htmlLigneAliment(p, totalLots(par[p.id]), '')).join('') + '</div>';
   $('recherche-rayon').innerHTML = html;
-  $('recherche-titre').textContent = cat || 'Rechercher';
+  $('recherche-titre').textContent = modeDeplacer ? 'Déplacer' : (cat || 'Rechercher');
   montrer('recherche-saisie', false); montrer('recherche-rayon', true);
-  window.scrollTo(0, 0);
+  if (!sansDefiler) window.scrollTo(0, 0);
+}
+/* Les lots d'un aliment, regroupés par endroit sous le bandeau de la couleur du meuble; « Pas encore rangé » à la fin.
+   bouger (Déplacer) : chaque lot se touche, et ce qui n'est pas encore rangé ne paraît pas. '' s'il ne reste rien. */
+function htmlLotsParEndroit(prod, lots, bouger) {
+  const endroits = [];
+  lots.forEach((l, i) => {
+    if (bouger && !l.emp) return;
+    let e = endroits.find(x => x.emp === l.emp);
+    if (!e) endroits.push(e = { emp: l.emp, lots: [] });
+    e.lots.push({ l: l, i: i });
+  });
+  endroits.sort((a, b) => (a.emp ? 0 : 1) - (b.emp ? 0 : 1));
+  return endroits.map(e => {
+    const r = e.emp ? resoudreEmp(e.emp) : null;
+    const m = r && MEUBLES.find(x => String(x.id) === String(r.meubleId));
+    const teinte = m ? couleurDe(m.couleur) : '';
+    const style = teinte ? ' style="--meuble:' + esc(teinte) + '"' : '';   // la couleur du meuble est une DONNÉE
+    return '<div class="espace-bandeau"' + style + '>' + esc(libelleEndroit(e.emp)) + '</div>' + e.lots.map(x => {
+      const l = x.l, nom = [l.marque, l.saveur].filter(Boolean).join(' ') || prod.nom;
+      const format = l.formats.join(' + ');
+      return '<div class="item"' + (bouger ? ' data-bouger="' + esc(prod.id) + '|' + x.i + '"' : '') + '><div class="item-info"><div class="item-nom">' + esc(nom) + '</div>' +
+        (format ? '<div class="item-detail">' + esc(format) + '</div>' : '') + '</div>' +
+        '<span class="item-quantite">' + esc(l.qte) + '</span></div>';
+    }).join('');
+  }).join('');
+}
+/* Déplacer : le lot touché devient la carte d'endroit. D'office : l'emplacement 1 de l'aliment
+   (le 2 si le lot y est déjà) et la quantité 1. Rien ne bouge avant le bouton « Déplacer ». */
+function ouvrirDeplacement(cle) {
+  const k = cle.split('|'), lot = (lotsParProduit()[k[0]] || [])[Number(k[1])];
+  if (!lot || !lot.emp) return;
+  if ($('recherche-rayon').querySelector('.endroit')) montrerRayon(lot.pid, true);   // une seule carte ouverte à la fois
+  const item = [...$('recherche-rayon').querySelectorAll('[data-bouger]')].find(x => x.dataset.bouger === cle);
+  if (!item) return;
+  const habituels = ((VARIANTES[lot.pid] || {}).emplacements || []).map(String);
+  const vers = habituels[0] === lot.emp ? habituels[1] : habituels[0];
+  const carte = document.createElement('div');
+  carte.className = 'endroit carte';
+  carte.innerHTML = htmlChoixEndroit() +
+    '<div class="bloc"><div class="label">Quantité</div><input class="champ qte" type="text" inputmode="numeric" pattern="[0-9]*" value="1"></div>' +
+    '<div class="message"></div>' +
+    '<div class="grille"><button class="bouton bouton-petit bouton-vert bouger-oui" type="button" hidden>Déplacer</button>' +
+    '<button class="bouton bouton-petit bouger-non" type="button">Annuler</button></div>';
+  item.replaceWith(carte);
+  brancherEndroit(carte, vers ? resoudreEmp(vers) : null);
+  const cible = () => carte.querySelector('.espace').value || carte.querySelector('.meuble').value;
+  const combien = () => parseInt(carte.querySelector('.qte').value, 10) || 0;
+  const verifier = () => {
+    const emp = cible(), q = combien(), m = carte.querySelector('.message');
+    const ok = !!emp && emp !== lot.emp && q > 0 && q <= lot.qte;
+    m.className = 'message';
+    if (q > lot.qte) { m.className = 'message message-erreur'; m.textContent = 'Il y en a ' + lot.qte + ' ici.'; }
+    else if (!emp || emp !== lot.emp) m.textContent = '';
+    else m.textContent = 'C\'est déjà ici : choisis un autre endroit.';
+    carte.querySelector('.bouger-oui').hidden = !ok;
+  };
+  carte.addEventListener('change', verifier);
+  carte.addEventListener('input', verifier);
+  carte.querySelector('.bouger-non').onclick = () => montrerRayon(lot.pid, true);
+  carte.querySelector('.bouger-oui').onclick = () => deplacerLot(lot, cible(), combien(), ok => {
+    if (!ok) { montrerRayon(lot.pid, true); return; }
+    avis('Déplacé', 'succes');
+    $('recherche-texte').value = '';
+    montrerRecherche(false);                          // le champ vide : on enchaîne avec le suivant
+    $('recherche-texte').focus();
+  });
+  verifier();
 }
 /* Le scan de la recherche : un code à nous -> son écran de rayon; sinon « Tu n'en as pas », avec le nom d'Open Food Facts. */
 function scannerPourChercher() {
@@ -1537,7 +1594,7 @@ async function chercherParCode(code) {
   const nomLu = trouve ? (d.nom || d.nomAutre || '') : '';   // pas de nom français : l'anglais, à lire ici seulement
   const qui = trouve ? [[nomLu, d.marque].filter(Boolean).join(' — '), d.format].filter(Boolean).join(' · ') : '';
   const photo = trouve && /^https:\/\//.test(d.photo || '') ? '<img class="photo-produit" src="' + esc(d.photo) + '" alt="">' : '';
-  $('recherche-resultats').innerHTML = htmlVide('Tu n\'en as pas', qui || 'Produit inconnu', 'data-ajouter-code="' + esc(code) + '"',
+  $('recherche-resultats').innerHTML = htmlVide('Tu n\'en as pas', qui || 'Produit inconnu', modeDeplacer ? '' : 'data-ajouter-code="' + esc(code) + '"',
     photo, '<div class="code-barres">Code ' + esc(code) + '</div>');
   const img = $('recherche-resultats').querySelector('.photo-produit');
   if (img) img.addEventListener('error', () => img.remove());   // photo introuvable : rien à sa place, pas de case vide
@@ -1550,8 +1607,9 @@ function ouvrirFicheNom(nom) {
   surNom();
 }
 function surClicRecherche(ev) {
-  const b = ev.target.closest('[data-ajouter-code], [data-ajouter-nom], [data-ajouter-produit], [data-pid]');
+  const b = ev.target.closest('[data-ajouter-code], [data-ajouter-nom], [data-ajouter-produit], [data-pid], [data-bouger]');
   if (!b) return;
+  if (b.hasAttribute('data-bouger')) { ouvrirDeplacement(b.dataset.bouger); return; }
   if (b.hasAttribute('data-pid')) { montrerRayon(b.dataset.pid); return; }
   if (b.hasAttribute('data-ajouter-code')) { ouvrirFicheScan(b.dataset.ajouterCode); return; }
   if (b.hasAttribute('data-ajouter-produit')) {
@@ -1872,8 +1930,8 @@ function initEntree() {
   $('menu-couleurs').addEventListener('click', montrerCouleurs);
   // le menu mène exactement où mènent les 4 boutons de l'accueil
   $('menu-ajouter').addEventListener('click', montrerChoixQuoi);
+  $('menu-deplacer').addEventListener('click', montrerDeplacer);   // Rechercher reste la loupe, en haut à gauche
   // « à venir » : le menu se referme quand même, comme s'il avait mené quelque part
-  $('menu-rechercher').addEventListener('click', () => montrerRecherche(true));
   $('menu-consommer').addEventListener('click', () => { fermerMenu(); avis('Consommer — à venir'); });
   $('menu-listes').addEventListener('click', montrerListes);
   // Outils → Couleurs
@@ -1925,7 +1983,7 @@ function initEntree() {
   });
   document.querySelectorAll('.accordeon-tete[data-toggle]').forEach(tete =>
     tete.addEventListener('click', () => toggleAccordeon(tete)));
-  $('btn-rechercher').addEventListener('click', () => montrerRecherche(true));   // la loupe, en haut à gauche
+  $('btn-rechercher').addEventListener('click', ouvrirRecherche);   // la loupe, en haut à gauche
   // Rechercher : chaque lettre tapée relance la recherche (en mémoire, instantané)
   $('recherche-texte').addEventListener('input', surRecherche);
   $('recherche-texte').addEventListener('keydown', e => {
