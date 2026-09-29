@@ -315,7 +315,7 @@ function toggleAccordeon(tete) {
       if (el.firstElementChild) el.firstElementChild.classList.remove('ouvert');
       if (el.children[1]) el.children[1].hidden = true;
       // ce qui se ferme ferme aussi tout ce qu'il contient : rien ne reste ouvert en cachette
-      el.querySelectorAll('.accordeon-tete.ouvert').forEach(function (t) {
+      el.querySelectorAll('.accordeon > .ouvert:first-child').forEach(function (t) {
         t.classList.remove('ouvert');
         if (t.nextElementSibling) t.nextElementSibling.hidden = true;
       });
@@ -1446,7 +1446,7 @@ function stockParEndroit() {
     const cle = prod.id + '|' + cleMarque + '|' + cleSaveur;
     const liste = (par[emp] = par[emp] || {});
     const m = mesure(format);
-    if (!liste[cle]) liste[cle] = { nom: prod.nom, marque: cleMarque, saveur: cleSaveur, formats: [], qte: 0, total: 0, unite: '' };
+    if (!liste[cle]) liste[cle] = { pid: String(prod.id), nom: prod.nom, marque: cleMarque, saveur: cleSaveur, formats: [], qte: 0, total: 0, unite: '' };
     const x = liste[cle];
     x.qte += qte;
     if (format && x.formats.indexOf(format) === -1) x.formats.push(format);
@@ -1456,18 +1456,34 @@ function stockParEndroit() {
   return par;
 }
 /* Les lignes d'un endroit, triées par nom. '' si l'endroit est vide. */
+/* Un aliment = UNE ligne à son endroit (J-C, choix C sur aperçu : « imagine le tiroir à fromage, au moins 10 différents »).
+   Une seule sorte : la ligne complète, comme avant. Plusieurs : le nom, « 3 sortes » et le total; on touche pour les voir
+   dessous (un accordéon : une seule ouverte à la fois, toggleAccordeon). */
 function htmlLignesEndroit(par, empId) {
   const dedans = par[empId];
   if (!dedans) return '';
-  return Object.keys(dedans).map(k => dedans[k])
-    .sort((a, b) => String(a.nom).localeCompare(String(b.nom), 'fr'))
-    .map(x => {
-      const mesureTotale = (x.unite && x.total) ? ecrireMesure(x.total, x.unite) : '';
-      const format = x.formats.length > 1 ? x.formats.join(' + ') : x.formats[0];
-      const detail = [nomListe(x.marque), nomListe(x.saveur), format, mesureTotale ? 'total ' + mesureTotale : ''].filter(Boolean).join(' · ');
-      return '<div class="item"><div class="item-info"><div class="item-nom">' + esc(x.nom) + '</div>' +
-        (detail ? '<div class="item-detail">' + esc(detail) + '</div>' : '') + '</div>' +
-        '<span class="item-quantite">' + esc(x.qte) + '</span></div>';
+  const detailDe = x => {
+    const mesureTotale = (x.unite && x.total) ? ecrireMesure(x.total, x.unite) : '';
+    const format = x.formats.length > 1 ? x.formats.join(' + ') : x.formats[0];
+    return [nomListe(x.marque), nomListe(x.saveur), format, mesureTotale ? 'total ' + mesureTotale : ''].filter(Boolean).join(' · ');
+  };
+  const groupes = {};
+  Object.keys(dedans).forEach(k => { const x = dedans[k]; (groupes[x.pid] = groupes[x.pid] || []).push(x); });
+  return Object.keys(groupes).map(pid => groupes[pid])
+    .sort((a, b) => String(a[0].nom).localeCompare(String(b[0].nom), 'fr'))
+    .map(sortes => {
+      if (sortes.length === 1) {
+        const x = sortes[0], detail = detailDe(x);
+        return '<div class="item"><div class="item-info"><div class="item-nom">' + esc(x.nom) + '</div>' +
+          (detail ? '<div class="item-detail">' + esc(detail) + '</div>' : '') + '</div>' +
+          '<span class="item-quantite">' + esc(x.qte) + '</span></div>';
+      }
+      sortes.sort((a, b) => detailDe(a).localeCompare(detailDe(b), 'fr'));
+      const total = sortes.reduce((s, x) => s + (Number(x.qte) || 0), 0);
+      return '<div class="accordeon aliment"><div class="item aliment-tete"><div class="item-info"><div class="item-nom">' + esc(sortes[0].nom) + '</div>' +
+        '<div class="item-detail aliment-nb">' + sortes.length + ' sortes</div></div><span class="item-quantite">' + total + '</span></div>' +
+        '<div class="aliment-sortes" hidden>' + sortes.map(x => '<div class="item sorte"><div class="item-info"><div class="item-detail">' +
+          esc(detailDe(x) || x.nom) + '</div></div><span class="sorte-quantite">' + esc(x.qte) + '</span></div>').join('') + '</div></div>';
     }).join('');
 }
 /* Un meuble : ce qui est posé dessus directement, puis chaque espace qui contient quelque chose.
@@ -2408,6 +2424,8 @@ function initEntree() {
     const lot = ev.target.closest('.crayon[data-lot]');    // « Pas encore rangé » : le crayon range
     if (lot) { ouvrirLot(lot); return; }
     if (ev.target.closest('.endroit')) return;             // toucher la carte ouverte ne plie pas l'accordéon
+    const aliment = ev.target.closest('.aliment-tete');    // un aliment à plusieurs sortes : on les montre
+    if (aliment) { toggleAccordeon(aliment); return; }
     const tete = ev.target.closest('.accordeon-tete');
     if (tete) toggleAccordeon(tete);
   });            // bouton bleu → la page des listes
