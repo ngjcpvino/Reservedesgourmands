@@ -234,16 +234,16 @@ async function entrer() {
   const pw = $('mdp').value.trim();
   if (!pw) return;
   Coffre.definirMotDePasse(pw);
-  if (!localStorage.getItem(QUI)) {  // 1re fois sur cet appareil : on VÉRIFIE avant de demander le nom (une seule attente)
-    montrerVoile(true);
-    const ok = await chargerReferences();
-    montrerVoile(false);
-    if (ok === false) return;        // refusé : on est déjà revenu au mot de passe
-    montrerQui();                    // personne de nommé ici : on demande AVANT la 1re entrée
-    return;
-  }
-  montrerAccueil();                  // login optimiste : aucun appel bloquant
-  chargerReferences();               // en arrière-plan : les couleurs à jour (et un mauvais mot de passe se voit)
+  const ok = await chargerAvecChariot();   // on entre avec TOUTES les données (et un mauvais mot de passe se voit)
+  if (ok === false) return;                // refusé : on est déjà revenu au mot de passe
+  if (!localStorage.getItem(QUI)) montrerQui();   // personne de nommé ici : on demande AVANT la 1re entrée
+  else montrerAccueil();
+}
+/* À l'entrée dans l'app, le chariot tourne tant que tout n'est pas là (J-C, 2026-09-29) :
+   jamais une réserve à moitié chargée. Rien ne passe (3 essais) : on garde ce qu'on avait. */
+async function chargerAvecChariot() {
+  montrerVoile(true);
+  try { return await chargerReferences(); } finally { montrerVoile(false); }
 }
 
 function deconnexion() {
@@ -397,7 +397,7 @@ async function chargerReferences() {
   } catch (e) {
     if (e.message === 'non autorisé') { Coffre.oublier(); revenirConnexion('Mot de passe refusé.'); return false; }
     if (!cache) statut('Réseau lent — patiente un instant ou recharge la page.', 'erreur');
-    else avis('Réserve pas relue' + (e.refus ? ' (' + e.message + ')' : '') + ' — réessaie dans un instant', 'erreur');
+    avis('Réserve pas relue' + (e.refus ? ' (' + e.message + ')' : '') + ' — recharge dans un instant', 'erreur');
     return null;
   }
 }
@@ -2229,9 +2229,8 @@ function initEntree() {
   $('btn-ranger').addEventListener('click', () => pasEncoreRange(false));
   $('btn-enregistrer').addEventListener('click', enregistrer);
   $('btn-annuler').addEventListener('click', montrerChoixQuoi);
-  // reste connecté → page d'ouverture directement, puis mise à jour en arrière-plan
-  // (les couleurs changées sur l'autre appareil arrivent ainsi, sans rien attendre)
-  if (Coffre.motDePasse()) { if (localStorage.getItem(QUI)) montrerAccueil(); else montrerQui(); chargerReferences(); }
+  // reste connecté → page d'ouverture, le chariot par-dessus jusqu'à ce que tout soit là
+  if (Coffre.motDePasse()) { if (localStorage.getItem(QUI)) montrerAccueil(); else montrerQui(); chargerAvecChariot(); }
 }
 /* On revient dans l'app (retour d'arrière-plan, réveil de l'iPad) : on relit les listes
    en arrière-plan, sans rien bloquer, et on redessine l'inventaire s'il est à l'écran.
