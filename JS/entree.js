@@ -99,7 +99,6 @@ const ATTENTE_GESTES = 'rdg_consos_attente';        // consommations et déplace
 var envoiGestes = false;                            // la file des gestes est en route
 var couleursModif = { site: {}, meubles: {} };      // changées à l'écran, pas encore envoyées
 var envoiCouleurs = false;
-const PIECE_MEUBLE = 'rdg_piece_meuble';            // « Ajouter un meuble » : la dernière pièce choisie, gardée sur l'appareil (même si l'iPad recharge l'app)
 var couleurNouveau = '305';                         // « Ajouter un meuble » : le numéro choisi                          // un envoi de couleurs est en route
 var dernierChargement = 0;                          // quand les listes ont été relues (pour ne pas appeler pour rien)
 const FRAICHEUR = 30000;                            // au retour dans l'app, on relit si ça date de plus de 30 s
@@ -166,8 +165,7 @@ function enregistrerQui() {
 function montrerMeuble() {
   toutCacher(); $('vue-meuble').hidden = false; $('meuble-msg').textContent = '';
   couleurNouveau = '305';                      // la couleur de départ : le brun
-  let piece = ''; try { piece = localStorage.getItem(PIECE_MEUBLE) || ''; } catch (e) {}
-  $('meuble-piece').innerHTML = optionsPieces(piece);   // la pièce du meuble d'avant : on en ajoute souvent plusieurs d'affilée
+  $('meuble-piece').innerHTML = optionsPieces('');   // chaque meuble part sans pièce choisie (J-C : la pièce d'avant ne reste pas)
   $('meuble-palette').innerHTML = htmlPalette(couleurNouveau);
 }
 function montrerPiece()  { toutCacher(); $('vue-piece').hidden = false; $('piece-msg').textContent = ''; }
@@ -1037,7 +1035,6 @@ async function enregistrerMeuble() {
   if (!nom) { msg.className = 'message message-erreur'; msg.textContent = 'Donne un nom au meuble.'; return; }
   const couleur = couleurNouveau;               // un numéro de la palette
   const pieceId = $('meuble-piece').value;   // vide = « Meubles sans pièce »
-  try { localStorage.setItem(PIECE_MEUBLE, pieceId); } catch (e) {}
   msg.className = 'message'; msg.textContent = 'Enregistrement…';
   $('btn-meuble-enr').disabled = true;
   montrerVoile(true);
@@ -1048,7 +1045,7 @@ async function enregistrerMeuble() {
     MEUBLES.push({ id: r.id, nom: nom, couleur: couleur, pieceId: pieceId });   // dispo tout de suite dans l'entrée
     const c = lireCache(); if (c) { (c.emps = c.emps || []).push([r.id, nom, pieceId, SECTEUR_ID, 'O', couleur]); ecrireCache(c); }
     msg.className = 'message message-succes'; msg.textContent = 'Meuble ajouté ✓';
-    $('meuble-nom').value = '';
+    $('meuble-nom').value = ''; $('meuble-piece').value = '';   // le suivant repart à zéro
   } catch (e) {
     msg.className = 'message message-erreur'; msg.textContent = 'Échec : ' + e.message;
   } finally { $('btn-meuble-enr').disabled = false; montrerVoile(false); }
@@ -2360,7 +2357,6 @@ function initEntree() {
     retourDansApp();   // on revient dans l'app : les entrées de l'autre appareil arrivent toutes seules
   });
   $('btn-meuble-enr').addEventListener('click', enregistrerMeuble);
-  $('meuble-piece').addEventListener('change', e => { try { localStorage.setItem(PIECE_MEUBLE, e.target.value); } catch (x) {} });
   $('meuble-annuler').addEventListener('click', montrerBases);
   $('btn-ajout-piece').addEventListener('click', montrerPiece);
   $('btn-piece-enr').addEventListener('click', enregistrerPiece);
