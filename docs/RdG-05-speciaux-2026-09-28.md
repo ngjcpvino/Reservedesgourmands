@@ -183,6 +183,18 @@ sites : son réseau les bloque).** La conversation sur l'ordi de J-C :
 3. Flipp : lire une circulaire **en entier** (section 2, toujours ouvert).
 4. Le prix est-il celui **d'une succursale** (Ormstown ≠ une autre) ? Comment
    choisir la sienne ?
+5. **Chercher une vraie porte, comme la SAQ dans Dionysos.** Dionysos lit la
+   SAQ de deux façons, toutes deux dans Apps Script : le **grattage** des
+   fiches produits (`testScrapingSAQ` → `lireFicheSAQ`, cache 5 min) et
+   l'**API Adobe Commerce** que le site de la SAQ utilise lui-même
+   (`catalog-service.adobe.io/graphql`, clé vue dans le trafic du navigateur,
+   rangée dans les Propriétés du script : `SAQ_API_KEY`, `SAQ_ENV_ID`).
+   Même démarche ici : dans les outils de développement du navigateur, sur
+   superc.ca (puis metro.ca, iga.net), repérer les requêtes que la page fait
+   en cherchant un produit (`/produit/skus` chez Super C, ou une adresse
+   GraphQL), noter l'adresse, les en-têtes et la clé ou le jeton, et voir
+   si la clé est fixe (comme à la SAQ) ou change à chaque visite. Une clé
+   trouvée va dans les **Propriétés du script**, jamais dans le dépôt public.
 Consigner les réponses ici, puis on reprend la réflexion.
 
 **Pas encore discuté** : un prix inconnu dans un magasin (case vide ?);
