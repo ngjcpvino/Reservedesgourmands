@@ -69,13 +69,13 @@ endroits en même temps).*
 | C | EmplacementID | lien vers EMPLACEMENTS. **Vide = en transit** (entré, compté, pas encore rangé) |
 | D | Quantite | en unités du produit |
 | E | DateEntree | date d'entrée de ce lot = date du scan (automatique) |
-| F | Marque | marque de CE lot (bio, ordinaire, une marque précise…) — un même produit peut en avoir plusieurs |
+| F | Marque | **ID** dans MARQUES (depuis le 2026-09-29; avant, du texte libre) — la marque de CE lot; un même produit peut en avoir plusieurs. Vide = sans marque |
 | G | Format | format de CE lot (« 500 g », « unité »…) — idem |
 | H | OpId | jeton anti-reclic de l'entrée (toutes les lignes d'un même envoi = même jeton). Un renvoi du même jeton n'écrit RIEN |
 | I | CodeBarres | le code-barres scanné pour CE lot — **clé de recherche** (reconnaître le produit au prochain scan). Vide si entré à la main |
-| J | Saveur | la saveur de CE lot (fraise, vanille, miel et noix…). Vide si la saveur ne compte pas |
+| J | Saveur | **ID** dans SAVEURS (depuis le 2026-09-29) — la saveur de CE lot. Vide si la saveur ne compte pas |
 | K | QuiEntre | qui a entré l'article. Vient de l'appareil (Outils → Qui entre les articles), pas du mot de passe |
-| L | Magasin | où l'article a été acheté (proposé d'après les magasins déjà utilisés) |
+| L | Magasin | **ID** dans MAGASINS (depuis le 2026-09-29) — où l'article a été acheté |
 | M | Prix | **facultatif** — ce que le lot a coûté, pour comparer les épiceries |
 
 > **La quantité mesurable** se lit dans le **Format** : « 1 L », « 500 g », « 0,54 kg ».
@@ -135,9 +135,9 @@ Servira à prévoir le rachat (le rythme de chaque aliment).*
 | C | Emp | lien vers EMPLACEMENTS — d'où c'est sorti. Vide = pas encore rangé |
 | D | Qte | combien (à l'unité pour un pack : 1 pot d'un pack de 6 = 1) |
 | E | Date | date de la sortie (heure du Québec) |
-| F | Marque | du lot sorti |
+| F | Marque | du lot sorti (ID dans MARQUES) |
 | G | Format | du lot sorti (« 6 unité », « 650 g »…) |
-| H | Saveur | du lot sorti |
+| H | Saveur | du lot sorti (ID dans SAVEURS) |
 | I | Qui | qui a consommé (le nom de l'appareil, comme QuiEntre) |
 | J | OpId | jeton anti-reclic : écrit **en dernier**, c'est lui qui dit « fait ». Un renvoi du même jeton n'écrit RIEN |
 
@@ -149,8 +149,18 @@ aliment + marque + saveur, tous formats. S'enlève dans Gérer les bases → Ali
 |-----|-----|------|
 | A | ID | date/heure de création |
 | B | ProduitID | lien vers PRODUITS |
-| C | Marque | la marque visée (vide = sans marque) |
-| D | Saveur | la saveur visée (vide = sans saveur) |
+| C | Marque | la marque visée, ID dans MARQUES (vide = sans marque) |
+| D | Saveur | la saveur visée, ID dans SAVEURS (vide = sans saveur) |
+
+### MAGASINS · MARQUES · SAVEURS — les listes gérées (2026-09-29)
+*Trois onglets pareils, créés tout seuls par le coffre-fort. MAGASINS naît avec Super C, Metro, IGA, Richelieu.
+On choisit dans la fiche, « Nouveau… » au bout; on corrige au crayon dans Gérer les bases.*
+
+| Col | Nom | Sens |
+|-----|-----|------|
+| A | ID | date/heure de création (un nom ajouté à la fiche reçoit son ID dans l'app, même forme) |
+| B | Nom | « Super C », « Liberté », « fraise »… Deux noms qui ne diffèrent que par les accents, majuscules ou espaces sont LE MÊME (jamais de doublon) |
+| C | Actif | O / N — N = réuni dans un autre (« Libertee » dans « Liberté ») : ses liens ont été repointés, la ligne reste |
 | E | Date | quand c'est arrivé |
 | F | Qui | qui l'a coché |
 

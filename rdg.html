@@ -168,13 +168,25 @@
     <div id="bloc-details" hidden>
       <div class="bloc" id="bloc-marque">
         <div class="label">Marque</div>
-        <input class="champ" id="marque" list="dl-marques" autocomplete="off" placeholder="Choisir ou saisir (optionnel)">
-        <datalist id="dl-marques"></datalist>
+        <select class="champ" id="marque"></select>
+      </div>
+      <div class="bloc" id="bloc-marque-neuve" hidden>
+        <div class="label">Nom de la nouvelle marque</div>
+        <div class="ligne-couleur">
+          <input class="champ" id="marque-neuve" autocomplete="off" placeholder="Ex. Liberté">
+          <button class="bouton bouton-petit" id="btn-marque-neuve" type="button">Ajouter</button>
+        </div>
       </div>
       <div class="bloc" id="bloc-saveur">
         <div class="label">Saveur</div>
-        <input class="champ" id="saveur" list="dl-saveurs" autocomplete="off" placeholder="Fraise, vanille, miel et noix…">
-        <datalist id="dl-saveurs"></datalist>
+        <select class="champ" id="saveur"></select>
+      </div>
+      <div class="bloc" id="bloc-saveur-neuve" hidden>
+        <div class="label">Nom de la nouvelle saveur</div>
+        <div class="ligne-couleur">
+          <input class="champ" id="saveur-neuve" autocomplete="off" placeholder="Ex. fraise, miel et noix">
+          <button class="bouton bouton-petit" id="btn-saveur-neuve" type="button">Ajouter</button>
+        </div>
       </div>
       <div class="bloc" id="bloc-format">
         <div class="label">Format</div>
@@ -232,8 +244,14 @@
     <div id="bloc-achat" hidden>
       <div class="bloc">
         <div class="label">Magasin</div>
-        <input class="champ" id="magasin" list="dl-magasins" autocomplete="off" placeholder="Super C, IGA… (optionnel)">
-        <datalist id="dl-magasins"></datalist>
+        <select class="champ" id="magasin"></select>
+      </div>
+      <div class="bloc" id="bloc-magasin-neuve" hidden>
+        <div class="label">Nom du nouveau magasin</div>
+        <div class="ligne-couleur">
+          <input class="champ" id="magasin-neuve" autocomplete="off" placeholder="Ex. Pharmaprix">
+          <button class="bouton bouton-petit" id="btn-magasin-neuve" type="button">Ajouter</button>
+        </div>
       </div>
       <div class="bloc">
         <div class="label">Prix</div>
@@ -342,8 +360,8 @@
 
 </div><!-- fin du conteneur -->
 
-<script src="JS/coffre.js?v=6"></script>
-<script src="JS/entree.js?v=86"></script>
+<script src="JS/coffre.js?v=7"></script>
+<script src="JS/entree.js?v=87"></script>
 <script src="JS/scan.js?v=9"></script>
 </body>
 </html>

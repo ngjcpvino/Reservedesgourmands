@@ -96,7 +96,7 @@ ralentirait le reste.
   n'est jamais sorti de l'app, rien n'y manque vraiment. D'ici là, le groupe
   ne verra que les aliments « plus en réserve » (quantité 0). Les spéciaux
   sur ce qu'on achète marchent, eux, dès le départ.
-- **Les Magasins en liste gérée** (voir plus haut) : à bâtir avant.
+- **Les Magasins en liste gérée** (voir plus haut) : ✅ bâtie le 2026-09-29 (onglet Magasins, les quatre habituels semés d'avance).
 
 ---
 

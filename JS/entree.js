@@ -14,7 +14,9 @@ var codeScan = '';          // code-barres de l'entrée en cours (le champ #code
 var CODES = {};             // { codeBarres: produitId } — reconnaître un produit déjà à nous
 var produitCourant = null;  // id du produit reconnu (existant) ; null = nouveau produit
 var modeManuel = false;     // entrée À LA MAIN : entonnoir catégorie -> sous-catégorie -> produit
-var MAGASINS = [];          // les magasins déjà utilisés (on propose au lieu de faire taper)
+var LISTES = { Magasins: [], Marques: [], Saveurs: [] };   // les listes gérées : [{ id, nom }], actifs seulement
+var NOMS_LISTES = {};        // { id: nom } des trois listes : STOCK retient l'ID, on lit le nom
+var LISTES_NEUVES = [];      // noms ajoutés à la fiche, pas encore au coffre-fort : partent avec la prochaine entrée
 const UNITES_BASE = ['unité', 'g', 'kg', 'ml', 'L'];   // le départ; toute unité déjà utilisée s'y ajoute
 const QUI = 'rdg_qui';      // qui se sert de l'app sur CET appareil
 var opCourant = null;                                   // jeton anti-reclic de l'article en cours
@@ -221,7 +223,7 @@ async function surCode() {
     $('nom').value = d.nom || '';
     surNom();
     if (produitCourant === null) {                  // resté « nouveau » : on garde les infos OFF
-      if (d.marque) $('marque').value = d.marque;
+      if (d.marque) choisirParNom('marque', d.marque);   // retrouvée dans la liste, sinon proposée en « Nouvelle marque… »
       if (d.format) poserFormat(d.format);   // Open Food Facts donne « 2 L » : on le répartit dans les deux champs
     }
   }                                                 // sinon : on laisse; il remplit le nom à la main
@@ -369,7 +371,14 @@ function appliquer(d) {
   PRODUITS = (d.prods || [])              // [ID,Nom,CategorieID,Unite,Actif,Marque,Format,MarqueCompte,SaveurCompte,OrdreEmp]
     .filter(r => String(r[4]) !== 'N')
     .map(r => ({ id: r[0], nom: r[1], catId: r[2], ordre: String(r[9] || '') }));   // ordre = ses endroits, le 1er d'abord (J-C, flèches)
-  MAGASINS = d.magasins || [];
+  LISTES = { Magasins: [], Marques: [], Saveurs: [] }; NOMS_LISTES = {};
+  const L = d.listes || {};
+  Object.keys(LISTES).forEach(n => (L[n] || []).forEach(r => {   // [ID, Nom, Actif]
+    NOMS_LISTES[String(r[0])] = String(r[1] || '');          // même réuni (désactivé) : une vieille ligne garde son nom
+    if (String(r[2]) !== 'N') LISTES[n].push({ id: String(r[0]), nom: String(r[1] || '') });
+  }));
+  LISTES_NEUVES.forEach(x => { if (!NOMS_LISTES[x.id]) { NOMS_LISTES[x.id] = x.nom; LISTES[x.liste].push({ id: x.id, nom: x.nom }); } });   // pas encore envoyés : gardés
+  Object.keys(LISTES).forEach(n => LISTES[n].sort((a, b) => a.nom.localeCompare(b.nom, 'fr')));
   VARIANTES = d.variantes || {};                      // { produitId: { marques:[], formats:[] } }
   CODES = d.codes || {};                              // { codeBarres: produitId }
   STOCK = d.stock || [];
@@ -415,7 +424,7 @@ async function chargerData() {
   for (let i = 0; i < 3; i++) {
     try {
       const r = await Coffre.references();
-      if (r && r.ok && r.categories !== undefined) return { cats: r.categories, emps: r.emplacements, prods: r.produits, stock: r.stock, variantes: r.variantes, codes: r.codes, couleurs: r.couleurs, magasins: r.magasins, pasAimes: r.pasAimes };
+      if (r && r.ok && r.categories !== undefined) return { cats: r.categories, emps: r.emplacements, prods: r.produits, stock: r.stock, variantes: r.variantes, codes: r.codes, couleurs: r.couleurs, listes: r.listes, pasAimes: r.pasAimes };
       if (r && r.erreur === 'non autorisé') throw new Error('non autorisé');   // inutile de réessayer
       err = new Error((r && r.erreur) || 'refus'); err.refus = true;          // le coffre-fort a répondu, mais pas oui
     } catch (e) { if (e.message === 'non autorisé') throw e; err = e; }
@@ -453,9 +462,11 @@ function trouverProduitParNom(nom) {
 
 /* Remet la fiche à l'état de départ (champs vides, blocs cachés). */
 function reinitFiche() {
-  $('nom').value = ''; $('marque').value = ''; $('saveur').value = '';
+  $('nom').value = '';
+  remplirChoix('marque', []); remplirChoix('saveur', []); remplirChoix('magasin', LISTES.Magasins.map(x => x.id));
+  Object.keys(CHOIX_FICHE).forEach(ch => { $(ch + '-neuve').value = ''; });
   poserFormat('');
-  $('magasin').value = ''; $('prix').value = '';
+  $('prix').value = '';
   $('cat').value = ''; $('souscat').innerHTML = ''; $('produit').innerHTML = ''; $('endroits').innerHTML = '';
   produitCourant = null;
   montrer('bloc-details', false); montrer('bloc-souscat', false); montrer('bloc-produit', false);
@@ -577,14 +588,13 @@ function surProduit() {
   montrer('bloc-achat', true); montrer('bloc-endroits', true); montrer('btn-enregistrer', true);
 }
 
-/* Remplit les suggestions (datalist) de marque/format pour un produit. */
+/* Les choix de la fiche pour un produit : ses marques et ses saveurs déjà vues, tous les magasins, les unités. */
 function remplirVariantes(pid) {
   const vr = (pid && VARIANTES[pid]) || { marques: [], formats: [], saveurs: [] };
-  const opts = liste => (liste || []).map(x => '<option value="' + esc(x) + '"></option>').join('');
-  $('dl-marques').innerHTML = opts(vr.marques);
-  $('dl-saveurs').innerHTML = opts(vr.saveurs);
+  remplirChoix('marque', vr.marques);
+  remplirChoix('saveur', vr.saveurs);
   remplirUnites();
-  $('dl-magasins').innerHTML = opts(MAGASINS);
+  remplirChoix('magasin', LISTES.Magasins.map(x => x.id), $('magasin').value !== 'neuve' ? $('magasin').value : '');
 }
 
 
@@ -607,7 +617,7 @@ function resoudreEmp(empId) {
    par emplacement habituel (dans l'ordre), quantité vide. Tout reste modifiable. */
 function prefillProduit(pid) {
   const vr = (pid && VARIANTES[pid]) || null;
-  remplirVariantes(pid);                                   // choix déjà inscrits (datalists)
+  remplirVariantes(pid);                                   // ses marques et saveurs déjà vues
   $('marque').value = (vr && vr.derniereMarque) || '';
   poserFormat((vr && vr.dernierFormat) || '');
   $('endroits').innerHTML = '';
@@ -620,16 +630,92 @@ function prefillProduit(pid) {
 }
 
 /* Retient localement marque/format/emplacements d'un produit (suggestions immédiates + cache). */
-function memoriserVariante(pid, marque, format, endroits) {
+function memoriserVariante(pid, marque, format, endroits, saveur) {
   if (!pid) return;
   const vr = VARIANTES[pid] || (VARIANTES[pid] = { marques: [], formats: [], emplacements: [], derniereMarque: '', dernierFormat: '' });
-  vr.marques = vr.marques || []; vr.formats = vr.formats || []; vr.emplacements = vr.emplacements || [];
+  vr.marques = vr.marques || []; vr.formats = vr.formats || []; vr.emplacements = vr.emplacements || []; vr.saveurs = vr.saveurs || [];
+  if (saveur && vr.saveurs.indexOf(saveur) === -1) vr.saveurs.push(saveur);
   if (marque) { if (vr.marques.indexOf(marque) === -1) vr.marques.push(marque); vr.derniereMarque = marque; }
   if (format) { if (vr.formats.indexOf(format) === -1) vr.formats.push(format); vr.dernierFormat = format; }
   (endroits || []).forEach(e => { if (e.emp && vr.emplacements.indexOf(e.emp) === -1) vr.emplacements.push(e.emp); });
   const c = lireCache(); if (c) { (c.variantes = c.variantes || {})[pid] = vr; ecrireCache(c); }
 }
 
+
+/* ---------- Marque, Saveur, Magasin : des listes gérées dans la fiche (2026-09-29) ----------
+   Comme la Catégorie : on choisit, « Nouvelle… » au bout, jamais de texte libre. Marque et saveur : seulement celles
+   déjà vues avec CE produit (choix A de J-C : la liste reste courte); « Nouvelle… » retrouve un nom qui existe ailleurs.
+   Un nom neuf reçoit son ID ici et part avec l'entrée (aucun appel de plus). STOCK retient l'ID. */
+const CHOIX_FICHE = {
+  marque:  { liste: 'Marques',  vide: '— Aucune marque —', neuve: 'Nouvelle marque…' },
+  saveur:  { liste: 'Saveurs',  vide: '— Aucune saveur —', neuve: 'Nouvelle saveur…' },
+  magasin: { liste: 'Magasins', vide: '— Magasin —',       neuve: 'Nouveau magasin…' }
+};
+/* Ce que STOCK retient (un ID) -> ce qu'on lit. Une vieille valeur écrite en texte se lit telle quelle. */
+function nomListe(v) { const k = String(v == null ? '' : v).trim(); return NOMS_LISTES[k] || k; }
+/* Deux noms « pareils » : sans accent, sans majuscule, sans espace ni ponctuation (« Super C » = « SuperC »). Même règle que le coffre-fort. */
+function cleNom(n) { return String(n || '').normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase().replace(/[^a-z0-9]/g, ''); }
+/* Les options d'un choix : les ID proposés (par nom), celui qui est choisi, puis « Nouvelle… ». */
+function remplirChoix(champ, ids, choisi) {
+  const C = CHOIX_FICHE[champ], vus = [];
+  (ids || []).concat(choisi ? [choisi] : []).forEach(v => { v = String(v || ''); if (v && vus.indexOf(v) === -1) vus.push(v); });
+  vus.sort((a, b) => nomListe(a).localeCompare(nomListe(b), 'fr'));
+  $(champ).innerHTML = '<option value="">' + C.vide + '</option>' +
+    vus.map(v => '<option value="' + esc(v) + '">' + esc(nomListe(v)) + '</option>').join('') +
+    '<option value="neuve">' + C.neuve + '</option>';
+  $(champ).value = choisi ? String(choisi) : '';
+  montrer('bloc-' + champ + '-neuve', false);
+}
+function idsProposes(champ) { return [...$(champ).options].map(o => o.value).filter(v => v && v !== 'neuve'); }
+/* « Nouvelle… » choisi : le champ pour la nommer apparaît. */
+function surChoix(champ) {
+  const neuve = $(champ).value === 'neuve';
+  montrer('bloc-' + champ + '-neuve', neuve);
+  if (neuve) $(champ + '-neuve').focus();
+}
+/* « Ajouter » : un nom déjà dans la liste (même ailleurs) est REPRIS, jamais doublé; sinon il naît ici. */
+function ajouterChoix(champ) {
+  const C = CHOIX_FICHE[champ], nom = $(champ + '-neuve').value.trim();
+  if (!nom) { $(champ + '-neuve').focus(); return false; }
+  let x = LISTES[C.liste].find(y => cleNom(y.nom) === cleNom(nom));
+  if (!x) {
+    x = { id: idLocal(), nom: nom };
+    LISTES[C.liste].push(x); NOMS_LISTES[x.id] = nom;
+    LISTES_NEUVES.push({ liste: C.liste, id: x.id, nom: nom });
+  }
+  remplirChoix(champ, idsProposes(champ), x.id);
+  $(champ + '-neuve').value = '';
+  return true;
+}
+/* Un nom venu d'ailleurs (Open Food Facts) : retrouvé dans la liste, sinon proposé en « Nouvelle… », prêt à Ajouter. */
+function choisirParNom(champ, nom) {
+  nom = String(nom || '').split(',')[0].trim();         // OFF donne parfois « Liberté, Danone » : la première
+  if (!nom) return;
+  const x = LISTES[CHOIX_FICHE[champ].liste].find(y => cleNom(y.nom) === cleNom(nom));
+  if (x) { remplirChoix(champ, idsProposes(champ), x.id); return; }
+  $(champ).value = 'neuve'; montrer('bloc-' + champ + '-neuve', true); $(champ + '-neuve').value = nom;
+}
+/* L'entrée a réussi : les noms neufs sont au coffre-fort. S'il en avait déjà un pareil, on prend SON ID partout.
+   Rend la fonction qui traduit un ID de l'app en ID final. */
+function confirmerNeuves(envoyes, finals) {
+  const fin = v => finals[String(v || '')] || v;
+  const c = lireCache();
+  envoyes.forEach(n => {
+    const f = String(fin(n.id));
+    LISTES_NEUVES = LISTES_NEUVES.filter(x => x.id !== n.id);
+    if (f !== n.id) {                                   // un pareil existait : on oublie le nôtre
+      LISTES[n.liste] = LISTES[n.liste].filter(x => x.id !== n.id); delete NOMS_LISTES[n.id];
+      if (!NOMS_LISTES[f]) { NOMS_LISTES[f] = n.nom; LISTES[n.liste].push({ id: f, nom: n.nom }); }   // pas encore relu ici : on le connaît déjà
+      Object.values(VARIANTES).forEach(vr => ['marques', 'saveurs'].forEach(k => { vr[k] = (vr[k] || []).map(v => v === n.id ? f : v); }));
+    }
+    if (c) {
+      c.listes = c.listes || {}; const rows = (c.listes[n.liste] = c.listes[n.liste] || []);
+      if (!rows.some(r => String(r[0]) === f)) rows.push([f, n.nom, 'O']);
+    }
+  });
+  if (c) ecrireCache(c);
+  return fin;
+}
 
 /* ---------- Ajouter une catégorie ou une sous-catégorie sans quitter la fiche ----------
    Un nom déjà pris (chez les mêmes frères) ne crée RIEN : on reprend celui qui existe. */
@@ -892,8 +978,10 @@ async function enregistrer() {
     if (!endroits.length) { statut('Mets une quantité sur au moins un endroit.', 'erreur'); return; }
   }
 
-  const marque = $('marque').value.trim(), format = formatSaisi(), code = $('codebarres').value.trim();
-  const saveur = $('saveur').value.trim(), magasin = $('magasin').value.trim(), prix = $('prix').value.trim();
+  Object.keys(CHOIX_FICHE).forEach(ch => { if ($(ch).value === 'neuve' && !ajouterChoix(ch)) $(ch).value = ''; });   // un nom tapé sans toucher Ajouter compte quand même
+  let marque = $('marque').value, saveur = $('saveur').value, magasin = $('magasin').value;   // des ID des listes gérées
+  const format = formatSaisi(), code = $('codebarres').value.trim(), prix = $('prix').value.trim();
+  const nouveaux = LISTES_NEUVES.slice();              // les noms ajoutés à la fiche : créés par le même appel
   const qui = localStorage.getItem(QUI) || '';        // posé une fois dans Outils, gardé sur l'appareil
   if (!opCourant) opCourant = 'op-' + Date.now() + '-' + Math.random().toString(36).slice(2, 8);
   statut('Enregistrement…');
@@ -901,13 +989,17 @@ async function enregistrer() {
   montrerVoile(true);
   try {
     const commun = { marque: marque, format: format, saveur: saveur, code: code, magasin: magasin, prix: prix,
-                     qui: qui, endroits: endroits, opId: opCourant };
+                     qui: qui, endroits: endroits, opId: opCourant, nouveaux: nouveaux };
     const charge = nouveau
       ? Object.assign({ produit: [nom, scid] }, commun)
       : Object.assign({ produitId: produitId }, commun);
     const r = await Coffre.entrerArticle(charge);          // UN seul appel
     let ids = [];                                          // les ID des lignes créées : on peut les consommer sans relire
-    if (r && r.ok) { produitId = r.produitId || produitId; ids = r.ids || []; }
+    if (r && r.ok) {
+      produitId = r.produitId || produitId; ids = r.ids || [];
+      const fin = confirmerNeuves(nouveaux, r.listes || {});   // un nom qui existait déjà (l'autre appareil) : son ID à lui
+      marque = fin(marque); saveur = fin(saveur); magasin = fin(magasin);
+    }
     else if (r && r.erreur === 'action inconnue') {        // repli si coffre-fort pas encore à jour
       if (nouveau) { const p = await Coffre.ajouter('Produits', ['', nom, scid, '', 'O', '', '']); if (!p.ok) throw new Error(p.erreur || 'refus'); produitId = p.id; }
       const date = dateDuJour();
@@ -924,8 +1016,7 @@ async function enregistrer() {
       STOCK.push(ligne);
       const c2 = lireCache(); if (c2) { (c2.stock = c2.stock || []).push(ligne.slice()); ecrireCache(c2); }
     });
-    if (magasin && MAGASINS.indexOf(magasin) === -1) MAGASINS.push(magasin);
-    memoriserVariante(produitId, marque, format, endroits);   // marque/format/emplacements à jour tout de suite
+    memoriserVariante(produitId, marque, format, endroits, saveur);   // marque/saveur/format/emplacements à jour tout de suite
     opCourant = null;                                      // succès : le prochain article aura un nouveau jeton
     statut('Article ajouté ✓', 'succes');
     reinit();
@@ -1089,8 +1180,10 @@ function remplirMeubles(garderOuverts) {
 
 /* ---------- Corriger un nom (Gérer les bases) : le crayon ----------
    Tout est relié par identifiant : corriger un nom ici le corrige partout (inventaire, anciennes entrées, listes).
-   Clé = type + id : « e » pièce/meuble/espace (Emplacements) · « c » catégorie · « a » aliment (Produits). */
-const TABLES_NOM = { e: ['Emplacements', 'emps'], c: ['Categories', 'cats'], a: ['Produits', 'prods'] };
+   Clé = type + id : « e » pièce/meuble/espace (Emplacements) · « c » catégorie · « a » aliment (Produits)
+   · « g » magasin · « q » marque · « v » saveur (les listes gérées). Chaque type : [onglet, ses lignes dans le cache]. */
+const TABLES_NOM = { e: ['Emplacements', c => c.emps], c: ['Categories', c => c.cats], a: ['Produits', c => c.prods],
+                     g: ['Magasins', c => (c.listes || {}).Magasins], q: ['Marques', c => (c.listes || {}).Marques], v: ['Saveurs', c => (c.listes || {}).Saveurs] };
 function crayon(cle) {
   return '<button class="crayon" type="button" data-renommer="' + esc(cle) + '" aria-label="Corriger le nom"></button>';
 }
@@ -1098,7 +1191,8 @@ function crayon(cle) {
 function objetsNommes(type) {
   if (type === 'e') return PIECES.concat(MEUBLES, ...Object.values(ESPACES));
   if (type === 'c') return RAYONS.concat(...Object.values(SOUSCATS));
-  return PRODUITS;
+  if (type === 'a') return PRODUITS;
+  return LISTES[TABLES_NOM[type][0]] || [];
 }
 function rafraichirBases() { remplirMeubles(true); remplirNoms(true); }
 /* Le crayon touché : le nom devient un champ. Entrée ou toucher ailleurs = enregistrer; Échap = laisser tel quel. */
@@ -1121,8 +1215,11 @@ async function renommer(cle, nom) {
   const type = cle.charAt(0), id = cle.slice(2), T = TABLES_NOM[type];
   nom = String(nom || '').trim();
   const c = lireCache();
-  const row = c && c[T[1]] && c[T[1]].find(r => String(r[0]) === String(id));
+  const rows = c && T[1](c), row = rows && rows.find(r => String(r[0]) === String(id));
   if (!nom || !row || String(row[1]) === nom) { rafraichirBases(); return; }   // vide ou inchangé : rien à faire
+  const liste = LISTES[T[0]];
+  const autre = liste && liste.find(y => String(y.id) !== String(id) && cleNom(y.nom) === cleNom(nom));
+  if (autre) { demanderReunion(cle, autre); return; }   // ce nom existe déjà dans la liste : les réunir ?
   const ligne = row.slice(); ligne[1] = nom;
   montrerVoile(true);
   try {
@@ -1130,9 +1227,32 @@ async function renommer(cle, nom) {
     if (!r || !r.ok) throw new Error((r && r.erreur) || 'refus');
     row[1] = nom; ecrireCache(c);
     objetsNommes(type).forEach(x => { if (String(x.id) === String(id)) x.nom = nom; });
+    if (liste) NOMS_LISTES[String(id)] = nom;
     remplirListes();
   } catch (e) {
     avis('Nom pas corrigé — réessaie', 'erreur');
+  } finally { montrerVoile(false); rafraichirBases(); }
+}
+/* Un magasin, une marque ou une saveur renommé comme un autre qui existe déjà (« Libertee » -> « Liberté ») :
+   on propose de les RÉUNIR. Oui : tout ce qui était sous l'un passe sous l'autre (coffre-fort, action reunir). Non : rien ne change. */
+function demanderReunion(cle, autre) {
+  const btn = [...$('liste-noms').querySelectorAll('.crayon')].find(b => b.dataset.renommer === cle);
+  const item = btn && btn.closest('.accordeon-item');
+  if (!item) { rafraichirBases(); return; }
+  item.innerHTML = '<span>« ' + esc(autre.nom) + ' » existe déjà : les réunir ?</span>' +
+    '<button class="bouton bouton-petit bouton-vert" type="button" data-reunir="' + esc(cle + '|' + autre.id) + '">Oui</button>' +
+    '<button class="bouton bouton-petit" type="button" data-reunir-non>Non</button>';
+}
+async function reunirNoms(val) {
+  const k = String(val).split('|'), cle = k[0], garde = k[1], T = TABLES_NOM[cle.charAt(0)], perdu = cle.slice(2);
+  montrerVoile(true);
+  try {
+    const r = await Coffre.reunir({ liste: T[0], garde: garde, perdu: perdu });
+    if (!r || !r.ok) throw new Error((r && r.erreur) || 'refus');
+    await chargerReferences();                          // l'inventaire, les « Pas aimé », les listes : on relit, c'est plus sûr
+    avis('Réunis', 'succes');
+  } catch (e) {
+    avis('Pas réunis — réessaie', 'erreur');
   } finally { montrerVoile(false); rafraichirBases(); }
 }
 /* ---------- Corriger l'endroit d'un lot, ou ranger ce qui n'est pas encore rangé ----------
@@ -1170,7 +1290,7 @@ function libelleEndroit(emp, court) {
 }
 /* Une ligne de lot avec son crayon. titre = ce qui s'écrit en gros (l'endroit sous un aliment, l'aliment dans « Pas encore rangé »). */
 function htmlLot(pid, i, l, titre) {
-  const detail = [l.marque, l.saveur, l.formats.join(' + ')].filter(Boolean).join(' · ');
+  const detail = [nomListe(l.marque), nomListe(l.saveur), l.formats.join(' + ')].filter(Boolean).join(' · ');
   const nom = l.emp ? 'Corriger l\'endroit' : 'Ranger';
   return '<div class="item"><div class="item-info"><div class="item-nom">' + esc(titre || libelleEndroit(l.emp)) + '</div>' +
     (detail ? '<div class="item-detail">' + esc(detail) + '</div>' : '') + '</div>' +
@@ -1276,7 +1396,7 @@ function remplirNoms(garderOuverts) {
   const ligne = (cle, nom) => '<div class="accordeon-item"><span>' + esc(nom) + '</span>' + crayon(cle) + '</div>';
   const pasAime = p => PAS_AIMES.filter(r => String(r[1]) === String(p.id)).map(r => {
     const m = String(r[2] || '').trim(), sv = String(r[3] || '').trim();
-    return '<div class="accordeon-item"><span>Pas aimé : ' + esc([m, sv].filter(Boolean).join(' ') || p.nom) + '</span>' +
+    return '<div class="accordeon-item"><span>Pas aimé : ' + esc([nomListe(m), nomListe(sv)].filter(Boolean).join(' ') || p.nom) + '</span>' +
       '<button class="bouton bouton-petit" type="button" data-pas-aime="' + esc(p.id + '|' + m + '|' + sv) + '">Enlever</button></div>';
   }).join('');
   const aliment = p => ligne('a:' + p.id, p.nom) + htmlOrdreEndroits(p.id) + pasAime(p);
@@ -1294,7 +1414,11 @@ function remplirNoms(garderOuverts) {
   }).join('');
   const seuls = PRODUITS.filter(p => !classes[p.id]);
   if (seuls.length) alim += acc('a:', 'Sans catégorie', seuls.map(aliment).join(''));
-  liste.innerHTML = acc('cats', 'Catégories', cats || vide('Aucune catégorie')) + acc('alim', 'Aliments', alim || vide('Aucun aliment'));
+  const noms = (type, n) => LISTES[n].map(x => ligne(type + ':' + x.id, x.nom)).join('');   // magasins, marques, saveurs : un crayon chacun
+  liste.innerHTML = acc('cats', 'Catégories', cats || vide('Aucune catégorie')) + acc('alim', 'Aliments', alim || vide('Aucun aliment')) +
+    acc('mag', 'Magasins', noms('g', 'Magasins') || vide('Aucun magasin')) +
+    acc('mar', 'Marques', noms('q', 'Marques') || vide('Aucune marque')) +
+    acc('sav', 'Saveurs', noms('v', 'Saveurs') || vide('Aucune saveur'));
   liste.querySelectorAll('.accordeon').forEach(a => {
     if (ouverts.indexOf(a.dataset.cle) === -1) return;
     a.firstElementChild.classList.add('ouvert');
@@ -1338,7 +1462,7 @@ function htmlLignesEndroit(par, empId) {
     .map(x => {
       const mesureTotale = (x.unite && x.total) ? ecrireMesure(x.total, x.unite) : '';
       const format = x.formats.length > 1 ? x.formats.join(' + ') : x.formats[0];
-      const detail = [x.marque, x.saveur, format, mesureTotale ? 'total ' + mesureTotale : ''].filter(Boolean).join(' · ');
+      const detail = [nomListe(x.marque), nomListe(x.saveur), format, mesureTotale ? 'total ' + mesureTotale : ''].filter(Boolean).join(' · ');
       return '<div class="item"><div class="item-info"><div class="item-nom">' + esc(x.nom) + '</div>' +
         (detail ? '<div class="item-detail">' + esc(detail) + '</div>' : '') + '</div>' +
         '<span class="item-quantite">' + esc(x.qte) + '</span></div>';
@@ -1423,7 +1547,7 @@ function totalLots(lots) { return (lots || []).reduce((s, l) => s + l.qte, 0); }
 function variantesParProduit() {
   const par = {};
   STOCK.forEach(l => {
-    const v = [String(l[5] || '').trim(), String(l[9] || '').trim()].filter(Boolean).join(' ');
+    const v = [nomListe(l[5]), nomListe(l[9])].filter(Boolean).join(' ');
     if (!v) return;
     const liste = (par[String(l[1])] = par[String(l[1])] || []);
     if (liste.indexOf(v) === -1) liste.push(v);
@@ -1518,7 +1642,7 @@ function htmlLotsParEndroit(prod, lots, sansTransit, ligne) {
 }
 /* Une ligne de lot : marque + saveur (ou l'aliment), ses formats, sa quantité. attr : de quoi la rendre touchable. */
 function htmlLigneLot(prod, l, attr) {
-  const nom = [l.marque, l.saveur].filter(Boolean).join(' ') || prod.nom;
+  const nom = [nomListe(l.marque), nomListe(l.saveur)].filter(Boolean).join(' ') || prod.nom;
   const detail = [l.formats.join(' + '), estPasAime(prod.id, l.marque, l.saveur) ? 'Pas aimé' : ''].filter(Boolean).join(' · ');
   return '<div class="item"' + (attr ? ' ' + attr : '') + '><div class="item-info"><div class="item-nom">' + esc(nom) + '</div>' +
     (detail ? '<div class="item-detail">' + esc(detail) + '</div>' : '') + '</div>' +
@@ -1612,7 +1736,7 @@ function partsDuLot(lot) {
 }
 function libellePart(p) { return p.unites ? (p.pack > 1 ? 'à l\'unité · pack de ' + p.pack : 'à l\'unité') : p.format; }
 function htmlPartsConsommer(prod, l, i) {
-  const nom = [l.marque, l.saveur].filter(Boolean).join(' ') || prod.nom;
+  const nom = [nomListe(l.marque), nomListe(l.saveur)].filter(Boolean).join(' ') || prod.nom;
   const pas = estPasAime(prod.id, l.marque, l.saveur);
   return partsDuLot(l).map(p => {
     const detail = [libellePart(p), pas ? 'Pas aimé' : ''].filter(Boolean).join(' · ');
@@ -1623,7 +1747,7 @@ function htmlPartsConsommer(prod, l, i) {
 /* Rechercher : ce qu'on n'a pas aimé de cet aliment (pour la maison), sous ce qu'on a. */
 function htmlPasAimes(prod) {
   const noms = PAS_AIMES.filter(r => String(r[1]) === String(prod.id))
-    .map(r => [String(r[2] || '').trim(), String(r[3] || '').trim()].filter(Boolean).join(' ') || prod.nom);
+    .map(r => [nomListe(r[2]), nomListe(r[3])].filter(Boolean).join(' ') || prod.nom);
   if (!noms.length) return '';
   return '<div class="espace-bandeau">Pas aimé</div>' + noms.map(n => '<div class="item"><div class="item-info"><div class="item-nom">' + esc(n) + '</div>' +
     '<div class="item-detail">Ne pas racheter</div></div></div>').join('');
@@ -2254,6 +2378,9 @@ function initEntree() {
   $('liste-noms').addEventListener('click', function (ev) {   // catégories et aliments : le crayon, ou plier/déplier
     const fl = ev.target.closest('.fleche');               // l'ordre des endroits d'un aliment
     if (fl) { if (!fl.classList.contains('fleche-eteinte')) monterEndroit(fl.dataset.id, Number(fl.dataset.sens)); return; }
+    const ru = ev.target.closest('[data-reunir]');         // « … existe déjà : les réunir ? » Oui
+    if (ru) { reunirNoms(ru.dataset.reunir); return; }
+    if (ev.target.closest('[data-reunir-non]')) { rafraichirBases(); return; }
     const pas = ev.target.closest('[data-pas-aime]');      // « Pas aimé » : Enlever
     if (pas) { enleverPasAime(pas); return; }
     const cr = ev.target.closest('.crayon');
@@ -2316,6 +2443,11 @@ function initEntree() {
   $('cat-neuve').addEventListener('keydown', e => { if (e.key === 'Enter') { e.preventDefault(); ajouterCategorie(); } });
   $('souscat-neuve').addEventListener('keydown', e => { if (e.key === 'Enter') { e.preventDefault(); ajouterSousCategorie(); } });
   $('souscat').addEventListener('change', surSousCategorie);
+  Object.keys(CHOIX_FICHE).forEach(ch => {             // marque, saveur, magasin : « Nouvelle… » puis Ajouter (ou Entrée)
+    $(ch).addEventListener('change', () => surChoix(ch));
+    $('btn-' + ch + '-neuve').addEventListener('click', () => ajouterChoix(ch));
+    $(ch + '-neuve').addEventListener('keydown', e => { if (e.key === 'Enter') { e.preventDefault(); ajouterChoix(ch); } });
+  });
   $('btn-endroit').addEventListener('click', () => ajouterEndroit());
   $('btn-transit').addEventListener('click', () => pasEncoreRange(true));
   $('btn-ranger').addEventListener('click', () => pasEncoreRange(false));
