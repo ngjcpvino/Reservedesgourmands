@@ -197,5 +197,19 @@ sites : son réseau les bloque).** La conversation sur l'ordi de J-C :
    trouvée va dans les **Propriétés du script**, jamais dans le dépôt public.
 Consigner les réponses ici, puis on reprend la réflexion.
 
+**✅ RÉPONSES (29 septembre 2026, conversation sur l'ordi, lecture sans navigateur — comme le ferait Apps Script) :**
+- **Metro et Super C** : la recherche répond par un **« captcha » Cloudflare** (403, « Just a moment… ») dès qu'on n'est pas un vrai
+  navigateur. **IGA** : « Access Denied » (Akamai). Le test de Super C du 20 septembre marchait parce qu'il passait par un navigateur.
+  → **Apps Script ne peut pas lire ces sites**, et contourner une protection anti-robots, **on ne le fait pas**. Le prix « de tous les
+  jours » de ces épiceries n'a donc **pas de porte propre** pour l'instant (pas d'API publique connue). Richelieu : pas testé, même compagnie.
+- **Flipp : ça marche sans navigateur.** La liste des circulaires par code postal donne Super C, Metro, IGA, Maxi, Jean Coutu,
+  Pharmaprix… (celles de la semaine suivante sont déjà là le mardi). **Une circulaire se lit en entier** (`/flipp/flyers/<id>` :
+  219 articles chez Super C cette semaine — nom français | anglais, prix, % de rabais, dates). **Le détail d'un article**
+  (`/flipp/items/<id>`) ajoute le **format** (« env. 1,4 kg »), l'unité du prix (« /lb »), l'**économie en $** (donc le
+  **prix régulier** = prix + économie) et la phrase de la circulaire. **Toujours aucun code-barres.** Un appel par article : à faire
+  d'un coup côté serveur (`UrlFetchApp.fetchAll`), le jeudi.
+- **Conséquence pour le comparateur** : les **spéciaux** (et leur prix régulier) sont à portée; le **prix courant de tout** ne l'est pas.
+  Seule source à nous pour le reste : le **prix payé** (STOCK, col. M). La réflexion de la section 7 est à reprendre avec ça en main.
+
 **Pas encore discuté** : un prix inconnu dans un magasin (case vide ?);
 l'âge d'un prix (lu jeudi, affiché quand ?).
