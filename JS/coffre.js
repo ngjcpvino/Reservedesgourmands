@@ -18,19 +18,29 @@ const Coffre = {
   // LA FILE : un seul appel à la fois, dans l'ordre, pour toute l'app — même ceux
   // qui partent en arrière-plan. Le VPN échappe les appels simultanés (« Load failed »).
   _file: Promise.resolve(),
-  appel(charge) {
-    const tour = this._file.then(() => this._envoyer(charge));
+  appel(charge, delai) {
+    const tour = this._file.then(() => this._envoyer(charge, delai));
     this._file = tour.catch(() => {});   // un échec ne bloque pas la file
     return tour;
   },
 
-  async _envoyer(charge) {
-    const res = await fetch(this.URL, {
-      method: 'POST',
-      headers: { 'Content-Type': 'text/plain;charset=utf-8' },
-      body: JSON.stringify(Object.assign({ motDePasse: this.motDePasse() }, charge))
-    });
-    return res.json();
+  // Une LECTURE qui ne répond pas est abandonnée après ce délai (ms) : sinon le chariot de
+  // l'entrée tournerait sans fin, et la file resterait bloquée derrière. Jamais pour une
+  // écriture : le coffre-fort pourrait l'avoir faite quand même.
+  DELAI_LECTURE: 12000,
+
+  async _envoyer(charge, delai) {
+    const ctrl = delai ? new AbortController() : null;
+    const minuterie = ctrl ? setTimeout(() => ctrl.abort(), delai) : null;
+    try {
+      const res = await fetch(this.URL, {
+        method: 'POST',
+        headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+        body: JSON.stringify(Object.assign({ motDePasse: this.motDePasse() }, charge)),
+        signal: ctrl ? ctrl.signal : undefined
+      });
+      return await res.json();
+    } finally { if (minuterie) clearTimeout(minuterie); }
   },
 
   lire(table)               { return this.appel({ action: 'lire', table }); },
@@ -38,7 +48,7 @@ const Coffre = {
   modifier(table, id, ligne){ return this.appel({ action: 'modifier', table, id, ligne }); },
 
   // Rapides : un seul aller-retour
-  references()              { return this.appel({ action: 'references' }); },
+  references()              { return this.appel({ action: 'references' }, this.DELAI_LECTURE); },
   entrerArticle(charge)     { return this.appel(Object.assign({ action: 'entrerArticle' }, charge)); },
   ordonner(groupes)         { return this.appel({ action: 'ordonner', groupes }); },
   couleurs(charge)          { return this.appel(Object.assign({ action: 'couleurs' }, charge)); },
