@@ -54,6 +54,7 @@ const Coffre = {
   couleurs(charge)          { return this.appel(Object.assign({ action: 'couleurs' }, charge)); },
   consommer(charge)         { return this.appel(Object.assign({}, charge, { action: 'consommer' })); },   // STOCK + Sorties (+ PasAimes), à l'épreuve du reclic
   deplacer(charge)          { return this.appel(Object.assign({}, charge, { action: 'deplacer' })); },    // des lignes de STOCK changent d'endroit, rejouable
+  reunir(charge)            { return this.appel(Object.assign({}, charge, { action: 'reunir' })); },      // deux noms d'une liste n'en font plus qu'un
   pasAime(charge)           { return this.appel(Object.assign({ action: 'pasAime' }, charge)); },     // retirer un « Pas aimé »
 
   // Enregistre le mot de passe et vérifie qu'il est bon.
