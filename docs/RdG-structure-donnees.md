@@ -42,6 +42,7 @@ endroits en même temps).*
 | G | Format | *(legacy — laissé vide : le format vit sur STOCK)* |
 | H | MarqueCompte | O / N — la marque **sépare-t-elle les comptes** de ce produit ? (yogourt : O; lait : N). Demandé une fois, à la création |
 | I | SaveurCompte | O / N — idem pour la saveur (yogourt fraise ≠ vanille). Demandé au même moment |
+| J | OrdreEmp | ses endroits dans l'ordre choisi (ID d'EMPLACEMENTS séparés par des virgules) : le 1er = celui que Déplacer regarnit et la 1re carte à l'entrée. Vide = l'ordre d'apparition dans STOCK. Changé par les flèches de Gérer les bases → Aliments (2026-09-29) |
 
 ### EMPLACEMENTS — les rangements, en arbre (Meuble → Espace)
 

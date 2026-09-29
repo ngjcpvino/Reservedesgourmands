@@ -21,6 +21,7 @@ var opCourant = null;                                   // jeton anti-reclic de 
 var SECTEUR_ID = '';                                    // secteur de cette app (Épicerie), déduit des données
 const CACHE = 'rdg_ref_v2';
 const ATTENTE = 'rdg_ordre_attente';   // ordres pas encore confirmés par le coffre-fort (survit à une fermeture)
+const ATTENTE_ALIMENTS = 'rdg_ordre_aliments_attente';   // idem, l'ordre des endroits d'un aliment
 var ordreModifie = {};                 // groupes déplacés à l'écran, pas encore envoyés : 'p' · 'm:<pièce>' · 'e:<meuble>'
 var envoiOrdre = false;                // un envoi d'ordre est en route
 
@@ -365,10 +366,9 @@ function appliquer(d) {
     const p = String(r[2] || '');
     if (p && estMeuble[p]) (ESPACES[p] = ESPACES[p] || []).push({ id: r[0], nom: r[1] });
   });
-  PRODUITS = (d.prods || [])              // [ID,Nom,CategorieID,Unite,Actif,Marque,Format,MarqueCompte,SaveurCompte]
+  PRODUITS = (d.prods || [])              // [ID,Nom,CategorieID,Unite,Actif,Marque,Format,MarqueCompte,SaveurCompte,OrdreEmp]
     .filter(r => String(r[4]) !== 'N')
-    .map(r => ({ id: r[0], nom: r[1], catId: r[2]
-               }));
+    .map(r => ({ id: r[0], nom: r[1], catId: r[2], ordre: String(r[9] || '') }));   // ordre = ses endroits, le 1er d'abord (J-C, flèches)
   MAGASINS = d.magasins || [];
   VARIANTES = d.variantes || {};                      // { produitId: { marques:[], formats:[] } }
   CODES = d.codes || {};                              // { codeBarres: produitId }
@@ -391,6 +391,7 @@ async function chargerReferences() {
     const data = await chargerData();
     if (Object.keys(ordreModifie).length) envoyerOrdre();   // des flèches touchées pendant le chargement : on les garde
     reordonnerLignes(data.emps, lireAttente());   // un ordre pas encore confirmé l'emporte sur l'ancien
+    poserOrdresAliments(data.prods, lireAttenteAliments());   // idem pour l'ordre des endroits d'un aliment
     data.stock = data.stock || []; data.pasAimes = data.pasAimes || [];
     lireAttenteGestes().forEach(e => appliquerGeste(e, data.stock, data.pasAimes));   // idem : une consommation en route reste faite
     appliquer(data); ecrireCache(data); remplirListes(); statut('');
@@ -611,7 +612,7 @@ function prefillProduit(pid) {
   poserFormat((vr && vr.dernierFormat) || '');
   $('endroits').innerHTML = '';
   let n = 0;
-  ((vr && vr.emplacements) || []).forEach(empId => {
+  endroitsHabituels(pid).forEach(empId => {
     const e = resoudreEmp(empId);
     if (e) { ajouterEndroit({ pieceId: e.pieceId, meubleId: e.meubleId, espaceId: e.espaceId, qte: '' }); n++; }
   });
@@ -1273,13 +1274,12 @@ function remplirNoms(garderOuverts) {
   const ouverts = garderOuverts ? [...liste.querySelectorAll('.accordeon-tete.ouvert')].map(t => t.parentElement.dataset.cle) : [];
   const acc = (cle, tete, corps) => '<div class="accordeon" data-cle="' + esc(cle) + '"><div class="accordeon-tete">' + tete + '</div><div class="accordeon-corps" hidden>' + corps + '</div></div>';
   const ligne = (cle, nom) => '<div class="accordeon-item"><span>' + esc(nom) + '</span>' + crayon(cle) + '</div>';
-  LOTS = lotsParProduit();                              // les lots de chaque aliment, sous son nom (corriger l'endroit)
   const pasAime = p => PAS_AIMES.filter(r => String(r[1]) === String(p.id)).map(r => {
     const m = String(r[2] || '').trim(), sv = String(r[3] || '').trim();
     return '<div class="accordeon-item"><span>Pas aimé : ' + esc([m, sv].filter(Boolean).join(' ') || p.nom) + '</span>' +
       '<button class="bouton bouton-petit" type="button" data-pas-aime="' + esc(p.id + '|' + m + '|' + sv) + '">Enlever</button></div>';
   }).join('');
-  const aliment = p => ligne('a:' + p.id, p.nom) + (LOTS[p.id] || []).map((l, i) => htmlLot(p.id, i, l)).join('') + pasAime(p);
+  const aliment = p => ligne('a:' + p.id, p.nom) + htmlOrdreEndroits(p.id) + pasAime(p);
   const vide = t => '<div class="accordeon-item"><span class="texte-petit texte-pale">' + t + '</span></div>';
   const cats = RAYONS.map(r => acc('c:' + r.id, '<span>' + esc(r.nom) + '</span>' + crayon('c:' + r.id),
     (SOUSCATS[r.id] || []).map(sc => ligne('c:' + sc.id, sc.nom)).join('') || vide('Aucune sous-catégorie'))).join('');
@@ -1550,7 +1550,7 @@ function ouvrirDeplacement(cle) {
   if ($('recherche-rayon').querySelector('.endroit')) montrerRayon(lot.pid, true);   // une seule carte ouverte à la fois
   const item = [...$('recherche-rayon').querySelectorAll('[data-bouger]')].find(x => x.dataset.bouger === cle);
   if (!item) return;
-  const habituels = ((VARIANTES[lot.pid] || {}).emplacements || []).map(String);
+  const habituels = endroitsHabituels(lot.pid);
   const vers = habituels[0] === lot.emp ? habituels[1] : habituels[0];
   const carte = document.createElement('div');
   carte.className = 'endroit carte';
@@ -1897,35 +1897,99 @@ function reordonnerLignes(lignes, groupes) {
 function lireAttente()   { try { return JSON.parse(localStorage.getItem(ATTENTE) || '[]'); } catch (e) { return []; } }
 function ecrireAttente(g){ try { localStorage.setItem(ATTENTE, JSON.stringify(g)); } catch (e) {} }
 
+/* L'ordre des endroits d'un aliment pas encore confirmé : { produitId: 'emp1,emp2,…' } (survit à une fermeture). */
+function lireAttenteAliments()   { try { return JSON.parse(localStorage.getItem(ATTENTE_ALIMENTS) || '{}') || {}; } catch (e) { return {}; } }
+function ecrireAttenteAliments(a){ try { localStorage.setItem(ATTENTE_ALIMENTS, JSON.stringify(a)); } catch (e) {} }
+/* Pose ces ordres dans des lignes de Produits (le cache, ou des données fraîchement relues) : colonne J. */
+function poserOrdresAliments(prods, ordres) {
+  (prods || []).forEach(r => {
+    const o = ordres[String(r[0])];
+    if (o === undefined) return;
+    while (r.length < 10) r.push('');
+    r[9] = o;
+  });
+}
+
 /* « Enregistrer l'ordre » (ou on quitte l'écran) : l'ordre est gardé ici, puis part sans rien bloquer. */
 function envoyerOrdre() {
-  const groupes = Object.keys(ordreModifie).map(idsDuGroupe).filter(g => g.length > 1);
+  const cles = Object.keys(ordreModifie);
+  const groupes = cles.map(idsDuGroupe).filter(g => g.length > 1);
+  const aliments = {};                                     // l'ordre des endroits des aliments touchés
+  cles.filter(k => k.indexOf('a:') === 0).forEach(k => {
+    const p = PRODUITS.find(x => String(x.id) === k.slice(2));
+    if (p) aliments[String(p.id)] = p.ordre;
+  });
   ordreModifie = {};
   montrer('btn-ordre', false);
-  if (!groupes.length) return;
-  const c = lireCache(); if (c) { reordonnerLignes(c.emps, groupes); ecrireCache(c); }
-  ecrireAttente(lireAttente().concat(groupes));
+  if (!groupes.length && !Object.keys(aliments).length) return;
+  const c = lireCache(); if (c) { reordonnerLignes(c.emps, groupes); poserOrdresAliments(c.prods, aliments); ecrireCache(c); }
+  if (groupes.length) ecrireAttente(lireAttente().concat(groupes));
+  ecrireAttenteAliments(Object.assign(lireAttenteAliments(), aliments));
   expedierOrdre();
 }
 /* Envoie l'attente au coffre-fort, en arrière-plan (la file de coffre.js garde un appel à la fois).
-   Succès : l'attente se vide. Échec : elle reste, et repart au prochain passage. */
+   Succès : l'attente se vide. Échec : elle reste, et repart au prochain passage.
+   Un aliment = sa ligne de Produits réécrite, colonne J comprise (valeur finale : la renvoyer ne change rien). */
 async function expedierOrdre() {
-  const groupes = lireAttente();
-  if (!groupes.length || envoiOrdre) return;
+  const groupes = lireAttente(), aliments = lireAttenteAliments();
+  if ((!groupes.length && !Object.keys(aliments).length) || envoiOrdre) return;
   envoiOrdre = true;
   let ok = false;
   try {
-    const r = await Coffre.ordonner(groupes);
-    if (!r || !r.ok) throw new Error((r && r.erreur) || 'refus');
-    ecrireAttente(lireAttente().slice(groupes.length));   // d'autres ont pu s'ajouter pendant l'envoi
+    if (groupes.length) {
+      const r = await Coffre.ordonner(groupes);
+      if (!r || !r.ok) throw new Error((r && r.erreur) || 'refus');
+      ecrireAttente(lireAttente().slice(groupes.length));   // d'autres ont pu s'ajouter pendant l'envoi
+    }
+    const c = lireCache();
+    for (const pid of Object.keys(aliments)) {
+      const row = c && (c.prods || []).find(x => String(x[0]) === pid);
+      if (row) {
+        const ligne = row.slice(); while (ligne.length < 10) ligne.push(''); ligne[9] = aliments[pid];
+        const r = await Coffre.modifier('Produits', pid, ligne);
+        if ((!r || !r.ok) && !(r && r.erreur === 'ID introuvable')) throw new Error((r && r.erreur) || 'refus');   // aliment disparu : rien à garder
+      }
+      const reste = lireAttenteAliments();
+      if (reste[pid] === aliments[pid]) { delete reste[pid]; ecrireAttenteAliments(reste); }   // rechangé pendant l'envoi : il repart
+    }
     ok = true;
     avis('Ordre enregistré ✓', 'succes');
   } catch (e) {
     avis("Ordre pas encore enregistré — il repartira tout seul", 'erreur');
   } finally {
     envoiOrdre = false;
-    if (ok && lireAttente().length) expedierOrdre();       // ce qui s'est ajouté pendant l'envoi
+    if (ok && (lireAttente().length || Object.keys(lireAttenteAliments()).length)) expedierOrdre();   // ce qui s'est ajouté pendant l'envoi
   }
+}
+
+/* ---------- L'ordre des endroits d'un aliment (Gérer les bases → Aliments, J-C 2026-09-29) ----------
+   Le 1er = celui que Déplacer regarnit, et la 1re carte d'endroit à l'entrée. L'ordre choisi (Produits, col. J)
+   passe devant; un endroit où l'aliment est allé depuis s'ajoute au bout. */
+function endroitsHabituels(pid) {
+  const p = PRODUITS.find(x => String(x.id) === String(pid));
+  const choisis = p && p.ordre ? p.ordre.split(',').filter(Boolean) : [];
+  const vus = ((VARIANTES[pid] || {}).emplacements || []).map(String);
+  return choisis.concat(vus.filter(e => choisis.indexOf(e) === -1));
+}
+/* Sous le nom de l'aliment : 1. 2. 3., chacun avec ses flèches. Un endroit disparu ne paraît pas. */
+function htmlOrdreEndroits(pid) {
+  const ends = endroitsHabituels(pid).filter(e => resoudreEmp(e));
+  return ends.map((e, i) => '<div class="accordeon-item"><span>' + (i + 1) + '. ' + esc(libelleEndroit(e)) + '</span>' +
+    fleches('o', pid + '|' + e, i, ends.length) + '</div>').join('');
+}
+/* Une flèche : l'endroit échange sa place avec son voisin. Instantané, envoyé avec « Enregistrer l'ordre ». */
+function monterEndroit(cle, sens) {
+  const k = String(cle).split('|'), pid = k[0], emp = k[1];
+  const p = PRODUITS.find(x => String(x.id) === pid);
+  if (!p) return;
+  const ends = endroitsHabituels(pid).filter(e => resoudreEmp(e));
+  const j = ends.indexOf(emp);
+  if (j < 0 || !ends[j + sens]) return;
+  ends[j] = ends[j + sens]; ends[j + sens] = emp;
+  p.ordre = ends.join(',');
+  ordreModifie['a:' + pid] = true;
+  remplirNoms(true);
+  montrer('btn-ordre', true);
 }
 
 /* ---------- Couleurs (Outils → Couleurs) — en direct à l'écran, envoyées en arrière-plan ---------- */
@@ -2188,11 +2252,10 @@ function initEntree() {
     if (tete) toggleAccordeon(tete);
   });
   $('liste-noms').addEventListener('click', function (ev) {   // catégories et aliments : le crayon, ou plier/déplier
-    const lot = ev.target.closest('.crayon[data-lot]');    // le crayon d'un lot : corriger son endroit
-    if (lot) { ouvrirLot(lot); return; }
+    const fl = ev.target.closest('.fleche');               // l'ordre des endroits d'un aliment
+    if (fl) { if (!fl.classList.contains('fleche-eteinte')) monterEndroit(fl.dataset.id, Number(fl.dataset.sens)); return; }
     const pas = ev.target.closest('[data-pas-aime]');      // « Pas aimé » : Enlever
     if (pas) { enleverPasAime(pas); return; }
-    if (ev.target.closest('.endroit')) return;             // toucher la carte ouverte ne plie pas l'accordéon
     const cr = ev.target.closest('.crayon');
     if (cr) { ouvrirRenommer(cr); return; }
     const tete = ev.target.closest('.accordeon-tete');
