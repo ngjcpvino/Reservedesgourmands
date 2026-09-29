@@ -90,7 +90,7 @@
 
   /* ---- Tailles de texte (échelle neutre : change la valeur, tout suit) ---- */
   --texte-micro:      12px;
-  --texte-petit:      14px;
+  --texte-petit:      17px;   /* J-C, 2026-09-29, choix D sur aperçu (14 : trop petit) */
   --texte-normal:     16px;
   --texte-moyen:      18px;
   --texte-grand:      22px;
