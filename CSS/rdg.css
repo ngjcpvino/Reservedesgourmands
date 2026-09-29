@@ -732,6 +732,12 @@ select.champ {
 ============================================================ */
 /* Une case à cocher et son texte, sur une ligne à toucher en entier (« Ne pas racheter ») */
 .case-ligne { display: flex; align-items: center; gap: var(--espace-s); min-height: var(--tactile); margin-top: var(--espace-s); font-size: var(--texte-normal); color: var(--couleur-306); }
+/* La quantité entre un − et un + (Déplacer, Consommer — J-C, choix A sur aperçu : petits carrés bruns). Le signe vit ici, pas dans le HTML. */
+.plus-moins { display: flex; align-items: center; gap: var(--espace-s); }
+.plus-moins > .champ { flex: 1; min-width: 0; text-align: center; }
+.plus-moins > .bouton { flex-shrink: 0; width: var(--tactile); height: var(--tactile); min-width: 0; padding: 0; font-size: var(--texte-grand); }
+.plus-moins > .moins::after { content: '\2212'; }
+.plus-moins > .plus::after  { content: '+'; }
 .case { flex-shrink: 0; width: var(--case-taille); height: var(--case-taille); margin: 0; accent-color: var(--couleur-402); }
 .message { font-size: var(--texte-petit); font-weight: var(--poids-leger); margin-top: var(--espace-s); min-height: var(--message-haut); }
 .message-erreur { color: var(--couleur-402); }

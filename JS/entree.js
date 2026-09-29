@@ -1545,6 +1545,24 @@ function htmlLigneLot(prod, l, attr) {
     (detail ? '<div class="item-detail">' + esc(detail) + '</div>' : '') + '</div>' +
     '<span class="item-quantite">' + esc(l.qte) + '</span></div>';
 }
+/* La quantité d'une carte (Déplacer, Consommer) : 1 d'office, entre un − et un +. */
+function htmlQuantite() {
+  return '<div class="bloc"><div class="label">Quantité</div><div class="plus-moins">' +
+    '<button class="bouton bouton-brun moins" type="button" aria-label="Moins"></button>' +
+    '<input class="champ qte" type="text" inputmode="numeric" pattern="[0-9]*" value="1">' +
+    '<button class="bouton bouton-brun plus" type="button" aria-label="Plus"></button></div></div>';
+}
+/* − et + : jamais sous 1 ni au-delà de ce qu'il y a (max). La carte réagit comme si on avait tapé. */
+function brancherPlusMoins(carte, max) {
+  const champ = carte.querySelector('.qte');
+  const pas = d => {
+    const q = Math.min(Math.max((parseInt(champ.value, 10) || 0) + d, 1), Math.max(max, 1));
+    champ.value = q;
+    champ.dispatchEvent(new Event('input', { bubbles: true }));
+  };
+  carte.querySelector('.moins').onclick = () => pas(-1);
+  carte.querySelector('.plus').onclick = () => pas(1);
+}
 /* Déplacer : le lot touché devient la carte d'endroit. D'office : l'emplacement 1 de l'aliment
    (le 2 si le lot y est déjà) et la quantité 1. Rien ne bouge avant le bouton « Déplacer ». */
 function ouvrirDeplacement(cle) {
@@ -1558,12 +1576,13 @@ function ouvrirDeplacement(cle) {
   const carte = document.createElement('div');
   carte.className = 'endroit carte';
   carte.innerHTML = htmlChoixEndroit() +
-    '<div class="bloc"><div class="label">Quantité</div><input class="champ qte" type="text" inputmode="numeric" pattern="[0-9]*" value="1"></div>' +
+    htmlQuantite() +
     '<div class="message"></div>' +
     '<div class="grille"><button class="bouton bouton-petit bouton-vert bouger-oui" type="button" hidden>Déplacer</button>' +
     '<button class="bouton bouton-petit bouger-non" type="button">Annuler</button></div>';
-  item.replaceWith(carte);
+  item.after(carte);                                  // la ligne reste visible : on voit combien il y en a
   brancherEndroit(carte, vers ? resoudreEmp(vers) : null);
+  brancherPlusMoins(carte, lot.qte);
   const cible = () => carte.querySelector('.espace').value || carte.querySelector('.meuble').value;
   const combien = () => parseInt(carte.querySelector('.qte').value, 10) || 0;
   const verifier = () => {
@@ -1660,12 +1679,13 @@ function ouvrirConsommation(cle) {
   const pas = estPasAime(lot.pid, lot.marque, lot.saveur);
   const carte = document.createElement('div');
   carte.className = 'endroit carte';
-  carte.innerHTML = '<div class="bloc"><div class="label">Quantité</div><input class="champ qte" type="text" inputmode="numeric" pattern="[0-9]*" value="1"></div>' +
+  carte.innerHTML = htmlQuantite() +
     (pas ? '' : '<label class="case-ligne"><input class="case pas-aime" type="checkbox"><span>Ne pas racheter</span></label>') +
     '<div class="message"></div>' +
     '<div class="grille"><button class="bouton bouton-petit bouton-vert conso-oui" type="button">Consommer</button>' +
     '<button class="bouton bouton-petit conso-non" type="button">Annuler</button></div>';
   item.after(carte);
+  brancherPlusMoins(carte, p.qte);
   const combien = () => parseInt(carte.querySelector('.qte').value, 10) || 0;
   const verifier = () => {
     const q = combien(), m = carte.querySelector('.message');
