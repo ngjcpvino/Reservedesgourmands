@@ -341,21 +341,6 @@ function avis(txt, type) {                 // type : 'avis' (défaut) · 'succes
 function lireCache() { try { return JSON.parse(localStorage.getItem(CACHE) || 'null'); } catch (e) { return null; } }
 function ecrireCache(d) { try { localStorage.setItem(CACHE, JSON.stringify(d)); } catch (e) {} }
 
-/* Un appel, réessayé jusqu'à 3 fois. Retourne les lignes. */
-async function lireRetry(table) {
-  let err;
-  for (let i = 0; i < 3; i++) {
-    try {
-      const r = await Coffre.lire(table);
-      if (r && r.ok) return r.lignes || [];
-      if (r && r.erreur === 'non autorisé') throw new Error('non autorisé'); // inutile de réessayer
-      err = new Error((r && r.erreur) || 'refus');
-    } catch (e) { if (e.message === 'non autorisé') throw e; err = e; }
-    await new Promise(res => setTimeout(res, 500 * (i + 1)));
-  }
-  throw err;
-}
-
 /* Construit les listes de travail à partir des lignes brutes. */
 function appliquer(d) {
   RAYONS = []; SOUSCATS = {};
@@ -412,20 +397,26 @@ async function chargerReferences() {
   } catch (e) {
     if (e.message === 'non autorisé') { Coffre.oublier(); revenirConnexion('Mot de passe refusé.'); return false; }
     if (!cache) statut('Réseau lent — patiente un instant ou recharge la page.', 'erreur');
+    else avis('Réserve pas relue' + (e.refus ? ' (' + e.message + ')' : '') + ' — réessaie dans un instant', 'erreur');
     return null;
   }
 }
 
+/* Tout, en UN appel, réessayé jusqu'à 3 fois (le VPN a ses hoquets).
+   Jamais de demi-chargement : sans le stock, l'app croirait la réserve vide — et l'écrirait dans sa mémoire.
+   Si rien ne passe, on garde ce qu'on avait. */
 async function chargerData() {
-  try {
-    const r = await Coffre.references();          // chemin rapide : UN seul appel
-    if (r && r.ok && r.categories !== undefined) return { cats: r.categories, emps: r.emplacements, prods: r.produits, stock: r.stock, variantes: r.variantes, codes: r.codes, couleurs: r.couleurs, magasins: r.magasins, pasAimes: r.pasAimes };
-    if (r && r.erreur === 'non autorisé') throw new Error('non autorisé');
-  } catch (e) { if (e.message === 'non autorisé') throw e; }   // sinon on tente le repli
-  const cats = await lireRetry('Categories');     // repli : 3 appels un à la fois
-  const emps = await lireRetry('Emplacements');
-  const prods = await lireRetry('Produits');
-  return { cats: cats, emps: emps, prods: prods };
+  let err;
+  for (let i = 0; i < 3; i++) {
+    try {
+      const r = await Coffre.references();
+      if (r && r.ok && r.categories !== undefined) return { cats: r.categories, emps: r.emplacements, prods: r.produits, stock: r.stock, variantes: r.variantes, codes: r.codes, couleurs: r.couleurs, magasins: r.magasins, pasAimes: r.pasAimes };
+      if (r && r.erreur === 'non autorisé') throw new Error('non autorisé');   // inutile de réessayer
+      err = new Error((r && r.erreur) || 'refus'); err.refus = true;          // le coffre-fort a répondu, mais pas oui
+    } catch (e) { if (e.message === 'non autorisé') throw e; err = e; }
+    if (i < 2) await new Promise(res => setTimeout(res, 500 * (i + 1)));
+  }
+  throw err;
 }
 
 function options(liste, vide) {
