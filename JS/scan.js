@@ -124,7 +124,7 @@
     if (r) r.addEventListener('click', function () {
       arreter();
       if (mode && typeof mode.retour === 'function') { mode.retour(); return; }   // on revient d'où l'on vient
-      if (typeof montrerChoixComment === 'function') montrerChoixComment();
+      if (typeof montrerChoixQuoi === 'function') montrerChoixQuoi();
     });
     var encore = el('scan-encore');
     if (encore) encore.addEventListener('click', function () { montrerScanner(mode); });
