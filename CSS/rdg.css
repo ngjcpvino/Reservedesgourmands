@@ -812,7 +812,7 @@ select.champ {
   color: var(--couleur-101);
   box-shadow: var(--ombre-forte);
   font-size: var(--texte-petit);
-  z-index: 200;
+  z-index: 240;                          /* par-dessus le menu et le X (un message touché depuis la grille), sous le voile */
   opacity: 0;
   pointer-events: none;
 }
