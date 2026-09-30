@@ -1457,7 +1457,7 @@ function stockParEndroit() {
 }
 /* Les lignes d'un endroit, triées par nom. '' si l'endroit est vide. */
 /* Un aliment = UNE ligne à son endroit (J-C, choix C sur aperçu : « imagine le tiroir à fromage, au moins 10 différents »).
-   Une seule sorte : la ligne complète, comme avant. Plusieurs : le nom, « 3 sortes » et le total; on touche pour les voir
+   Une seule sorte : la ligne complète, comme avant. Plusieurs : le nom et le total (« 3 sortes » retiré par J-C); on touche pour les voir
    dessous (un accordéon : une seule ouverte à la fois, toggleAccordeon). */
 function htmlLignesEndroit(par, empId) {
   const dedans = par[empId];
@@ -1481,7 +1481,7 @@ function htmlLignesEndroit(par, empId) {
       sortes.sort((a, b) => detailDe(a).localeCompare(detailDe(b), 'fr'));
       const total = sortes.reduce((s, x) => s + (Number(x.qte) || 0), 0);
       return '<div class="accordeon aliment"><div class="item aliment-tete"><div class="item-info"><div class="item-nom">' + esc(sortes[0].nom) + '</div>' +
-        '<div class="item-detail aliment-nb">' + sortes.length + ' sortes</div></div><span class="item-quantite">' + total + '</span></div>' +
+        '</div><span class="item-quantite">' + total + '</span></div>' +
         '<div class="aliment-sortes" hidden>' + sortes.map(x => '<div class="item sorte"><div class="item-info"><div class="item-detail">' +
           esc(detailDe(x) || x.nom) + '</div></div><span class="sorte-quantite">' + esc(x.qte) + '</span></div>').join('') + '</div></div>';
     }).join('');

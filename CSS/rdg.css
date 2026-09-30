@@ -582,7 +582,7 @@ select.champ {
 }
 .espace-bandeau + .item { border-top: none; }   /* le bandeau sépare déjà : pas de trait dessous */
 
-/* Un aliment à plusieurs sortes (Inventaire, choix C de J-C) : une ligne — le nom, « 3 sortes », le total —
+/* Un aliment à plusieurs sortes (Inventaire, choix C de J-C) : une ligne — le nom et le total —
    qu'on touche pour voir ses sortes dessous, serrées, en retrait. La flèche est celle des accordéons. */
 .aliment { margin-bottom: 0; }
 .espace-bandeau + .aliment > .aliment-tete { border-top: none; }
@@ -599,8 +599,8 @@ select.champ {
   transition: transform var(--transition-pli) ease;
 }
 .aliment-tete.ouvert .item-nom::after { transform: rotate(180deg); }
-.aliment-tete.ouvert .aliment-nb { display: none; }   /* ouvert : les sortes se montrent, inutile de les compter */
 .sorte { border-top: none; min-height: 0; padding-top: 0; padding-bottom: var(--espace-xs); padding-left: calc(var(--espace-l) * 2); }
+.sorte .item-detail { color: var(--couleur-306); }   /* la couleur de l'aliment (choix A de J-C) : le brun pâle ne se lisait pas */
 .sorte-quantite { font-size: var(--texte-petit); color: var(--couleur-305); padding: 0 var(--espace-s); }
 
 /* ------------------------------------------------------------
