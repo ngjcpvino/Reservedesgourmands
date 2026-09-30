@@ -24,6 +24,7 @@ var SECTEUR_ID = '';                                    // secteur de cette app 
 const CACHE = 'rdg_ref_v2';
 const ATTENTE = 'rdg_ordre_attente';   // ordres pas encore confirmés par le coffre-fort (survit à une fermeture)
 const ATTENTE_ALIMENTS = 'rdg_ordre_aliments_attente';   // idem, l'ordre des endroits d'un aliment
+const ATTENTE_CATS = 'rdg_ordre_categories_attente';     // idem, l'ordre des catégories et sous-catégories (Categories col. G)
 var ordreModifie = {};                 // groupes déplacés à l'écran, pas encore envoyés : 'p' · 'm:<pièce>' · 'e:<meuble>'
 var envoiOrdre = false;                // un envoi d'ordre est en route
 const DELAI_ORDRE = 2000;              // l'ordre part tout seul 2 s après la dernière flèche (J-C, 2026-09-30 : « comme les couleurs »)
@@ -95,7 +96,7 @@ const FRAICHEUR = 30000;                            // au retour dans l'app, on 
 /* ---------- Vues : connexion → page d'ouverture → formulaire ---------- */
 function toutCacher() {
   requestAnimationFrame(placerTitre);   // la nouvelle feuille affichée : le titre du site se place au-dessus d'elle
-  if (!$('vue-bases').hidden || !$('vue-pieces').hidden || !$('vue-meubles').hidden) envoyerOrdre();   // on quitte une page à flèches : l'ordre part tout seul
+  envoyerOrdre();                  // on quitte un écran : l'ordre bougé part tout de suite (rien de bougé = rien d'envoyé)
   if (!$('vue-couleurs').hidden) envoyerCouleurs();   // idem pour « Couleurs »
   $('vue-connexion').hidden = true;
   $('vue-couleurs').hidden = true;
@@ -108,6 +109,7 @@ function toutCacher() {
   $('vue-bases').hidden = true;
   $('vue-pieces').hidden = true;
   $('vue-meubles').hidden = true;
+  $('vue-categories').hidden = true;
   const vs = $('vue-scan'); if (vs) vs.hidden = true;
   if (window.stopScanner) window.stopScanner();   // coupe la caméra en quittant la vue scan
   $('btn-burger').hidden = true;   // burger caché par défaut ; ré-affiché sur accueil + choix + bases
@@ -332,12 +334,17 @@ function ecrireCache(d) { try { localStorage.setItem(CACHE, JSON.stringify(d)); 
 function appliquer(d) {
   RAYONS = []; SOUSCATS = {};
   SECTEUR_ID = '';
-  (d.cats || []).forEach(r => {                       // [ID,Nom,ParentID,SecteurID,DureeVie,Actif]
+  (d.cats || []).forEach(r => {                       // [ID,Nom,ParentID,SecteurID,DureeVie,Actif,Ordre]
     if (!SECTEUR_ID && r[3]) SECTEUR_ID = String(r[3]);   // secteur de l'app (Épicerie)
     if (String(r[5]) !== 'O') return;
-    if (!r[2]) RAYONS.push({ id: r[0], nom: r[1] });
-    else (SOUSCATS[r[2]] = SOUSCATS[r[2]] || []).push({ id: r[0], nom: r[1] });
+    const x = { id: r[0], nom: r[1], ordre: r[6] || '' };
+    if (!r[2]) RAYONS.push(x);
+    else (SOUSCATS[r[2]] = SOUSCATS[r[2]] || []).push(x);
   });
+  // l'ordre choisi avec les flèches (col. G, 1, 2, 3…) passe devant; sans numéro, l'ordre du Sheet, au bout
+  const rang = x => Number(x.ordre) || Infinity;
+  const parOrdre = (a, b) => rang(a) === rang(b) ? 0 : rang(a) < rang(b) ? -1 : 1;
+  RAYONS.sort(parOrdre); Object.values(SOUSCATS).forEach(l => l.sort(parOrdre));
   MEUBLES = []; ESPACES = {}; PIECES = [];
   const emps = (d.emps || []).filter(r => String(r[4]) === 'O');   // [ID,Nom,ParentID,SecteurID,Actif,Couleur]
   const estPiece = {};                                             // pièce = enfant direct du SECTEUR
@@ -384,8 +391,9 @@ async function chargerReferences() {
     if (Object.keys(ordreModifie).length) envoyerOrdre();   // des flèches touchées pendant le chargement : on les garde
     reordonnerLignes(data.emps, lireAttente());   // un ordre pas encore confirmé l'emporte sur l'ancien
     poserOrdresAliments(data.prods, lireAttenteAliments());   // idem pour l'ordre des endroits d'un aliment
+    poserOrdresCats(data.cats, lireAttenteCats());            // idem pour l'ordre des catégories
     data.stock = data.stock || []; data.pasAimes = data.pasAimes || [];
-    lireAttenteGestes().forEach(e => appliquerGeste(e, data.stock, data.pasAimes, data.emps));   // idem : un geste en route reste fait
+    lireAttenteGestes().forEach(e => appliquerGeste(e, data));   // idem : un geste en route reste fait
     appliquer(data); ecrireCache(data); remplirListes(); statut('');
     expedierOrdre();                              // le réseau répond : on en profite pour renvoyer l'attente
     expedierCouleurs();                           // idem pour les couleurs (sinon un appareil garde les siennes)
@@ -703,30 +711,30 @@ function confirmerNeuves(envoyes, finals) {
 /* ---------- Ajouter une catégorie ou une sous-catégorie sans quitter la fiche ----------
    Un nom déjà pris (chez les mêmes frères) ne crée RIEN : on reprend celui qui existe. */
 async function creerCategorie(parentId, champ, bouton) {
-  const nom = $(champ).value.trim();
-  if (!nom) { $(champ).focus(); return null; }
+  const nom = champ.value.trim();
+  if (!nom) { champ.focus(); return null; }
   const freres = parentId ? (SOUSCATS[parentId] || []) : RAYONS;
   const deja = freres.find(x => String(x.nom).trim().toLowerCase() === nom.toLowerCase());
-  if (deja) { $(champ).value = ''; return deja; }          // déjà là : on la réutilise
-  $(bouton).disabled = true;
+  if (deja) { champ.value = ''; return deja; }            // déjà là : on la réutilise
+  bouton.disabled = true;
   montrerVoile(true);
   try {
     // Categories : ID · Nom · ParentID · SecteurID · DureeVieJours · Actif
     const rep = await Coffre.ajouter('Categories', ['', nom, parentId || '', SECTEUR_ID, '', 'O']);
     if (!rep || !rep.ok) throw new Error((rep && rep.erreur) || 'refus');
-    const neuve = { id: rep.id, nom: nom };
+    const neuve = { id: rep.id, nom: nom, ordre: '' };          // sans numéro : au bout de ses frères
     if (parentId) (SOUSCATS[parentId] = SOUSCATS[parentId] || []).push(neuve); else RAYONS.push(neuve);
     const c = lireCache();
     if (c) { (c.cats = c.cats || []).push([rep.id, nom, parentId || '', SECTEUR_ID, '', 'O']); ecrireCache(c); }
-    $(champ).value = '';
+    champ.value = '';
     return neuve;
   } catch (e) {
     statut('Échec : ' + e.message, 'erreur');
     return null;
-  } finally { $(bouton).disabled = false; montrerVoile(false); }
+  } finally { bouton.disabled = false; montrerVoile(false); }
 }
 async function ajouterCategorie() {
-  const neuve = await creerCategorie('', 'cat-neuve', 'btn-cat-neuve');
+  const neuve = await creerCategorie('', $('cat-neuve'), $('btn-cat-neuve'));
   if (!neuve) return;
   remplirCategories();
   $('cat').value = neuve.id;
@@ -736,7 +744,7 @@ async function ajouterCategorie() {
 async function ajouterSousCategorie() {
   const rid = $('cat').value;
   if (!rid || rid === 'neuve') return;
-  const neuve = await creerCategorie(rid, 'souscat-neuve', 'btn-souscat-neuve');
+  const neuve = await creerCategorie(rid, $('souscat-neuve'), $('btn-souscat-neuve'));
   if (!neuve) return;
   remplirSousCategories(rid);
   $('souscat').value = neuve.id;
@@ -1218,14 +1226,17 @@ function demanderRetrait(type, id) {
   const L = lieuARetirer(type, id);
   let q = 'Retirer ' + L.nom + (L.espaces ? ' et ' + (L.espaces === 1 ? 'son espace' : 'ses ' + L.espaces + ' espaces') : '') + ' ?';
   if (L.aliments) q += ' ' + (L.aliments === 1 ? 'Son aliment passera' : 'Ses ' + L.aliments + ' aliments passeront') + ' dans « Pas encore rangé ».';
-  const ligne = '<div class="accordeon-item accordeon-item-saisie" data-confirme><span>' + esc(q) + '</span>' +
-    '<button class="bouton bouton-petit bouton-rouge" type="button" data-retirer-oui="' + type + '|' + esc(id) + '">Oui</button>' +
-    '<button class="bouton bouton-petit" type="button" data-retirer-non>Non</button></div>';
+  const ligne = '<div class="accordeon-item accordeon-item-saisie" data-confirme><span>' + esc(q) + '</span>' + ouiNon(type, id) + '</div>';
   const cible = $('liste-meubles').querySelector((type === 'm' ? '.accordeon' : '.accordeon-item') + '[data-type="' + type + '"][data-id="' + esc(id) + '"]');
   if (!cible) return;
   if (type === 'e') { cible.outerHTML = ligne; return; }
   if (cible.firstElementChild.classList.contains('ouvert')) toggleAccordeon(cible.firstElementChild);
   cible.insertAdjacentHTML('afterend', ligne);
+}
+/* Les deux réponses d'un retrait : Oui (rouge) / Non. */
+function ouiNon(type, id) {
+  return '<button class="bouton bouton-petit bouton-rouge" type="button" data-retirer-oui="' + type + '|' + esc(id) + '">Oui</button>' +
+    '<button class="bouton bouton-petit" type="button" data-retirer-non>Non</button>';
 }
 /* Oui : retirer. Ce qu'il contient passe dans « Pas encore rangé » (choix B de J-C). Instantané, comme Déplacer :
    la mémoire change tout de suite, l'envoi part dans la file des gestes. Rien n'est effacé du Sheet :
@@ -1237,7 +1248,7 @@ function retirerLieu(type, id) {
   const modifs = L.lignes.filter(r => r[0]).map(r => { const l = r.slice(); l[2] = ''; l[4] = dateCourte(l[4]); return { id: String(r[0]), ligne: l }; });
   if (modifs.length) poserGeste({ action: 'deplacer', opId: op, modifs: modifs, ajouts: [] });
   const emps = c.emps.filter(r => L.ids.indexOf(String(r[0])) !== -1).map(r => { const l = r.slice(); l[4] = 'N'; return l; });
-  if (emps.length) poserGeste({ action: 'emplacements', opId: op + '-e', lignes: emps });
+  if (emps.length) poserGeste({ action: 'lignes', table: 'Emplacements', opId: op + '-e', lignes: emps });
   if (type === 'm') { const k = MEUBLES.findIndex(m => String(m.id) === String(id)); if (k !== -1) MEUBLES.splice(k, 1); delete ESPACES[id]; }
   else for (const mid in ESPACES) { const k = ESPACES[mid].findIndex(e => String(e.id) === String(id)); if (k !== -1) ESPACES[mid].splice(k, 1); }
   remplirMeubles(true);
@@ -1269,6 +1280,114 @@ async function ajouterMeuble(pieceId, btn) {
   } finally { btn.disabled = false; montrerVoile(false); }
 }
 
+/* ---------- Gérer les bases → Catégories (quatre cases) — décisions de J-C, 2026-09-30, sur aperçu ----------
+   Les catégories en barres (couleurs de la suite : .liste-suite), leurs sous-catégories dessous : crayon, flèches, poubelle.
+   L'ordre choisi (col. G) est celui de la fiche. Une catégorie ne se retire que VIDE (choix A); une sous-catégorie retirée
+   envoie ses aliments là où on le dit (choix C). « Nouvelle catégorie… » au bout, « Nouvelle sous-catégorie… » dans chacune. */
+function remplirPageCategories(garderOuverts) {
+  const liste = $('liste-categories');
+  const ouverte = garderOuverts && liste.querySelector('.accordeon-tete.ouvert');
+  const idOuvert = ouverte ? ouverte.parentElement.dataset.id : '';
+  liste.innerHTML = RAYONS.map((r, i) => {
+    const scs = SOUSCATS[r.id] || [], o = String(r.id) === idOuvert;
+    return '<div class="accordeon" data-type="c" data-id="' + esc(r.id) + '">' +
+      '<div class="accordeon-tete' + (o ? ' ouvert' : '') + '"><span>' + esc(r.nom) + '</span>' + crayon('c:' + r.id) +
+        fleches('c', r.id, i, RAYONS.length) + (scs.length ? '' : poubelle('c', r.id)) + '</div>' +
+      '<div class="accordeon-corps"' + (o ? '' : ' hidden') + '>' +
+        scs.map((sc, j) => '<div class="accordeon-item" data-type="s" data-id="' + esc(sc.id) + '"><span>' + esc(sc.nom) + '</span>' +
+          crayon('c:' + sc.id) + fleches('s', sc.id, j, scs.length) + poubelle('s', sc.id) + '</div>').join('') +
+        htmlAjout('souscat-nouvelle', 'Nouvelle sous-catégorie…', 'ajout-categorie', 'data-rayon', r.id) +
+      '</div></div>';
+  }).join('') + htmlAjout('categorie-nouvelle', 'Nouvelle catégorie…', 'ajout-categorie', 'data-rayon', '');
+}
+async function montrerPageCategories() {
+  toutCacher(); $('vue-categories').hidden = false; $('btn-burger').hidden = false;
+  $('liste-categories').innerHTML = '';            // on arrive : tout fermé
+  if (!RAYONS.length) {                            // pas encore chargé → on charge (même patron que les bases)
+    $('liste-categories').innerHTML = '<div class="texte-petit texte-pale">Chargement…</div>';
+    await chargerReferences();
+    $('liste-categories').innerHTML = '';
+  }
+  remplirPageCategories();
+  expedierOrdre();                                 // un ordre resté en attente repart
+}
+/* Ajouter une catégorie (rid vide) ou une sous-catégorie : le nom, Ajouter (ou Entrée). Même nom chez les frères = rien de créé.
+   Une catégorie neuve s'ouvre (pour y mettre ses sous-catégories); après une sous-catégorie, le champ reste prêt pour la suivante. */
+async function ajouterCategoriePage(rid, btn) {
+  const champ = btn.parentElement.querySelector('.champ'), nom = champ.value.trim();
+  if (!nom) { champ.focus(); return; }
+  if (btn.disabled) return;
+  const freres = () => rid ? (SOUSCATS[rid] || []) : RAYONS;
+  const deja = freres().find(x => cleNom(x.nom) === cleNom(nom));
+  if (deja) { avis('« ' + deja.nom + ' » existe déjà', 'erreur'); return; }
+  const neuve = await creerCategorie(rid, champ, btn);
+  if (!neuve) {                                    // un échec relit la réserve : si elle a été créée quand même, elle paraît
+    avis((rid ? 'Sous-catégorie' : 'Catégorie') + ' pas ajoutée — réessaie', 'erreur');
+    chargerReferences().then(() => { if (!$('vue-categories').hidden && freres().some(x => cleNom(x.nom) === cleNom(nom))) remplirPageCategories(true); });
+    return;
+  }
+  remplirPageCategories(true);
+  remplirCategories();                             // la fiche la propose tout de suite
+  const liste = $('liste-categories');
+  if (!rid) { const t = liste.querySelector('.accordeon[data-id="' + esc(neuve.id) + '"] > .accordeon-tete'); if (t) toggleAccordeon(t); }
+  else { const b = liste.querySelector('.ajout-categorie[data-rayon="' + esc(rid) + '"]'); if (b) b.parentElement.querySelector('.champ').focus(); }
+}
+/* La poubelle touchée. Une catégorie (vide) : la question en tête de son corps. Une sous-catégorie : à la place de sa ligne;
+   si des aliments y sont classés, un menu demande où ils vont (rien ne bouge avant Oui). */
+function demanderRetraitCat(type, id) {
+  remplirPageCategories(true);                     // une seule question à la fois
+  const liste = $('liste-categories');
+  if (type === 'c') {
+    const r = RAYONS.find(x => String(x.id) === String(id));
+    const acc = liste.querySelector('.accordeon[data-type="c"][data-id="' + esc(id) + '"]');
+    if (!r || !acc) return;
+    if (!acc.firstElementChild.classList.contains('ouvert')) toggleAccordeon(acc.firstElementChild);
+    acc.children[1].insertAdjacentHTML('afterbegin', '<div class="accordeon-item accordeon-item-saisie" data-confirme><span>' + esc('Retirer ' + r.nom + ' ?') + '</span>' + ouiNon('c', id) + '</div>');
+    return;
+  }
+  let sc = null;
+  for (const k in SOUSCATS) sc = sc || SOUSCATS[k].find(x => String(x.id) === String(id));
+  const ligne = liste.querySelector('.accordeon-item[data-type="s"][data-id="' + esc(id) + '"]');
+  if (!sc || !ligne) return;
+  const n = PRODUITS.filter(p => String(p.catId) === String(id)).length;
+  if (!n) { ligne.outerHTML = '<div class="accordeon-item accordeon-item-saisie" data-confirme><span>' + esc('Retirer ' + sc.nom + ' ?') + '</span>' + ouiNon('s', id) + '</div>'; return; }
+  const choix = '<select class="champ destination"><option value="">— Choisir —</option>' + RAYONS.map(r => {
+    const autres = (SOUSCATS[r.id] || []).filter(x => String(x.id) !== String(id));
+    return autres.length ? '<optgroup label="' + esc(r.nom) + '">' + autres.map(x => '<option value="' + esc(x.id) + '">' + esc(x.nom) + '</option>').join('') + '</optgroup>' : '';
+  }).join('') + '</select>';
+  ligne.outerHTML = '<div class="accordeon-item question-choix" data-confirme><span>' +
+    esc('Retirer ' + sc.nom + ' ? ' + (n === 1 ? 'Son aliment ira' : 'Ses ' + n + ' aliments iront') + ' dans :') + '</span>' + choix + ouiNon('s', id) + '</div>';
+}
+/* Oui : retirer. Instantané (la file des gestes) : les aliments passent à leur nouvelle sous-catégorie (Produits col. C),
+   puis la catégorie passe à Actif = N — rien n'est effacé du Sheet. */
+function retirerCategorie(type, id, dest) {
+  const c = lireCache();
+  if (!c || !c.cats) { avis('Pas retiré — réessaie', 'erreur'); return; }
+  const aliments = type === 's' ? PRODUITS.filter(p => String(p.catId) === String(id)) : [];
+  if (aliments.length && !dest) { avis('Choisis où vont ses aliments', 'erreur'); return; }
+  const op = 'retc-' + Date.now() + '-' + Math.random().toString(36).slice(2, 8);
+  const ids = aliments.map(p => String(p.id));
+  const prods = (c.prods || []).filter(r => ids.indexOf(String(r[0])) !== -1).map(r => { const l = r.slice(); l[2] = dest; return l; });
+  if (prods.length) poserGeste({ action: 'lignes', table: 'Produits', opId: op + '-p', lignes: prods });
+  aliments.forEach(p => { p.catId = dest; });
+  const row = c.cats.find(r => String(r[0]) === String(id));
+  if (row) { const l = row.slice(); l[5] = 'N'; poserGeste({ action: 'lignes', table: 'Categories', opId: op + '-c', lignes: [l] }); }
+  const retire = x => String(x.id) === String(id);
+  const nom = ((RAYONS.find(retire) || Object.values(SOUSCATS).flat().find(retire)) || {}).nom || '';
+  if (type === 'c') { const k = RAYONS.findIndex(retire); if (k !== -1) RAYONS.splice(k, 1); delete SOUSCATS[id]; }
+  else for (const rid in SOUSCATS) { const k = SOUSCATS[rid].findIndex(retire); if (k !== -1) SOUSCATS[rid].splice(k, 1); }
+  remplirPageCategories(true);
+  remplirCategories();
+  avis('Retiré : ' + nom, 'succes');
+}
+/* Entrée dans une ligne « Nouveau… » (meuble, espace, catégorie, sous-catégorie) = son bouton Ajouter. */
+function entreeAjoute(ev) {
+  if (ev.key !== 'Enter' || ev.target.tagName !== 'INPUT' || !ev.target.closest('.accordeon-item-saisie')) return;
+  ev.preventDefault();
+  const b = ev.target.parentElement.querySelector('.bouton');
+  if (b) b.click();
+}
+
 /* ---------- Corriger un nom (Gérer les bases) : le crayon ----------
    Tout est relié par identifiant : corriger un nom ici le corrige partout (inventaire, anciennes entrées, listes).
    Clé = type + id : « e » pièce/meuble/espace (Emplacements) · « c » catégorie · « a » aliment (Produits)
@@ -1285,7 +1404,11 @@ function objetsNommes(type) {
   if (type === 'a') return PRODUITS;
   return LISTES[TABLES_NOM[type][0]] || [];
 }
-function rafraichirBases() { remplirMeubles(true); remplirNoms(true); if (!$('vue-pieces').hidden) remplirPieces(); }
+function rafraichirBases() {
+  remplirMeubles(true); remplirNoms(true);
+  if (!$('vue-pieces').hidden) remplirPieces();
+  if (!$('vue-categories').hidden) remplirPageCategories(true);
+}
 /* Une flèche touchée : l'ordre partira tout seul, DELAI_ORDRE après la dernière (cinq flèches de suite = un seul envoi).
    Quitter la page ou mettre l'app en veille l'envoie aussi, sans attendre. */
 function planifierOrdre() { clearTimeout(minuterieOrdre); minuterieOrdre = setTimeout(envoyerOrdre, DELAI_ORDRE); }
@@ -1495,8 +1618,6 @@ function remplirNoms(garderOuverts) {
   }).join('');
   const aliment = p => ligne('a:' + p.id, p.nom) + htmlOrdreEndroits(p.id) + pasAime(p);
   const vide = t => '<div class="accordeon-item"><span class="texte-petit texte-pale">' + t + '</span></div>';
-  const cats = RAYONS.map(r => acc('c:' + r.id, '<span>' + esc(r.nom) + '</span>' + crayon('c:' + r.id),
-    (SOUSCATS[r.id] || []).map(sc => ligne('c:' + sc.id, sc.nom)).join('') || vide('Aucune sous-catégorie'))).join('');
   const classes = {};                                   // les aliments déjà rangés sous une sous-catégorie
   let alim = RAYONS.map(r => {
     const corps = (SOUSCATS[r.id] || []).map(sc => {
@@ -1509,7 +1630,7 @@ function remplirNoms(garderOuverts) {
   const seuls = PRODUITS.filter(p => !classes[p.id]);
   if (seuls.length) alim += acc('a:', 'Sans catégorie', seuls.map(aliment).join(''));
   const noms = (type, n) => LISTES[n].map(x => ligne(type + ':' + x.id, x.nom)).join('');   // magasins, marques, saveurs : un crayon chacun
-  liste.innerHTML = acc('cats', 'Catégories', cats || vide('Aucune catégorie')) + acc('alim', 'Aliments', alim || vide('Aucun aliment')) +
+  liste.innerHTML = acc('alim', 'Aliments', alim || vide('Aucun aliment')) +
     acc('mag', 'Magasins', noms('g', 'Magasins') || vide('Aucun magasin')) +
     acc('mar', 'Marques', noms('q', 'Marques') || vide('Aucune marque')) +
     acc('sav', 'Saveurs', noms('v', 'Saveurs') || vide('Aucune saveur'));
@@ -1954,19 +2075,22 @@ async function consommerPart(lot, cleP, q, pasAime) {
    vise la ligne que le déplacement a créée, elle doit partir après lui. */
 function poserGeste(envoi) {
   ecrireAttenteGestes(lireAttenteGestes().concat([envoi]));   // gardé AVANT tout : un appareil éteint en route ne perd rien
-  appliquerGeste(envoi, STOCK, PAS_AIMES);
+  appliquerGeste(envoi, { stock: STOCK, pasAimes: PAS_AIMES });   // la mémoire des lieux et des catégories : changée par qui pose le geste
   const c = lireCache();
-  if (c) { appliquerGeste(envoi, c.stock = c.stock || [], c.pasAimes = c.pasAimes || [], c.emps); ecrireCache(c); }
+  if (c) { c.stock = c.stock || []; c.pasAimes = c.pasAimes || []; appliquerGeste(envoi, c); ecrireCache(c); }
   expedierGestes();
 }
-/* Pose un geste sur des lignes (la mémoire, le cache, ou des données fraîchement relues). Par ID, en valeurs finales :
-   le poser deux fois ne change rien. emps : les lignes d'Emplacements (un meuble ou un espace retiré); la mémoire,
-   elle, est changée par retirerLieu(). */
-function appliquerGeste(e, stock, pasAimes, emps) {
-  if (e.action === 'emplacements') {
-    (e.lignes || []).forEach(l => { const row = (emps || []).find(x => String(x[0]) === String(l[0])); if (row) row.splice(0, l.length, ...l); });
+/* Pose un geste sur des lignes (d = le cache, ou des données fraîchement relues : stock, pasAimes, emps, prods, cats).
+   Par ID, en valeurs finales : le poser deux fois ne change rien. Un geste « lignes » réécrit des lignes d'une table
+   (retirer un meuble, une catégorie; changer la catégorie d'aliments). Sans table : Emplacements (les premiers, 2026-09-30). */
+const TABLES_GESTE = { Emplacements: 'emps', Produits: 'prods', Categories: 'cats' };
+function appliquerGeste(e, d) {
+  if (e.lignes) {
+    const rows = d[TABLES_GESTE[e.table || 'Emplacements']] || [];
+    e.lignes.forEach(l => { const row = rows.find(x => String(x[0]) === String(l[0])); if (row) row.splice(0, l.length, ...l); });
     return;
   }
+  const stock = d.stock, pasAimes = d.pasAimes;
   (e.modifs || []).forEach(m => {
     const row = stock.find(x => String(x[0]) === String(m.id));
     if (row) row.splice(0, m.ligne.length, ...m.ligne);
@@ -1999,13 +2123,13 @@ async function expedierGestes() {
   } finally { envoiGestes = false; }
   if (relire) chargerReferences();
 }
-/* Un geste part au coffre-fort. Déplacer et Consommer : un appel. Retirer un meuble ou un espace : ses lignes
-   d'Emplacements réécrites (Actif = N), une à la fois — les renvoyer ne change rien; une ligne disparue est sautée. */
+/* Un geste part au coffre-fort. Déplacer et Consommer : un appel. Un geste « lignes » : ses lignes réécrites une à la fois
+   (Actif = N, une autre catégorie…) — les renvoyer ne change rien; une ligne disparue est sautée. */
 async function envoyerGeste(e) {
   if (e.action === 'deplacer') return Coffre.deplacer(e);
   if (e.action === 'consommer') return Coffre.consommer(e);
   for (const l of e.lignes || []) {
-    const r = await Coffre.modifier('Emplacements', l[0], l);
+    const r = await Coffre.modifier(e.table || 'Emplacements', l[0], l);
     if (!(r && r.ok) && !(r && r.erreur === 'ID introuvable')) return r;
   }
   return { ok: true };
@@ -2095,6 +2219,10 @@ function retourDeRecherche() {
 function freres(type, id) {
   id = String(id);
   if (type === 'p') return { liste: PIECES, groupe: PIECES, cle: 'p' };
+  if (type === 'c') return { liste: RAYONS, groupe: RAYONS, cle: 'c' };
+  if (type === 's') {
+    for (const rid in SOUSCATS) if (SOUSCATS[rid].some(x => String(x.id) === id)) return { liste: SOUSCATS[rid], groupe: SOUSCATS[rid], cle: 's:' + rid };
+  }
   if (type === 'm') {
     const m = MEUBLES.find(x => String(x.id) === id);
     if (!m) return null;
@@ -2122,6 +2250,7 @@ function deplacer(type, id, sens) {
   ordreModifie[f.cle] = true;
   remplirMeubles(true);
   if (!$('vue-pieces').hidden) remplirPieces();
+  if (type === 'c' || type === 's') { remplirPageCategories(true); remplirCategories(); }   // la fiche suit le nouvel ordre
   planifierOrdre();
 }
 /* Les ids d'un groupe, dans l'ordre affiché. */
@@ -2151,6 +2280,18 @@ function ecrireAttente(g){ try { localStorage.setItem(ATTENTE, JSON.stringify(g)
 /* L'ordre des endroits d'un aliment pas encore confirmé : { produitId: 'emp1,emp2,…' } (survit à une fermeture). */
 function lireAttenteAliments()   { try { return JSON.parse(localStorage.getItem(ATTENTE_ALIMENTS) || '{}') || {}; } catch (e) { return {}; } }
 function ecrireAttenteAliments(a){ try { localStorage.setItem(ATTENTE_ALIMENTS, JSON.stringify(a)); } catch (e) {} }
+/* L'ordre des catégories pas encore confirmé : { categorieId: rang } (survit à une fermeture). */
+function lireAttenteCats()   { try { return JSON.parse(localStorage.getItem(ATTENTE_CATS) || '{}') || {}; } catch (e) { return {}; } }
+function ecrireAttenteCats(a){ try { localStorage.setItem(ATTENTE_CATS, JSON.stringify(a)); } catch (e) {} }
+/* Pose ces rangs dans des lignes de Categories (le cache, ou des données fraîchement relues) : colonne G. */
+function poserOrdresCats(cats, ordres) {
+  (cats || []).forEach(r => {
+    const o = ordres[String(r[0])];
+    if (o === undefined) return;
+    while (r.length < 7) r.push('');
+    r[6] = o;
+  });
+}
 /* Pose ces ordres dans des lignes de Produits (le cache, ou des données fraîchement relues) : colonne J. */
 function poserOrdresAliments(prods, ordres) {
   (prods || []).forEach(r => {
@@ -2170,20 +2311,27 @@ function envoyerOrdre() {
     const p = PRODUITS.find(x => String(x.id) === k.slice(2));
     if (p) aliments[String(p.id)] = p.ordre;
   });
+  const cats = {};                                         // catégories : le rang (1, 2, 3…) de celles qui ont bougé
+  cles.filter(k => k === 'c' || k.indexOf('s:') === 0).forEach(k => {
+    (k === 'c' ? RAYONS : SOUSCATS[k.slice(2)] || []).forEach((x, i) => {
+      if (Number(x.ordre) !== i + 1) { x.ordre = i + 1; cats[String(x.id)] = i + 1; }
+    });
+  });
   clearTimeout(minuterieOrdre);
   ordreModifie = {};
-  if (!groupes.length && !Object.keys(aliments).length) return;
-  const c = lireCache(); if (c) { reordonnerLignes(c.emps, groupes); poserOrdresAliments(c.prods, aliments); ecrireCache(c); }
+  if (!groupes.length && !Object.keys(aliments).length && !Object.keys(cats).length) return;
+  const c = lireCache(); if (c) { reordonnerLignes(c.emps, groupes); poserOrdresAliments(c.prods, aliments); poserOrdresCats(c.cats, cats); ecrireCache(c); }
   if (groupes.length) ecrireAttente(lireAttente().concat(groupes));
   ecrireAttenteAliments(Object.assign(lireAttenteAliments(), aliments));
+  ecrireAttenteCats(Object.assign(lireAttenteCats(), cats));
   expedierOrdre();
 }
 /* Envoie l'attente au coffre-fort, en arrière-plan (la file de coffre.js garde un appel à la fois).
    Succès : l'attente se vide. Échec : elle reste, et repart au prochain passage.
    Un aliment = sa ligne de Produits réécrite, colonne J comprise (valeur finale : la renvoyer ne change rien). */
 async function expedierOrdre() {
-  const groupes = lireAttente(), aliments = lireAttenteAliments();
-  if ((!groupes.length && !Object.keys(aliments).length) || envoiOrdre) return;
+  const groupes = lireAttente(), aliments = lireAttenteAliments(), cats = lireAttenteCats();
+  if ((!groupes.length && !Object.keys(aliments).length && !Object.keys(cats).length) || envoiOrdre) return;
   envoiOrdre = true;
   let ok = false;
   try {
@@ -2203,13 +2351,23 @@ async function expedierOrdre() {
       const reste = lireAttenteAliments();
       if (reste[pid] === aliments[pid]) { delete reste[pid]; ecrireAttenteAliments(reste); }   // rechangé pendant l'envoi : il repart
     }
+    for (const id of Object.keys(cats)) {                    // une catégorie = sa ligne réécrite, rang en col. G (le renvoyer ne change rien)
+      const row = c && (c.cats || []).find(x => String(x[0]) === id);
+      if (row) {
+        const ligne = row.slice(); while (ligne.length < 7) ligne.push(''); ligne[6] = cats[id];
+        const r = await Coffre.modifier('Categories', id, ligne);
+        if ((!r || !r.ok) && !(r && r.erreur === 'ID introuvable')) throw new Error((r && r.erreur) || 'refus');
+      }
+      const reste = lireAttenteCats();
+      if (reste[id] === cats[id]) { delete reste[id]; ecrireAttenteCats(reste); }
+    }
     ok = true;
     avis('Ordre enregistré ✓', 'succes');
   } catch (e) {
     avis("Ordre pas encore enregistré — il repartira tout seul", 'erreur');
   } finally {
     envoiOrdre = false;
-    if (ok && (lireAttente().length || Object.keys(lireAttenteAliments()).length)) expedierOrdre();   // ce qui s'est ajouté pendant l'envoi
+    if (ok && (lireAttente().length || Object.keys(lireAttenteAliments()).length || Object.keys(lireAttenteCats()).length)) expedierOrdre();   // ce qui s'est ajouté pendant l'envoi
   }
 }
 
@@ -2407,7 +2565,7 @@ function initEntree() {
   $('menu-bases').addEventListener('click', () => montrerGrilleMenu('bases'));
   $('menu-bases-retour').addEventListener('click', () => montrerGrilleMenu('outils'));
   // les 8 bases : chacune ouvre sa page; celles pas encore bâties ouvrent Gérer les bases au complet (accord de J-C)
-  const PAGES_BASES = { pieces: montrerPieces, meubles: montrerMeubles };
+  const PAGES_BASES = { pieces: montrerPieces, meubles: montrerMeubles, categories: montrerPageCategories };
   document.querySelectorAll('[data-base]').forEach(b => b.addEventListener('click', PAGES_BASES[b.dataset.base] || montrerBases));
   $('menu-couleurs').addEventListener('click', montrerCouleurs);
   // le menu mène exactement où mènent les 4 boutons de l'accueil
@@ -2469,10 +2627,24 @@ function initEntree() {
     const tete = ev.target.closest('.accordeon-tete');
     if (tete) toggleAccordeon(tete);
   });
-  $('liste-meubles').addEventListener('keydown', function (ev) {   // Entrée dans « Nouveau meuble… » ou « Nouvel espace… » = Ajouter
-    if (ev.key !== 'Enter' || !ev.target.matches('.meuble-nouveau, .espace-nouveau')) return;
-    ev.preventDefault();
-    ev.target.parentElement.querySelector('.bouton').click();
+  $('liste-meubles').addEventListener('keydown', entreeAjoute);
+  // Gérer les bases → Catégories
+  $('categories-retour').addEventListener('click', () => { ouvrirMenu(); montrerGrilleMenu('bases'); });   // le menu, sur la grille des 8 bases
+  $('liste-categories').addEventListener('keydown', entreeAjoute);
+  $('liste-categories').addEventListener('click', function (ev) {
+    const oui = ev.target.closest('[data-retirer-oui]');   // « Retirer … ? » Oui (avec, s'il le faut, où vont ses aliments)
+    if (oui) { const k = oui.dataset.retirerOui.split('|'), sel = oui.parentElement.querySelector('.destination'); retirerCategorie(k[0], k[1], sel ? sel.value : ''); return; }
+    if (ev.target.closest('[data-retirer-non]')) { remplirPageCategories(true); return; }
+    const pb = ev.target.closest('.retirer');              // avant la tête : la poubelle n'ouvre ni ne ferme rien
+    if (pb) { const k = pb.dataset.retirer.split('|'); demanderRetraitCat(k[0], k[1]); return; }
+    const cr = ev.target.closest('.crayon');               // idem pour le crayon
+    if (cr) { ouvrirRenommer(cr); return; }
+    const fl = ev.target.closest('.fleche');               // idem pour une flèche
+    if (fl) { if (!fl.classList.contains('fleche-eteinte')) deplacer(fl.dataset.type, fl.dataset.id, Number(fl.dataset.sens)); return; }
+    const b = ev.target.closest('.ajout-categorie');
+    if (b) { ajouterCategoriePage(b.dataset.rayon, b); return; }
+    const tete = ev.target.closest('.accordeon-tete');
+    if (tete) toggleAccordeon(tete);
   });
   $('liste-noms').addEventListener('click', function (ev) {   // catégories et aliments : le crayon, ou plier/déplier
     const fl = ev.target.closest('.fleche');               // l'ordre des endroits d'un aliment
@@ -2570,6 +2742,8 @@ async function retourDansApp() {
   if (!$('vue-pieces').hidden && !Object.keys(ordreModifie).length && !document.querySelector('.champ-renommer')) remplirPieces();
   const saisieMeubles = [...$('liste-meubles').querySelectorAll('input')].some(i => i.value) || $('liste-meubles').querySelector('.champ-renommer, [data-confirme]');
   if (!$('vue-meubles').hidden && !Object.keys(ordreModifie).length && !saisieMeubles) remplirMeubles(true);   // pas pendant une saisie ni une question
+  const saisieCats = [...$('liste-categories').querySelectorAll('input')].some(i => i.value) || $('liste-categories').querySelector('.champ-renommer, [data-confirme]');
+  if (!$('vue-categories').hidden && !Object.keys(ordreModifie).length && !saisieCats) remplirPageCategories(true);
 }
 
 document.addEventListener('DOMContentLoaded', initEntree);

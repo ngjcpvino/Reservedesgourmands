@@ -110,6 +110,7 @@ endroits en même temps).*
 | D | SecteurID | lien vers SECTEURS |
 | E | DureeVieJours | durée de conservation. Vide = hérite du parent le plus proche |
 | F | Actif | O / N |
+| G | Ordre | le rang choisi parmi ses frères (1, 2, 3…), avec les flèches de Gérer les bases → Catégories (2026-09-30). Vide = après les numérotées, dans l'ordre du Sheet. C'est l'ordre de la fiche |
 
 ### COULEURS — la palette du site, par secteur (2026-09-22)
 *Créé tout seul par le coffre-fort au premier enregistrement (Outils → Couleurs).
