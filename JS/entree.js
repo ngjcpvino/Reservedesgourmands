@@ -204,7 +204,7 @@ async function surCode() {
     $('nom').value = d.nom || d.nomAutre || '';     // pas de nom français : l'anglais, que J-C corrige (2026-09-30)
     surNom();
     if (produitCourant === null) {                  // resté « nouveau » : on garde les infos OFF
-      if (d.marque) choisirParNom('marque', d.marque);   // retrouvée dans la liste, sinon proposée en « Nouvelle marque… »
+      if (d.marque) choisirParNom('marque', d.marque);   // retrouvée dans la liste, sinon elle y entre : choisie dans les deux cas
       if (d.format) poserFormat(d.format);   // Open Food Facts donne « 2 L » : on le répartit dans les deux champs
     }
   }                                                 // sinon : on laisse; il remplit le nom à la main
@@ -690,13 +690,19 @@ function ajouterChoix(champ) {
   $(champ + '-neuve').value = '';
   return true;
 }
-/* Un nom venu d'ailleurs (Open Food Facts) : retrouvé dans la liste, sinon proposé en « Nouvelle… », prêt à Ajouter. */
+/* Un nom venu d'ailleurs (Open Food Facts) : retrouvé dans la liste, sinon il y entre — choisi dans les deux cas, comme si on
+   avait touché Ajouter (J-C, 2026-09-30 : « Nouvelle marque… » avec la marque écrite dessous, c'était de trop).
+   Il n'est créé que si l'entrée le porte : changer d'idée ne laisse rien derrière (enregistrer). */
 function choisirParNom(champ, nom) {
   nom = String(nom || '').split(',')[0].trim();         // OFF donne parfois « Liberté, Danone » : la première
   if (!nom) return;
-  const x = LISTES[CHOIX_FICHE[champ].liste].find(y => cleNom(y.nom) === cleNom(nom));
-  if (x) { remplirChoix(champ, idsProposes(champ), x.id); return; }
-  $(champ).value = 'neuve'; montrer('bloc-' + champ + '-neuve', true); $(champ + '-neuve').value = nom;
+  $(champ + '-neuve').value = nom;
+  ajouterChoix(champ);
+}
+/* L'entrée est faite : un nom ajouté à la fiche qu'elle ne porte pas a été abandonné — on l'oublie. */
+function oublierNeuves() {
+  LISTES_NEUVES.forEach(x => { LISTES[x.liste] = LISTES[x.liste].filter(y => y.id !== x.id); delete NOMS_LISTES[x.id]; });
+  LISTES_NEUVES = [];
 }
 /* L'entrée a réussi : les noms neufs sont au coffre-fort. S'il en avait déjà un pareil, on prend SON ID partout.
    Rend la fonction qui traduit un ID de l'app en ID final. */
@@ -990,7 +996,7 @@ async function enregistrer() {
   Object.keys(CHOIX_FICHE).forEach(ch => { if ($(ch).value === 'neuve' && !ajouterChoix(ch)) $(ch).value = ''; });   // un nom tapé sans toucher Ajouter compte quand même
   let marque = $('marque').value, saveur = $('saveur').value, magasin = $('magasin').value;   // des ID des listes gérées
   const format = formatSaisi(), code = $('codebarres').value.trim(), prix = $('prix').value.trim();
-  const nouveaux = LISTES_NEUVES.slice();              // les noms ajoutés à la fiche : créés par le même appel
+  const nouveaux = LISTES_NEUVES.filter(x => [marque, saveur, magasin].indexOf(x.id) !== -1);   // les noms neufs que l'entrée porte : créés par le même appel
   const qui = localStorage.getItem(QUI) || '';        // posé une fois dans Outils, gardé sur l'appareil
   if (!opCourant) opCourant = 'op-' + Date.now() + '-' + Math.random().toString(36).slice(2, 8);
   statut('Enregistrement…');
@@ -1007,6 +1013,7 @@ async function enregistrer() {
     if (r && r.ok) {
       produitId = r.produitId || produitId; ids = r.ids || [];
       const fin = confirmerNeuves(nouveaux, r.listes || {});   // un nom qui existait déjà (l'autre appareil) : son ID à lui
+      oublierNeuves();                                    // ajoutés puis abandonnés (on a changé d'idée) : jamais créés
       marque = fin(marque); saveur = fin(saveur); magasin = fin(magasin);
     }
     else if (r && r.erreur === 'action inconnue') {        // repli si coffre-fort pas encore à jour
