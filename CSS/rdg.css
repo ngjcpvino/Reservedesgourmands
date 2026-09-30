@@ -94,7 +94,6 @@
   --texte-normal:     17px;   /* J-C, 2026-09-29, choix B sur aperçu (16 / 17 / 18 / 19) : égal au petit texte */
   --texte-moyen:      18px;
   --texte-grand:      22px;
-  --texte-enorme:     24px;
 
   /* ---- Poids de police (jamais gras : max 500) ---- */
   --poids-leger:      300;
@@ -156,7 +155,6 @@
   --transition:       0.2s ease;
   --police:           'Cabinet Grotesk', system-ui, sans-serif;
   --ombre-carte:      0 2px 12px color-mix(in srgb, var(--couleur-306) 10%, transparent);
-  --ombre-bouton:     0 1px 6px color-mix(in srgb, var(--couleur-306) 10%, transparent);
   /* ---- Les boutons (style A) : dégradé clair → foncé de leur couleur + ombre + reflet en haut ---- */
   --bouton-degrade:    8%;      /* l'écart entre le haut (plus clair) et le bas (plus foncé) */
   --bouton-ombre:      0 2px 4px color-mix(in srgb, var(--couleur-306) 22%, transparent);
@@ -307,11 +305,8 @@ body:has(.sur-photo:not([hidden]))::before { display: none; }
    TEXTE — base + variantes de taille / ton / poids
 ============================================================ */
 .texte { font-size: var(--texte-normal); font-weight: var(--poids-normal); color: var(--couleur-306); line-height: 1.4; }
-.texte-micro  { font-size: var(--texte-micro); }
 .texte-petit  { font-size: var(--texte-petit); }
-.texte-grand  { font-size: var(--texte-grand); }
 .texte-pale   { color: var(--couleur-302); }
-.texte-leger  { font-weight: var(--poids-leger); }
 .texte-fort   { font-weight: var(--poids-fort); }
 
 /* petit intitulé au-dessus d'un champ */
@@ -332,7 +327,6 @@ body:has(.sur-photo:not([hidden]))::before { display: none; }
   text-transform: uppercase;   /* en capitales, comme le titre du site (J-C, 2026-09-27) */
   letter-spacing: var(--lettrage-page);
 }
-.titre-nu { border-bottom: none; padding-bottom: 0; }
 
 /* ============================================================
    BOUTON — UNE base, puis couleur / taille / forme par-dessus
@@ -455,44 +449,6 @@ select.champ {
   background: var(--couleur-903);
   border-radius: var(--rayon-video);
   object-fit: cover;
-}
-
-/* ============================================================
-   COMPTEUR — le − valeur + (choisir une quantité)
-============================================================ */
-.compteur {
-  display: inline-flex;
-  align-items: center;
-  background: var(--couleur-101);
-  border: var(--filet) solid var(--champ-bord);
-  border-radius: var(--rayon);
-  overflow: hidden;
-}
-.compteur-btn {
-  width: var(--tactile);
-  height: var(--tactile);
-  background: transparent;
-  border: none;
-  font-size: var(--texte-moyen);
-  color: var(--couleur-305);
-  cursor: pointer;
-  transition: var(--transition);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-.compteur-valeur {
-  min-width: var(--tactile);
-  height: var(--tactile);
-  text-align: center;
-  font-size: var(--texte-normal);
-  font-weight: var(--poids-fort);
-  color: var(--couleur-306);
-  border-left: var(--filet) solid var(--champ-bord);
-  border-right: var(--filet) solid var(--champ-bord);
-  display: flex;
-  align-items: center;
-  justify-content: center;
 }
 
 /* ============================================================
@@ -678,9 +634,6 @@ select.champ {
 ------------------------------------------------------------ */
 .ligne-couleur { display: flex; align-items: center; gap: var(--espace-s); }
 .ligne-couleur > .champ { flex: 1; min-width: 0; }   /* une liste aux longs noms ne pousse pas le bouton scanner hors du cadre */
-/* Une question à deux réponses : l'intitulé, puis Oui / Non. Le choix retenu se colore. */
-.ligne-choix { display: flex; align-items: center; gap: var(--espace-s); margin-top: var(--espace-s); }
-.choix-quoi { flex: 1; }
 .pastille { flex-shrink: 0; width: var(--pastille); height: var(--pastille); border-radius: var(--rayon); border: var(--filet) solid var(--champ-bord); }
 .couleur-nom { flex: 1; min-width: 0; }
 .couleur-usage { display: block; font-size: var(--texte-micro); color: var(--couleur-302); }
@@ -778,7 +731,6 @@ select.champ {
    GRILLE — disposition en colonnes (2 par défaut, ou 3)
 ============================================================ */
 .grille   { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: var(--espace-s); }   /* minmax(0, …) : une colonne ne s'élargit jamais au-delà de sa moitié */
-.grille-3 { grid-template-columns: 1fr 1fr 1fr; }
 
 /* icône au centre d'un bouton (image ou symbole) */
 /* ------------------------------------------------------------
@@ -802,7 +754,6 @@ select.champ {
 .icone-listes { --dessin: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23f5efe6' stroke-width='0.8' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M6 2.5h8l5 5v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2v-17a2 2 0 0 1 2-2z'/%3E%3Cpath d='M14 2.5v5h5'/%3E%3Cpath d='M7.5 13h8M7.5 17h5'/%3E%3C/svg%3E") }   /* la feuille et ses lignes */
 .icone-produit { --dessin: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 600 600' fill='none' stroke='black' stroke-linecap='round' stroke-linejoin='round'%3E%3Cg transform='translate(300.0,300) scale(0.9) translate(-281.5,-312.25)' stroke-width='22.2'%3E%3Cpath d='M80 180H483V548a24 24 0 0 1-24 24H104a24 24 0 0 1-24-24Z'/%3E%3Cpath d='M205 258V130a77.5 77.5 0 0 1 155 0V258'/%3E%3C/g%3E%3C/svg%3E"); }   /* un produit : le sac du favicon, à la taille des autres icônes (J-C, 2026-09-28) */
 .icone-epicerie { --dessin: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 835 600' fill='none' stroke='black' stroke-linecap='round' stroke-linejoin='round'%3E%3Cg transform='translate(211.2,300) scale(0.9) translate(-281.5,-312.25)' stroke-width='22.2'%3E%3Cpath d='M80 180H483V548a24 24 0 0 1-24 24H104a24 24 0 0 1-24-24Z'/%3E%3Cpath d='M205 258V130a77.5 77.5 0 0 1 155 0V258'/%3E%3C/g%3E%3Cg transform='translate(623.9,300) scale(0.9) translate(-281.5,-312.25)' stroke-width='22.2'%3E%3Cpath d='M80 180H483V548a24 24 0 0 1-24 24H104a24 24 0 0 1-24-24Z'/%3E%3Cpath d='M205 258V130a77.5 77.5 0 0 1 155 0V258'/%3E%3C/g%3E%3C/svg%3E"); }   /* toute l'épicerie : deux sacs côte à côte, chacun aussi haut que le sac seul */
-.icone-manuel { --dessin: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23f5efe6' stroke-width='0.8' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M4 20.5l1.2-4.4L16.8 4.5l3.2 3.2L8.4 19.3z'/%3E%3Cpath d='M14.3 7l3.2 3.2'/%3E%3Cpath d='M4 20.5l3.6-1.2'/%3E%3C/svg%3E") }   /* le crayon */
 .icone-plus { --dessin: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='0.8' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M12 5v14M5 12h14'/%3E%3C/svg%3E"); }   /* entrer un article : le + , pas le scan */
 .icone-deplacer { --dessin: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23f5efe6' stroke-width='0.8' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M3 8h17M16 4l4 4-4 4'/%3E%3Cpath d='M21 16H4M8 12l-4 4 4 4'/%3E%3C/svg%3E") }   /* deux flèches opposées : d'un endroit à l'autre, dans les deux sens (J-C, choix A sur aperçu, 2026-09-29) */
 .icone-accueil { --dessin: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='0.8' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M3 11.5 12 3.5l9 8'/%3E%3Cpath d='M5.5 9.5v11h13v-11'/%3E%3Cpath d='M10 20.5v-5.5h4v5.5'/%3E%3C/svg%3E"); }   /* Accueil : la maison (J-C, 2026-09-27) */
