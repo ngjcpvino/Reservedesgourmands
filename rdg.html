@@ -10,7 +10,7 @@
   <!-- Ecran d'accueil iPad : le meme sac, en PNG (iOS n'accepte pas le SVG ici) -->
   <link rel="apple-touch-icon" href="apple-touch-icon.png?v=2">
 
-<link rel="stylesheet" href="CSS/rdg.css?v=99">
+<link rel="stylesheet" href="CSS/rdg.css?v=100">
 </head>
 <body>
 
@@ -30,6 +30,7 @@
       <button class="bouton bouton-grand" id="menu-consommer" type="button" aria-label="Consommer"><span class="icone icone-consommer"></span></button>
       <button class="bouton bouton-grand" id="menu-listes" type="button" aria-label="Listes"><span class="icone icone-listes"></span></button>
       <button class="bouton bouton-grand" id="menu-outils" type="button" aria-label="Outils"><span class="icone icone-outils"></span></button>
+      <button class="bouton bouton-grand" id="menu-achats" type="button" aria-label="Liste d'achats"><span class="icone icone-chariot"></span></button>
     </div>
     <!-- Outils : ses 4 icônes prennent la place des 6 -->
     <div id="menu-outils-grille" hidden>
@@ -99,12 +100,49 @@
   <div class="entete"><div class="titre">Listes</div></div>
   <div class="contenu">
     <div class="accordeon"><div class="accordeon-tete" data-toggle>Inventaire</div><div class="accordeon-corps" id="liste-inventaire" hidden></div></div>
-    <div class="accordeon"><div class="accordeon-tete" data-toggle>Stock épuisé</div><div class="accordeon-corps" hidden><div class="accordeon-item"><span class="texte-petit texte-pale">—</span></div></div></div>
-    <div class="accordeon"><div class="accordeon-tete" data-toggle>Réserve vide</div><div class="accordeon-corps" hidden><div class="accordeon-item"><span class="texte-petit texte-pale">—</span></div></div></div>
     <div class="accordeon"><div class="accordeon-tete" data-toggle>À consommer bientôt</div><div class="accordeon-corps" hidden><div class="accordeon-item"><span class="texte-petit texte-pale">—</span></div></div></div>
     <div class="accordeon"><div class="accordeon-tete" data-toggle>En spécial cette semaine</div><div class="accordeon-corps" hidden><div class="accordeon-item"><span class="texte-petit texte-pale">—</span></div></div></div>
     <div class="accordeon"><div class="accordeon-tete" data-toggle>Listes en attente</div><div class="accordeon-corps" hidden><div class="accordeon-item"><span class="texte-petit texte-pale">—</span></div></div></div>
     <button class="bouton bouton-or bouton-pleine bouton-suite" id="btn-retour-listes" type="button">Retour</button>
+  </div>
+</div>
+
+<!-- ============================================================
+     LA LISTE D'ACHATS — sa page, ouverte par le chariot du menu. Le JS bâtit la liste (dans l'ordre des catégories).
+     « Ajouter à la liste » : l'entonnoir (catégorie → sous-catégorie → aliment) et le scan, à la place de la liste.
+============================================================ -->
+<div id="vue-achats" hidden>
+  <div class="entete"><div class="titre">Liste d'achats</div></div>
+  <div class="contenu">
+    <div id="achats-page">
+      <div class="liste-suite" id="liste-achats"></div>
+      <button class="bouton bouton-vert bouton-pleine bouton-detache" id="btn-achat-ajouter" type="button">Ajouter à la liste</button>
+      <button class="bouton bouton-or bouton-pleine bouton-suite" id="achats-retour" type="button">Retour</button>
+    </div>
+    <div id="achats-ajout" hidden>
+      <div class="bloc">
+        <div class="label">Catégorie</div>
+        <div class="ligne-couleur">
+          <select class="champ" id="achat-cat"></select>
+          <button class="bouton bouton-brun bouton-scanner" id="achat-scan" type="button" aria-label="Scanner"><span class="icone icone-entrer"></span></button>
+        </div>
+      </div>
+      <div class="bloc" id="bloc-achat-souscat" hidden>
+        <div class="label">Sous-catégorie</div>
+        <select class="champ" id="achat-souscat"></select>
+      </div>
+      <div class="bloc" id="bloc-achat-aliment" hidden>
+        <div class="label">Aliment</div>
+        <select class="champ champ-fort" id="achat-aliment"></select>
+      </div>
+      <div class="bloc" id="bloc-achat-nom" hidden>
+        <div class="label">Nom du nouvel aliment</div>
+        <input class="champ" id="achat-nom" autocomplete="off" enterkeyhint="done">
+      </div>
+      <div class="message message-repli" id="achats-msg"></div>
+      <button class="bouton bouton-vert bouton-pleine bouton-suite" id="achat-ok" type="button">Mettre sur la liste</button>
+      <button class="bouton bouton-pleine bouton-quitter" id="achat-annuler" type="button">Annuler</button>
+    </div>
   </div>
 </div>
 
@@ -395,8 +433,8 @@
 
 </div><!-- fin du conteneur -->
 
-<script src="JS/coffre.js?v=8"></script>
-<script src="JS/entree.js?v=105"></script>
+<script src="JS/coffre.js?v=9"></script>
+<script src="JS/entree.js?v=106"></script>
 <script src="JS/scan.js?v=9"></script>
 </body>
 </html>
