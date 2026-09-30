@@ -159,13 +159,17 @@ async function montrerListes() {
 function montrerAccueil()    { toutCacher(); $('vue-accueil').hidden = false; $('btn-burger').hidden = false; $('btn-rechercher').hidden = false; $('entete-photo').hidden = false; }
 function montrerFormulaire(avecCode) {
   toutCacher(); $('vue-app').hidden = false;
+  preparerFiche(avecCode);
+  chargerReferences();                        // catégories + liste des produits
+}
+/* La fiche vierge, sur son chemin. Après une entrée, on revient à celle du départ (à la main) : un seul écran pour entrer. */
+function preparerFiche(avecCode) {
   modeManuel = !avecCode;                    // à la main : on descend l'entonnoir; au scan : le code donne l'identité
   ordonnerFiche();
   reinitFiche();
   montrer('bloc-code', !!avecCode);          // le champ code n'apparaît qu'au scan
   montrer('fiche-scan', !avecCode);          // à la main : le scan reste à côté de la catégorie (plus d'écran « scan ou à la main »)
   $('codebarres').value = ''; codeScan = '';
-  chargerReferences();                        // catégories + liste des produits
 }
 
 /* Les mêmes blocs, dans l'ordre du chemin suivi :
@@ -1039,14 +1043,13 @@ async function enregistrer() {
     }
     nettoyerAchats(produitId, marque, saveur);           // entré : il quitte la liste d'achats
     opCourant = null;                                      // succès : le prochain article aura un nouveau jeton
-    statut('Article ajouté ✓', 'succes');
-    reinit();
+    preparerFiche(false);                                  // le même écran qu'au départ, prêt pour le suivant (J-C : « 2 pages pour entrer un produit »)
+    window.scrollTo(0, 0);
+    avis('Ajouté', 'succes');                              // comme Consommé, Déplacé (le message de la fiche s'effaçait avec elle)
   } catch (e) {
     statut('Échec : ' + e.message, 'erreur');
   } finally { $('btn-enregistrer').disabled = false; montrerVoile(false); }
 }
-
-function reinit() { reinitFiche(); $('codebarres').value = ''; codeScan = ''; }
 
 async function assignerPiece(meubleId, pieceId, sel) {
   const m = MEUBLES.find(x => String(x.id) === String(meubleId));
