@@ -35,7 +35,8 @@
 
 **Quel magasin : déjà décidé dans RdG-05, section 7** — la liste **en entier**, l'app ne répartit rien; sur place, s'il le veut, **trier par épicerie** (le prix de ce magasin seulement), le plus bas en vert, « en spécial chez Metro » sur la ligne.
 
+**L'ordre au magasin = l'ordre des catégories, tel que J-C les a classées** (J-C : « comme j'ai classé les catégories ») — la page Catégories et ses flèches, puis les sous-catégories dans leur ordre, puis les aliments. ⚠️ Ça **remplace, pour l'instant**, les « sections de magasin posées sur le produit » de RdG-03 (section 4) : rien à remplir aliment par aliment. Si à l'usage une catégorie tombe mal dans les allées (le pain à deux places), on en reparle.
+
 ## 3. QUESTIONS OUVERTES (une à la fois)
 
-- L'ordre des rayons au magasin (RdG-03 : les **sections** se posent sur le produit, une géographie générique, « sans section » visible) : dès la 1re version, ou plus tard ?
 - Où vit la liste dans l'app, et à quoi elle ressemble (aperçu d'abord).

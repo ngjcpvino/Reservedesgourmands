@@ -123,7 +123,9 @@ voit.
 
 - **Point 5 (liste d'achats)** : le plan de magasin sert aussi à **trier la
   liste d'achats dans l'ordre des rayons**, pour ne pas revenir sur ses pas.
-  Ouvert ici, à régler au point 5. ⚠️ Ne pas oublier.
+  Ouvert ici, à régler au point 5. ✅ **Réglé le 30 septembre 2026 (RdG-06)** :
+  la liste suit **l'ordre des catégories tel que J-C les a classées** — pas de
+  sections posées aliment par aliment, pour l'instant.
 - **Structure** : jusqu'à quel étage l'écran de rayon remonte — dépend de la
   façon dont l'arbre des catégories sera monté.
 - **Rappel des parenthèses encore ouvertes ailleurs** : point 8 (le retour
