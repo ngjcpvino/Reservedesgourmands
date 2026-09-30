@@ -480,16 +480,22 @@ function surNom() {
     if (val && !$('endroits').children.length) ajouterEndroit();
     return;
   }
-  $('endroits').innerHTML = '';
-  montrer('bloc-endroits', false); montrer('btn-enregistrer', false);
-  pasEncoreRange(false);
+  const prod = val ? trouverProduitParNom(val) : null;
+  // toujours le même produit NOUVEAU (une lettre ajoutée ou corrigée) : on garde tout ce qui est déjà rempli —
+  // la marque d'Open Food Facts, la catégorie, les endroits et leurs quantités (J-C, 2026-09-30 : corriger le nom
+  // après avoir choisi la sous-catégorie faisait disparaître la quantité et le bouton)
+  const memeNouveau = !!val && !prod && produitCourant === null;
+  if (!memeNouveau) {
+    $('endroits').innerHTML = '';
+    montrer('bloc-endroits', false); montrer('btn-enregistrer', false);
+    pasEncoreRange(false);
+  }
   if (!val) {
     produitCourant = null;
     montrer('bloc-details', false); montrer('bloc-cat', false); montrer('bloc-souscat', false);
     return;
   }
   montrer('bloc-details', true);
-  const prod = trouverProduitParNom(val);
   if (prod) {                                   // produit existant reconnu
     produitCourant = prod.id;
     montrer('bloc-cat', false); montrer('bloc-souscat', false);   // catégorie déjà connue
@@ -497,12 +503,19 @@ function surNom() {
     prefillProduit(prod.id);                    // marque/format (dernières) + endroits habituels
     montrer('bloc-achat', true); montrer('bloc-endroits', true); montrer('btn-enregistrer', true);
   } else {                                      // nouveau produit
+    if (!memeNouveau) remplirVariantes(null);   // il sort d'un produit reconnu : ses marques et formats ne valent plus
     produitCourant = null;
-    remplirVariantes(null);                     // aucune suggestion marque/format
     proposerRessemblances(val);                 // ... mais peut-être un doublon d'un produit connu
     montrer('bloc-cat', true);                  // il choisit la catégorie
     montrer('bloc-souscat', !!$('cat').value);
+    const scid = $('souscat').value;
+    if ($('cat').value && scid && scid !== 'neuve') montrerSuiteFiche();   // sa sous-catégorie est déjà choisie : la suite reste là
   }
+}
+/* Nouveau produit au scan, sous-catégorie choisie : le magasin et le prix, les endroits (une carte vierge au besoin), Enregistrer. */
+function montrerSuiteFiche() {
+  montrer('bloc-achat', true); montrer('bloc-endroits', true); montrer('btn-enregistrer', true);
+  if (!$('endroits').children.length) ajouterEndroit();
 }
 
 function surCategorie() {
@@ -543,8 +556,7 @@ function surSousCategorie() {
     return;
   }
   if (!scid) { montrer('bloc-endroits', false); montrer('btn-enregistrer', false); return; }
-  montrer('bloc-endroits', true); montrer('btn-enregistrer', true);
-  if (!$('endroits').children.length) ajouterEndroit();
+  montrerSuiteFiche();
 }
 
 /* La liste des produits d'une sous-catégorie, par ordre alphabétique, + « Nouveau produit… ». */
