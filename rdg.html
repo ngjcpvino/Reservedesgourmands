@@ -10,7 +10,7 @@
   <!-- Ecran d'accueil iPad : le meme sac, en PNG (iOS n'accepte pas le SVG ici) -->
   <link rel="apple-touch-icon" href="apple-touch-icon.png?v=2">
 
-<link rel="stylesheet" href="CSS/rdg.css?v=96">
+<link rel="stylesheet" href="CSS/rdg.css?v=97">
 </head>
 <body>
 
@@ -306,7 +306,7 @@
     <div class="titre">Gérer les bases</div>
   </div>
   <div class="contenu">
-    <div id="liste-noms"></div>   <!-- Catégories et Aliments : pour corriger un nom -->
+    <div id="liste-noms"></div>   <!-- Magasins, Marques, Saveurs : pour corriger un nom -->
   </div>
 </div>
 
@@ -352,6 +352,18 @@
 </div>
 
 <!-- ============================================================
+     GÉRER LES BASES → ALIMENTS : les catégories en barres (couleurs de la suite); dedans, chaque sous-catégorie
+     en bandeau et ses aliments dessous. Un aliment ouvert : sa sous-catégorie, ses endroits 1-2-3, ses « Pas aimé ».
+============================================================ -->
+<div id="vue-aliments" hidden>
+  <div class="entete"><div class="titre">Aliments</div></div>
+  <div class="contenu">
+    <div class="liste-suite" id="liste-aliments"></div>
+    <button class="bouton bouton-or bouton-pleine bouton-detache" id="aliments-retour" type="button">Retour</button>
+  </div>
+</div>
+
+<!-- ============================================================
      OUTILS — couleurs : la palette du site. Les lignes sont bâties par le JS.
 ============================================================ -->
 <div id="vue-couleurs" hidden>
@@ -378,8 +390,8 @@
 
 </div><!-- fin du conteneur -->
 
-<script src="JS/coffre.js?v=7"></script>
-<script src="JS/entree.js?v=100"></script>
+<script src="JS/coffre.js?v=8"></script>
+<script src="JS/entree.js?v=101"></script>
 <script src="JS/scan.js?v=9"></script>
 </body>
 </html>

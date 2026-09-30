@@ -307,7 +307,6 @@ body:has(.sur-photo:not([hidden]))::before { display: none; }
 .texte { font-size: var(--texte-normal); font-weight: var(--poids-normal); color: var(--couleur-306); line-height: 1.4; }
 .texte-petit  { font-size: var(--texte-petit); }
 .texte-pale   { color: var(--couleur-302); }
-.texte-fort   { font-weight: var(--poids-fort); }
 
 /* petit intitulé au-dessus d'un champ */
 .label { font-size: var(--texte-normal); letter-spacing: var(--lettrage-label); color: var(--couleur-302); margin-bottom: var(--espace-xs); }   /* 16 px, lettres écartées (J-C 2026-09-27 : trop petit, tassé) */
@@ -392,26 +391,30 @@ body:has(.sur-photo:not([hidden]))::before { display: none; }
 .grille + .bouton { aspect-ratio: var(--bouton-large-forme); min-height: var(--bouton-grand-haut); width: 100%; min-width: 0; }
 
 /* LA SUITE : un groupe de frères se colore selon la position — les grilles d'icônes, les accordéons de Listes et les listes
-   « .liste-suite » (Catégories). Le HTML ne porte aucune couleur : ajouter un frère le colore tout seul. Au-delà de 10, la suite recommence. */
-.grille > .bouton-grand:nth-child(10n+1), .contenu > .accordeon:nth-child(10n+1) > .accordeon-tete, .liste-suite > .accordeon:nth-child(10n+1) > .accordeon-tete { --c: var(--suite-1); }
-.grille > .bouton-grand:nth-child(10n+2), .contenu > .accordeon:nth-child(10n+2) > .accordeon-tete, .liste-suite > .accordeon:nth-child(10n+2) > .accordeon-tete { --c: var(--suite-2); }
-.grille > .bouton-grand:nth-child(10n+3), .contenu > .accordeon:nth-child(10n+3) > .accordeon-tete, .liste-suite > .accordeon:nth-child(10n+3) > .accordeon-tete { --c: var(--suite-3); }
-.grille > .bouton-grand:nth-child(10n+4), .contenu > .accordeon:nth-child(10n+4) > .accordeon-tete, .liste-suite > .accordeon:nth-child(10n+4) > .accordeon-tete { --c: var(--suite-4); }
-.grille > .bouton-grand:nth-child(10n+5), .contenu > .accordeon:nth-child(10n+5) > .accordeon-tete, .liste-suite > .accordeon:nth-child(10n+5) > .accordeon-tete { --c: var(--suite-5); }
-.grille > .bouton-grand:nth-child(10n+6), .contenu > .accordeon:nth-child(10n+6) > .accordeon-tete, .liste-suite > .accordeon:nth-child(10n+6) > .accordeon-tete { --c: var(--suite-6); }
-.grille > .bouton-grand:nth-child(10n+7), .contenu > .accordeon:nth-child(10n+7) > .accordeon-tete, .liste-suite > .accordeon:nth-child(10n+7) > .accordeon-tete { --c: var(--suite-7); }
-.grille > .bouton-grand:nth-child(10n+8), .contenu > .accordeon:nth-child(10n+8) > .accordeon-tete, .liste-suite > .accordeon:nth-child(10n+8) > .accordeon-tete { --c: var(--suite-8); }
-.grille > .bouton-grand:nth-child(10n+9), .contenu > .accordeon:nth-child(10n+9) > .accordeon-tete, .liste-suite > .accordeon:nth-child(10n+9) > .accordeon-tete { --c: var(--suite-9); }
-.grille > .bouton-grand:nth-child(10n+10), .contenu > .accordeon:nth-child(10n+10) > .accordeon-tete, .liste-suite > .accordeon:nth-child(10n+10) > .accordeon-tete { --c: var(--suite-10); }
-.grille > .bouton-grand:nth-child(2),  .contenu > .accordeon:nth-child(2)  > .accordeon-tete { --c: var(--suite-2); }
-.grille > .bouton-grand:nth-child(3),  .contenu > .accordeon:nth-child(3)  > .accordeon-tete { --c: var(--suite-3); }
-.grille > .bouton-grand:nth-child(4),  .contenu > .accordeon:nth-child(4)  > .accordeon-tete { --c: var(--suite-4); }
-.grille > .bouton-grand:nth-child(5),  .contenu > .accordeon:nth-child(5)  > .accordeon-tete { --c: var(--suite-5); }
-.grille > .bouton-grand:nth-child(6),  .contenu > .accordeon:nth-child(6)  > .accordeon-tete { --c: var(--suite-6); }
-.grille > .bouton-grand:nth-child(7),  .contenu > .accordeon:nth-child(7)  > .accordeon-tete { --c: var(--suite-7); }
-.grille > .bouton-grand:nth-child(8),  .contenu > .accordeon:nth-child(8)  > .accordeon-tete { --c: var(--suite-8); }
-.grille > .bouton-grand:nth-child(9),  .contenu > .accordeon:nth-child(9)  > .accordeon-tete { --c: var(--suite-9); }
-.grille > .bouton-grand:nth-child(10), .contenu > .accordeon:nth-child(10) > .accordeon-tete { --c: var(--suite-10); }
+   « .liste-suite » (Catégories, Aliments — juste en dessous). Le HTML ne porte aucune couleur : ajouter un frère le colore tout seul. Au-delà de 10, la suite recommence. */
+.grille > .bouton-grand:nth-child(10n+1), .contenu > .accordeon:nth-child(10n+1) > .accordeon-tete { --c: var(--suite-1); }
+.grille > .bouton-grand:nth-child(10n+2), .contenu > .accordeon:nth-child(10n+2) > .accordeon-tete { --c: var(--suite-2); }
+.grille > .bouton-grand:nth-child(10n+3), .contenu > .accordeon:nth-child(10n+3) > .accordeon-tete { --c: var(--suite-3); }
+.grille > .bouton-grand:nth-child(10n+4), .contenu > .accordeon:nth-child(10n+4) > .accordeon-tete { --c: var(--suite-4); }
+.grille > .bouton-grand:nth-child(10n+5), .contenu > .accordeon:nth-child(10n+5) > .accordeon-tete { --c: var(--suite-5); }
+.grille > .bouton-grand:nth-child(10n+6), .contenu > .accordeon:nth-child(10n+6) > .accordeon-tete { --c: var(--suite-6); }
+.grille > .bouton-grand:nth-child(10n+7), .contenu > .accordeon:nth-child(10n+7) > .accordeon-tete { --c: var(--suite-7); }
+.grille > .bouton-grand:nth-child(10n+8), .contenu > .accordeon:nth-child(10n+8) > .accordeon-tete { --c: var(--suite-8); }
+.grille > .bouton-grand:nth-child(10n+9), .contenu > .accordeon:nth-child(10n+9) > .accordeon-tete { --c: var(--suite-9); }
+.grille > .bouton-grand:nth-child(10n+10), .contenu > .accordeon:nth-child(10n+10) > .accordeon-tete { --c: var(--suite-10); }
+/* .liste-suite (Catégories, Aliments) : la couleur se pose sur l'accordéon (--meuble), pas sur sa seule tête —
+   la tête la prend (.accordeon-tete), et les bandeaux de ses sous-catégories aussi, pâlie (Aliments, J-C 2026-09-30). */
+.liste-suite > .accordeon:nth-child(10n+1) { --meuble: var(--suite-1); }
+.liste-suite > .accordeon:nth-child(10n+2) { --meuble: var(--suite-2); }
+.liste-suite > .accordeon:nth-child(10n+3) { --meuble: var(--suite-3); }
+.liste-suite > .accordeon:nth-child(10n+4) { --meuble: var(--suite-4); }
+.liste-suite > .accordeon:nth-child(10n+5) { --meuble: var(--suite-5); }
+.liste-suite > .accordeon:nth-child(10n+6) { --meuble: var(--suite-6); }
+.liste-suite > .accordeon:nth-child(10n+7) { --meuble: var(--suite-7); }
+.liste-suite > .accordeon:nth-child(10n+8) { --meuble: var(--suite-8); }
+.liste-suite > .accordeon:nth-child(10n+9) { --meuble: var(--suite-9); }
+.liste-suite > .accordeon:nth-child(10n+10) { --meuble: var(--suite-10); }
+.liste-suite > .accordeon.hors-suite { --meuble: var(--couleur-305); }   /* « Aliments sans catégorie » : brune, comme « Meubles sans pièce » */
 .bouton-petit { min-height: auto; padding: var(--espace-s) var(--espace-l); font-size: var(--texte-petit); }
 
 /* Ou le bouton se pose par rapport a ce qui le precede */
@@ -554,6 +557,7 @@ select.champ {
   transition: transform var(--transition-pli) ease;
 }
 .aliment-tete.ouvert .item-nom::after { transform: rotate(180deg); }
+.aliment > .accordeon-corps { padding-left: calc(var(--retrait) * 2); }   /* un aliment ouvert (Gérer les bases → Aliments) : ce qu'il contient recule sous son nom */
 .sorte { border-top: none; min-height: 0; padding-top: 0; padding-bottom: var(--espace-xs); padding-left: calc(var(--espace-l) * 2); }
 .sorte .item-detail { color: var(--couleur-306); }   /* la couleur de l'aliment (choix A de J-C) : le brun pâle ne se lisait pas */
 .sorte-quantite { font-size: var(--texte-petit); color: var(--couleur-305); padding: 0 var(--espace-s); }

@@ -110,6 +110,7 @@ function toutCacher() {
   $('vue-pieces').hidden = true;
   $('vue-meubles').hidden = true;
   $('vue-categories').hidden = true;
+  $('vue-aliments').hidden = true;
   const vs = $('vue-scan'); if (vs) vs.hidden = true;
   if (window.stopScanner) window.stopScanner();   // coupe la caméra en quittant la vue scan
   $('btn-burger').hidden = true;   // burger caché par défaut ; ré-affiché sur accueil + choix + bases
@@ -1351,10 +1352,7 @@ function demanderRetraitCat(type, id) {
   if (!sc || !ligne) return;
   const n = PRODUITS.filter(p => String(p.catId) === String(id)).length;
   if (!n) { ligne.outerHTML = '<div class="accordeon-item accordeon-item-saisie" data-confirme><span>' + esc('Retirer ' + sc.nom + ' ?') + '</span>' + ouiNon('s', id) + '</div>'; return; }
-  const choix = '<select class="champ destination"><option value="">— Choisir —</option>' + RAYONS.map(r => {
-    const autres = (SOUSCATS[r.id] || []).filter(x => String(x.id) !== String(id));
-    return autres.length ? '<optgroup label="' + esc(r.nom) + '">' + autres.map(x => '<option value="' + esc(x.id) + '">' + esc(x.nom) + '</option>').join('') + '</optgroup>' : '';
-  }).join('') + '</select>';
+  const choix = '<select class="champ destination"><option value="">— Choisir —</option>' + groupesSousCats('', id) + '</select>';
   ligne.outerHTML = '<div class="accordeon-item question-choix" data-confirme><span>' +
     esc('Retirer ' + sc.nom + ' ? ' + (n === 1 ? 'Son aliment ira' : 'Ses ' + n + ' aliments iront') + ' dans :') + '</span>' + choix + ouiNon('s', id) + '</div>';
 }
@@ -1380,6 +1378,123 @@ function retirerCategorie(type, id, dest) {
   remplirCategories();
   avis('Retiré : ' + nom, 'succes');
 }
+/* Les sous-catégories en menu, groupées par catégorie (sans celle qu'on retire, s'il le faut). */
+function groupesSousCats(choisie, sauf) {
+  return RAYONS.map(r => {
+    const scs = (SOUSCATS[r.id] || []).filter(x => String(x.id) !== String(sauf));
+    return scs.length ? '<optgroup label="' + esc(r.nom) + '">' + scs.map(x => '<option value="' + esc(x.id) + '"' +
+      (String(x.id) === String(choisie) ? ' selected' : '') + '>' + esc(x.nom) + '</option>').join('') + '</optgroup>' : '';
+  }).join('');
+}
+/* La catégorie d'une sous-catégorie ('' si elle n'existe plus). */
+function rayonDe(scid) {
+  for (const rid in SOUSCATS) if (SOUSCATS[rid].some(x => String(x.id) === String(scid))) return rid;
+  return '';
+}
+
+/* ---------- Gérer les bases → Aliments (la pomme) — décisions de J-C, 2026-09-30, sur aperçu ----------
+   Les catégories en barres (la suite); dedans, chaque sous-catégorie en bandeau de sa couleur, pâlie, ses aliments dessous,
+   par ordre alphabétique comme dans la fiche (pas de flèches). Un aliment ouvert : sa sous-catégorie (menu), ses endroits 1-2-3,
+   ses « Pas aimé ». Le crayon renomme — ou propose de RÉUNIR deux aliments; la poubelle ne paraît que sur un aliment dont
+   il ne reste rien (choix A). Pas de « Nouvel aliment… » : un aliment naît à l'entrée.
+   ouvrir = { cat, pid } : ce qui doit être ouvert (sinon, avec garderOuverts, ce qui l'était). */
+function remplirPageAliments(garderOuverts, ouvrir) {
+  const liste = $('liste-aliments');
+  let cat = '', pid = '';
+  if (ouvrir) { cat = String(ouvrir.cat); pid = String(ouvrir.pid); }
+  else if (garderOuverts) {
+    const t = liste.querySelector(':scope > .accordeon > .accordeon-tete.ouvert'), a = liste.querySelector('.aliment-tete.ouvert');
+    cat = t ? t.parentElement.dataset.id : ''; pid = a ? a.parentElement.dataset.id : '';
+  }
+  const alpha = (a, b) => String(a.nom).localeCompare(String(b.nom), 'fr');
+  const enReserve = {};                                 // un aliment dont il reste quelque chose (rangé ou pas) : pas de poubelle
+  STOCK.forEach(l => { if ((Number(l[3]) || 0) > 0) enReserve[String(l[1])] = true; });
+  const aliment = p => {
+    const o = String(p.id) === pid;
+    return '<div class="accordeon aliment" data-id="' + esc(p.id) + '">' +
+      '<div class="accordeon-item aliment-tete' + (o ? ' ouvert' : '') + '"><span class="item-nom">' + esc(p.nom) + '</span>' +
+        crayon('a:' + p.id) + (enReserve[p.id] ? '' : poubelle('a', p.id)) + '</div>' +
+      '<div class="accordeon-corps"' + (o ? '' : ' hidden') + '>' + (o ? htmlCorpsAliment(p) : '') + '</div></div>';   // bâti à l'ouverture
+  };
+  const groupe = (id, nom, corps, cls) => '<div class="accordeon' + cls + '" data-id="' + esc(id) + '">' +
+    '<div class="accordeon-tete' + (String(id) === cat ? ' ouvert' : '') + '"><span>' + esc(nom) + '</span></div>' +
+    '<div class="accordeon-corps"' + (String(id) === cat ? '' : ' hidden') + '>' + corps + '</div></div>';
+  const classes = {};                                   // les aliments rangés sous une sous-catégorie qui existe
+  const cats = RAYONS.map(r => {
+    const corps = (SOUSCATS[r.id] || []).map(sc => {
+      const ps = PRODUITS.filter(p => String(p.catId) === String(sc.id)).sort(alpha);
+      ps.forEach(p => { classes[p.id] = true; });
+      return ps.length ? '<div class="espace-bandeau">' + esc(sc.nom) + '</div>' + ps.map(aliment).join('') : '';
+    }).join('');
+    return corps ? groupe(r.id, r.nom, corps, '') : '';
+  }).join('');
+  const seuls = PRODUITS.filter(p => !classes[p.id]).sort(alpha);
+  const sans = seuls.length ? groupe('sans', 'Aliments sans catégorie (' + seuls.length + ')', seuls.map(aliment).join(''), ' hors-suite') : '';
+  liste.innerHTML = (sans + cats) || '<div class="accordeon-item"><span class="texte-petit texte-pale">Aucun aliment.</span></div>';
+}
+/* Ce que contient un aliment se bâtit quand on l'ouvre : des centaines d'aliments, la page reste légère. */
+function remplirCorpsAliment(tete) {
+  const corps = tete.nextElementSibling, p = PRODUITS.find(x => String(x.id) === String(tete.parentElement.dataset.id));
+  if (corps && p && !corps.firstChild) corps.innerHTML = htmlCorpsAliment(p);
+}
+/* Un aliment ouvert : sa sous-catégorie, ses endroits 1-2-3 (flèches), ses « Pas aimé » (Enlever). */
+function htmlCorpsAliment(p) {
+  const titre = t => '<div class="bloc accordeon-bloc"><div class="label">' + t + '</div></div>';
+  const ok = rayonDe(p.catId) !== '';
+  const ends = htmlOrdreEndroits(p.id);
+  const pas = PAS_AIMES.filter(r => String(r[1]) === String(p.id)).map(r => {
+    const m = String(r[2] || '').trim(), sv = String(r[3] || '').trim();
+    return '<div class="accordeon-item"><span>' + esc([nomListe(m), nomListe(sv)].filter(Boolean).join(' ') || p.nom) + '</span>' +
+      '<button class="bouton bouton-petit" type="button" data-pas-aime="' + esc(p.id + '|' + m + '|' + sv) + '">Enlever</button></div>';
+  }).join('');
+  return '<div class="bloc accordeon-bloc"><div class="label">Sous-catégorie</div>' +
+      '<select class="champ choix-souscat" data-aliment="' + esc(p.id) + '">' + (ok ? '' : '<option value="">— Choisir —</option>') +
+      groupesSousCats(p.catId, '') + '</select></div>' +
+    (ends ? titre('Ses endroits') + ends : '') + (pas ? titre('Pas aimé') + pas : '');
+}
+async function montrerPageAliments() {
+  toutCacher(); $('vue-aliments').hidden = false; $('btn-burger').hidden = false;
+  $('liste-aliments').innerHTML = '';              // on arrive : tout fermé
+  if (!RAYONS.length) {                            // pas encore chargé → on charge (même patron que les bases)
+    $('liste-aliments').innerHTML = '<div class="texte-petit texte-pale">Chargement…</div>';
+    await chargerReferences();
+    $('liste-aliments').innerHTML = '';
+  }
+  remplirPageAliments();
+  expedierOrdre();                                 // un ordre d'endroits resté en attente repart
+}
+/* Une autre sous-catégorie choisie : instantané (la file des gestes, Produits col. C). La catégorie qui le reçoit s'ouvre : on le suit. */
+function assignerSousCat(pid, scid) {
+  const p = PRODUITS.find(x => String(x.id) === String(pid)), c = lireCache();
+  const row = c && (c.prods || []).find(r => String(r[0]) === String(pid));
+  if (!p || !row || !scid || String(p.catId) === String(scid)) { remplirPageAliments(true); return; }
+  const l = row.slice(); l[2] = scid;
+  poserGeste({ action: 'lignes', table: 'Produits', opId: 'scat-' + Date.now() + '-' + Math.random().toString(36).slice(2, 8), lignes: [l] });
+  p.catId = scid;
+  remplirPageAliments(false, { cat: rayonDe(scid), pid: pid });
+}
+/* La poubelle (un aliment dont il ne reste rien) : la question à la place de sa ligne. Rien ne bouge avant Oui. */
+function demanderRetraitAliment(pid) {
+  remplirPageAliments(true);                       // une seule question à la fois
+  const p = PRODUITS.find(x => String(x.id) === String(pid));
+  const acc = $('liste-aliments').querySelector('.aliment[data-id="' + esc(pid) + '"]');
+  if (!p || !acc) return;
+  acc.outerHTML = '<div class="accordeon-item accordeon-item-saisie" data-confirme><span>' + esc('Retirer ' + p.nom + ' ?') + '</span>' + ouiNon('a', pid) + '</div>';
+}
+/* Oui : Actif = N (Produits col. E), par la file des gestes — rien n'est effacé : l'historique (Sorties) le garde.
+   Il en est entré entre-temps (l'autre appareil) : on ne retire pas. */
+function retirerAliment(pid) {
+  const p = PRODUITS.find(x => String(x.id) === String(pid)), c = lireCache();
+  const row = c && (c.prods || []).find(r => String(r[0]) === String(pid));
+  if (!p || !row) { avis('Pas retiré — réessaie', 'erreur'); remplirPageAliments(true); return; }
+  if (STOCK.some(l => String(l[1]) === String(pid) && (Number(l[3]) || 0) > 0)) { avis('Il en reste : pas retiré', 'erreur'); remplirPageAliments(true); return; }
+  const l = row.slice(); l[4] = 'N';
+  poserGeste({ action: 'lignes', table: 'Produits', opId: 'reta-' + Date.now() + '-' + Math.random().toString(36).slice(2, 8), lignes: [l] });
+  PRODUITS.splice(PRODUITS.indexOf(p), 1);
+  remplirPageAliments(true);
+  avis('Retiré : ' + p.nom, 'succes');
+}
+
 /* Entrée dans une ligne « Nouveau… » (meuble, espace, catégorie, sous-catégorie) = son bouton Ajouter. */
 function entreeAjoute(ev) {
   if (ev.key !== 'Enter' || ev.target.tagName !== 'INPUT' || !ev.target.closest('.accordeon-item-saisie')) return;
@@ -1408,6 +1523,7 @@ function rafraichirBases() {
   remplirMeubles(true); remplirNoms(true);
   if (!$('vue-pieces').hidden) remplirPieces();
   if (!$('vue-categories').hidden) remplirPageCategories(true);
+  if (!$('vue-aliments').hidden) remplirPageAliments(true);
 }
 /* Une flèche touchée : l'ordre partira tout seul, DELAI_ORDRE après la dernière (cinq flèches de suite = un seul envoi).
    Quitter la page ou mettre l'app en veille l'envoie aussi, sans attendre. */
@@ -1435,8 +1551,8 @@ async function renommer(cle, nom) {
   const rows = c && T[1](c), row = rows && rows.find(r => String(r[0]) === String(id));
   if (!nom || !row || String(row[1]) === nom) { rafraichirBases(); return; }   // vide ou inchangé : rien à faire
   const liste = LISTES[T[0]];
-  const autre = liste && liste.find(y => String(y.id) !== String(id) && cleNom(y.nom) === cleNom(nom));
-  if (autre) { demanderReunion(cle, autre); return; }   // ce nom existe déjà dans la liste : les réunir ?
+  const autre = (type === 'a' ? PRODUITS : liste || []).find(y => String(y.id) !== String(id) && cleNom(y.nom) === cleNom(nom));
+  if (autre) { demanderReunion(cle, autre); return; }   // ce nom existe déjà (liste gérée ou aliment) : les réunir ?
   const ligne = row.slice(); ligne[1] = nom;
   montrerVoile(true);
   try {
@@ -1450,21 +1566,26 @@ async function renommer(cle, nom) {
     avis('Nom pas corrigé — réessaie', 'erreur');
   } finally { montrerVoile(false); rafraichirBases(); }
 }
-/* Un magasin, une marque ou une saveur renommé comme un autre qui existe déjà (« Libertee » -> « Liberté ») :
-   on propose de les RÉUNIR. Oui : tout ce qui était sous l'un passe sous l'autre (coffre-fort, action reunir). Non : rien ne change. */
+/* Un magasin, une marque, une saveur ou un aliment renommé comme un autre qui existe déjà (« Libertee » -> « Liberté ») :
+   on propose de les RÉUNIR. Oui : tout ce qui était sous l'un passe sous l'autre (coffre-fort, action reunir). Non : rien ne change.
+   Un aliment : la question prend la place de tout l'aliment (Gérer les bases → Aliments). */
 function demanderReunion(cle, autre) {
-  const btn = [...$('liste-noms').querySelectorAll('.crayon')].find(b => b.dataset.renommer === cle);
-  const item = btn && btn.closest('.accordeon-item');
+  const aliment = cle.charAt(0) === 'a';
+  const btn = [...$(aliment ? 'liste-aliments' : 'liste-noms').querySelectorAll('.crayon')].find(b => b.dataset.renommer === cle);
+  const item = btn && (aliment ? btn.closest('.aliment') : btn.closest('.accordeon-item'));
   if (!item) { rafraichirBases(); return; }
-  item.innerHTML = '<span>« ' + esc(autre.nom) + ' » existe déjà : les réunir ?</span>' +
+  const q = '<span>« ' + esc(autre.nom) + ' » existe déjà : les réunir ?</span>' +
     '<button class="bouton bouton-petit bouton-vert" type="button" data-reunir="' + esc(cle + '|' + autre.id) + '">Oui</button>' +
     '<button class="bouton bouton-petit" type="button" data-reunir-non>Non</button>';
+  if (aliment) item.outerHTML = '<div class="accordeon-item accordeon-item-saisie" data-confirme>' + q + '</div>';
+  else item.innerHTML = q;
 }
 async function reunirNoms(val) {
   const k = String(val).split('|'), cle = k[0], garde = k[1], T = TABLES_NOM[cle.charAt(0)], perdu = cle.slice(2);
   montrerVoile(true);
   try {
-    const r = await Coffre.reunir({ liste: T[0], garde: garde, perdu: perdu });
+    const r = cle.charAt(0) === 'a' ? await Coffre.reunirProduits({ garde: garde, perdu: perdu })   // ses lots, ses sorties, ses « Pas aimé »
+                                    : await Coffre.reunir({ liste: T[0], garde: garde, perdu: perdu });
     if (!r || !r.ok) throw new Error((r && r.erreur) || 'refus');
     await chargerReferences();                          // l'inventaire, les « Pas aimé », les listes : on relit, c'est plus sûr
     avis('Réunis', 'succes');
@@ -1605,33 +1726,15 @@ async function deplacerLot(lot, emp, q, fin) {
   if (modifs.length) poserGeste({ action: 'deplacer', opId: op, modifs: modifs, ajouts: ajouts });
   fin(true);
 }
-/* Catégories et Aliments, sous les pièces : chaque nom avec son crayon. */
+/* Magasins, Marques, Saveurs (en attendant leurs pages) : chaque nom avec son crayon. */
 function remplirNoms(garderOuverts) {
   const liste = $('liste-noms');
   const ouverts = garderOuverts ? [...liste.querySelectorAll('.accordeon-tete.ouvert')].map(t => t.parentElement.dataset.cle) : [];
   const acc = (cle, tete, corps) => '<div class="accordeon" data-cle="' + esc(cle) + '"><div class="accordeon-tete">' + tete + '</div><div class="accordeon-corps" hidden>' + corps + '</div></div>';
   const ligne = (cle, nom) => '<div class="accordeon-item"><span>' + esc(nom) + '</span>' + crayon(cle) + '</div>';
-  const pasAime = p => PAS_AIMES.filter(r => String(r[1]) === String(p.id)).map(r => {
-    const m = String(r[2] || '').trim(), sv = String(r[3] || '').trim();
-    return '<div class="accordeon-item"><span>Pas aimé : ' + esc([nomListe(m), nomListe(sv)].filter(Boolean).join(' ') || p.nom) + '</span>' +
-      '<button class="bouton bouton-petit" type="button" data-pas-aime="' + esc(p.id + '|' + m + '|' + sv) + '">Enlever</button></div>';
-  }).join('');
-  const aliment = p => ligne('a:' + p.id, p.nom) + htmlOrdreEndroits(p.id) + pasAime(p);
   const vide = t => '<div class="accordeon-item"><span class="texte-petit texte-pale">' + t + '</span></div>';
-  const classes = {};                                   // les aliments déjà rangés sous une sous-catégorie
-  let alim = RAYONS.map(r => {
-    const corps = (SOUSCATS[r.id] || []).map(sc => {
-      const ps = PRODUITS.filter(p => String(p.catId) === String(sc.id));
-      ps.forEach(p => { classes[p.id] = true; });
-      return ps.length ? '<div class="accordeon-item"><span class="texte-fort">' + esc(sc.nom) + '</span></div>' + ps.map(aliment).join('') : '';
-    }).join('');
-    return corps ? acc('a:' + r.id, esc(r.nom), corps) : '';
-  }).join('');
-  const seuls = PRODUITS.filter(p => !classes[p.id]);
-  if (seuls.length) alim += acc('a:', 'Sans catégorie', seuls.map(aliment).join(''));
-  const noms = (type, n) => LISTES[n].map(x => ligne(type + ':' + x.id, x.nom)).join('');   // magasins, marques, saveurs : un crayon chacun
-  liste.innerHTML = acc('alim', 'Aliments', alim || vide('Aucun aliment')) +
-    acc('mag', 'Magasins', noms('g', 'Magasins') || vide('Aucun magasin')) +
+  const noms = (type, n) => LISTES[n].map(x => ligne(type + ':' + x.id, x.nom)).join('');   // un crayon chacun
+  liste.innerHTML = acc('mag', 'Magasins', noms('g', 'Magasins') || vide('Aucun magasin')) +
     acc('mar', 'Marques', noms('q', 'Marques') || vide('Aucune marque')) +
     acc('sav', 'Saveurs', noms('v', 'Saveurs') || vide('Aucune saveur'));
   liste.querySelectorAll('.accordeon').forEach(a => {
@@ -2158,7 +2261,7 @@ async function enleverPasAime(btn) {
     avis('Pas enlevé — réessaie', 'erreur');
   } finally {
     if (c) ecrireCache(c);
-    montrerVoile(false); remplirNoms(true);
+    montrerVoile(false); remplirPageAliments(true);
   }
 }
 /* Le scan de la recherche : un code à nous -> son écran de rayon; sinon « Tu n'en as pas », avec le nom d'Open Food Facts. */
@@ -2397,7 +2500,7 @@ function monterEndroit(cle, sens) {
   ends[j] = ends[j + sens]; ends[j + sens] = emp;
   p.ordre = ends.join(',');
   ordreModifie['a:' + pid] = true;
-  remplirNoms(true);
+  remplirPageAliments(true);
   planifierOrdre();
 }
 
@@ -2565,7 +2668,7 @@ function initEntree() {
   $('menu-bases').addEventListener('click', () => montrerGrilleMenu('bases'));
   $('menu-bases-retour').addEventListener('click', () => montrerGrilleMenu('outils'));
   // les 8 bases : chacune ouvre sa page; celles pas encore bâties ouvrent Gérer les bases au complet (accord de J-C)
-  const PAGES_BASES = { pieces: montrerPieces, meubles: montrerMeubles, categories: montrerPageCategories };
+  const PAGES_BASES = { pieces: montrerPieces, meubles: montrerMeubles, categories: montrerPageCategories, aliments: montrerPageAliments };
   document.querySelectorAll('[data-base]').forEach(b => b.addEventListener('click', PAGES_BASES[b.dataset.base] || montrerBases));
   $('menu-couleurs').addEventListener('click', montrerCouleurs);
   // le menu mène exactement où mènent les 4 boutons de l'accueil
@@ -2646,14 +2749,35 @@ function initEntree() {
     const tete = ev.target.closest('.accordeon-tete');
     if (tete) toggleAccordeon(tete);
   });
-  $('liste-noms').addEventListener('click', function (ev) {   // catégories et aliments : le crayon, ou plier/déplier
+  // Gérer les bases → Aliments
+  $('aliments-retour').addEventListener('click', () => { ouvrirMenu(); montrerGrilleMenu('bases'); });   // le menu, sur la grille des 8 bases
+  $('liste-aliments').addEventListener('change', function (ev) {   // une autre sous-catégorie
+    const sel = ev.target.closest('.choix-souscat');
+    if (sel) assignerSousCat(sel.dataset.aliment, sel.value);
+  });
+  $('liste-aliments').addEventListener('click', function (ev) {
+    const oui = ev.target.closest('[data-retirer-oui]');   // « Retirer … ? » Oui
+    if (oui) { retirerAliment(oui.dataset.retirerOui.split('|')[1]); return; }
+    const ru = ev.target.closest('[data-reunir]');         // « … existe déjà : les réunir ? » Oui
+    if (ru) { reunirNoms(ru.dataset.reunir); return; }
+    if (ev.target.closest('[data-retirer-non], [data-reunir-non]')) { remplirPageAliments(true); return; }
+    const pas = ev.target.closest('[data-pas-aime]');      // « Pas aimé » : Enlever
+    if (pas) { enleverPasAime(pas); return; }
+    const pb = ev.target.closest('.retirer');              // avant la tête : la poubelle, le crayon et les flèches n'ouvrent ni ne ferment rien
+    if (pb) { demanderRetraitAliment(pb.dataset.retirer.split('|')[1]); return; }
+    const cr = ev.target.closest('.crayon');
+    if (cr) { ouvrirRenommer(cr); return; }
     const fl = ev.target.closest('.fleche');               // l'ordre des endroits d'un aliment
     if (fl) { if (!fl.classList.contains('fleche-eteinte')) monterEndroit(fl.dataset.id, Number(fl.dataset.sens)); return; }
+    const tete = ev.target.closest('.aliment-tete, .accordeon-tete');
+    if (!tete) return;
+    if (tete.classList.contains('aliment-tete')) remplirCorpsAliment(tete);
+    toggleAccordeon(tete);
+  });
+  $('liste-noms').addEventListener('click', function (ev) {   // magasins, marques, saveurs : le crayon, ou plier/déplier
     const ru = ev.target.closest('[data-reunir]');         // « … existe déjà : les réunir ? » Oui
     if (ru) { reunirNoms(ru.dataset.reunir); return; }
     if (ev.target.closest('[data-reunir-non]')) { rafraichirBases(); return; }
-    const pas = ev.target.closest('[data-pas-aime]');      // « Pas aimé » : Enlever
-    if (pas) { enleverPasAime(pas); return; }
     const cr = ev.target.closest('.crayon');
     if (cr) { ouvrirRenommer(cr); return; }
     const tete = ev.target.closest('.accordeon-tete');
@@ -2738,12 +2862,14 @@ async function retourDansApp() {
   if (!$('vue-app').hidden) return;   // une saisie en cours : on ne touche à rien
   await chargerReferences();
   if (!$('vue-listes').hidden && !document.querySelector('#liste-inventaire .endroit')) remplirInventaire();   // pas pendant un rangement
-  if (!$('vue-bases').hidden && !Object.keys(ordreModifie).length && !document.querySelector('.champ-renommer, #liste-noms .endroit')) rafraichirBases();   // pas pendant une correction de nom ou d'endroit
+  if (!$('vue-bases').hidden && !Object.keys(ordreModifie).length && !document.querySelector('.champ-renommer')) rafraichirBases();   // pas pendant une correction de nom
   if (!$('vue-pieces').hidden && !Object.keys(ordreModifie).length && !document.querySelector('.champ-renommer')) remplirPieces();
   const saisieMeubles = [...$('liste-meubles').querySelectorAll('input')].some(i => i.value) || $('liste-meubles').querySelector('.champ-renommer, [data-confirme]');
   if (!$('vue-meubles').hidden && !Object.keys(ordreModifie).length && !saisieMeubles) remplirMeubles(true);   // pas pendant une saisie ni une question
   const saisieCats = [...$('liste-categories').querySelectorAll('input')].some(i => i.value) || $('liste-categories').querySelector('.champ-renommer, [data-confirme]');
   if (!$('vue-categories').hidden && !Object.keys(ordreModifie).length && !saisieCats) remplirPageCategories(true);
+  const saisieAliments = $('liste-aliments').querySelector('.champ-renommer, [data-confirme]');
+  if (!$('vue-aliments').hidden && !Object.keys(ordreModifie).length && !saisieAliments) remplirPageAliments(true);   // pas pendant un nom ni une question
 }
 
 document.addEventListener('DOMContentLoaded', initEntree);
