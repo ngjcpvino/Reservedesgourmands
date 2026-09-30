@@ -1026,6 +1026,10 @@ async function enregistrer() {
       const c2 = lireCache(); if (c2) { (c2.stock = c2.stock || []).push(ligne.slice()); ecrireCache(c2); }
     });
     memoriserVariante(produitId, marque, format, endroits, saveur);   // marque/saveur/format/emplacements à jour tout de suite
+    if (code) {                                            // son code est à nous tout de suite : le scanner de Consommer le reconnaît sans relire
+      CODES[String(code)] = produitId;
+      const c3 = lireCache(); if (c3) { (c3.codes = c3.codes || {})[String(code)] = produitId; ecrireCache(c3); }
+    }
     nettoyerAchats(produitId, marque, saveur);           // entré : il quitte la liste d'achats
     opCourant = null;                                      // succès : le prochain article aura un nouveau jeton
     statut('Article ajouté ✓', 'succes');
@@ -2646,7 +2650,8 @@ async function chercherParCode(code) {
   let d = null;
   if (typeof window.chercherOFF === 'function') { try { d = await window.chercherOFF(code); } catch (e) {} }
   if (jeton !== rechercheJeton || $('vue-recherche').hidden) return;   // il est passé à autre chose entre-temps
-  const connu = d && d.nom && trouverProduitParNom(d.nom);             // le code n'est pas noté, mais le nom est à nous
+  const nomOFF = d && (d.nom || d.nomAutre);
+  const connu = nomOFF && trouverProduitParNom(nomOFF);                // le code n'est pas noté, mais le nom est à nous
   if (connu) { montrerRayon(connu.id); return; }
   const trouve = !!(d && d.trouve);
   const nomLu = trouve ? (d.nom || d.nomAutre || '') : '';   // pas de nom français : l'anglais (comme la fiche, qui le fait corriger)
