@@ -37,6 +37,8 @@
 
 **L'ordre au magasin = l'ordre des catégories, tel que J-C les a classées** (J-C : « comme j'ai classé les catégories ») — la page Catégories et ses flèches, puis les sous-catégories dans leur ordre, puis les aliments. ⚠️ Ça **remplace, pour l'instant**, les « sections de magasin posées sur le produit » de RdG-03 (section 4) : rien à remplir aliment par aliment. Si à l'usage une catégorie tombe mal dans les allées (le pain à deux places), on en reparle.
 
+**UNE seule « Liste d'achats » (choix B)** : elle **remplace** les deux accordéons vides « Stock épuisé » et « Réserve vide » de la page Listes. Triée par catégories; les aliments en réserve vide y sont marqués **« pas pressé »**; ceux ajoutés à la main y vont aussi. Au magasin, tout est au même endroit, dans l'ordre des allées, et on voit passer un « pas pressé » quand on est devant (surtout s'il est en spécial). (A, deux listes séparées, écarté.)
+
 ## 3. QUESTIONS OUVERTES (une à la fois)
 
 - Où vit la liste dans l'app, et à quoi elle ressemble (aperçu d'abord).
