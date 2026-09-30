@@ -119,7 +119,6 @@ function toutCacher() {
   $('vue-bases').hidden = true;
   $('vue-pieces').hidden = true;
   $('vue-meuble').hidden = true;
-  $('vue-piece').hidden = true;
   const vs = $('vue-scan'); if (vs) vs.hidden = true;
   if (window.stopScanner) window.stopScanner();   // coupe la caméra en quittant la vue scan
   $('btn-burger').hidden = true;   // burger caché par défaut ; ré-affiché sur accueil + choix + bases
@@ -169,7 +168,6 @@ function montrerMeuble() {
   $('meuble-piece').innerHTML = optionsPieces('');   // chaque meuble part sans pièce choisie (J-C : la pièce d'avant ne reste pas)
   $('meuble-palette').innerHTML = htmlPalette(couleurNouveau);
 }
-function montrerPiece()  { toutCacher(); $('vue-piece').hidden = false; $('piece-msg').textContent = ''; }
 function montrerChoixQuoi()    { toutCacher(); $('vue-choix-quoi').hidden = false; $('btn-burger').hidden = false; $('btn-rechercher').hidden = false; $('entete-photo').hidden = false; }
 async function montrerListes() {
   toutCacher(); $('vue-listes').hidden = false; $('btn-burger').hidden = false;
@@ -1051,26 +1049,6 @@ async function enregistrerMeuble() {
   } catch (e) {
     msg.className = 'message message-erreur'; msg.textContent = 'Échec : ' + e.message;
   } finally { $('btn-meuble-enr').disabled = false; montrerVoile(false); }
-}
-
-/* Ajouter une pièce (= un emplacement dont le parent est le SECTEUR). */
-async function enregistrerPiece() {
-  const nom = $('piece-nom').value.trim();
-  const msg = $('piece-msg');
-  if (!nom) { msg.className = 'message message-erreur'; msg.textContent = 'Donne un nom à la pièce.'; return; }
-  msg.className = 'message'; msg.textContent = 'Enregistrement…';
-  $('btn-piece-enr').disabled = true;
-  montrerVoile(true);
-  try {
-    const r = await Coffre.ajouter('Emplacements', ['', nom, SECTEUR_ID, SECTEUR_ID, 'O', '']);
-    if (!r || !r.ok) throw new Error((r && r.erreur) || 'refus');
-    PIECES.push({ id: r.id, nom: nom });
-    const c = lireCache(); if (c) { (c.emps = c.emps || []).push([r.id, nom, SECTEUR_ID, SECTEUR_ID, 'O', '']); ecrireCache(c); }
-    msg.className = 'message message-succes'; msg.textContent = 'Pièce ajoutée ✓';
-    $('piece-nom').value = '';
-  } catch (e) {
-    msg.className = 'message message-erreur'; msg.textContent = 'Échec : ' + e.message;
-  } finally { $('btn-piece-enr').disabled = false; montrerVoile(false); }
 }
 
 /* Assigner (ou retirer) la pièce d'un meuble = changer son ParentID. */
@@ -2261,12 +2239,12 @@ function htmlPalette(choisi) {
       '" style="background:var(--' + nom + ')" aria-label="' + esc(libelle) + '"></button>';
   }).join('');
 }
-/* Une pièce ou un meuble : pastille + nom + son numéro. La toucher ouvre la palette juste dessous. */
-function htmlLigneChoix(x, fort) {
+/* Un meuble : pastille + nom + son numéro. La toucher ouvre la palette juste dessous. */
+function htmlLigneChoix(x) {
   const n = numeroCouleur(x.couleur), teinte = couleurDe(x.couleur);
   return '<div class="accordeon-item accordeon-item-saisie couleur-choix" data-choix="' + esc(x.id) + '">' +
     '<span class="pastille"' + (teinte ? ' style="background:' + esc(teinte) + '"' : '') + '></span>' +
-    '<span class="couleur-nom' + (fort ? ' texte-fort' : '') + '">' + esc(x.nom) +
+    '<span class="couleur-nom">' + esc(x.nom) +
       '<span class="couleur-usage">' + (n ? 'Couleur ' + n : 'aucune couleur') + '</span></span>' +
   '</div><div class="palette" data-palette="' + esc(x.id) + '" hidden></div>';
 }
@@ -2295,14 +2273,14 @@ function remplirCouleurs(garderOuverts) {
     a.children[1].hidden = false;
   });
 }
-/* Toucher une pièce ou un meuble ouvre sa palette (une seule à la fois); toucher une pastille la choisit. */
+/* Toucher un meuble ouvre sa palette (une seule à la fois); toucher une pastille la choisit. */
 function surChoixCouleur(ev) {
   const ligne = ev.target.closest('[data-choix]');
   if (ligne) {
     const pal = ligne.nextElementSibling, ouvrir = pal.hidden;
     $('liste-couleurs').querySelectorAll('.palette').forEach(p => { p.hidden = true; p.innerHTML = ''; });
     if (ouvrir) {
-      const x = PIECES.concat(MEUBLES).find(y => String(y.id) === ligne.dataset.choix);
+      const x = MEUBLES.find(y => String(y.id) === ligne.dataset.choix);
       pal.innerHTML = htmlPalette(x ? numeroCouleur(x.couleur) : '');
       pal.hidden = false;
     }
@@ -2311,7 +2289,7 @@ function surChoixCouleur(ev) {
   const b = ev.target.closest('.pastille-choix');
   if (!b) return;
   const id = b.closest('[data-palette]').dataset.palette;
-  const x = PIECES.concat(MEUBLES).find(y => String(y.id) === id);
+  const x = MEUBLES.find(y => String(y.id) === id);
   if (x) x.couleur = b.dataset.num;
   couleursModif.meubles[id] = b.dataset.num;          // pièces et meubles : la même colonne Couleur d'Emplacements
   remplirCouleurs(true);
@@ -2468,9 +2446,6 @@ function initEntree() {
   });
   $('btn-meuble-enr').addEventListener('click', enregistrerMeuble);
   $('meuble-annuler').addEventListener('click', montrerBases);
-  $('btn-ajout-piece').addEventListener('click', montrerPiece);
-  $('btn-piece-enr').addEventListener('click', enregistrerPiece);
-  $('piece-annuler').addEventListener('click', montrerBases);
   // changer la pièce d'un meuble (menu déroulant généré)
   $('liste-meubles').addEventListener('change', function (ev) {
     const sel = ev.target.closest('.choix-piece');
@@ -2576,7 +2551,7 @@ function initEntree() {
 async function retourDansApp() {
   if (!Coffre.motDePasse()) return;
   if (Date.now() - dernierChargement < FRAICHEUR) return;
-  if (!$('vue-app').hidden || !$('vue-meuble').hidden || !$('vue-piece').hidden) return;   // une saisie en cours : on ne touche à rien
+  if (!$('vue-app').hidden || !$('vue-meuble').hidden) return;   // une saisie en cours : on ne touche à rien
   await chargerReferences();
   if (!$('vue-listes').hidden && !document.querySelector('#liste-inventaire .endroit')) remplirInventaire();   // pas pendant un rangement
   if (!$('vue-bases').hidden && !Object.keys(ordreModifie).length && !document.querySelector('.champ-renommer, #liste-noms .endroit')) rafraichirBases();   // pas pendant une correction de nom ou d'endroit
