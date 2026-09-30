@@ -1979,6 +1979,7 @@ function remplirInventaire() {
 var retourRecherche = montrerAccueil;   // où ramène le Retour : l'écran d'où l'on a touché la loupe
 var rechercheJeton = 0;                 // un scan plus ancien qui répond en retard ne remplace pas l'écran
 var modeRecherche = '';                 // '' = Rechercher · 'deplacer' · 'consommer' : le même écran, le lot touché fait le geste
+var sorteScannee = null;                // Consommer, Déplacer : la boîte scannée { pid, sortes: [{ marque, saveur, format }] } — elle seule à l'écran
 const TITRES_RECHERCHE = { '': 'Rechercher', deplacer: 'Déplacer', consommer: 'Consommer' };
 const RETOURS = { 'vue-accueil': () => montrerAccueil(), 'vue-choix-quoi': () => montrerChoixQuoi(),
                   'vue-listes': () => montrerListes(), 'vue-couleurs': () => montrerCouleurs() };
@@ -1989,6 +1990,7 @@ function montrerRecherche(depuis) {
     if ($('vue-recherche').hidden) retourRecherche = ici ? RETOURS[ici] : montrerAccueil;   // la fiche en cours ne se rouvre pas vide : l'accueil
     $('recherche-texte').value = '';
   }
+  sorteScannee = null;                             // le champ revient : la prochaine recherche part de tout l'aliment
   toutCacher(); $('vue-recherche').hidden = false; $('btn-burger').hidden = false;
   montrer('recherche-saisie', true); montrer('recherche-rayon', false);
   $('recherche-titre').textContent = TITRES_RECHERCHE[modeRecherche];
@@ -2060,6 +2062,39 @@ function nomCategorie(id) {
   const c = toutes.find(x => String(x.id) === String(id));
   return c ? c.nom : '';
 }
+/* ---------- Le scan dans Consommer et Déplacer : la sorte qu'on tient ----------
+   Une sorte = même marque, même saveur, même format (J-C, 2026-09-30 : deux boîtes de café, deux codes).
+   Les sortes d'un code : les lignes de STOCK qui le portent (même vides : un pack entamé change de format, pas de code).
+   Un format en unités (« 6 unité », le reste « 5 unité ») est la même sorte, quel que soit le nombre. */
+function codeNu(c) { return String(c || '').trim().replace(/^0+/, ''); }   // le 0 du début : mangé par le Sheet, remis ou pas
+function sortesDuCode(code) {
+  const nu = codeNu(code), sortes = [];
+  if (!nu) return sortes;
+  STOCK.forEach(l => {
+    if (codeNu(l[8]) !== nu) return;
+    const s = { marque: String(l[5] || '').trim(), saveur: String(l[9] || '').trim(), format: String(l[6] || '').trim() };
+    if (!sortes.some(x => x.marque === s.marque && x.saveur === s.saveur && memeFormat(x.format, s.format))) sortes.push(s);
+  });
+  return sortes;
+}
+function memeFormat(a, b) { return a === b || (nbUnites(a) > 0 && nbUnites(b) > 0); }
+function sorteColle(marque, saveur, format) {
+  return !!sorteScannee && sorteScannee.sortes.some(s => s.marque === marque && s.saveur === saveur && memeFormat(s.format, format));
+}
+/* Les lots à montrer pour la boîte scannée (les autres deviennent des trous : l'index d'un lot reste le sien), et leur total.
+   null = pas de filtre : pas scanné, un autre aliment, ou il ne reste rien de cette sorte (on montre alors les autres). */
+function filtreSorte(prod, lots) {
+  if (!sorteScannee || !modeRecherche || sorteScannee.pid !== String(prod.id)) return null;
+  let total = 0;
+  const garde = lots.map(l => {
+    if (modeRecherche === 'deplacer' && !l.emp) return null;            // Déplacer ne montre pas ce qui n'est pas encore rangé
+    const q = lignesDuLot(l).filter(r => sorteColle(l.marque, l.saveur, String(r[6] || '').trim()))
+                            .reduce((s, r) => s + (Number(r[3]) || 0), 0);
+    total += q;
+    return q > 0 ? l : null;
+  });
+  return total > 0 ? { lots: garde, total: total } : null;
+}
 /* L'écran de rayon : l'aliment en gros (où, combien, ce qui n'est pas encore rangé), puis ses voisins.
    Toucher un voisin le fait passer en gros, sur le même écran. */
 function montrerRayon(pid, sansDefiler) {
@@ -2069,12 +2104,14 @@ function montrerRayon(pid, sansDefiler) {
   if ($('vue-recherche').hidden) { toutCacher(); $('vue-recherche').hidden = false; $('btn-burger').hidden = false; }
   $('recherche-texte').blur();                     // le clavier se ferme : on regarde
   const par = lotsParProduit();
-  const lots = par[prod.id] || [], total = totalLots(lots);
+  let lots = par[prod.id] || [], total = totalLots(lots);
+  const sorte = filtreSorte(prod, lots);           // scanné dans Consommer ou Déplacer : la boîte qu'on tient, seule
+  if (sorte) { lots = sorte.lots; total = sorte.total; }
   let corps;
   if (!total) corps = htmlVide('Tu n\'en as plus', '', modeRecherche ? '' : 'data-ajouter-produit="' + esc(prod.id) + '"');
   else if (modeRecherche === 'deplacer') corps = htmlLotsParEndroit(prod, lots, true, (l, i) => htmlLigneLot(prod, l, 'data-bouger="' + esc(prod.id) + '|' + i + '"'))
                                             || htmlVide('Rien à déplacer', 'Tout est encore à ranger', '');
-  else if (modeRecherche === 'consommer') corps = htmlLotsParEndroit(prod, lots, false, (l, i) => htmlPartsConsommer(prod, l, i));
+  else if (modeRecherche === 'consommer') corps = htmlLotsParEndroit(prod, lots, false, (l, i) => htmlPartsConsommer(prod, l, i, !!sorte));
   else corps = htmlLotsParEndroit(prod, lots, false, l => htmlLigneLot(prod, l, ''));
   if (!modeRecherche) corps += htmlPasAimes(prod);   // au magasin : ce qu'on n'a pas aimé, même quand on n'en a plus
   let html = '<div class="vedette"><div class="vedette-tete"><span>' + esc(prod.nom) + '</span><span>' + esc(total) + '</span></div>' +
@@ -2094,7 +2131,7 @@ function montrerRayon(pid, sansDefiler) {
 function htmlLotsParEndroit(prod, lots, sansTransit, ligne) {
   const endroits = [];
   lots.forEach((l, i) => {
-    if (sansTransit && !l.emp) return;
+    if (!l || (sansTransit && !l.emp)) return;     // un trou : un lot écarté par le scan garde la place de son index
     let e = endroits.find(x => x.emp === l.emp);
     if (!e) endroits.push(e = { emp: l.emp, lots: [] });
     e.lots.push({ l: l, i: i });
@@ -2203,10 +2240,10 @@ function partsDuLot(lot) {
   return parts;
 }
 function libellePart(p) { return p.unites ? (p.pack > 1 ? 'à l\'unité · pack de ' + p.pack : 'à l\'unité') : p.format; }
-function htmlPartsConsommer(prod, l, i) {
+function htmlPartsConsommer(prod, l, i, scanne) {
   const nom = [nomListe(l.marque), nomListe(l.saveur)].filter(Boolean).join(' ') || prod.nom;
   const pas = estPasAime(prod.id, l.marque, l.saveur);
-  return partsDuLot(l).map(p => {
+  return partsDuLot(l).filter(p => !scanne || sorteColle(l.marque, l.saveur, p.format)).map(p => {
     const detail = [libellePart(p), pas ? 'Pas aimé' : ''].filter(Boolean).join(' · ');
     return '<div class="item" data-consommer="' + esc(prod.id + '|' + i + '|' + p.cle) + '"><div class="item-info"><div class="item-nom">' + esc(nom) + '</div>' +
       (detail ? '<div class="item-detail">' + esc(detail) + '</div>' : '') + '</div><span class="item-quantite">' + esc(p.qte) + '</span></div>';
@@ -2644,7 +2681,10 @@ async function chercherParCode(code) {
   $('recherche-texte').value = '';
   montrerRecherche(false);
   const pid = CODES[code];
-  if (pid && PRODUITS.some(p => String(p.id) === String(pid))) { montrerRayon(pid); return; }
+  if (pid && PRODUITS.some(p => String(p.id) === String(pid))) {
+    if (modeRecherche) sorteScannee = { pid: String(pid), sortes: sortesDuCode(code) };   // Consommer, Déplacer : la boîte qu'on tient
+    montrerRayon(pid); return;
+  }
   const jeton = ++rechercheJeton;
   $('recherche-resultats').innerHTML = htmlVide('', 'Recherche du produit…');
   let d = null;
