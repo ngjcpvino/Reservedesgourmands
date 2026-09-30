@@ -57,6 +57,7 @@ const Coffre = {
   reunir(charge)            { return this.appel(Object.assign({}, charge, { action: 'reunir' })); },      // deux noms d'une liste n'en font plus qu'un
   reunirProduits(charge)    { return this.appel(Object.assign({}, charge, { action: 'reunirProduits' })); },   // deux aliments n'en font plus qu'un (lots, sorties, « Pas aimé »)
   pasAime(charge)           { return this.appel(Object.assign({ action: 'pasAime' }, charge)); },     // retirer un « Pas aimé »
+  achats(charge)            { return this.appel(Object.assign({}, charge, { action: 'achats' })); },  // la liste d'achats : des lignes écrites par ID (rejouable)
 
   // Enregistre le mot de passe et vérifie qu'il est bon.
   async connexion(m) {

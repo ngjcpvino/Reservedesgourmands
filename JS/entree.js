@@ -88,6 +88,10 @@ var COULEURS = [];                                  // lignes de l'onglet Couleu
 var PAS_AIMES = [];                                 // onglet PasAimes : [ID, ProduitID, Marque, Saveur, Date, Qui] — « Ne pas racheter », pour la maison
 const ATTENTE_GESTES = 'rdg_consos_attente';        // consommations et déplacements pas encore confirmés, dans l'ordre (le nom date de Consommer seul)
 var envoiGestes = false;                            // la file des gestes est en route
+var ACHATS = [];                                    // onglet Achats : [ID, ProduitID, Marque, Saveur, Etat, Date, Qui, Actif] — la liste d'achats
+const ATTENTE_ACHATS = 'rdg_achats_attente';        // ce qui a été coché, ajouté, mis de côté, pas encore confirmé
+var envoiAchats = false;                            // la file de la liste d'achats est en route
+var nomScanne = '';                                 // un code inconnu scanné pour la liste : son nom (Open Food Facts), prêt pour « Nouvel aliment… »
 var couleursModif = { site: {}, meubles: {} };      // changées à l'écran, pas encore envoyées
 var envoiCouleurs = false;                          // un envoi de couleurs est en route
 var dernierChargement = 0;                          // quand les listes ont été relues (pour ne pas appeler pour rien)
@@ -111,6 +115,7 @@ function toutCacher() {
   $('vue-categories').hidden = true;
   $('vue-aliments').hidden = true;
   $('vue-noms').hidden = true;
+  $('vue-achats').hidden = true;
   const vs = $('vue-scan'); if (vs) vs.hidden = true;
   if (window.stopScanner) window.stopScanner();   // coupe la caméra en quittant la vue scan
   $('btn-burger').hidden = true;   // burger caché par défaut ; ré-affiché sur accueil + choix + bases
@@ -365,6 +370,7 @@ function appliquer(d) {
   STOCK = d.stock || [];
   COULEURS = d.couleurs || [];                        // [ID, SecteurID, Nom, Valeur]
   PAS_AIMES = d.pasAimes || [];
+  ACHATS = d.achats || [];
   // une couleur pas encore confirmée (attente) ou en cours d'essai (écran) l'emporte sur le Sheet
   const cm = Object.assign({}, lireAttenteCouleurs().meubles, couleursModif.meubles);
   PIECES.concat(MEUBLES).forEach(m => { if (cm[m.id] !== undefined) m.couleur = cm[m.id]; });
@@ -385,10 +391,13 @@ async function chargerReferences() {
     poserOrdresCats(data.cats, lireAttenteCats());            // idem pour l'ordre des catégories
     data.stock = data.stock || []; data.pasAimes = data.pasAimes || [];
     lireAttenteGestes().forEach(e => appliquerGeste(e, data));   // idem : un geste en route reste fait
+    data.achats = data.achats || [];
+    lireAttenteAchats().forEach(e => poserLignesAchats(e.lignes, data.achats));   // idem pour la liste d'achats
     appliquer(data); ecrireCache(data); remplirListes(); statut('');
     expedierOrdre();                              // le réseau répond : on en profite pour renvoyer l'attente
     expedierCouleurs();                           // idem pour les couleurs (sinon un appareil garde les siennes)
     expedierGestes();                             // idem pour les consommations
+    expedierAchats();                             // idem pour la liste d'achats
     return true;
   } catch (e) {
     if (e.message === 'non autorisé') { Coffre.oublier(); revenirConnexion('Mot de passe refusé.'); return false; }
@@ -406,7 +415,7 @@ async function chargerData() {
   for (let i = 0; i < 3; i++) {
     try {
       const r = await Coffre.references();
-      if (r && r.ok && r.categories !== undefined) return { cats: r.categories, emps: r.emplacements, prods: r.produits, stock: r.stock, variantes: r.variantes, codes: r.codes, couleurs: r.couleurs, listes: r.listes, pasAimes: r.pasAimes };
+      if (r && r.ok && r.categories !== undefined) return { cats: r.categories, emps: r.emplacements, prods: r.produits, stock: r.stock, variantes: r.variantes, codes: r.codes, couleurs: r.couleurs, listes: r.listes, pasAimes: r.pasAimes, achats: r.achats };
       if (r && r.erreur === 'non autorisé') throw new Error('non autorisé');   // inutile de réessayer
       err = new Error((r && r.erreur) || 'refus'); err.refus = true;          // le coffre-fort a répondu, mais pas oui
     } catch (e) { if (e.message === 'non autorisé') throw e; err = e; }
@@ -1005,6 +1014,7 @@ async function enregistrer() {
       const c2 = lireCache(); if (c2) { (c2.stock = c2.stock || []).push(ligne.slice()); ecrireCache(c2); }
     });
     memoriserVariante(produitId, marque, format, endroits, saveur);   // marque/saveur/format/emplacements à jour tout de suite
+    nettoyerAchats(produitId, marque, saveur);           // entré : il quitte la liste d'achats
     opCourant = null;                                      // succès : le prochain article aura un nouveau jeton
     statut('Article ajouté ✓', 'succes');
     reinit();
@@ -2355,6 +2365,239 @@ function idLocal() {
   return v('year') + v('month') + v('day') + v('hour') + v('minute') + v('second') +
     String(Date.now() % 1000).padStart(3, '0') + '-' + Math.random().toString(36).slice(2, 7);
 }
+/* ---------- LA LISTE D'ACHATS (point 5) — décisions de J-C, 2026-09-30 (docs/RdG-06) ----------
+   Ce qui MANQUE se calcule tout seul depuis STOCK, par aliment + marque + saveur :
+   · il n'en reste plus (zéro partout, rangé ou pas);
+   · « pas pressé » : l'aliment a au moins 2 endroits habituels, et tout ce qui reste est à l'emplacement 1 (la réserve est vide).
+   Un « Pas aimé » à zéro : la ligne dit seulement l'aliment — s'il n'en reste plus du tout, et si aucune autre sorte n'y est déjà.
+   Ce qui S'ÉCRIT (onglet Achats, ID donné ici, jamais effacé : Actif = N) : « coche » (dans le panier), « main » (ajouté à la main,
+   l'aliment seul), « plustard » (la poubelle d'un aliment venu tout seul : il ne revient qu'au prochain passage à zéro).
+   Une ENTRÉE nettoie tout ça (nettoyerAchats) : l'aliment quitte la liste quand on l'entre, jamais quand on le coche. */
+const cleAchat = (pid, m, s) => [pid, m, s].map(v => String(v == null ? '' : v).trim()).join('|');
+const achatActif = r => String(r[7]) !== 'N';
+const ligneAchat = (pid, m, s, etat) => [idLocal(), String(pid), m || '', s || '', etat, dateDuJour(), localStorage.getItem(QUI) || '', 'O'];
+/* Ce qui est sur la liste : [{ cle, pid, marque, saveur, auto: '' | 'zero' | 'pas', main, coche }]. */
+function lignesAchats() {
+  const actifs = ACHATS.filter(achatActif);
+  const a = (k, etat) => actifs.some(r => r[4] === etat && cleAchat(r[1], r[2], r[3]) === k);
+  const existe = pid => PRODUITS.some(p => String(p.id) === String(pid));   // un aliment retiré : plus rien à racheter
+  const combos = {}, totalAliment = {};
+  STOCK.forEach(l => {
+    const pid = String(l[1]), m = String(l[5] || '').trim(), sv = String(l[9] || '').trim(), k = cleAchat(pid, m, sv);
+    const x = combos[k] = combos[k] || { pid: pid, marque: m, saveur: sv, total: 0, emps: {} };
+    const q = Number(l[3]) || 0;
+    if (q > 0) { x.total += q; x.emps[String(l[2] || '')] = true; }
+    totalAliment[pid] = (totalAliment[pid] || 0) + Math.max(q, 0);
+  });
+  const items = {}, pasAimes = {};
+  const mettre = (pid, m, sv, quoi) => {
+    const k = cleAchat(pid, m, sv);
+    const it = items[k] = items[k] || { cle: k, pid: String(pid), marque: m, saveur: sv, auto: '', main: false };
+    if (quoi === 'main') it.main = true; else it.auto = quoi;
+  };
+  Object.values(combos).forEach(x => {
+    if (!existe(x.pid)) return;
+    if (estPasAime(x.pid, x.marque, x.saveur)) { pasAimes[x.pid] = true; return; }   // vu après les autres sortes
+
+    let quoi = '';
+    if (!x.total) quoi = 'zero';
+    else {
+      const hab = endroitsHabituels(x.pid).filter(e => resoudreEmp(e));
+      if (hab.length >= 2 && Object.keys(x.emps).every(e => e === String(hab[0]))) quoi = 'pas';
+    }
+    if (quoi && !a(cleAchat(x.pid, x.marque, x.saveur), 'plustard')) mettre(x.pid, x.marque, x.saveur, quoi);
+  });
+  // un « Pas aimé » : « il manque du yogourt », sans la marque ni la saveur — s'il n'en reste plus du tout,
+  // et si aucune autre sorte de cet aliment n'est déjà sur la liste (elle le dit déjà)
+  Object.keys(pasAimes).forEach(pid => {
+    if (!totalAliment[pid] && !Object.values(items).some(it => it.pid === pid) && !a(cleAchat(pid, '', ''), 'plustard')) mettre(pid, '', '', 'zero');
+  });
+  actifs.forEach(r => { if (r[4] === 'main' && existe(r[1])) mettre(r[1], '', '', 'main'); });
+  return Object.values(items).map(it => Object.assign(it, { coche: a(it.cle, 'coche') }));
+}
+/* La page : dans l'ordre des catégories (comme J-C les a classées), puis des sous-catégories; les aliments par nom.
+   Tout est ouvert. « Sans catégorie » au bout (brune). */
+function remplirAchats() {
+  const items = lignesAchats();
+  const nomDe = pid => (PRODUITS.find(p => String(p.id) === String(pid)) || {}).nom || '';
+  const detail = it => [nomListe(it.marque), nomListe(it.saveur)].filter(Boolean).join(' ');
+  const tri = (x, y) => nomDe(x.pid).localeCompare(nomDe(y.pid), 'fr') || detail(x).localeCompare(detail(y), 'fr');
+  const ligne = it => {
+    const d = [];
+    if (detail(it)) d.push(esc(detail(it)));
+    if (it.auto === 'pas' && !it.main) d.push('<span class="achat-pas">pas pressé</span>');
+    return '<div class="item achat' + (it.coche ? ' achat-coche' : '') + '" data-achat="' + esc(it.cle) + '">' +
+      '<input class="case" type="checkbox" tabindex="-1"' + (it.coche ? ' checked' : '') + '>' +
+      '<div class="item-info"><div class="item-nom">' + esc(nomDe(it.pid)) + '</div>' + (d.length ? '<div class="item-detail">' + d.join(' · ') + '</div>' : '') + '</div>' +
+      '<button class="retirer" type="button" data-achat-retirer="' + esc(it.cle) + '" aria-label="Enlever de la liste"></button></div>';
+  };
+  const groupe = (nom, lignes, cls) => lignes.length ? '<div class="accordeon' + cls + '"><div class="accordeon-tete tete-fixe"><span>' + esc(nom) + '</span></div>' +
+    '<div class="liste-blanche achats-groupe">' + lignes.map(ligne).join('') + '</div></div>' : '';
+  const places = {};
+  let html = RAYONS.map(r => {
+    const lignes = [];
+    (SOUSCATS[r.id] || []).forEach(sc => {
+      const ici = items.filter(it => String((PRODUITS.find(p => String(p.id) === it.pid) || {}).catId) === String(sc.id)).sort(tri);
+      ici.forEach(it => { places[it.cle] = true; lignes.push(it); });
+    });
+    return groupe(r.nom, lignes, '');
+  }).join('');
+  html += groupe('Sans catégorie', items.filter(it => !places[it.cle]).sort(tri), ' hors-suite');
+  $('liste-achats').innerHTML = html || '<div class="accordeon-item"><span class="texte-petit texte-pale">Rien à acheter.</span></div>';
+}
+async function montrerAchats() {
+  toutCacher(); $('vue-achats').hidden = false; $('btn-burger').hidden = false;
+  fermerAjoutAchat();
+  if (!RAYONS.length) {                            // pas encore chargé → on charge (même patron que les bases)
+    $('liste-achats').innerHTML = '<div class="texte-petit texte-pale">Chargement…</div>';
+    await chargerReferences();
+  }
+  remplirAchats();
+  expedierAchats();                                // ce qui attendait repart
+}
+/* Toucher une ligne : dans le panier (grise et barrée) — ou l'inverse. Instantané. */
+function cocherAchat(k) {
+  const it = lignesAchats().find(x => x.cle === k);
+  if (!it) return;
+  const coches = ACHATS.filter(r => achatActif(r) && r[4] === 'coche' && cleAchat(r[1], r[2], r[3]) === k);
+  poserAchats(coches.length ? coches.map(r => { const l = r.slice(); l[7] = 'N'; return l; }) : [ligneAchat(it.pid, it.marque, it.saveur, 'coche')]);
+  remplirAchats();
+}
+/* La poubelle : ajouté à la main -> il s'en va; venu tout seul -> « pas pour l'instant ». Sa coche s'en va avec lui. */
+function enleverAchat(k) {
+  const it = lignesAchats().find(x => x.cle === k);
+  if (!it) return;
+  const lignes = ACHATS.filter(r => achatActif(r) && (r[4] === 'coche' || r[4] === 'main') && cleAchat(r[1], r[2], r[3]) === k)
+    .map(r => { const l = r.slice(); l[7] = 'N'; return l; });
+  if (it.auto) lignes.push(ligneAchat(it.pid, it.marque, it.saveur, 'plustard'));
+  poserAchats(lignes);
+  remplirAchats();
+}
+/* Une entrée réussie : l'aliment quitte la liste — son ajout à la main, et la coche ou le « pas pour l'instant »
+   de ce qui a été entré (et de l'aliment seul, sans marque ni saveur). Le prochain passage à zéro repart de rien. */
+function nettoyerAchats(pid, marque, saveur) {
+  const k = cleAchat(pid, marque, saveur);
+  poserAchats(ACHATS.filter(r => achatActif(r) && String(r[1]) === String(pid) &&
+      (r[4] === 'main' || cleAchat(r[1], r[2], r[3]) === k || (!String(r[2] || '').trim() && !String(r[3] || '').trim())))
+    .map(r => { const l = r.slice(); l[7] = 'N'; return l; }));
+}
+/* ---- Ce qui s'écrit : SA PROPRE FILE, à part de Consommer/Déplacer (rien n'y dépend de STOCK, et un coffre-fort pas encore
+   à jour — « action inconnue » — ne doit pas bloquer les consommations). La mémoire change tout de suite; l'envoi, un à la fois;
+   un échec reste en attente, sans bruit, et repart au prochain geste ou au prochain chargement. ---- */
+function lireAttenteAchats() { try { return JSON.parse(localStorage.getItem(ATTENTE_ACHATS) || '[]') || []; } catch (e) { return []; } }
+function ecrireAttenteAchats(a) { try { localStorage.setItem(ATTENTE_ACHATS, JSON.stringify(a)); } catch (e) {} }
+function poserLignesAchats(lignes, rows) {             // par ID, en valeurs finales : poser deux fois ne change rien
+  lignes.forEach(l => { const row = rows.find(x => String(x[0]) === String(l[0])); if (row) row.splice(0, l.length, ...l); else rows.push(l.slice()); });
+}
+function poserAchats(lignes) {
+  if (!lignes.length) return;
+  ecrireAttenteAchats(lireAttenteAchats().concat([{ lignes: lignes }]));   // gardé AVANT tout : un appareil éteint en route ne perd rien
+  poserLignesAchats(lignes, ACHATS);
+  const c = lireCache(); if (c) { poserLignesAchats(lignes, c.achats = c.achats || []); ecrireCache(c); }
+  expedierAchats();
+}
+async function expedierAchats() {
+  if (envoiAchats) return;
+  envoiAchats = true;
+  try {
+    while (lireAttenteAchats().length) {
+      let r = null;
+      try { r = await Coffre.achats({ lignes: lireAttenteAchats()[0].lignes }); } catch (x) {}
+      if (!(r && r.ok)) break;                          // réseau, ou coffre-fort pas encore à jour : tout reste, ça repartira
+      ecrireAttenteAchats(lireAttenteAchats().slice(1));
+    }
+  } finally { envoiAchats = false; }
+}
+/* ---- « Ajouter à la liste » : l'entonnoir (catégorie → sous-catégorie → aliment, « Nouvel aliment… » au bout) et le scan,
+   à la place de la liste. L'aliment seul (sans marque ni saveur). ---- */
+function ouvrirAjoutAchat() {
+  montrer('achats-page', false); montrer('achats-ajout', true);
+  $('achat-cat').innerHTML = options(RAYONS, '— Catégorie —');
+  montrer('bloc-achat-souscat', false); montrer('bloc-achat-aliment', false); montrer('bloc-achat-nom', false);
+  $('achat-nom').value = '';
+  msgAchat(nomScanne ? 'Nouveau : « ' + nomScanne + ' ». Choisis sa catégorie et sa sous-catégorie.' : '');
+}
+function fermerAjoutAchat() { montrer('achats-ajout', false); montrer('achats-page', true); nomScanne = ''; msgAchat(''); }
+function msgAchat(txt, erreur) { $('achats-msg').className = 'message message-repli' + (erreur ? ' message-erreur' : ''); $('achats-msg').textContent = txt; }
+function surAchatCat() {
+  $('achat-souscat').innerHTML = options(SOUSCATS[$('achat-cat').value] || [], '— Sous-catégorie —');
+  montrer('bloc-achat-souscat', !!$('achat-cat').value); montrer('bloc-achat-aliment', false); montrer('bloc-achat-nom', false);
+}
+function surAchatSousCat() {
+  const scid = $('achat-souscat').value;
+  const ps = PRODUITS.filter(p => String(p.catId) === String(scid)).sort((a, b) => String(a.nom).localeCompare(String(b.nom), 'fr'));
+  $('achat-aliment').innerHTML = options(ps, '— Aliment —') + '<option value="neuf">Nouvel aliment…</option>';
+  montrer('bloc-achat-aliment', !!scid);
+  if (scid && nomScanne) { $('achat-aliment').value = 'neuf'; $('achat-nom').value = nomScanne; }   // le nom lu au scan, prêt
+  surAchatAliment();
+}
+function surAchatAliment() {
+  const neuf = $('achat-aliment').value === 'neuf';
+  montrer('bloc-achat-nom', neuf);
+  if (neuf && !$('achat-nom').value) $('achat-nom').focus();
+}
+/* « Mettre sur la liste » : un aliment choisi, ou nouveau (créé dans sa sous-catégorie; un nom qui existe déjà est repris). */
+async function validerAjoutAchat() {
+  const btn = $('achat-ok');
+  if (btn.disabled) return;
+  let pid = $('achat-aliment').value;
+  if (!pid || !$('achat-souscat').value) { msgAchat('Choisis une catégorie, une sous-catégorie et un aliment.', true); return; }
+  if (pid === 'neuf') {
+    const nom = $('achat-nom').value.trim(), scid = $('achat-souscat').value;
+    if (!nom) { msgAchat('Donne un nom au nouvel aliment.', true); $('achat-nom').focus(); return; }
+    const deja = PRODUITS.find(p => cleNom(p.nom) === cleNom(nom));
+    if (deja) pid = deja.id;
+    else {
+      btn.disabled = true; montrerVoile(true);
+      try {
+        // Produits : ID · Nom · CategorieID · Unite · Actif · Marque · Format
+        const r = await Coffre.ajouter('Produits', ['', nom, scid, '', 'O', '', '']);
+        if (!r || !r.ok) throw new Error((r && r.erreur) || 'refus');
+        pid = r.id;
+        PRODUITS.push({ id: pid, nom: nom, catId: scid, ordre: '' });
+        const c = lireCache(); if (c) { (c.prods = c.prods || []).push([pid, nom, scid, '', 'O', '', '']); ecrireCache(c); }
+        remplirProduitsDatalist();
+      } catch (e) {
+        msgAchat('Aliment pas créé — réessaie.', true);
+        chargerReferences();                          // s'il a été créé quand même, le 2e essai le reprendra par son nom
+        return;
+      } finally { btn.disabled = false; montrerVoile(false); }
+    }
+  }
+  mettreSurListe(pid);
+}
+function mettreSurListe(pid) {
+  const nom = (PRODUITS.find(p => String(p.id) === String(pid)) || {}).nom || '';
+  fermerAjoutAchat();
+  if (lignesAchats().some(it => it.pid === String(pid))) avis('Déjà sur la liste : ' + nom);
+  else { poserAchats([ligneAchat(pid, '', '', 'main')]); avis('Sur la liste : ' + nom, 'succes'); }
+  remplirAchats();
+}
+/* Le scan : un code à nous -> sur la liste; sinon le nom d'Open Food Facts, pour « Nouvel aliment… » (sa catégorie à choisir). */
+function scannerPourAchat() {
+  if (typeof montrerScanner !== 'function') return;
+  montrerScanner({ lu: achatParCode, retour: montrerPageAchatsAjout });
+}
+function montrerPageAchatsAjout() {                    // revenir du scan sur l'entonnoir, tel quel
+  toutCacher(); $('vue-achats').hidden = false; $('btn-burger').hidden = false;
+  ouvrirAjoutAchat();
+}
+async function achatParCode(code) {
+  code = String(code || '').trim();
+  const pid = CODES[code];
+  toutCacher(); $('vue-achats').hidden = false; $('btn-burger').hidden = false;
+  if (pid && PRODUITS.some(p => String(p.id) === String(pid))) { mettreSurListe(pid); return; }
+  ouvrirAjoutAchat(); msgAchat('Recherche du produit…');
+  let d = null;
+  if (typeof window.chercherOFF === 'function') { try { d = await window.chercherOFF(code); } catch (e) {} }
+  if ($('vue-achats').hidden || $('achats-ajout').hidden) return;    // il est passé à autre chose entre-temps
+  const connu = d && d.nom && trouverProduitParNom(d.nom);          // le code n'est pas noté, mais le nom est à nous
+  if (connu) { mettreSurListe(connu.id); return; }
+  nomScanne = (d && d.trouve && d.nom) || '';
+  ouvrirAjoutAchat();
+  if (!nomScanne) msgAchat('Produit inconnu — choisis-le à la main.', true);
+}
+
 /* Gérer les bases → Aliments : « Enlever » retire un « Pas aimé ». */
 async function enleverPasAime(btn) {
   const k = btn.dataset.pasAime.split('|');
@@ -2788,6 +3031,23 @@ function initEntree() {
   $('menu-deplacer').addEventListener('click', montrerDeplacer);   // Rechercher reste la loupe, en haut à gauche
   $('menu-consommer').addEventListener('click', montrerConsommer);
   $('menu-listes').addEventListener('click', montrerListes);
+  $('menu-achats').addEventListener('click', montrerAchats);
+  // la liste d'achats : toucher une ligne la coche; la poubelle l'enlève; « Ajouter à la liste » ouvre l'entonnoir
+  $('liste-achats').addEventListener('click', function (ev) {
+    const pb = ev.target.closest('[data-achat-retirer]');
+    if (pb) { enleverAchat(pb.dataset.achatRetirer); return; }
+    const l = ev.target.closest('[data-achat]');
+    if (l) cocherAchat(l.dataset.achat);
+  });
+  $('achats-retour').addEventListener('click', montrerAccueil);
+  $('btn-achat-ajouter').addEventListener('click', () => { nomScanne = ''; ouvrirAjoutAchat(); });
+  $('achat-annuler').addEventListener('click', () => { fermerAjoutAchat(); remplirAchats(); });
+  $('achat-cat').addEventListener('change', surAchatCat);
+  $('achat-souscat').addEventListener('change', surAchatSousCat);
+  $('achat-aliment').addEventListener('change', surAchatAliment);
+  $('achat-ok').addEventListener('click', validerAjoutAchat);
+  $('achat-nom').addEventListener('keydown', e => { if (e.key === 'Enter') { e.preventDefault(); validerAjoutAchat(); } });
+  $('achat-scan').addEventListener('click', scannerPourAchat);
   // Outils → Couleurs
   $('liste-couleurs').addEventListener('input', surHex);
   $('liste-couleurs').addEventListener('click', function (ev) {
@@ -2989,6 +3249,7 @@ async function retourDansApp() {
   if (!$('vue-aliments').hidden && !Object.keys(ordreModifie).length && !saisieAliments) remplirPageAliments(true);   // pas pendant un nom ni une question
   const saisieNoms = $('nom-nouveau').value || $('liste-noms').querySelector('.champ-renommer, [data-confirme]');
   if (!$('vue-noms').hidden && !saisieNoms) remplirPageNoms();
+  if (!$('vue-achats').hidden && $('achats-ajout').hidden) remplirAchats();   // pas pendant « Ajouter à la liste »
 }
 
 document.addEventListener('DOMContentLoaded', initEntree);

@@ -1,6 +1,9 @@
 # RdG-06 — La liste d'achats (point 5)
 
-*Réflexion commencée le 30 septembre 2026 avec Jean-Claude. Rien de bâti : on décide d'abord.*
+*Réflexion du 30 septembre 2026 avec Jean-Claude, finie le même jour. **L'app est bâtie le 30 septembre** (sa page, le chariot
+du menu, le calcul, cocher, la poubelle, ajouter à la main et au scan). ⚠️ **Le coffre-fort ne l'est pas encore** (section 4) :
+d'ici là, ce qui manque s'affiche (calculé depuis l'inventaire), et ce qu'on coche, ajoute ou met de côté reste **sur l'appareil**
+— sans bruit, en attente — et partira tout seul dès que `api.gs` saura l'écrire.*
 
 ---
 
@@ -60,7 +63,10 @@
 **Ce qui se calcule tout seul, sans rien écrire** (depuis STOCK, déjà en mémoire) : pour chaque **aliment + marque + saveur** déjà vu —
 - **il n'en reste plus** : total 0 partout (rangé ou pas);
 - **pas pressé** : l'aliment a au moins 2 endroits habituels (`endroitsHabituels()`), et tout ce qui reste est à l'**emplacement 1** (rien ailleurs, rien « pas encore rangé »).
-- Un « Pas aimé » à zéro : la ligne dit seulement l'aliment (« Yogourt »), et seulement si l'aliment n'a plus rien du tout.
+- Un « Pas aimé » à zéro : la ligne dit seulement l'aliment (« Yogourt »), et seulement si l'aliment n'a plus rien du tout **et qu'aucune autre sorte n'est déjà sur la liste** (elle le dit déjà).
+- **Sa propre file d'envoi** (`rdg_achats_attente`), à part de Consommer/Déplacer : un coffre-fort pas encore à jour (« action inconnue ») ne bloque pas les consommations. Un échec reste en attente, sans message, et repart au prochain geste ou au prochain chargement.
+- **Ajouter à la liste** : l'entonnoir (Catégorie → Sous-catégorie → Aliment, « Nouvel aliment… » au bout, créé dans sa sous-catégorie — un nom qui existe déjà est repris) et le scan (un code à nous → sur la liste; sinon le nom d'Open Food Facts attend dans « Nouvel aliment… », il reste à choisir la catégorie). Déjà sur la liste → « Déjà sur la liste », rien de doublé.
+- « Sans catégorie » au **bout** de la liste (brune); une catégorie sans rien à acheter ne paraît pas.
 
 **Ce qui s'écrit** — un onglet **Achats** : A ID · B ProduitID · C Marque · D Saveur · E Etat (`main` ajouté à la main · `coche` dans le panier · `plustard` « pas pour l'instant ») · F Date · G Qui · H Actif (O/N). ID donné **par l'app** (`idLocal()`); on ne l'efface jamais : Actif = N.
 - **Cocher** = une ligne `coche` (décocher : Actif = N); **la poubelle** = `plustard` (venu tout seul) ou Actif = N (ajouté à la main); **Ajouter à la liste** = une ligne `main` (aliment seul, sans marque ni saveur).
