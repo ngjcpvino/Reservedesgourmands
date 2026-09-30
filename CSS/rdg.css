@@ -540,6 +540,10 @@ select.champ {
   color: var(--couleur-306);
 }
 .espace-bandeau + .item { border-top: none; }   /* le bandeau sépare déjà : pas de trait dessous */
+/* LA RÈGLE DES LISTES (J-C, 2026-09-30, choix B1 sur aperçu) : un aliment à plusieurs sortes = son nom UNE fois, en bandeau pâle
+   en retrait; ses sortes dessous, au même retrait. Une seule sorte : une ligne complète, comme avant. */
+.bandeau-aliment { margin-left: calc(var(--retrait) * 2); }
+.item-sorte { padding-left: calc(var(--espace-l) + var(--retrait) * 2); }
 
 /* Un aliment à plusieurs sortes (Inventaire, choix C de J-C) : une ligne — le nom et le total —
    qu'on touche pour voir ses sortes dessous, serrées, en retrait. La flèche est celle des accordéons. */
@@ -804,7 +808,6 @@ select.champ {
 .achat { cursor: pointer; }
 .achat .case { accent-color: var(--couleur-703); pointer-events: none; }   /* la ligne entière se touche : la case suit */
 .achat-coche .item-nom, .achat-coche .item-detail { color: var(--couleur-205); text-decoration: line-through; }
-.achat-pas { color: var(--couleur-302); font-style: italic; }   /* « pour réserve » : la réserve est vide */
 
 /* ============================================================
    TOAST — petit avis flottant (confirmation / à venir / erreur)

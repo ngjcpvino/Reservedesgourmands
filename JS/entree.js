@@ -2485,17 +2485,30 @@ function remplirAchats() {
   const nomDe = pid => (PRODUITS.find(p => String(p.id) === String(pid)) || {}).nom || '';
   const detail = it => [nomListe(it.marque), nomListe(it.saveur)].filter(Boolean).join(' ');
   const tri = (x, y) => nomDe(x.pid).localeCompare(nomDe(y.pid), 'fr') || detail(x).localeCompare(detail(y), 'fr');
-  const ligne = it => {
-    const d = [];
-    if (detail(it)) d.push(esc(detail(it)));
-    if (it.auto === 'pas' && !it.main) d.push('<span class="achat-pas">pour réserve</span>');
-    return '<div class="item achat' + (it.coche ? ' achat-coche' : '') + '" data-achat="' + esc(it.cle) + '">' +
+  // sorte : la ligne d'une sorte sous le nom de son aliment (la règle des listes) — marque et saveur en guise de nom
+  const ligne = (it, sorte) => {
+    const nom = sorte ? (detail(it) || nomDe(it.pid)) : nomDe(it.pid);
+    const d = [!sorte ? detail(it) : '', it.auto === 'pas' && !it.main ? '(pour réserve)' : ''].filter(Boolean).join(' ');
+    return '<div class="item achat' + (sorte ? ' item-sorte' : '') + (it.coche ? ' achat-coche' : '') + '" data-achat="' + esc(it.cle) + '">' +
       '<input class="case" type="checkbox" tabindex="-1"' + (it.coche ? ' checked' : '') + '>' +
-      '<div class="item-info"><div class="item-nom">' + esc(nomDe(it.pid)) + '</div>' + (d.length ? '<div class="item-detail">' + d.join(' · ') + '</div>' : '') + '</div>' +
+      '<div class="item-info"><div class="item-nom">' + esc(nom) + '</div>' + (d ? '<div class="item-detail">' + esc(d) + '</div>' : '') + '</div>' +
       '<button class="retirer" type="button" data-achat-retirer="' + esc(it.cle) + '" aria-label="Enlever de la liste"></button></div>';
   };
+  // LA RÈGLE DES LISTES (J-C, 2026-09-30, choix B1) : un aliment à plusieurs sortes = son nom UNE fois, en bandeau pâle en retrait,
+  // ses sortes dessous au même retrait; une seule sorte = une ligne complète. Les lignes arrivent triées par aliment.
+  const lignesHtml = lignes => {
+    let html = '';
+    for (let i = 0; i < lignes.length; ) {
+      let j = i; while (j < lignes.length && lignes[j].pid === lignes[i].pid) j++;
+      const memes = lignes.slice(i, j);
+      html += memes.length > 1 ? '<div class="espace-bandeau bandeau-aliment">' + esc(nomDe(memes[0].pid)) + '</div>' + memes.map(it => ligne(it, true)).join('')
+                               : ligne(memes[0], false);
+      i = j;
+    }
+    return html;
+  };
   const groupe = (nom, lignes, cls) => lignes.length ? '<div class="accordeon' + cls + '"><div class="accordeon-tete tete-fixe"><span>' + esc(nom) + '</span></div>' +
-    '<div class="liste-blanche achats-groupe">' + lignes.map(ligne).join('') + '</div></div>' : '';
+    '<div class="liste-blanche achats-groupe">' + lignesHtml(lignes) + '</div></div>' : '';
   const places = {};
   let html = RAYONS.map(r => {
     const lignes = [];
