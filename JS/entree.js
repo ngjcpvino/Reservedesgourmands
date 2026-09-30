@@ -2431,7 +2431,7 @@ function idLocal() {
 /* ---------- LA LISTE D'ACHATS (point 5) — décisions de J-C, 2026-09-30 (docs/RdG-06) ----------
    Ce qui MANQUE se calcule tout seul depuis STOCK, par aliment + marque + saveur :
    · il n'en reste plus (zéro partout, rangé ou pas);
-   · « pas pressé » : l'aliment a au moins 2 endroits habituels, et tout ce qui reste est à l'emplacement 1 (la réserve est vide).
+   · « pour réserve » : l'aliment a au moins 2 endroits habituels, et tout ce qui reste est à l'emplacement 1 (la réserve est vide).
    Un « Pas aimé » à zéro : la ligne dit seulement l'aliment — s'il n'en reste plus du tout, et si aucune autre sorte n'y est déjà.
    Ce qui S'ÉCRIT (onglet Achats, ID donné ici, jamais effacé : Actif = N) : « coche » (dans le panier), « main » (ajouté à la main,
    l'aliment seul), « plustard » (la poubelle d'un aliment venu tout seul : il ne revient qu'au prochain passage à zéro).
@@ -2488,7 +2488,7 @@ function remplirAchats() {
   const ligne = it => {
     const d = [];
     if (detail(it)) d.push(esc(detail(it)));
-    if (it.auto === 'pas' && !it.main) d.push('<span class="achat-pas">pas pressé</span>');
+    if (it.auto === 'pas' && !it.main) d.push('<span class="achat-pas">pour réserve</span>');
     return '<div class="item achat' + (it.coche ? ' achat-coche' : '') + '" data-achat="' + esc(it.cle) + '">' +
       '<input class="case" type="checkbox" tabindex="-1"' + (it.coche ? ' checked' : '') + '>' +
       '<div class="item-info"><div class="item-nom">' + esc(nomDe(it.pid)) + '</div>' + (d.length ? '<div class="item-detail">' + d.join(' · ') + '</div>' : '') + '</div>' +

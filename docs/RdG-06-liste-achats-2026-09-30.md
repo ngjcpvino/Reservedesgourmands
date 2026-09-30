@@ -46,7 +46,7 @@ du menu, le calcul, cocher, la poubelle, ajouter à la main et au scan). **Le co
 **La page (aperçu du 30 septembre, choix A : les catégories en barres de couleur de la suite**, comme Gérer les bases; B, en bandeaux pâles, écarté) :
 - **tout est ouvert**, dans l'ordre des catégories : rien à toucher pour voir;
 - une ligne = une case + le nom (+ marque · saveur en petit); **toucher la ligne la coche** : grise et barrée;
-- **« pas pressé »** en petit, pâle, sous le nom (réserve vide);
+- **« pour réserve »** en petit, pâle, sous le nom (réserve vide) — d'abord écrit « pas pressé », changé par J-C le 30 septembre après l'avoir vu;
 - **en spécial** : une ligne verte dessous (« En spécial chez Metro · 4,99 $ jusqu'au 7 oct. ») — quand les spéciaux seront branchés;
 - **la poubelle** au bout : l'enlever de la liste (« pas pour l'instant » pour un aliment venu tout seul);
 - au bas : **Ajouter à la liste** (vert : l'entonnoir et le scan), puis **Retour** (or).
