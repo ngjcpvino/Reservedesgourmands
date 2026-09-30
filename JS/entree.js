@@ -26,6 +26,8 @@ const ATTENTE = 'rdg_ordre_attente';   // ordres pas encore confirmés par le co
 const ATTENTE_ALIMENTS = 'rdg_ordre_aliments_attente';   // idem, l'ordre des endroits d'un aliment
 var ordreModifie = {};                 // groupes déplacés à l'écran, pas encore envoyés : 'p' · 'm:<pièce>' · 'e:<meuble>'
 var envoiOrdre = false;                // un envoi d'ordre est en route
+const DELAI_ORDRE = 2000;              // l'ordre part tout seul 2 s après la dernière flèche (J-C, 2026-09-30 : « comme les couleurs »)
+var minuterieOrdre = null;
 
 /* LA PALETTE du root, numérotée par famille, modifiable dans Outils → Couleurs : [variable, nom, à quoi elle sert].
    Les teintes dérivées (menu, ombres…) en découlent dans le CSS : elles suivent toutes seules.
@@ -1284,8 +1286,9 @@ function objetsNommes(type) {
   return LISTES[TABLES_NOM[type][0]] || [];
 }
 function rafraichirBases() { remplirMeubles(true); remplirNoms(true); if (!$('vue-pieces').hidden) remplirPieces(); }
-/* « Enregistrer l'ordre » : un bouton sur chaque page à flèches (Gérer les bases, Pièces, Meubles) — le même geste. */
-function montrerOrdre(on) { ['btn-ordre', 'btn-ordre-pieces', 'btn-ordre-meubles'].forEach(id => montrer(id, on)); }
+/* Une flèche touchée : l'ordre partira tout seul, DELAI_ORDRE après la dernière (cinq flèches de suite = un seul envoi).
+   Quitter la page ou mettre l'app en veille l'envoie aussi, sans attendre. */
+function planifierOrdre() { clearTimeout(minuterieOrdre); minuterieOrdre = setTimeout(envoyerOrdre, DELAI_ORDRE); }
 /* Le crayon touché : le nom devient un champ. Entrée ou toucher ailleurs = enregistrer; Échap = laisser tel quel. */
 function ouvrirRenommer(btn) {
   const span = btn.previousElementSibling;
@@ -2119,7 +2122,7 @@ function deplacer(type, id, sens) {
   ordreModifie[f.cle] = true;
   remplirMeubles(true);
   if (!$('vue-pieces').hidden) remplirPieces();
-  montrerOrdre(true);
+  planifierOrdre();
 }
 /* Les ids d'un groupe, dans l'ordre affiché. */
 function idsDuGroupe(cle) {
@@ -2158,7 +2161,7 @@ function poserOrdresAliments(prods, ordres) {
   });
 }
 
-/* « Enregistrer l'ordre » (ou on quitte l'écran) : l'ordre est gardé ici, puis part sans rien bloquer. */
+/* L'ordre part (2 s après la dernière flèche, ou on quitte l'écran) : gardé ici, puis envoyé sans rien bloquer. */
 function envoyerOrdre() {
   const cles = Object.keys(ordreModifie);
   const groupes = cles.map(idsDuGroupe).filter(g => g.length > 1);
@@ -2167,8 +2170,8 @@ function envoyerOrdre() {
     const p = PRODUITS.find(x => String(x.id) === k.slice(2));
     if (p) aliments[String(p.id)] = p.ordre;
   });
+  clearTimeout(minuterieOrdre);
   ordreModifie = {};
-  montrerOrdre(false);
   if (!groupes.length && !Object.keys(aliments).length) return;
   const c = lireCache(); if (c) { reordonnerLignes(c.emps, groupes); poserOrdresAliments(c.prods, aliments); ecrireCache(c); }
   if (groupes.length) ecrireAttente(lireAttente().concat(groupes));
@@ -2225,7 +2228,7 @@ function htmlOrdreEndroits(pid) {
   return ends.map((e, i) => '<div class="accordeon-item"><span>' + (i + 1) + '. ' + esc(libelleEndroit(e)) + '</span>' +
     fleches('o', pid + '|' + e, i, ends.length) + '</div>').join('');
 }
-/* Une flèche : l'endroit échange sa place avec son voisin. Instantané, envoyé avec « Enregistrer l'ordre ». */
+/* Une flèche : l'endroit échange sa place avec son voisin. Instantané, envoyé tout seul (planifierOrdre). */
 function monterEndroit(cle, sens) {
   const k = String(cle).split('|'), pid = k[0], emp = k[1];
   const p = PRODUITS.find(x => String(x.id) === pid);
@@ -2237,7 +2240,7 @@ function monterEndroit(cle, sens) {
   p.ordre = ends.join(',');
   ordreModifie['a:' + pid] = true;
   remplirNoms(true);
-  montrerOrdre(true);
+  planifierOrdre();
 }
 
 /* ---------- Couleurs (Outils → Couleurs) — en direct à l'écran, envoyées en arrière-plan ---------- */
@@ -2420,9 +2423,7 @@ function initEntree() {
   });
   $('btn-couleurs').addEventListener('click', envoyerCouleurs);
   $('menu-deco').addEventListener('click', deconnexion);
-  $('btn-ordre').addEventListener('click', envoyerOrdre);
   // Gérer les bases → Pièces
-  $('btn-ordre-pieces').addEventListener('click', envoyerOrdre);
   $('btn-piece-ajouter').addEventListener('click', ajouterPiece);
   $('piece-nouvelle').addEventListener('keydown', e => { if (e.key === 'Enter') { e.preventDefault(); ajouterPiece(); } });
   $('pieces-retour').addEventListener('click', () => { ouvrirMenu(); montrerGrilleMenu('bases'); });   // le menu, sur la grille des 8 bases
@@ -2442,7 +2443,6 @@ function initEntree() {
     retourDansApp();   // on revient dans l'app : les entrées de l'autre appareil arrivent toutes seules
   });
   // Gérer les bases → Meubles
-  $('btn-ordre-meubles').addEventListener('click', envoyerOrdre);
   $('meubles-retour').addEventListener('click', () => { ouvrirMenu(); montrerGrilleMenu('bases'); });   // le menu, sur la grille des 8 bases
   // changer la pièce d'un meuble (menu déroulant généré)
   $('liste-meubles').addEventListener('change', function (ev) {
