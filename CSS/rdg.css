@@ -139,6 +139,7 @@
   --burger-fond:      transparent;   /* les trois traits seuls, sans fond (J-C, 2026-09-25) */
   --coin-icone:       46px;      /* la loupe en haut à gauche (J-C, 2026-09-27 : 46, un cran plus grosse que le burger) */
   --bandeau-teinte:   22%;       /* la force de la couleur du meuble dans le bandeau d'un espace */
+  --bandeau-haut:     var(--tactile);   /* un bandeau (l'espace, l'endroit, l'aliment) aussi haut que la barre du meuble (J-C, 2026-09-30) */
   --coin-taille:      52px;      /* la zone à toucher du burger et de la loupe : plus grande que la loupe */
 
 
@@ -164,7 +165,7 @@
   --ombre-forte:      0 6px 24px color-mix(in srgb, var(--couleur-306) 28%, transparent);
 
   --fleche-taille:     5px;    /* le triangle « plier/déplier », dessiné en CSS */
-  --retrait:           12px;   /* le contenu d'un accordéon recule d'autant : la hiérarchie se voit */
+  --retrait:           12px;   /* LE retrait du site, un seul partout (J-C, 2026-09-30) : chaque niveau recule d'autant */
   --fleche-deplacer:   18px;   /* la flèche à tige ↑↓ « déplacer », dessinée en CSS */
   --fleche-trait:      0.55;   /* sa présence : discrète, comme le triangle */
   --fleche-eteinte:    0.15;   /* la 1re ne monte pas, la dernière ne descend pas */
@@ -529,11 +530,15 @@ select.champ {
 .question-choix { flex-wrap: wrap; gap: var(--espace-s); }
 .question-choix > span { flex-basis: 100%; }
 .question-choix > .champ { flex: 1; min-width: 0; }
-/* Le nom d'un espace, dans l'inventaire : un bandeau de la couleur du meuble, pâlie (J-C, 2026-09-27, piste A) */
+/* Le nom d'un espace, dans l'inventaire : un bandeau de la couleur du meuble, pâlie (J-C, 2026-09-27, piste A).
+   Aussi haut que la barre du meuble, partout où un bandeau sert (J-C, 2026-09-30 : --bandeau-haut). */
 .espace-bandeau {
+  display: flex;
+  align-items: center;
+  min-height: var(--bandeau-haut);
   background: color-mix(in srgb, var(--meuble, var(--couleur-305)) var(--bandeau-teinte), transparent);
   border-radius: var(--rayon);
-  padding: var(--espace-xs) var(--espace-l);
+  padding: var(--espace-m) var(--espace-l);
   margin: var(--espace-s) 0 var(--espace-xs);
   font-size: var(--texte-normal);
   font-weight: var(--poids-fort);
@@ -542,8 +547,8 @@ select.champ {
 .espace-bandeau + .item { border-top: none; }   /* le bandeau sépare déjà : pas de trait dessous */
 /* LA RÈGLE DES LISTES (J-C, 2026-09-30, choix B1 sur aperçu) : un aliment à plusieurs sortes = son nom UNE fois, en bandeau pâle
    en retrait; ses sortes dessous, au même retrait. Une seule sorte : une ligne complète, comme avant. */
-.bandeau-aliment { margin-left: calc(var(--retrait) * 2); }
-.item-sorte { padding-left: calc(var(--espace-l) + var(--retrait) * 2); }
+.bandeau-aliment { margin-left: var(--retrait); }
+.item-sorte { padding-left: calc(var(--espace-l) + var(--retrait)); }
 
 /* Un aliment à plusieurs sortes (Inventaire, choix C de J-C) : une ligne — le nom et le total —
    qu'on touche pour voir ses sortes dessous, serrées, en retrait. La flèche est celle des accordéons. */
@@ -562,8 +567,7 @@ select.champ {
   transition: transform var(--transition-pli) ease;
 }
 .aliment-tete.ouvert .item-nom::after { transform: rotate(180deg); }
-.aliment > .accordeon-corps { padding-left: calc(var(--retrait) * 2); }   /* un aliment ouvert (Gérer les bases → Aliments) : ce qu'il contient recule sous son nom */
-.sorte { border-top: none; min-height: 0; padding-top: 0; padding-bottom: var(--espace-xs); padding-left: calc(var(--espace-l) * 2); }
+.sorte { border-top: none; min-height: 0; padding-top: 0; padding-bottom: var(--espace-xs); padding-left: calc(var(--espace-l) + var(--retrait)); }
 .sorte .item-detail { color: var(--couleur-306); }   /* la couleur de l'aliment (choix A de J-C) : le brun pâle ne se lisait pas */
 .sorte-quantite { font-size: var(--texte-petit); color: var(--couleur-305); padding: 0 var(--espace-s); }
 
