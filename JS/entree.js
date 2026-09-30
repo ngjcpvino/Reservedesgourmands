@@ -1789,18 +1789,24 @@ function libelleEndroit(emp, court) {
   return [nom(PIECES, r.pieceId), nom(MEUBLES, r.meubleId), esp].filter(Boolean).join(' · ');
 }
 /* Une ligne de lot avec son crayon. titre = ce qui s'écrit en gros (l'endroit sous un aliment, l'aliment dans « Pas encore rangé »). */
-function htmlLot(pid, i, l, titre) {
-  const detail = [nomListe(l.marque), nomListe(l.saveur), l.formats.join(' + ')].filter(Boolean).join(' · ');
+function htmlLot(pid, i, l, titre, sorte) {
+  const detail = [sorte ? '' : nomListe(l.marque), sorte ? '' : nomListe(l.saveur), l.formats.join(' + ')].filter(Boolean).join(' · ');
   const nom = l.emp ? 'Corriger l\'endroit' : 'Ranger';
-  return '<div class="item"><div class="item-info"><div class="item-nom">' + esc(titre || libelleEndroit(l.emp)) + '</div>' +
+  return '<div class="item' + (sorte ? ' item-sorte' : '') + '"><div class="item-info"><div class="item-nom">' + esc(titre || libelleEndroit(l.emp)) + '</div>' +
     (detail ? '<div class="item-detail">' + esc(detail) + '</div>' : '') + '</div>' +
     '<span class="item-quantite">' + esc(l.qte) + '</span>' +
     '<button class="crayon" type="button" data-lot="' + esc(pid) + '|' + i + '" aria-label="' + nom + '"></button></div>';
 }
-/* « Pas encore rangé », en tête de l'Inventaire : n'apparaît que s'il y a quelque chose. */
+/* « Pas encore rangé », en tête de l'Inventaire : n'apparaît que s'il y a quelque chose.
+   La règle des listes : un aliment à plusieurs sortes = son nom une fois (bandeau en retrait), ses sortes dessous. */
 function htmlPasEncoreRange() {
   const lignes = [];
-  PRODUITS.forEach(p => (LOTS[p.id] || []).forEach((l, i) => { if (!l.emp) lignes.push({ nom: p.nom, html: htmlLot(p.id, i, l, p.nom) }); }));
+  PRODUITS.forEach(p => {
+    const ici = (LOTS[p.id] || []).map((l, i) => ({ l: l, i: i })).filter(x => !x.l.emp);
+    if (ici.length === 1) lignes.push({ nom: p.nom, html: htmlLot(p.id, ici[0].i, ici[0].l, p.nom) });
+    else if (ici.length) lignes.push({ nom: p.nom, html: '<div class="espace-bandeau bandeau-aliment">' + esc(p.nom) + '</div>' +
+      ici.map(x => htmlLot(p.id, x.i, x.l, [nomListe(x.l.marque), nomListe(x.l.saveur)].filter(Boolean).join(' ') || p.nom, true)).join('') });
+  });
   if (!lignes.length) return '';
   lignes.sort((a, b) => String(a.nom).localeCompare(String(b.nom), 'fr'));
   return '<div class="accordeon" data-transit><div class="accordeon-tete">Pas encore rangé</div>' +
@@ -2059,9 +2065,10 @@ function surRecherche() {
   if (!trouves.length) { cible.innerHTML = htmlVide('', 'Aucun aliment ne correspond', modeRecherche ? '' : 'data-ajouter-nom'); return; }
   cible.innerHTML = '<div class="liste-blanche">' + trouves.map(x => htmlLigneAliment(x.p, totalLots(par[x.p.id]), x.detail.join(' · '))).join('') + '</div>';
 }
-/* Une ligne à toucher : le nom, en petit ce qui l'a fait trouver (ou « plus en réserve »), la quantité. */
+/* Une ligne à toucher : le nom, en petit ce qui l'a fait trouver (ou « (plus en réserve) »), la quantité.
+   Une précision s'écrit entre parenthèses, jamais en italique (la règle des listes). */
 function htmlLigneAliment(p, total, detail) {
-  const d = [detail, total ? '' : 'plus en réserve'].filter(Boolean).join(' · ');
+  const d = [detail, total ? '' : '(plus en réserve)'].filter(Boolean).join(' ');
   return '<div class="item' + (total ? '' : ' item-eteint') + '" data-pid="' + esc(p.id) + '"><div class="item-info"><div class="item-nom">' + esc(p.nom) + '</div>' +
     (d ? '<div class="item-detail">' + esc(d) + '</div>' : '') + '</div>' +
     (total ? '<span class="item-quantite">' + esc(total) + '</span>' : '') + '</div>';
@@ -2158,7 +2165,7 @@ function htmlLotsParEndroit(prod, lots, sansTransit, ligne) {
 /* Une ligne de lot : marque + saveur (ou l'aliment), ses formats, sa quantité. attr : de quoi la rendre touchable. */
 function htmlLigneLot(prod, l, attr) {
   const nom = [nomListe(l.marque), nomListe(l.saveur)].filter(Boolean).join(' ') || prod.nom;
-  const detail = [l.formats.join(' + '), estPasAime(prod.id, l.marque, l.saveur) ? 'Pas aimé' : ''].filter(Boolean).join(' · ');
+  const detail = [l.formats.join(' + '), estPasAime(prod.id, l.marque, l.saveur) ? '(pas aimé)' : ''].filter(Boolean).join(' ');
   return '<div class="item"' + (attr ? ' ' + attr : '') + '><div class="item-info"><div class="item-nom">' + esc(nom) + '</div>' +
     (detail ? '<div class="item-detail">' + esc(detail) + '</div>' : '') + '</div>' +
     '<span class="item-quantite">' + esc(l.qte) + '</span></div>';
@@ -2254,7 +2261,7 @@ function htmlPartsConsommer(prod, l, i, scanne) {
   const nom = [nomListe(l.marque), nomListe(l.saveur)].filter(Boolean).join(' ') || prod.nom;
   const pas = estPasAime(prod.id, l.marque, l.saveur);
   return partsDuLot(l).filter(p => !scanne || sorteColle(l.marque, l.saveur, p.format)).map(p => {
-    const detail = [libellePart(p), pas ? 'Pas aimé' : ''].filter(Boolean).join(' · ');
+    const detail = [libellePart(p), pas ? '(pas aimé)' : ''].filter(Boolean).join(' ');
     return '<div class="item" data-consommer="' + esc(prod.id + '|' + i + '|' + p.cle) + '"><div class="item-info"><div class="item-nom">' + esc(nom) + '</div>' +
       (detail ? '<div class="item-detail">' + esc(detail) + '</div>' : '') + '</div><span class="item-quantite">' + esc(p.qte) + '</span></div>';
   }).join('');
