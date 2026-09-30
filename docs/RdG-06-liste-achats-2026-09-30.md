@@ -39,6 +39,9 @@
 
 **UNE seule « Liste d'achats » (choix B)** : elle **remplace** les deux accordéons vides « Stock épuisé » et « Réserve vide » de la page Listes. Triée par catégories; les aliments en réserve vide y sont marqués **« pas pressé »**; ceux ajoutés à la main y vont aussi. Au magasin, tout est au même endroit, dans l'ordre des allées, et on voit passer un « pas pressé » quand on est devant (surtout s'il est en spécial). (A, deux listes séparées, écarté.)
 
+**Sa propre icône dans le menu (choix B)** : deux touches au magasin (le menu, l'icône) au lieu de trois (menu → Listes → Liste d'achats). Le menu passe de 6 à 7 icônes (la dernière prend toute la largeur, comme toute grille impaire). La liste a **sa page à elle**; les deux accordéons vides de Listes s'en vont.
+
 ## 3. QUESTIONS OUVERTES (une à la fois)
 
-- Où vit la liste dans l'app, et à quoi elle ressemble (aperçu d'abord).
+- À quoi elle ressemble : la page, les lignes (à zéro, « pas pressé », cochée/grisée, en spécial), enlever, ajouter (aperçu d'abord).
+- L'icône du menu (aperçu d'abord).
