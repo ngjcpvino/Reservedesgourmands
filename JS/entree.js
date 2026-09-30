@@ -106,27 +106,17 @@ function toutCacher() {
   $('vue-recherche').hidden = true;
   $('vue-choix-quoi').hidden = true;
   $('vue-app').hidden = true;
-  $('vue-bases').hidden = true;
   $('vue-pieces').hidden = true;
   $('vue-meubles').hidden = true;
   $('vue-categories').hidden = true;
   $('vue-aliments').hidden = true;
-  $('vue-magasins').hidden = true;
+  $('vue-noms').hidden = true;
   const vs = $('vue-scan'); if (vs) vs.hidden = true;
   if (window.stopScanner) window.stopScanner();   // coupe la caméra en quittant la vue scan
   $('btn-burger').hidden = true;   // burger caché par défaut ; ré-affiché sur accueil + choix + bases
   $('btn-rechercher').hidden = true;   // la loupe : sur les écrans à photo seulement (ailleurs elle couvrirait le titre)
   $('entete-photo').hidden = true; // l'en-tête photo est écrit UNE fois dans le HTML ; on le montre écran par écran
   fermerMenu();   // tout changement d'écran ferme le menu : personne d'autre n'a à le faire
-}
-async function montrerBases() {
-  toutCacher(); $('vue-bases').hidden = false; $('btn-burger').hidden = false;
-  if (!RAYONS.length) {                        // pas encore chargé (on n'est pas passé par l'entrée) → on charge
-    $('liste-noms').innerHTML = '<div class="texte-petit texte-pale">Chargement…</div>';
-    await chargerReferences();
-  }
-  remplirNoms();
-  expedierOrdre();                             // un ordre resté en attente (échec, fermeture) repart
 }
 async function montrerCouleurs() {
   toutCacher(); $('vue-couleurs').hidden = false; $('btn-burger').hidden = false;
@@ -1495,76 +1485,89 @@ function retirerAliment(pid) {
   avis('Retiré : ' + p.nom, 'succes');
 }
 
-/* ---------- Gérer les bases → Magasins (la devanture) — décisions de J-C, 2026-09-30, sur aperçu (look A) ----------
-   Une barre par magasin (la suite), en ordre alphabétique comme dans la fiche; rien à ouvrir : un magasin n'a qu'un nom.
-   Le crayon corrige le nom (un nom qui existe déjà : les réunir ?); la poubelle le retire de ce que l'entrée propose
-   (Actif = N : les anciennes entrées gardent son nom); « Nouveau magasin… » au bas, pour suivre les spéciaux d'une épicerie
-   où l'on n'a encore rien acheté. */
-function remplirPageMagasins() {
-  const ms = LISTES.Magasins.slice().sort((a, b) => a.nom.localeCompare(b.nom, 'fr'));
-  $('liste-magasins').innerHTML = ms.map(m => '<div class="accordeon" data-id="' + esc(m.id) + '"><div class="accordeon-tete"><span>' + esc(m.nom) + '</span>' +
-    crayon('g:' + m.id) + poubelle('g', m.id) + '</div></div>').join('') ||
-    '<div class="accordeon-item"><span class="texte-petit texte-pale">Aucun magasin.</span></div>';
+/* ---------- Gérer les bases → Magasins, Marques, Saveurs : UNE page pour les trois listes gérées ----------
+   Décisions de J-C, 2026-09-30, sur aperçu (look A). Une barre par nom (la suite), en ordre alphabétique comme dans la fiche;
+   rien à ouvrir : un nom, c'est tout. Le crayon corrige le nom (un nom qui existe déjà : les réunir ?).
+   Magasins seulement (gere) : la poubelle (Actif = N : plus proposé à l'entrée, les anciennes entrées gardent son nom) et
+   « Nouveau magasin… » au bas, pour suivre les spéciaux d'une épicerie où l'on n'a encore rien acheté.
+   Marques et saveurs naissent à l'entrée et restent collées aux lots : le crayon seulement (J-C). */
+const PAGES_NOMS = {
+  magasins: { choix: 'magasin', aucun: 'Aucun magasin.', gere: true },   // choix -> CHOIX_FICHE (la liste, « Nouveau… »)
+  marques:  { choix: 'marque',  aucun: 'Aucune marque.' },
+  saveurs:  { choix: 'saveur',  aucun: 'Aucune saveur.' }
+};
+var pageNoms = PAGES_NOMS.magasins;                // la liste que la page montre
+const listeNoms = () => CHOIX_FICHE[pageNoms.choix].liste;                                      // 'Magasins', 'Marques', 'Saveurs'
+const typeNoms = () => Object.keys(TABLES_NOM).find(k => TABLES_NOM[k][0] === listeNoms());   // la lettre du crayon : g, q, v
+function remplirPageNoms() {
+  const xs = LISTES[listeNoms()].slice().sort((a, b) => a.nom.localeCompare(b.nom, 'fr')), t = typeNoms();
+  $('liste-noms').innerHTML = xs.map(x => '<div class="accordeon" data-id="' + esc(x.id) + '"><div class="accordeon-tete"><span>' + esc(x.nom) + '</span>' +
+    crayon(t + ':' + x.id) + (pageNoms.gere ? poubelle(t, x.id) : '') + '</div></div>').join('') ||
+    '<div class="accordeon-item"><span class="texte-petit texte-pale">' + pageNoms.aucun + '</span></div>';
 }
-async function montrerPageMagasins() {
-  toutCacher(); $('vue-magasins').hidden = false; $('btn-burger').hidden = false;
-  $('magasin-nouveau').value = ''; $('magasins-msg').className = 'message message-repli'; $('magasins-msg').textContent = '';
+async function montrerPageNoms(cle) {
+  pageNoms = PAGES_NOMS[cle];
+  toutCacher(); $('vue-noms').hidden = false; $('btn-burger').hidden = false;
+  $('noms-titre').textContent = listeNoms();
+  $('noms-ajout').hidden = !pageNoms.gere;
+  $('nom-nouveau').value = ''; $('nom-nouveau').placeholder = CHOIX_FICHE[pageNoms.choix].neuve;
+  $('noms-msg').className = 'message message-repli'; $('noms-msg').textContent = '';
   if (!RAYONS.length) {                            // pas encore chargé → on charge (même patron que les bases)
-    $('liste-magasins').innerHTML = '<div class="texte-petit texte-pale">Chargement…</div>';
+    $('liste-noms').innerHTML = '<div class="texte-petit texte-pale">Chargement…</div>';
     await chargerReferences();
   }
-  remplirPageMagasins();
+  remplirPageNoms();
 }
-/* Ajouter un magasin : le nom, puis Ajouter (ou Entrée). Un nom déjà dans la liste ne crée rien; un magasin retiré
-   du même nom revient (Actif = O) au lieu d'être doublé. Un échec relit la réserve : si le magasin a été créé quand même,
+/* Ajouter (Magasins) : le nom, puis Ajouter (ou Entrée). Un nom déjà dans la liste ne crée rien; un nom retiré
+   revient (Actif = O) au lieu d'être doublé. Un échec relit la réserve : si le nom a été créé quand même,
    il paraît, et le 2e essai ne le double pas. */
-async function ajouterMagasin() {
-  const champ = $('magasin-nouveau'), msg = $('magasins-msg'), btn = $('btn-magasin-ajouter');
+async function ajouterNom() {
+  const champ = $('nom-nouveau'), msg = $('noms-msg'), btn = $('btn-nom-ajouter'), L = listeNoms();
   const nom = champ.value.trim();
   msg.className = 'message message-repli'; msg.textContent = '';
-  if (!nom || btn.disabled) return;
-  const deja = LISTES.Magasins.find(m => cleNom(m.nom) === cleNom(nom));
+  if (!nom || btn.disabled || !pageNoms.gere) return;
+  const deja = LISTES[L].find(m => cleNom(m.nom) === cleNom(nom));
   if (deja) { msg.className = 'message message-repli message-erreur'; msg.textContent = '« ' + deja.nom + ' » existe déjà.'; return; }
-  const c = lireCache(), rows = c && c.listes && c.listes.Magasins;
+  const c = lireCache(), rows = c && c.listes && c.listes[L];
   const ancien = rows && rows.find(r => String(r[2]) === 'N' && cleNom(r[1]) === cleNom(nom));
   btn.disabled = true; montrerVoile(true);
   try {
-    // Magasins : ID · Nom · Actif
+    // Magasins, Marques, Saveurs : ID · Nom · Actif
     const ligne = ancien ? [ancien[0], nom, 'O'] : ['', nom, 'O'];
-    const r = ancien ? await Coffre.modifier('Magasins', ancien[0], ligne) : await Coffre.ajouter('Magasins', ligne);
+    const r = ancien ? await Coffre.modifier(L, ancien[0], ligne) : await Coffre.ajouter(L, ligne);
     if (!r || !r.ok) throw new Error((r && r.erreur) || 'refus');
     const id = ancien ? String(ancien[0]) : String(r.id);
     ligne[0] = id;
-    LISTES.Magasins.push({ id: id, nom: nom }); NOMS_LISTES[id] = nom;
+    LISTES[L].push({ id: id, nom: nom }); NOMS_LISTES[id] = nom;
     if (c) {
-      c.listes = c.listes || {}; c.listes.Magasins = (c.listes.Magasins || []).filter(x => String(x[0]) !== id).concat([ligne]);
+      c.listes = c.listes || {}; c.listes[L] = (c.listes[L] || []).filter(x => String(x[0]) !== id).concat([ligne]);
       ecrireCache(c);
     }
     champ.value = '';
-    remplirPageMagasins();
+    remplirPageNoms();
   } catch (e) {
-    msg.className = 'message message-repli message-erreur'; msg.textContent = 'Magasin pas ajouté — réessaie.';
-    chargerReferences().then(() => { if (!$('vue-magasins').hidden) remplirPageMagasins(); });
+    msg.className = 'message message-repli message-erreur'; msg.textContent = 'Pas ajouté — réessaie.';
+    chargerReferences().then(() => { if (!$('vue-noms').hidden) remplirPageNoms(); });
   } finally { btn.disabled = false; montrerVoile(false); }
 }
-/* La poubelle : la question à la place de sa barre. Rien ne bouge avant Oui. */
-function demanderRetraitMagasin(id) {
-  remplirPageMagasins();                           // une seule question à la fois
-  const m = LISTES.Magasins.find(x => String(x.id) === String(id));
-  const acc = $('liste-magasins').querySelector('.accordeon[data-id="' + esc(id) + '"]');
-  if (!m || !acc) return;
-  acc.outerHTML = '<div class="accordeon-item accordeon-item-saisie" data-confirme><span>' + esc('Retirer ' + m.nom + ' ?') + '</span>' + ouiNon('g', id) + '</div>';
+/* La poubelle (Magasins) : la question à la place de sa barre. Rien ne bouge avant Oui. */
+function demanderRetraitNom(id) {
+  remplirPageNoms();                               // une seule question à la fois
+  const x = LISTES[listeNoms()].find(y => String(y.id) === String(id));
+  const acc = $('liste-noms').querySelector('.accordeon[data-id="' + esc(id) + '"]');
+  if (!x || !acc) return;
+  acc.outerHTML = '<div class="accordeon-item accordeon-item-saisie" data-confirme><span>' + esc('Retirer ' + x.nom + ' ?') + '</span>' + ouiNon(typeNoms(), id) + '</div>';
 }
 /* Oui : Actif = N, par la file des gestes (instantané). Son nom reste lisible sur les anciennes entrées (NOMS_LISTES). */
-function retirerMagasin(id) {
-  const m = LISTES.Magasins.find(x => String(x.id) === String(id)), c = lireCache();
-  const row = c && c.listes && (c.listes.Magasins || []).find(r => String(r[0]) === String(id));
-  if (!m || !row) { avis('Pas retiré — réessaie', 'erreur'); remplirPageMagasins(); return; }
+function retirerNom(id) {
+  const L = listeNoms(), x = LISTES[L].find(y => String(y.id) === String(id)), c = lireCache();
+  const row = c && c.listes && (c.listes[L] || []).find(r => String(r[0]) === String(id));
+  if (!x || !row) { avis('Pas retiré — réessaie', 'erreur'); remplirPageNoms(); return; }
   const l = row.slice(); l[2] = 'N';
-  poserGeste({ action: 'lignes', table: 'Magasins', opId: 'retg-' + Date.now() + '-' + Math.random().toString(36).slice(2, 8), lignes: [l] });
-  LISTES.Magasins.splice(LISTES.Magasins.indexOf(m), 1);
-  remplirPageMagasins();
-  avis('Retiré : ' + m.nom, 'succes');
+  poserGeste({ action: 'lignes', table: L, opId: 'retn-' + Date.now() + '-' + Math.random().toString(36).slice(2, 8), lignes: [l] });
+  LISTES[L].splice(LISTES[L].indexOf(x), 1);
+  remplirPageNoms();
+  avis('Retiré : ' + x.nom, 'succes');
 }
 
 /* Entrée dans une ligne « Nouveau… » (meuble, espace, catégorie, sous-catégorie) = son bouton Ajouter. */
@@ -1592,11 +1595,11 @@ function objetsNommes(type) {
   return LISTES[TABLES_NOM[type][0]] || [];
 }
 function rafraichirBases() {
-  remplirMeubles(true); remplirNoms(true);
+  remplirMeubles(true);
   if (!$('vue-pieces').hidden) remplirPieces();
   if (!$('vue-categories').hidden) remplirPageCategories(true);
   if (!$('vue-aliments').hidden) remplirPageAliments(true);
-  if (!$('vue-magasins').hidden) remplirPageMagasins();
+  if (!$('vue-noms').hidden) remplirPageNoms();
 }
 /* Une flèche touchée : l'ordre partira tout seul, DELAI_ORDRE après la dernière (cinq flèches de suite = un seul envoi).
    Quitter la page ou mettre l'app en veille l'envoie aussi, sans attendre. */
@@ -1641,17 +1644,14 @@ async function renommer(cle, nom) {
 }
 /* Un magasin, une marque, une saveur ou un aliment renommé comme un autre qui existe déjà (« Libertee » -> « Liberté ») :
    on propose de les RÉUNIR. Oui : tout ce qui était sous l'un passe sous l'autre (coffre-fort, action reunir). Non : rien ne change.
-   Sur les pages Aliments et Magasins, la question prend la place de tout l'aliment, de toute la barre. */
+   La question prend la place de tout l'aliment (page Aliments), de toute la barre (Magasins, Marques, Saveurs). */
 function demanderReunion(cle, autre) {
   const btn = [...document.querySelectorAll('.crayon')].find(b => b.dataset.renommer === cle && !b.closest('[id^="vue-"][hidden]'));   // celui de la page qu'on voit
-  const bloc = btn && (btn.closest('.aliment') || btn.closest('.liste-suite > .accordeon'));
-  const item = bloc || (btn && btn.closest('.accordeon-item'));
+  const item = btn && (btn.closest('.aliment') || btn.closest('.liste-suite > .accordeon'));
   if (!item) { rafraichirBases(); return; }
-  const q = '<span>« ' + esc(autre.nom) + ' » existe déjà : les réunir ?</span>' +
+  item.outerHTML = '<div class="accordeon-item accordeon-item-saisie" data-confirme><span>« ' + esc(autre.nom) + ' » existe déjà : les réunir ?</span>' +
     '<button class="bouton bouton-petit bouton-vert" type="button" data-reunir="' + esc(cle + '|' + autre.id) + '">Oui</button>' +
-    '<button class="bouton bouton-petit" type="button" data-reunir-non>Non</button>';
-  if (bloc) item.outerHTML = '<div class="accordeon-item accordeon-item-saisie" data-confirme>' + q + '</div>';
-  else item.innerHTML = q;
+    '<button class="bouton bouton-petit" type="button" data-reunir-non>Non</button></div>';
 }
 async function reunirNoms(val) {
   const k = String(val).split('|'), cle = k[0], garde = k[1], T = TABLES_NOM[cle.charAt(0)], perdu = cle.slice(2);
@@ -1799,23 +1799,6 @@ async function deplacerLot(lot, emp, q, fin) {
   if (modifs.length) poserGeste({ action: 'deplacer', opId: op, modifs: modifs, ajouts: ajouts });
   fin(true);
 }
-/* Marques, Saveurs (en attendant leurs pages) : chaque nom avec son crayon. */
-function remplirNoms(garderOuverts) {
-  const liste = $('liste-noms');
-  const ouverts = garderOuverts ? [...liste.querySelectorAll('.accordeon-tete.ouvert')].map(t => t.parentElement.dataset.cle) : [];
-  const acc = (cle, tete, corps) => '<div class="accordeon" data-cle="' + esc(cle) + '"><div class="accordeon-tete">' + tete + '</div><div class="accordeon-corps" hidden>' + corps + '</div></div>';
-  const ligne = (cle, nom) => '<div class="accordeon-item"><span>' + esc(nom) + '</span>' + crayon(cle) + '</div>';
-  const vide = t => '<div class="accordeon-item"><span class="texte-petit texte-pale">' + t + '</span></div>';
-  const noms = (type, n) => LISTES[n].map(x => ligne(type + ':' + x.id, x.nom)).join('');   // un crayon chacun
-  liste.innerHTML = acc('mar', 'Marques', noms('q', 'Marques') || vide('Aucune marque')) +
-    acc('sav', 'Saveurs', noms('v', 'Saveurs') || vide('Aucune saveur'));
-  liste.querySelectorAll('.accordeon').forEach(a => {
-    if (ouverts.indexOf(a.dataset.cle) === -1) return;
-    a.firstElementChild.classList.add('ouvert');
-    a.children[1].hidden = false;
-  });
-}
-
 /* ---------- Inventaire : ce qu'on a, pièce par pièce, meuble par meuble ---------- */
 /* Les lignes de STOCK regroupées par emplacement, puis par produit + marque + format
    (deux lots identiques au même endroit s'additionnent). */
@@ -1919,7 +1902,7 @@ var rechercheJeton = 0;                 // un scan plus ancien qui répond en re
 var modeRecherche = '';                 // '' = Rechercher · 'deplacer' · 'consommer' : le même écran, le lot touché fait le geste
 const TITRES_RECHERCHE = { '': 'Rechercher', deplacer: 'Déplacer', consommer: 'Consommer' };
 const RETOURS = { 'vue-accueil': () => montrerAccueil(), 'vue-choix-quoi': () => montrerChoixQuoi(),
-                  'vue-listes': () => montrerListes(), 'vue-bases': () => montrerBases(), 'vue-couleurs': () => montrerCouleurs() };
+                  'vue-listes': () => montrerListes(), 'vue-couleurs': () => montrerCouleurs() };
 /* depuis : true = on arrive de la loupe ou du menu (on retient d'où); false = on revient d'ailleurs (scan, rayon) */
 function montrerRecherche(depuis) {
   if (depuis) {
@@ -2259,7 +2242,8 @@ function poserGeste(envoi) {
    Par ID, en valeurs finales : le poser deux fois ne change rien. Un geste « lignes » réécrit des lignes d'une table
    (retirer un meuble, une catégorie, un aliment, un magasin; changer la catégorie d'aliments). Sans table : Emplacements
    (les premiers, 2026-09-30). Chaque table : où sont ses lignes dans d. */
-const TABLES_GESTE = { Emplacements: d => d.emps, Produits: d => d.prods, Categories: d => d.cats, Magasins: d => (d.listes || {}).Magasins };
+const TABLES_GESTE = { Emplacements: d => d.emps, Produits: d => d.prods, Categories: d => d.cats,
+                       Magasins: d => (d.listes || {}).Magasins, Marques: d => (d.listes || {}).Marques, Saveurs: d => (d.listes || {}).Saveurs };
 function appliquerGeste(e, d) {
   if (e.lignes) {
     const rows = (TABLES_GESTE[e.table || 'Emplacements'] || (() => []))(d) || [];
@@ -2740,10 +2724,11 @@ function initEntree() {
   $('menu').addEventListener('touchend', surToucheFin);
   $('menu-bases').addEventListener('click', () => montrerGrilleMenu('bases'));
   $('menu-bases-retour').addEventListener('click', () => montrerGrilleMenu('outils'));
-  // les 8 bases : chacune ouvre sa page; celles pas encore bâties ouvrent Gérer les bases au complet (accord de J-C)
+  // les 8 bases : chacune ouvre sa page (Unités : à venir)
   const PAGES_BASES = { pieces: montrerPieces, meubles: montrerMeubles, categories: montrerPageCategories, aliments: montrerPageAliments,
-                        magasins: montrerPageMagasins };
-  document.querySelectorAll('[data-base]').forEach(b => b.addEventListener('click', PAGES_BASES[b.dataset.base] || montrerBases));
+                        magasins: () => montrerPageNoms('magasins'), marques: () => montrerPageNoms('marques'), saveurs: () => montrerPageNoms('saveurs'),
+                        unites: () => avis('Unités — à venir') };
+  document.querySelectorAll('[data-base]').forEach(b => b.addEventListener('click', PAGES_BASES[b.dataset.base]));
   $('menu-couleurs').addEventListener('click', montrerCouleurs);
   // le menu mène exactement où mènent les 4 boutons de l'accueil
   $('menu-ajouter').addEventListener('click', montrerChoixQuoi);
@@ -2848,29 +2833,20 @@ function initEntree() {
     if (tete.classList.contains('aliment-tete')) remplirCorpsAliment(tete);
     toggleAccordeon(tete);
   });
-  // Gérer les bases → Magasins
-  $('magasins-retour').addEventListener('click', () => { ouvrirMenu(); montrerGrilleMenu('bases'); });   // le menu, sur la grille des 8 bases
-  $('btn-magasin-ajouter').addEventListener('click', ajouterMagasin);
-  $('magasin-nouveau').addEventListener('keydown', e => { if (e.key === 'Enter') { e.preventDefault(); ajouterMagasin(); } });
-  $('liste-magasins').addEventListener('click', function (ev) {
+  // Gérer les bases → Magasins, Marques, Saveurs (une seule page)
+  $('noms-retour').addEventListener('click', () => { ouvrirMenu(); montrerGrilleMenu('bases'); });   // le menu, sur la grille des 8 bases
+  $('btn-nom-ajouter').addEventListener('click', ajouterNom);
+  $('nom-nouveau').addEventListener('keydown', e => { if (e.key === 'Enter') { e.preventDefault(); ajouterNom(); } });
+  $('liste-noms').addEventListener('click', function (ev) {
     const oui = ev.target.closest('[data-retirer-oui]');   // « Retirer … ? » Oui
-    if (oui) { retirerMagasin(oui.dataset.retirerOui.split('|')[1]); return; }
+    if (oui) { retirerNom(oui.dataset.retirerOui.split('|')[1]); return; }
     const ru = ev.target.closest('[data-reunir]');         // « … existe déjà : les réunir ? » Oui
     if (ru) { reunirNoms(ru.dataset.reunir); return; }
-    if (ev.target.closest('[data-retirer-non], [data-reunir-non]')) { remplirPageMagasins(); return; }
+    if (ev.target.closest('[data-retirer-non], [data-reunir-non]')) { remplirPageNoms(); return; }
     const pb = ev.target.closest('.retirer');
-    if (pb) { demanderRetraitMagasin(pb.dataset.retirer.split('|')[1]); return; }
+    if (pb) { demanderRetraitNom(pb.dataset.retirer.split('|')[1]); return; }
     const cr = ev.target.closest('.crayon');
-    if (cr) ouvrirRenommer(cr);                            // la barre elle-même n'ouvre rien : un magasin n'a qu'un nom
-  });
-  $('liste-noms').addEventListener('click', function (ev) {   // marques, saveurs : le crayon, ou plier/déplier
-    const ru = ev.target.closest('[data-reunir]');         // « … existe déjà : les réunir ? » Oui
-    if (ru) { reunirNoms(ru.dataset.reunir); return; }
-    if (ev.target.closest('[data-reunir-non]')) { rafraichirBases(); return; }
-    const cr = ev.target.closest('.crayon');
-    if (cr) { ouvrirRenommer(cr); return; }
-    const tete = ev.target.closest('.accordeon-tete');
-    if (tete) toggleAccordeon(tete);
+    if (cr) ouvrirRenommer(cr);                            // la barre elle-même n'ouvre rien : un nom, c'est tout
   });
   document.querySelectorAll('.accordeon-tete[data-toggle]').forEach(tete =>
     tete.addEventListener('click', () => toggleAccordeon(tete)));
@@ -2951,7 +2927,6 @@ async function retourDansApp() {
   if (!$('vue-app').hidden) return;   // une saisie en cours : on ne touche à rien
   await chargerReferences();
   if (!$('vue-listes').hidden && !document.querySelector('#liste-inventaire .endroit')) remplirInventaire();   // pas pendant un rangement
-  if (!$('vue-bases').hidden && !Object.keys(ordreModifie).length && !document.querySelector('.champ-renommer')) rafraichirBases();   // pas pendant une correction de nom
   if (!$('vue-pieces').hidden && !Object.keys(ordreModifie).length && !document.querySelector('.champ-renommer')) remplirPieces();
   const saisieMeubles = [...$('liste-meubles').querySelectorAll('input')].some(i => i.value) || $('liste-meubles').querySelector('.champ-renommer, [data-confirme]');
   if (!$('vue-meubles').hidden && !Object.keys(ordreModifie).length && !saisieMeubles) remplirMeubles(true);   // pas pendant une saisie ni une question
@@ -2959,8 +2934,8 @@ async function retourDansApp() {
   if (!$('vue-categories').hidden && !Object.keys(ordreModifie).length && !saisieCats) remplirPageCategories(true);
   const saisieAliments = $('liste-aliments').querySelector('.champ-renommer, [data-confirme]');
   if (!$('vue-aliments').hidden && !Object.keys(ordreModifie).length && !saisieAliments) remplirPageAliments(true);   // pas pendant un nom ni une question
-  const saisieMagasins = $('magasin-nouveau').value || $('liste-magasins').querySelector('.champ-renommer, [data-confirme]');
-  if (!$('vue-magasins').hidden && !saisieMagasins) remplirPageMagasins();
+  const saisieNoms = $('nom-nouveau').value || $('liste-noms').querySelector('.champ-renommer, [data-confirme]');
+  if (!$('vue-noms').hidden && !saisieNoms) remplirPageNoms();
 }
 
 document.addEventListener('DOMContentLoaded', initEntree);

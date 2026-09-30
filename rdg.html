@@ -10,7 +10,7 @@
   <!-- Ecran d'accueil iPad : le meme sac, en PNG (iOS n'accepte pas le SVG ici) -->
   <link rel="apple-touch-icon" href="apple-touch-icon.png?v=2">
 
-<link rel="stylesheet" href="CSS/rdg.css?v=98">
+<link rel="stylesheet" href="CSS/rdg.css?v=99">
 </head>
 <body>
 
@@ -299,18 +299,6 @@
 </div>
 
 <!-- ============================================================
-     OUTILS — gérer les bases
-============================================================ -->
-<div id="vue-bases" hidden>
-  <div class="entete">
-    <div class="titre">Gérer les bases</div>
-  </div>
-  <div class="contenu">
-    <div id="liste-noms"></div>   <!-- Marques, Saveurs : pour corriger un nom -->
-  </div>
-</div>
-
-<!-- ============================================================
      GÉRER LES BASES → PIÈCES : une barre par pièce, à sa couleur (le JS les bâtit).
      Toucher une barre ouvre sa palette; ajouter se fait au bas, sur la page même.
 ============================================================ -->
@@ -364,19 +352,19 @@
 </div>
 
 <!-- ============================================================
-     GÉRER LES BASES → MAGASINS : une barre par magasin (couleurs de la suite), le crayon et la poubelle (le JS les bâtit).
-     Ajouter se fait au bas, sur la page même.
+     GÉRER LES BASES → MAGASINS, MARQUES, SAVEURS : UNE page pour les trois listes gérées (le JS y met le titre et les noms).
+     Une barre par nom (couleurs de la suite), le crayon. Magasins seulement : la poubelle et « Nouveau magasin… » au bas.
 ============================================================ -->
-<div id="vue-magasins" hidden>
-  <div class="entete"><div class="titre">Magasins</div></div>
+<div id="vue-noms" hidden>
+  <div class="entete"><div class="titre" id="noms-titre"></div></div>
   <div class="contenu">
-    <div class="liste-suite" id="liste-magasins"></div>
-    <div class="accordeon-item accordeon-item-saisie">
-      <input class="champ" id="magasin-nouveau" autocomplete="off" enterkeyhint="done" placeholder="Nouveau magasin…">
-      <button class="bouton bouton-petit bouton-vert" id="btn-magasin-ajouter" type="button">Ajouter</button>
+    <div class="liste-suite" id="liste-noms"></div>
+    <div class="accordeon-item accordeon-item-saisie" id="noms-ajout">
+      <input class="champ" id="nom-nouveau" autocomplete="off" enterkeyhint="done">
+      <button class="bouton bouton-petit bouton-vert" id="btn-nom-ajouter" type="button">Ajouter</button>
     </div>
-    <div class="message message-repli" id="magasins-msg"></div>
-    <button class="bouton bouton-or bouton-pleine bouton-detache" id="magasins-retour" type="button">Retour</button>
+    <div class="message message-repli" id="noms-msg"></div>
+    <button class="bouton bouton-or bouton-pleine bouton-detache" id="noms-retour" type="button">Retour</button>
   </div>
 </div>
 
@@ -408,7 +396,7 @@
 </div><!-- fin du conteneur -->
 
 <script src="JS/coffre.js?v=8"></script>
-<script src="JS/entree.js?v=103"></script>
+<script src="JS/entree.js?v=104"></script>
 <script src="JS/scan.js?v=9"></script>
 </body>
 </html>
