@@ -415,7 +415,6 @@ body:has(.sur-photo:not([hidden]))::before { display: none; }
 .bouton-detache    { margin-top: var(--espace-l); }     /* pose apres le contenu : Retour, Enregistrer */
 .bouton-quitter    { margin-top: var(--espace-xl); }    /* detache du reste : Annuler */
 .bouton-suite      { margin-top: var(--espace-s); }     /* suit immediatement ce qui precede */
-.bouton-empile     { margin-bottom: var(--espace-s); }  /* un bouton d'une pile */
 .bouton-empile-fin { margin-bottom: var(--espace-l); }  /* le dernier de la pile */
 
 /* ============================================================
