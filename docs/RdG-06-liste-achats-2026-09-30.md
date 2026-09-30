@@ -31,8 +31,11 @@
 - un aliment **venu tout seul** (tombé à zéro) : **« Pas pour l'instant »** (J-C, sur l'exemple des fraises en janvier) — il quitte la liste et n'y revient qu'à son **prochain** passage à zéro, donc après avoir été racheté et entré. L'été venu, on le rajoute à la main si on le veut plus tôt;
 - **pour toujours** : la poubelle de Gérer les bases → Aliments (elle paraît justement quand il n'en reste plus) — déjà bâtie.
 
+**Pas de quantité** sur la liste (J-C : « pas besoin de qté ») — ni à taper, ni rappelée (« la dernière fois : 2 × 4 L » a été proposé et refusé). On décide au magasin.
+
+**Quel magasin : déjà décidé dans RdG-05, section 7** — la liste **en entier**, l'app ne répartit rien; sur place, s'il le veut, **trier par épicerie** (le prix de ce magasin seulement), le plus bas en vert, « en spécial chez Metro » sur la ligne.
+
 ## 3. QUESTIONS OUVERTES (une à la fois)
 
-- Combien en acheter ?
-- Quel magasin ?
+- L'ordre des rayons au magasin (RdG-03 : les **sections** se posent sur le produit, une géographie générique, « sans section » visible) : dès la 1re version, ou plus tard ?
 - Où vit la liste dans l'app, et à quoi elle ressemble (aperçu d'abord).
