@@ -95,11 +95,12 @@
       var j = await r.json();
       if (j && j.status === 1 && j.product) {
         var p = j.product;
-        var nom = (p.product_name_fr || p.generic_name_fr || '').trim();   // le français seulement (J-C) : sinon vide, il choisit lui-même
+        var nom = (p.product_name_fr || p.generic_name_fr || '').trim();   // le nom en français, s'il est rangé comme tel
         var marque = (p.brands || '').split(',')[0].trim();
         var photo = p.image_front_small_url || p.image_front_url || '';   // la photo de face : on reconnaît la boîte d'un coup d'œil
-        // le nom dans une autre langue : à LIRE seulement (« Tu n'en as pas »), jamais écrit dans la fiche ni le Sheet (J-C, 2026-09-28)
-        var nomAutre = (p.product_name_en || p.product_name || '').trim();
+        // sinon, le nom PRINCIPAL du produit — celui que le site montre — avant l'anglais : bien des produits d'ici ont leur nom
+        // français rangé là, pas dans le champ français (Rouleaux impériaux Wong Wing, 2026-09-30). La fiche le prend, J-C le corrige.
+        var nomAutre = (p.product_name || p.product_name_en || '').trim();
         return { code: code, nom: nom, nomAutre: nomAutre, marque: marque, format: nettoyerFormat(p.quantity), photo: photo, trouve: true };
       }
     } catch (e) { /* réseau / inconnu : on retombe sur « non trouvé » */ }
