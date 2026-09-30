@@ -49,6 +49,24 @@
 - **la poubelle** au bout : l'enlever de la liste (« pas pour l'instant » pour un aliment venu tout seul);
 - au bas : **Ajouter à la liste** (vert : l'entonnoir et le scan), puis **Retour** (or).
 
-## 3. QUESTIONS OUVERTES (une à la fois)
+**L'icône du menu (aperçu, choix B) : le chariot vide** — le même dessin que le chariot du chargement, sans baguette ni bouteille (A garni, C feuille à cocher, D planchette : écartés). La 7e du menu, la dernière : toute la largeur au bas de l'écran, la plus grosse cible pour le magasin.
 
-- L'icône du menu (aperçu d'abord).
+## 3. QUESTIONS OUVERTES
+
+- Aucune pour bâtir la première version. À l'usage : « entamé » (un seul endroit, il en reste peu); le conjoint qui voit les coches **pendant** la course (l'app relit en revenant au premier plan; relire aussi toutes les minutes pendant que la liste est ouverte ?).
+
+## 4. POUR BÂTIR (Claude — la tuyauterie, pas pour J-C)
+
+**Ce qui se calcule tout seul, sans rien écrire** (depuis STOCK, déjà en mémoire) : pour chaque **aliment + marque + saveur** déjà vu —
+- **il n'en reste plus** : total 0 partout (rangé ou pas);
+- **pas pressé** : l'aliment a au moins 2 endroits habituels (`endroitsHabituels()`), et tout ce qui reste est à l'**emplacement 1** (rien ailleurs, rien « pas encore rangé »).
+- Un « Pas aimé » à zéro : la ligne dit seulement l'aliment (« Yogourt »), et seulement si l'aliment n'a plus rien du tout.
+
+**Ce qui s'écrit** — un onglet **Achats** : A ID · B ProduitID · C Marque · D Saveur · E Etat (`main` ajouté à la main · `coche` dans le panier · `plustard` « pas pour l'instant ») · F Date · G Qui · H Actif (O/N). ID donné **par l'app** (`idLocal()`); on ne l'efface jamais : Actif = N.
+- **Cocher** = une ligne `coche` (décocher : Actif = N); **la poubelle** = `plustard` (venu tout seul) ou Actif = N (ajouté à la main); **Ajouter à la liste** = une ligne `main` (aliment seul, sans marque ni saveur).
+- **Une entrée (Ajouter) nettoie** : après `entrerArticle`, l'app passe à Actif = N les lignes `main` de l'aliment et les `coche` / `plustard` de l'aliment + marque + saveur entré. (Le prochain passage à zéro repart donc de rien : c'est exactement « pas pour l'instant ».)
+- Instantané, par la file des gestes (comme Consommer).
+
+**⚠️ POUR LA CONVERSATION DE L'ORDI — `api.gs`** :
+1. `references` renvoie **`achats`** : les lignes de l'onglet Achats dont Actif ≠ N (onglet absent = `[]`, **sans le créer**, comme `pasAimes`).
+2. Nouvelle action **`achats { lignes: [ligne] }`** : pour chaque ligne (8 colonnes, A = l'ID donné par l'app), **par ID : existe → réécrite; sinon → ajoutée**. Valeurs finales : un 2e envoi ne change rien (à l'épreuve du reclic). L'onglet **se crée tout seul** au premier usage, avec ses en-têtes. Sous verrou, comme les autres écritures.
