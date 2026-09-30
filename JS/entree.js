@@ -79,18 +79,6 @@ const COULEURS_SITE = [
   ['couleur-903', 'Couleur 903', 'bas foncé des boutons, fond du scan']
 ];
 const FAMILLES = [['1', 'Blancs et crèmes'], ['2', 'Beiges et sables'], ['3', 'Bruns'], ['4', 'Rouges'], ['5', 'Oranges'], ['6', 'Jaunes et ors'], ['7', 'Verts'], ['8', 'Bleus'], ['9', 'Gris et noirs']];   // le chiffre des centaines
-/* Les codes hex d'avant les numéros (2026-09-25) : un meuble qui porte encore un code hex
-   est relié au numéro qui avait cette teinte à l'origine, et suit ensuite la palette. */
-const ANCIENS_HEX = {
-  '#ffffff': '101', '#fff9ec': '103', '#fff2d6': '104', '#f5efe6': '105', '#f5f0e6': '106', '#e8ddd0': '201',
-  '#ffe0b2': '202', '#ffd9a8': '203', '#f2d7a0': '204', '#d4c4b0': '205', '#c4b896': '206', '#a1887f': '301',
-  '#a08060': '302', '#c77d4b': '303', '#8d4b20': '304', '#6b4f3a': '305', '#3d2b1f': '306', '#c9372d': '401',
-  '#c0392b': '402', '#6b1e25': '403', '#5c1d20': '404', '#ffcc80': '501', '#f39c12': '502', '#ff8f00': '503',
-  '#e08a00': '504', '#ef6c00': '505', '#c76a1f': '506', '#b85c00': '507', '#fff3c0': '601', '#ffe8b0': '602',
-  '#f2ebbf': '603', '#ffc400': '604', '#ffb300': '605', '#f9a825': '606', '#c9952e': '607', '#afc5af': '701',
-  '#6baf2e': '702', '#5a8a65': '703', '#5a6b3c': '704', '#a5c4de': '801', '#2a4566': '802', '#2c3e6b': '803',
-  '#8f939d': '901', '#3e4042': '902', '#000000': '903'
-};
 const ATTENTE_COULEURS = 'rdg_couleurs_attente';   // couleurs pas encore confirmées par le coffre-fort
 var STOCK = [];                                     // lignes de STOCK : ce qu'on possède, pour la liste « Inventaire »
 var COULEURS = [];                                  // lignes de l'onglet Couleurs : [ID, SecteurID, Nom, Valeur]
@@ -406,7 +394,6 @@ async function chargerReferences() {
     lireAttenteGestes().forEach(e => appliquerGeste(e, data.stock, data.pasAimes));   // idem : une consommation en route reste faite
     appliquer(data); ecrireCache(data); remplirListes(); statut('');
     expedierOrdre();                              // le réseau répond : on en profite pour renvoyer l'attente
-    convertirAnciensHex(data.emps);               // conversion unique des anciens codes hex (voir plus bas)
     expedierCouleurs();                           // idem pour les couleurs (sinon un appareil garde les siennes)
     expedierGestes();                             // idem pour les consommations
     return true;
@@ -1074,18 +1061,15 @@ function optionsPieces(sel) {
     return '<option value="' + esc(p.id) + '"' + (String(p.id) === String(sel) ? ' selected' : '') + '>' + esc(p.nom) + '</option>';
   }).join('');
 }
-/* La couleur d'une pièce ou d'un meuble : un NUMÉRO de la palette (« 305 »).
-   Un ancien code hex est relié au numéro qui avait cette teinte (ANCIENS_HEX). */
+/* La couleur d'une pièce ou d'un meuble : un NUMÉRO de la palette (« 305 »). Autre chose -> ''. */
 function numeroCouleur(v) {
   const s = String(v == null ? '' : v).trim();
-  if (/^\d{3}$/.test(s)) return s;
-  const h = hexValide(s);
-  return (h && ANCIENS_HEX[h]) || '';
+  return /^\d{3}$/.test(s) ? s : '';
 }
 /* La teinte à peindre, en code hex (celle de la palette en ce moment). */
 function couleurDe(v) {
   const n = numeroCouleur(v);
-  return n ? couleurActuelle('couleur-' + n) : hexValide(v);
+  return n ? couleurActuelle('couleur-' + n) : '';   // plus aucun code hex dans le Sheet (converti le 2026-09-30)
 }
 /* Une couleur de meuble est-elle PÂLE ? Sert à choisir la couleur du texte par-dessus :
    du crème sur un fond foncé, du brun foncé sur un fond pâle. Sans ça, un meuble
@@ -2331,18 +2315,6 @@ function envoyerCouleurs() {
     COULEURS = c.couleurs;
   }
   expedierCouleurs();
-}
-/* CONVERSION UNIQUE (J-C, 2026-09-30) : un ancien code hex de la colonne Couleur d'Emplacements devient son numéro,
-   par la même attente que les couleurs choisies (un seul appel, en arrière-plan). Une couleur déjà en attente passe devant.
-   ⚠️ À RETIRER, avec ANCIENS_HEX, dès que le Sheet ne porte plus que des numéros. */
-function convertirAnciensHex(emps) {
-  const a = lireAttenteCouleurs();
-  let n = 0;
-  (emps || []).forEach(r => {
-    const v = String(r[5] || '').trim(), num = /^\d{3}$/.test(v) ? '' : numeroCouleur(v);
-    if (num && a.meubles[r[0]] === undefined) { a.meubles[r[0]] = num; n++; }
-  });
-  if (n) ecrireAttenteCouleurs(a);
 }
 /* Envoie l'attente, en arrière-plan (la file de coffre.js garde un appel à la fois).
    Succès : on retire ce qui a été confirmé. Échec : tout reste, et repart au prochain passage. */
