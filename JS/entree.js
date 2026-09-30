@@ -406,6 +406,7 @@ async function chargerReferences() {
     lireAttenteGestes().forEach(e => appliquerGeste(e, data.stock, data.pasAimes));   // idem : une consommation en route reste faite
     appliquer(data); ecrireCache(data); remplirListes(); statut('');
     expedierOrdre();                              // le réseau répond : on en profite pour renvoyer l'attente
+    convertirAnciensHex(data.emps);               // conversion unique des anciens codes hex (voir plus bas)
     expedierCouleurs();                           // idem pour les couleurs (sinon un appareil garde les siennes)
     expedierGestes();                             // idem pour les consommations
     return true;
@@ -2330,6 +2331,18 @@ function envoyerCouleurs() {
     COULEURS = c.couleurs;
   }
   expedierCouleurs();
+}
+/* CONVERSION UNIQUE (J-C, 2026-09-30) : un ancien code hex de la colonne Couleur d'Emplacements devient son numéro,
+   par la même attente que les couleurs choisies (un seul appel, en arrière-plan). Une couleur déjà en attente passe devant.
+   ⚠️ À RETIRER, avec ANCIENS_HEX, dès que le Sheet ne porte plus que des numéros. */
+function convertirAnciensHex(emps) {
+  const a = lireAttenteCouleurs();
+  let n = 0;
+  (emps || []).forEach(r => {
+    const v = String(r[5] || '').trim(), num = /^\d{3}$/.test(v) ? '' : numeroCouleur(v);
+    if (num && a.meubles[r[0]] === undefined) { a.meubles[r[0]] = num; n++; }
+  });
+  if (n) ecrireAttenteCouleurs(a);
 }
 /* Envoie l'attente, en arrière-plan (la file de coffre.js garde un appel à la fois).
    Succès : on retire ce qui a été confirmé. Échec : tout reste, et repart au prochain passage. */
