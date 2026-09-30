@@ -320,11 +320,10 @@ function basculerMenu() {                // ouvrir, ou fermer par le seul chemin
 function avis(txt, type) {                 // type : 'avis' (défaut) · 'succes' · 'erreur'
   let t = document.querySelector('.toast');
   if (!t) { t = document.createElement('div'); document.body.appendChild(t); }
-  t.className = 'toast toast-' + (type || 'avis');
+  t.className = 'toast toast-' + (type || 'avis');   // sans « visible » : un message qui arrive par-dessus l'autre repart de zéro
   t.textContent = txt;
-  requestAnimationFrame(() => t.classList.add('visible'));
-  clearTimeout(t._h);
-  t._h = setTimeout(() => t.classList.remove('visible'), 1600);
+  void t.offsetWidth;                                 // le navigateur prend acte de l'arrêt…
+  t.classList.add('visible');                         // …puis le message paraît au centre, --toast-duree (au root), et s'efface seul
 }
 
 /* ---------- Cache local des listes ---------- */

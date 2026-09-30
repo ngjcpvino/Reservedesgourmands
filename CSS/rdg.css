@@ -147,6 +147,7 @@
   --titre-bas:        166px;     /* le bas du titre du site, au départ : juste au-dessus du champ du mot de passe (J-C, 2026-09-27) */
   --titre-monte:      0px;       /* de combien le titre du site monte pour rester au-dessus de ce qui se pose sur la photo (le script le calcule) */
   --transition-menu:  0.8s;      /* la page qui glisse vers le haut pour montrer le menu */
+  --toast-duree:      3s;        /* un message reste 3 s au centre de l'écran (J-C, 2026-09-30, choix A sur aperçu parmi 3 / 4 / 5 — avant : 1,6 s en bas) */
   --spinner-lueur:    drop-shadow(0 0 10px color-mix(in srgb, var(--couleur-101) 28%, transparent));
   --scan-haut:        25vh;      /* la hauteur de la fenêtre du scan : pleine largeur et basse, comme un code-barres */
   --lettrage-large:   0.04em;    /* l'espacement des lettres du code lu */
@@ -794,13 +795,18 @@ select.champ {
 .icone-deco { --dessin: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='0.8' stroke-linecap='round' stroke-linejoin='round'%3E%3Crect x='5' y='11' width='14' height='10' rx='1.5'/%3E%3Cpath d='M8 11V7a4 4 0 0 1 7.7-1.5'/%3E%3C/svg%3E"); }   /* Se déconnecter : le cadenas ouvert */
 
 /* ============================================================
-   TOAST — petit avis flottant (confirmation / à venir)
+   TOAST — petit avis flottant (confirmation / à venir / erreur)
+   Au CENTRE de l'écran, --toast-duree (J-C, 2026-09-30 : en bas et 1,6 s, on n'avait pas le temps de le lire).
+   La durée vit ici : le script ne fait que relancer l'animation.
 ============================================================ */
 .toast {
   position: fixed;
+  top: 50%;
   left: 50%;
-  bottom: var(--espace-xl);
-  transform: translateX(-50%);
+  transform: translate(-50%, -50%);
+  width: max-content;
+  max-width: calc(100% - 2 * var(--espace-xl));
+  text-align: center;
   padding: var(--espace-m) var(--espace-l);
   border-radius: var(--rayon);
   color: var(--couleur-101);
@@ -809,9 +815,9 @@ select.champ {
   z-index: 200;
   opacity: 0;
   pointer-events: none;
-  transition: opacity var(--transition);
 }
-.toast.visible { opacity: 1; }
+.toast.visible { animation: toast-montre var(--toast-duree) ease forwards; }
+@keyframes toast-montre { 0% { opacity: 0; } 5%, 90% { opacity: 1; } 100% { opacity: 0; } }
 .toast-avis   { background: var(--couleur-306); }
 .toast-succes { background: var(--couleur-703); }
 .toast-erreur { background: var(--couleur-402); }
