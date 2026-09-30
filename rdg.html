@@ -316,6 +316,25 @@
 </div>
 
 <!-- ============================================================
+     GÉRER LES BASES → PIÈCES : une barre par pièce, à sa couleur (le JS les bâtit).
+     Toucher une barre ouvre sa palette; ajouter se fait au bas, sur la page même.
+============================================================ -->
+<div id="vue-pieces" hidden>
+  <div class="entete"><div class="titre">Pièces</div></div>
+  <div class="contenu">
+    <div id="liste-pieces"></div>
+    <div class="accordeon-item accordeon-item-saisie">
+      <input class="champ" id="piece-nouvelle" autocomplete="off" enterkeyhint="done" placeholder="Nouvelle pièce…">
+      <button class="bouton bouton-petit bouton-vert" id="btn-piece-ajouter" type="button">Ajouter</button>
+    </div>
+    <div class="message message-repli" id="pieces-msg"></div>
+    <!-- n'apparait qu'apres un deplacement (fleches) ; reste colle au bas de l'ecran -->
+    <button class="bouton bouton-vert bouton-pleine bouton-detache bouton-collant" id="btn-ordre-pieces" type="button" hidden>Enregistrer l'ordre</button>
+    <button class="bouton bouton-or bouton-pleine bouton-detache" id="pieces-retour" type="button">Retour</button>
+  </div>
+</div>
+
+<!-- ============================================================
      OUTILS — couleurs (le site + les meubles). Les lignes sont bâties par le JS.
 ============================================================ -->
 <div id="vue-couleurs" hidden>
@@ -379,7 +398,7 @@
 </div><!-- fin du conteneur -->
 
 <script src="JS/coffre.js?v=7"></script>
-<script src="JS/entree.js?v=93"></script>
+<script src="JS/entree.js?v=94"></script>
 <script src="JS/scan.js?v=9"></script>
 </body>
 </html>
