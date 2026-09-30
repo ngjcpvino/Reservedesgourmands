@@ -548,10 +548,10 @@ select.champ {
 /* LA RÈGLE DES LISTES (J-C, 2026-09-30, choix B1 sur aperçu) : un aliment à plusieurs sortes = son nom UNE fois, en bandeau pâle
    en retrait; ses sortes dessous, au même retrait. Une seule sorte : une ligne complète, comme avant. */
 .bandeau-aliment { margin-left: var(--retrait); }
-.item-sorte { padding-left: calc(var(--espace-l) + var(--retrait)); }
+.item.item-sorte { padding-left: calc(var(--espace-l) + var(--retrait)); }   /* .item.… : la ligne de base (.item, plus bas) ne l'efface plus */
 
 /* Un aliment à plusieurs sortes (Inventaire, choix C de J-C) : une ligne — le nom et le total —
-   qu'on touche pour voir ses sortes dessous, serrées, en retrait. La flèche est celle des accordéons. */
+   qu'on touche pour voir ses sortes dessous, en retrait. La flèche est celle des accordéons. */
 .aliment { margin-bottom: 0; }
 .espace-bandeau + .aliment > .aliment-tete { border-top: none; }
 .aliment-tete { cursor: pointer; user-select: none; }
@@ -567,7 +567,7 @@ select.champ {
   transition: transform var(--transition-pli) ease;
 }
 .aliment-tete.ouvert .item-nom::after { transform: rotate(180deg); }
-.sorte { border-top: none; min-height: 0; padding-top: 0; padding-bottom: var(--espace-xs); padding-left: calc(var(--espace-l) + var(--retrait)); }
+.item.sorte { padding-left: calc(var(--espace-l) + var(--retrait)); }   /* .item.… : la ligne de base (.item, plus bas) effaçait le retrait (vu par J-C, 2026-09-30) */
 .sorte .item-detail { color: var(--couleur-306); }   /* la couleur de l'aliment (choix A de J-C) : le brun pâle ne se lisait pas */
 .sorte-quantite { font-size: var(--texte-petit); color: var(--couleur-305); padding: 0 var(--espace-s); }
 
