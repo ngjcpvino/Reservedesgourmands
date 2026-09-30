@@ -10,7 +10,7 @@
   <!-- Ecran d'accueil iPad : le meme sac, en PNG (iOS n'accepte pas le SVG ici) -->
   <link rel="apple-touch-icon" href="apple-touch-icon.png?v=2">
 
-<link rel="stylesheet" href="CSS/rdg.css?v=90">
+<link rel="stylesheet" href="CSS/rdg.css?v=91">
 </head>
 <body>
 
@@ -40,6 +40,20 @@
         <button class="bouton bouton-grand" id="menu-deco" type="button" aria-label="Se déconnecter"><span class="icone icone-deco"></span></button>
       </div>
       <button class="bouton bouton-or bouton-pleine bouton-suite" id="menu-outils-retour" type="button">Retour</button>
+    </div>
+    <!-- Gérer les bases : ses 8 icônes prennent la place des 4 d'Outils; Retour ramène à Outils -->
+    <div id="menu-bases-grille" hidden>
+      <div class="grille">
+        <button class="bouton bouton-grand" data-base="pieces" type="button" aria-label="Pièces"><span class="icone icone-pieces"></span></button>
+        <button class="bouton bouton-grand" data-base="meubles" type="button" aria-label="Meubles"><span class="icone icone-meubles"></span></button>
+        <button class="bouton bouton-grand" data-base="categories" type="button" aria-label="Catégories"><span class="icone icone-categories"></span></button>
+        <button class="bouton bouton-grand" data-base="aliments" type="button" aria-label="Aliments"><span class="icone icone-aliments"></span></button>
+        <button class="bouton bouton-grand" data-base="magasins" type="button" aria-label="Magasins"><span class="icone icone-magasins"></span></button>
+        <button class="bouton bouton-grand" data-base="marques" type="button" aria-label="Marques"><span class="icone icone-marques"></span></button>
+        <button class="bouton bouton-grand" data-base="saveurs" type="button" aria-label="Saveurs"><span class="icone icone-saveurs"></span></button>
+        <button class="bouton bouton-grand" data-base="unites" type="button" aria-label="Unités"><span class="icone icone-unites"></span></button>
+      </div>
+      <button class="bouton bouton-or bouton-pleine bouton-suite" id="menu-bases-retour" type="button">Retour</button>
     </div>
   </div>
 </div>
@@ -365,7 +379,7 @@
 </div><!-- fin du conteneur -->
 
 <script src="JS/coffre.js?v=7"></script>
-<script src="JS/entree.js?v=92"></script>
+<script src="JS/entree.js?v=93"></script>
 <script src="JS/scan.js?v=9"></script>
 </body>
 </html>

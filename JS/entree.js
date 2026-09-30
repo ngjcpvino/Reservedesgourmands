@@ -263,7 +263,7 @@ function fermerMenu() {                 // la page redescend ; Outils se replie 
   $('menu').classList.remove('ouvert');
   document.body.classList.remove('menu-ouvert');
   $('btn-burger').classList.remove('ouvert');
-  montrerOutils(false);
+  montrerGrilleMenu('principal');
   placerTitre();
 }
 function ouvrirMenu() {
@@ -287,11 +287,12 @@ function placerTitre() {
   }
   document.documentElement.style.setProperty('--titre-monte', Math.max(0, bas - haut) + 'px');
 }
-/* Outils : ses 4 icônes prennent la place des 6; Retour les rend. */
+/* Le menu a trois grilles, une seule visible : la principale (6), Outils (4), Gérer les bases (8).
+   Chaque Retour remonte d'un cran. */
 window.addEventListener('resize', () => placerTitre());
-function montrerOutils(on) {
-  $('menu-principal').hidden = on;
-  $('menu-outils-grille').hidden = !on;
+const GRILLES_MENU = { principal: 'menu-principal', outils: 'menu-outils-grille', bases: 'menu-bases-grille' };
+function montrerGrilleMenu(nom) {
+  Object.keys(GRILLES_MENU).forEach(k => { $(GRILLES_MENU[k]).hidden = k !== nom; });
   if ($('menu').classList.contains('ouvert')) placerTitre();   // la grille change de hauteur : le titre suit
 }
 /* Glisser le doigt vers le bas sur le menu le ferme (comme retoucher le X). */
@@ -2344,11 +2345,14 @@ function initEntree() {
   // page d'ouverture : menu burger + items
   $('btn-burger').addEventListener('click', basculerMenu);
   $('menu-ouverture').addEventListener('click', montrerAccueil);   // 1er item = retour à l'ouverture
-  $('menu-outils').addEventListener('click', () => montrerOutils(true));
-  $('menu-outils-retour').addEventListener('click', () => montrerOutils(false));
+  $('menu-outils').addEventListener('click', () => montrerGrilleMenu('outils'));
+  $('menu-outils-retour').addEventListener('click', () => montrerGrilleMenu('principal'));
   $('menu').addEventListener('touchstart', surToucheDebut, { passive: true });
   $('menu').addEventListener('touchend', surToucheFin);
-  $('menu-bases').addEventListener('click', montrerBases);
+  $('menu-bases').addEventListener('click', () => montrerGrilleMenu('bases'));
+  $('menu-bases-retour').addEventListener('click', () => montrerGrilleMenu('outils'));
+  // les 8 bases : chacune ouvrira sa propre page; d'ici là, toutes ouvrent Gérer les bases au complet (accord de J-C)
+  document.querySelectorAll('[data-base]').forEach(b => b.addEventListener('click', montrerBases));
   $('menu-couleurs').addEventListener('click', montrerCouleurs);
   // le menu mène exactement où mènent les 4 boutons de l'accueil
   $('menu-ajouter').addEventListener('click', montrerChoixQuoi);
