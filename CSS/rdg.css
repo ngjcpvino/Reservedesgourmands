@@ -415,7 +415,6 @@ body:has(.sur-photo:not([hidden]))::before { display: none; }
 .bouton-detache    { margin-top: var(--espace-l); }     /* pose apres le contenu : Retour, Enregistrer */
 .bouton-quitter    { margin-top: var(--espace-xl); }    /* detache du reste : Annuler */
 .bouton-suite      { margin-top: var(--espace-s); }     /* suit immediatement ce qui precede */
-.bouton-empile-fin { margin-bottom: var(--espace-l); }  /* le dernier de la pile */
 
 /* ============================================================
    CHAMP — saisie texte / menu déroulant (même base)
@@ -541,25 +540,9 @@ select.champ {
 /* Fond pâle (couleur de meuble claire) : le texte passe au brun foncé, sinon il disparaît.
    La classe est posée par le script, qui seul connaît la couleur choisie. */
 .accordeon-tete.tete-pale { color: var(--couleur-306); }
-/* ------------------------------------------------------------
-   LE TRIANGLE « PLIER / DÉPLIER » — dessiné ici, jamais écrit dans le HTML.
-   Règle de J-C : un triangle TOURNE, sinon il n'existe pas. Une flèche à
-   tige (↑↓) sert à déplacer — jamais un triangle.
-   Il prend currentColor, donc il suit le texte : sur un meuble pâle il
-   devient brun foncé tout seul.
------------------------------------------------------------- */
-.accordeon-tete::after {
-  content: '';
-  flex-shrink: 0;
-  width: 0;
-  height: 0;
-  border-left: var(--fleche-taille) solid transparent;
-  border-right: var(--fleche-taille) solid transparent;
-  border-top: var(--fleche-taille) solid currentColor;
-  opacity: 0.55;
-  transition: transform var(--transition-pli) ease;
-}
-.accordeon-tete.ouvert::after { transform: rotate(180deg); }
+/* PAS de triangle « plier / déplier » sur une barre de couleur (J-C, 2026-09-30) : une barre en relief
+   se lit déjà comme un bouton. Le seul triangle qui reste est celui d'un aliment à plusieurs sortes
+   (Inventaire, .aliment-tete) : une ligne blanche, qui sans lui ne dirait pas qu'elle s'ouvre. */
 .accordeon-item {
   display: flex;
   justify-content: space-between;
@@ -652,6 +635,30 @@ select.champ {
 .accordeon-tete .crayon { margin-top: calc(-1 * var(--espace-m)); margin-bottom: calc(-1 * var(--espace-m)); }
 .accordeon-item .crayon { margin-top: calc(-1 * var(--espace-s)); margin-bottom: calc(-1 * var(--espace-s)); }
 .crayon + .fleches { margin-left: 0; }
+/* LA POUBELLE « retirer » (un meuble, un espace — J-C, 2026-09-30) : le jumeau du crayon, au bout de la ligne. */
+.retirer {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  align-self: stretch;
+  width: var(--tactile);
+  padding: 0;
+  background: none;
+  border: none;
+  color: inherit;
+  cursor: pointer;
+}
+.accordeon-tete .retirer { margin-top: calc(-1 * var(--espace-m)); margin-bottom: calc(-1 * var(--espace-m)); margin-right: calc(-1 * var(--espace-s)); }
+.accordeon-item .retirer { margin-top: calc(-1 * var(--espace-s)); margin-bottom: calc(-1 * var(--espace-s)); }
+.retirer::before {
+  content: '';
+  width: var(--fleche-deplacer);
+  height: var(--fleche-deplacer);
+  background: currentColor;
+  -webkit-mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='1.8' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M4 6.5h16M9.5 6.5V4h5v2.5M6.5 6.5l1 13.5h9l1-13.5M10 10.5v6M14 10.5v6'/%3E%3C/svg%3E") center / contain no-repeat;
+          mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='1.8' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M4 6.5h16M9.5 6.5V4h5v2.5M6.5 6.5l1 13.5h9l1-13.5M10 10.5v6M14 10.5v6'/%3E%3C/svg%3E") center / contain no-repeat;
+  opacity: var(--fleche-trait);
+}
 .crayon::before {
   content: '';
   width: var(--fleche-deplacer);
@@ -682,7 +689,6 @@ select.champ {
 .accordeon-corps > .palette { padding: var(--espace-s) var(--espace-l); }
 .pastille-choix { -webkit-appearance: none; appearance: none; padding: 0; cursor: pointer; }
 .pastille-choisie { box-shadow: 0 0 0 var(--halo) var(--champ-focus); }
-.couleur-choix { cursor: pointer; }
 .champ-hex { flex-shrink: 0; width: var(--champ-hex-large); }
 .champ-nombre { flex-shrink: 0; width: var(--champ-nombre-large); }   /* un nombre n'a pas besoin de toute la largeur */
 .champ-erreur, .champ-erreur:focus { border-color: var(--couleur-402); }   /* un code mal tapé */
