@@ -805,10 +805,16 @@ function adopterProduit(pid) {
 function unitesConnues() {
   const vues = UNITES_BASE.slice();
   STOCK.forEach(l => {
-    const u = String(l[6] || '').trim().replace(/^[0-9]+([.,][0-9]+)?\s*/, '');
+    const u = uniteDe(l[6]);
     if (u && vues.indexOf(u) === -1) vues.push(u);
   });
   return vues;
+}
+/* « 2 L » -> « L » ; et l'inverse : le même nombre, une autre unité (« 2 Lt » -> « 2 L »). */
+function uniteDe(format) { return String(format || '').trim().replace(/^[0-9]+([.,][0-9]+)?\s*/, ''); }
+function formatAvec(format, unite) {
+  const m = String(format || '').trim().match(/^([0-9]+(?:[.,][0-9]+)?)\s*/);
+  return (m ? m[1] + ' ' : '') + unite;
 }
 function remplirUnites() {
   const garde = $('format-unite').value;
@@ -1492,14 +1498,16 @@ function retirerAliment(pid) {
    « Nouveau magasin… » au bas, pour suivre les spéciaux d'une épicerie où l'on n'a encore rien acheté.
    Marques et saveurs naissent à l'entrée et restent collées aux lots : le crayon seulement (J-C). */
 const PAGES_NOMS = {
-  magasins: { choix: 'magasin', aucun: 'Aucun magasin.', gere: true },   // choix -> CHOIX_FICHE (la liste, « Nouveau… »)
-  marques:  { choix: 'marque',  aucun: 'Aucune marque.' },
-  saveurs:  { choix: 'saveur',  aucun: 'Aucune saveur.' }
+  magasins: { titre: 'Magasins', choix: 'magasin', aucun: 'Aucun magasin.', gere: true },   // choix -> CHOIX_FICHE (la liste, « Nouveau… »)
+  marques:  { titre: 'Marques',  choix: 'marque',  aucun: 'Aucune marque.' },
+  saveurs:  { titre: 'Saveurs',  choix: 'saveur',  aucun: 'Aucune saveur.' },
+  unites:   { titre: 'Unités',   unites: true }                             // pas une liste du Sheet : le texte des formats
 };
 var pageNoms = PAGES_NOMS.magasins;                // la liste que la page montre
 const listeNoms = () => CHOIX_FICHE[pageNoms.choix].liste;                                      // 'Magasins', 'Marques', 'Saveurs'
 const typeNoms = () => Object.keys(TABLES_NOM).find(k => TABLES_NOM[k][0] === listeNoms());   // la lettre du crayon : g, q, v
 function remplirPageNoms() {
+  if (pageNoms.unites) { remplirPageUnites(); return; }
   const xs = LISTES[listeNoms()].slice().sort((a, b) => a.nom.localeCompare(b.nom, 'fr')), t = typeNoms();
   $('liste-noms').innerHTML = xs.map(x => '<div class="accordeon" data-id="' + esc(x.id) + '"><div class="accordeon-tete"><span>' + esc(x.nom) + '</span>' +
     crayon(t + ':' + x.id) + (pageNoms.gere ? poubelle(t, x.id) : '') + '</div></div>').join('') ||
@@ -1508,9 +1516,9 @@ function remplirPageNoms() {
 async function montrerPageNoms(cle) {
   pageNoms = PAGES_NOMS[cle];
   toutCacher(); $('vue-noms').hidden = false; $('btn-burger').hidden = false;
-  $('noms-titre').textContent = listeNoms();
+  $('noms-titre').textContent = pageNoms.titre;
   $('noms-ajout').hidden = !pageNoms.gere;
-  $('nom-nouveau').value = ''; $('nom-nouveau').placeholder = CHOIX_FICHE[pageNoms.choix].neuve;
+  $('nom-nouveau').value = ''; if (pageNoms.gere) $('nom-nouveau').placeholder = CHOIX_FICHE[pageNoms.choix].neuve;
   $('noms-msg').className = 'message message-repli'; $('noms-msg').textContent = '';
   if (!RAYONS.length) {                            // pas encore chargé → on charge (même patron que les bases)
     $('liste-noms').innerHTML = '<div class="texte-petit texte-pale">Chargement…</div>';
@@ -1570,6 +1578,49 @@ function retirerNom(id) {
   avis('Retiré : ' + x.nom, 'succes');
 }
 
+/* ---------- Gérer les bases → Unités (la balance) — décisions de J-C, 2026-09-30 ----------
+   Une unité n'est pas une liste du Sheet : c'est le texte après le nombre, dans le format (« 2 L »). La page montre
+   celles de la fiche (les 5 de base, puis tout ce que « Autre… » a ajouté), avec le look des Magasins.
+   Les 5 de base, SANS crayon : fixes, c'est grâce à elles que l'app additionne (4 L + deux 1 L = 6 L).
+   Les autres, avec le crayon : corriger une faute (« Lt » -> « L ») réécrit tous les lots qui s'en servent, et l'ancienne
+   disparaît de la fiche; un nom qui existe déjà -> « les réunir ? ». Pas d'Ajouter ni de poubelle : une unité naît
+   à l'entrée et existe tant qu'un lot s'en sert. */
+function remplirPageUnites() {
+  $('liste-noms').innerHTML = unitesConnues().map(u => '<div class="accordeon" data-id="' + esc(u) + '"><div class="accordeon-tete"><span>' + esc(u) + '</span>' +
+    (UNITES_BASE.indexOf(u) === -1 ? crayon('u:' + u) : '') + '</div></div>').join('');
+}
+/* Le crayon d'une unité : un nom qui existe déjà (sans accent ni majuscule) -> la question; sinon, on la change partout. */
+function renommerUnite(ancienne, nom) {
+  nom = String(nom || '').trim();
+  if (!nom || nom === ancienne) { rafraichirBases(); return; }
+  const autre = unitesConnues().find(u => u !== ancienne && cleNom(u) === cleNom(nom));
+  if (autre) { demanderReunion('u:' + ancienne, { id: autre, nom: autre }); return; }
+  changerUnite(ancienne, nom);
+}
+/* Tous les lots dans l'ancienne unité passent à la nouvelle (le nombre reste). INSTANTANÉ : les lignes de STOCK réécrites
+   partent dans la file des gestes (action deplacer : des lignes de STOCK réécrites au complet, rejouable).
+   L'historique (Sorties) garde le format d'alors. */
+async function changerUnite(ancienne, nouvelle) {
+  const lignes = () => STOCK.filter(l => uniteDe(l[6]) === ancienne);
+  if (lignes().some(l => !l[0])) {                     // filet : une ligne sans ID (ne devrait plus arriver) -> on relit d'abord
+    montrerVoile(true);
+    const lu = await chargerReferences();
+    montrerVoile(false);
+    if (!lu || lignes().some(l => !l[0])) { avis('Unité pas corrigée — réessaie', 'erreur'); rafraichirBases(); return; }
+  }
+  const modifs = lignes().map(l => { const ligne = l.slice(); ligne[4] = dateCourte(ligne[4]); ligne[6] = formatAvec(l[6], nouvelle); return { id: String(l[0]), ligne: ligne }; });
+  if (modifs.length) poserGeste({ action: 'deplacer', opId: 'unite-' + Date.now() + '-' + Math.random().toString(36).slice(2, 8), modifs: modifs, ajouts: [] });
+  const suivre = vr => {                               // la fiche pré-remplit d'après les formats déjà vus : ils suivent
+    if (!vr) return;
+    vr.formats = (vr.formats || []).map(f => uniteDe(f) === ancienne ? formatAvec(f, nouvelle) : f).filter((f, k, t) => t.indexOf(f) === k);
+    if (vr.dernierFormat && uniteDe(vr.dernierFormat) === ancienne) vr.dernierFormat = formatAvec(vr.dernierFormat, nouvelle);
+  };
+  Object.values(VARIANTES).forEach(suivre);
+  const c = lireCache(); if (c && c.variantes) { Object.values(c.variantes).forEach(suivre); ecrireCache(c); }
+  rafraichirBases();
+  avis('« ' + ancienne + ' » devient « ' + nouvelle + ' »', 'succes');
+}
+
 /* Entrée dans une ligne « Nouveau… » (meuble, espace, catégorie, sous-catégorie) = son bouton Ajouter. */
 function entreeAjoute(ev) {
   if (ev.key !== 'Enter' || ev.target.tagName !== 'INPUT' || !ev.target.closest('.accordeon-item-saisie')) return;
@@ -1621,6 +1672,7 @@ function ouvrirRenommer(btn) {
   input.addEventListener('click', e => e.stopPropagation());   // toucher le champ ne plie pas l'accordéon
 }
 async function renommer(cle, nom) {
+  if (cle.charAt(0) === 'u') { renommerUnite(cle.slice(2), nom); return; }   // une unité : le texte des formats, pas une ligne du Sheet
   const type = cle.charAt(0), id = cle.slice(2), T = TABLES_NOM[type];
   nom = String(nom || '').trim();
   const c = lireCache();
@@ -1655,6 +1707,7 @@ function demanderReunion(cle, autre) {
 }
 async function reunirNoms(val) {
   const k = String(val).split('|'), cle = k[0], garde = k[1], T = TABLES_NOM[cle.charAt(0)], perdu = cle.slice(2);
+  if (cle.charAt(0) === 'u') { changerUnite(perdu, garde); return; }   // deux unités : les lots de l'une passent à l'autre
   montrerVoile(true);
   try {
     const r = cle.charAt(0) === 'a' ? await Coffre.reunirProduits({ garde: garde, perdu: perdu })   // ses lots, ses sorties, ses « Pas aimé »
@@ -2724,10 +2777,10 @@ function initEntree() {
   $('menu').addEventListener('touchend', surToucheFin);
   $('menu-bases').addEventListener('click', () => montrerGrilleMenu('bases'));
   $('menu-bases-retour').addEventListener('click', () => montrerGrilleMenu('outils'));
-  // les 8 bases : chacune ouvre sa page (Unités : à venir)
+  // les 8 bases : chacune ouvre sa page
   const PAGES_BASES = { pieces: montrerPieces, meubles: montrerMeubles, categories: montrerPageCategories, aliments: montrerPageAliments,
                         magasins: () => montrerPageNoms('magasins'), marques: () => montrerPageNoms('marques'), saveurs: () => montrerPageNoms('saveurs'),
-                        unites: () => avis('Unités — à venir') };
+                        unites: () => montrerPageNoms('unites') };
   document.querySelectorAll('[data-base]').forEach(b => b.addEventListener('click', PAGES_BASES[b.dataset.base]));
   $('menu-couleurs').addEventListener('click', montrerCouleurs);
   // le menu mène exactement où mènent les 4 boutons de l'accueil
