@@ -201,7 +201,7 @@ async function surCode() {
   if (typeof window.chercherOFF === 'function') { try { d = await window.chercherOFF(code); } catch (e) {} }
   statut('');
   if (d && d.trouve) {                              // trouvé chez Open Food Facts -> nouveau produit
-    $('nom').value = d.nom || '';
+    $('nom').value = d.nom || d.nomAutre || '';     // pas de nom français : l'anglais, que J-C corrige (2026-09-30)
     surNom();
     if (produitCourant === null) {                  // resté « nouveau » : on garde les infos OFF
       if (d.marque) choisirParNom('marque', d.marque);   // retrouvée dans la liste, sinon proposée en « Nouvelle marque… »
@@ -2603,9 +2603,10 @@ async function achatParCode(code) {
   let d = null;
   if (typeof window.chercherOFF === 'function') { try { d = await window.chercherOFF(code); } catch (e) {} }
   if ($('vue-achats').hidden || $('achats-ajout').hidden) return;    // il est passé à autre chose entre-temps
-  const connu = d && d.nom && trouverProduitParNom(d.nom);          // le code n'est pas noté, mais le nom est à nous
+  const nomLu = (d && d.trouve && (d.nom || d.nomAutre)) || '';   // pas de nom français : l'anglais, à corriger (comme la fiche)
+  const connu = nomLu && trouverProduitParNom(nomLu);             // le code n'est pas noté, mais le nom est à nous
   if (connu) { mettreSurListe(connu.id); return; }
-  nomScanne = (d && d.trouve && d.nom) || '';
+  nomScanne = nomLu;
   ouvrirAjoutAchat();
   if (!nomScanne) msgAchat('Produit inconnu — choisis-le à la main.', true);
 }
@@ -2648,7 +2649,7 @@ async function chercherParCode(code) {
   const connu = d && d.nom && trouverProduitParNom(d.nom);             // le code n'est pas noté, mais le nom est à nous
   if (connu) { montrerRayon(connu.id); return; }
   const trouve = !!(d && d.trouve);
-  const nomLu = trouve ? (d.nom || d.nomAutre || '') : '';   // pas de nom français : l'anglais, à lire ici seulement
+  const nomLu = trouve ? (d.nom || d.nomAutre || '') : '';   // pas de nom français : l'anglais (comme la fiche, qui le fait corriger)
   const qui = trouve ? [[nomLu, d.marque].filter(Boolean).join(' — '), d.format].filter(Boolean).join(' · ') : '';
   const photo = trouve && /^https:\/\//.test(d.photo || '') ? '<img class="photo-produit" src="' + esc(d.photo) + '" alt="">' : '';
   $('recherche-resultats').innerHTML = htmlVide('Tu n\'en as pas', qui || 'Produit inconnu', modeRecherche ? '' : 'data-ajouter-code="' + esc(code) + '"',
