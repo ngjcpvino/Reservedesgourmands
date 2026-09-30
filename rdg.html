@@ -306,7 +306,7 @@
     <div class="titre">Gérer les bases</div>
   </div>
   <div class="contenu">
-    <div id="liste-noms"></div>   <!-- Magasins, Marques, Saveurs : pour corriger un nom -->
+    <div id="liste-noms"></div>   <!-- Marques, Saveurs : pour corriger un nom -->
   </div>
 </div>
 
@@ -364,6 +364,23 @@
 </div>
 
 <!-- ============================================================
+     GÉRER LES BASES → MAGASINS : une barre par magasin (couleurs de la suite), le crayon et la poubelle (le JS les bâtit).
+     Ajouter se fait au bas, sur la page même.
+============================================================ -->
+<div id="vue-magasins" hidden>
+  <div class="entete"><div class="titre">Magasins</div></div>
+  <div class="contenu">
+    <div class="liste-suite" id="liste-magasins"></div>
+    <div class="accordeon-item accordeon-item-saisie">
+      <input class="champ" id="magasin-nouveau" autocomplete="off" enterkeyhint="done" placeholder="Nouveau magasin…">
+      <button class="bouton bouton-petit bouton-vert" id="btn-magasin-ajouter" type="button">Ajouter</button>
+    </div>
+    <div class="message message-repli" id="magasins-msg"></div>
+    <button class="bouton bouton-or bouton-pleine bouton-detache" id="magasins-retour" type="button">Retour</button>
+  </div>
+</div>
+
+<!-- ============================================================
      OUTILS — couleurs : la palette du site. Les lignes sont bâties par le JS.
 ============================================================ -->
 <div id="vue-couleurs" hidden>
@@ -391,7 +408,7 @@
 </div><!-- fin du conteneur -->
 
 <script src="JS/coffre.js?v=8"></script>
-<script src="JS/entree.js?v=102"></script>
+<script src="JS/entree.js?v=103"></script>
 <script src="JS/scan.js?v=9"></script>
 </body>
 </html>
