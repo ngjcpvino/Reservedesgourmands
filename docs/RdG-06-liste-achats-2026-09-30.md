@@ -1,9 +1,8 @@
 # RdG-06 — La liste d'achats (point 5)
 
 *Réflexion du 30 septembre 2026 avec Jean-Claude, finie le même jour. **L'app est bâtie le 30 septembre** (sa page, le chariot
-du menu, le calcul, cocher, la poubelle, ajouter à la main et au scan). ⚠️ **Le coffre-fort ne l'est pas encore** (section 4) :
-d'ici là, ce qui manque s'affiche (calculé depuis l'inventaire), et ce qu'on coche, ajoute ou met de côté reste **sur l'appareil**
-— sans bruit, en attente — et partira tout seul dès que `api.gs` saura l'écrire.*
+du menu, le calcul, cocher, la poubelle, ajouter à la main et au scan). **Le coffre-fort est écrit le 30 septembre aussi** (conversation sur l'ordi, section 4) — ⚠️ il reste à **coller `api.gs`**
+(Nouvelle version); d'ici là, ce qu'on coche, ajoute ou met de côté reste **sur l'appareil**, en attente, et partira tout seul.*
 
 ---
 
@@ -73,6 +72,6 @@ d'ici là, ce qui manque s'affiche (calculé depuis l'inventaire), et ce qu'on c
 - **Une entrée (Ajouter) nettoie** : après `entrerArticle`, l'app passe à Actif = N les lignes `main` de l'aliment et les `coche` / `plustard` de l'aliment + marque + saveur entré. (Le prochain passage à zéro repart donc de rien : c'est exactement « pas pour l'instant ».)
 - Instantané, par la file des gestes (comme Consommer).
 
-**⚠️ POUR LA CONVERSATION DE L'ORDI — `api.gs`** :
+**✅ `api.gs` — ÉCRIT le 30 septembre (conversation sur l'ordi; essayé à blanc : 1er envoi, reclic, décocher, deux fois le même ID dans un envoi, onglet absent). ⚠️ Reste : J-C colle `api.gs` → Nouvelle version.** Ce qui est fait :
 1. `references` renvoie **`achats`** : les lignes de l'onglet Achats dont Actif ≠ N (onglet absent = `[]`, **sans le créer**, comme `pasAimes`).
 2. Nouvelle action **`achats { lignes: [ligne] }`** : pour chaque ligne (8 colonnes, A = l'ID donné par l'app), **par ID : existe → réécrite; sinon → ajoutée**. Valeurs finales : un 2e envoi ne change rien (à l'épreuve du reclic). L'onglet **se crée tout seul** au premier usage, avec ses en-têtes. Sous verrou, comme les autres écritures.
