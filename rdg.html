@@ -10,7 +10,7 @@
   <!-- Ecran d'accueil iPad : le meme sac, en PNG (iOS n'accepte pas le SVG ici) -->
   <link rel="apple-touch-icon" href="apple-touch-icon.png?v=2">
 
-<link rel="stylesheet" href="CSS/rdg.css?v=92">
+<link rel="stylesheet" href="CSS/rdg.css?v=93">
 </head>
 <body>
 
@@ -306,8 +306,6 @@
     <div class="titre">Gérer les bases</div>
   </div>
   <div class="contenu">
-    <button class="bouton bouton-brun bouton-pleine bouton-empile-fin" id="btn-ajout-meuble" type="button">+ Ajouter un meuble</button>
-    <div id="liste-meubles"></div>
     <div id="liste-noms"></div>   <!-- Catégories et Aliments : pour corriger un nom -->
     <!-- n'apparait qu'apres un deplacement (fleches) ; reste colle au bas de l'ecran -->
     <button class="bouton bouton-vert bouton-pleine bouton-detache bouton-collant" id="btn-ordre" type="button" hidden>Enregistrer l'ordre</button>
@@ -334,7 +332,21 @@
 </div>
 
 <!-- ============================================================
-     OUTILS — couleurs (le site + les meubles). Les lignes sont bâties par le JS.
+     GÉRER LES BASES → MEUBLES : rangés sous leur pièce (le JS les bâtit).
+     Un meuble ouvert : sa pièce, sa couleur, ses espaces, « Nouvel espace… ». La poubelle retire.
+============================================================ -->
+<div id="vue-meubles" hidden>
+  <div class="entete"><div class="titre">Meubles</div></div>
+  <div class="contenu">
+    <div id="liste-meubles"></div>
+    <!-- n'apparait qu'apres un deplacement (fleches) ; reste colle au bas de l'ecran -->
+    <button class="bouton bouton-vert bouton-pleine bouton-detache bouton-collant" id="btn-ordre-meubles" type="button" hidden>Enregistrer l'ordre</button>
+    <button class="bouton bouton-or bouton-pleine bouton-detache" id="meubles-retour" type="button">Retour</button>
+  </div>
+</div>
+
+<!-- ============================================================
+     OUTILS — couleurs : la palette du site. Les lignes sont bâties par le JS.
 ============================================================ -->
 <div id="vue-couleurs" hidden>
   <div class="entete"><div class="titre">Couleurs</div></div>
@@ -358,33 +370,10 @@
   </div>
 </div>
 
-<div id="vue-meuble" hidden>
-  <div class="entete">
-    <div class="titre">Ajouter un meuble</div>
-  </div>
-  <div class="contenu">
-    <div class="bloc">
-      <div class="label">Nom du meuble</div>
-      <input class="champ" id="meuble-nom" placeholder="Ex. Garde-manger, Frigo">
-    </div>
-    <div class="bloc">
-      <div class="label">Pièce</div>
-      <select class="champ" id="meuble-piece"></select>
-    </div>
-    <div class="bloc">
-      <div class="label">Couleur</div>
-      <div class="palette" id="meuble-palette"></div>
-    </div>
-    <button class="bouton bouton-vert bouton-pleine bouton-detache" id="btn-meuble-enr" type="button">Enregistrer</button>
-    <div class="message" id="meuble-msg"></div>
-    <button class="bouton bouton-pleine bouton-quitter" id="meuble-annuler" type="button">Annuler</button>
-  </div>
-</div>
-
 </div><!-- fin du conteneur -->
 
 <script src="JS/coffre.js?v=7"></script>
-<script src="JS/entree.js?v=97"></script>
+<script src="JS/entree.js?v=98"></script>
 <script src="JS/scan.js?v=9"></script>
 </body>
 </html>
