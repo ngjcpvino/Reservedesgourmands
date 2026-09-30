@@ -374,6 +374,7 @@ body:has(.sur-photo:not([hidden]))::before { display: none; }
 .bouton-bleu   { --c: var(--couleur-803);   color: var(--couleur-101); }
 .bouton-rouge  { --c: var(--couleur-402);  color: var(--couleur-101); }
 .bouton-or     { --c: var(--couleur-604);     color: var(--couleur-306); }   /* Retour : l'or est clair, le texte passe au brun foncé */
+.choix-eteint  { --c: var(--couleur-201);     color: var(--couleur-305); }   /* un choix pas pris (Par catégorie / Par meuble) : pâle; le choix pris est brun */
 
 /* taille */
 .bouton-grand {
@@ -553,7 +554,8 @@ select.champ {
 /* Un aliment à plusieurs sortes (Inventaire, choix C de J-C) : une ligne — le nom et le total —
    qu'on touche pour voir ses sortes dessous, en retrait. La flèche est celle des accordéons. */
 .aliment { margin-bottom: 0; }
-.espace-bandeau + .aliment > .aliment-tete { border-top: none; }
+.espace-bandeau + .aliment > .aliment-tete,
+.liste-blanche > .aliment:first-child > .aliment-tete { border-top: none; }   /* en tête d'une liste : pas de trait dessus */
 .aliment-tete { cursor: pointer; user-select: none; }
 .aliment-tete .item-nom::after {
   content: '';
@@ -760,7 +762,8 @@ select.champ {
 /* ============================================================
    GRILLE — disposition en colonnes (2 par défaut, ou 3)
 ============================================================ */
-.grille   { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: var(--espace-s); }   /* minmax(0, …) : une colonne ne s'élargit jamais au-delà de sa moitié */
+.grille   { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: var(--espace-s); }
+.choix-vue { margin-bottom: var(--espace-s); }   /* le choix de la vue, en tête d'une liste (Inventaire) */   /* minmax(0, …) : une colonne ne s'élargit jamais au-delà de sa moitié */
 
 /* icône au centre d'un bouton (image ou symbole) */
 /* ------------------------------------------------------------

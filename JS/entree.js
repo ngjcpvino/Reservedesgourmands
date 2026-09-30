@@ -152,6 +152,7 @@ function enregistrerQui() {
 function montrerChoixQuoi()    { toutCacher(); $('vue-choix-quoi').hidden = false; $('btn-burger').hidden = false; $('btn-rechercher').hidden = false; $('entete-photo').hidden = false; }
 async function montrerListes() {
   toutCacher(); $('vue-listes').hidden = false; $('btn-burger').hidden = false;
+  vueInventaire = 'categorie';                 // à l'ouverture : toujours par catégorie (J-C, 2026-09-30)
   remplirInventaire();                         // instantané : ce qu'on a déjà en mémoire
   if (!MEUBLES.length) await chargerReferences();
   remplirInventaire();                         // puis la version fraîche, quand elle arrive
@@ -1967,25 +1968,100 @@ function htmlMeubleInventaire(m, par) {
   return '<div class="accordeon"' + style + '><div class="accordeon-tete' + pale + '">' + esc(m.nom) + '</div>' +
     '<div class="accordeon-corps" hidden>' + corps + '</div></div>';
 }
-/* La liste complète : pièce -> meuble -> espace -> produits. Les endroits vides ne paraissent pas. */
+/* L'Inventaire : UNE liste, deux vues (J-C, 2026-09-30, piste 2 sur aperçu : « l'inventaire mélange l'inventaire et les meubles »).
+   En haut, « Par catégorie » (ce que j'ai) et « Par meuble » (ce qu'il y a dans ce meuble). À l'ouverture : par catégorie. */
+var vueInventaire = 'categorie';                 // 'categorie' | 'meuble'
 function remplirInventaire() {
   const cible = $('liste-inventaire');
   if (!cible) return;
-  let html = '';
   const transitOuvert = !!cible.querySelector('[data-transit] > .ouvert');   // on range l'un après l'autre : il reste ouvert
-  const par = stockParEndroit();                 // calculé UNE fois pour toute la liste
   LOTS = lotsParProduit();
-  html += htmlPasEncoreRange();                  // en tête : ce qui attend d'être rangé
+  const html = vueInventaire === 'meuble' ? htmlInventaireMeubles() : htmlInventaireCategories();
+  const choix = '<div class="grille choix-vue">' + [['categorie', 'Par catégorie'], ['meuble', 'Par meuble']].map(v =>
+    '<button class="bouton bouton-petit ' + (v[0] === vueInventaire ? 'bouton-brun' : 'choix-eteint') + '" type="button" data-vue="' + v[0] + '">' + v[1] + '</button>').join('') + '</div>';
+  const vide = t => '<div class="accordeon-item"><span class="texte-petit texte-pale">' + t + '</span></div>';
+  cible.innerHTML = !Object.keys(LOTS).length ? vide('Rien d\'entré pour le moment.')
+                  : choix + (html || vide('Rien à montrer ici.'));   // le choix reste là : on peut toujours changer de vue
+  const transit = cible.querySelector('[data-transit] > .accordeon-tete');
+  if (transitOuvert && transit) toggleAccordeon(transit);
+}
+/* Par meuble : pièce -> meuble -> espace -> produits, « Pas encore rangé » en tête. Les endroits vides ne paraissent pas. */
+function htmlInventaireMeubles() {
+  const par = stockParEndroit();                 // calculé UNE fois pour toute la liste
+  let html = htmlPasEncoreRange();               // en tête : ce qui attend d'être rangé
   const groupe = (titre, meubles, piece) => {
     const dedans = meubles.map(m => htmlMeubleInventaire(m, par)).join(''), t = teinteBarre(piece);
     return dedans ? '<div class="accordeon"><div class="accordeon-tete' + t.pale + '"' + t.style + '>' + esc(titre) + '</div>' +
       '<div class="accordeon-corps" hidden>' + dedans + '</div></div>' : '';
   };
   PIECES.forEach(p => { html += groupe(p.nom, MEUBLES.filter(m => String(m.pieceId) === String(p.id)), p); });
-  html += groupe('Meubles sans pièce', MEUBLES.filter(m => !m.pieceId));
-  cible.innerHTML = html || '<div class="accordeon-item"><span class="texte-petit texte-pale">Rien d\'entré pour le moment.</span></div>';
-  const transit = cible.querySelector('[data-transit] > .accordeon-tete');
-  if (transitOuvert && transit) toggleAccordeon(transit);
+  return html + groupe('Meubles sans pièce', MEUBLES.filter(m => !m.pieceId));
+}
+/* Par catégorie : les catégories en barres de la suite, une liste blanche d'aliments dessous (comme la Liste d'achats),
+   dans l'ordre des sous-catégories puis par nom. Sous chaque aliment, en petit : OÙ il est. Plusieurs sortes : l'accordéon
+   de l'Inventaire (le nom, où, le total; on touche pour voir les sortes). Les catégories vides ne paraissent pas. */
+function htmlInventaireCategories() {
+  const ligne = p => {
+    const lots = LOTS[p.id] || [];
+    if (!lots.length) return '';
+    const sortes = [];
+    lots.forEach(l => {
+      let x = sortes.find(y => y.marque === l.marque && y.saveur === l.saveur);
+      if (!x) sortes.push(x = { marque: l.marque, saveur: l.saveur, formats: [], qte: 0, lots: [] });
+      x.qte += l.qte; x.lots.push(l);
+      l.formats.forEach(f => { if (x.formats.indexOf(f) === -1) x.formats.push(f); });
+    });
+    const detail = x => [nomListe(x.marque), nomListe(x.saveur), x.formats.join(' + ')].filter(Boolean).join(' · ');
+    const ou = ouSontLots(p.id, lots), total = totalLots(lots);
+    if (sortes.length === 1) {
+      const d = detail(sortes[0]);
+      return '<div class="item"><div class="item-info"><div class="item-nom">' + esc(p.nom) + '</div>' +
+        (d ? '<div class="item-detail">' + esc(d) + '</div>' : '') + '<div class="item-detail">' + esc(ou) + '</div></div>' +
+        '<span class="item-quantite">' + total + '</span></div>';
+    }
+    const plusieursEndroits = new Set(lots.map(l => endroitMeuble(l.emp))).size > 1;   // les sortes disent où, seulement s'il y a à choisir
+    sortes.sort((a, b) => detail(a).localeCompare(detail(b), 'fr'));
+    return '<div class="accordeon aliment"><div class="item aliment-tete"><div class="item-info"><div class="item-nom">' + esc(p.nom) + '</div>' +
+      '<div class="item-detail">' + esc(ou) + '</div></div><span class="item-quantite">' + total + '</span></div>' +
+      '<div class="aliment-sortes" hidden>' + sortes.map(x => '<div class="item sorte"><div class="item-info"><div class="item-detail">' + esc(detail(x) || p.nom) + '</div>' +
+        (plusieursEndroits ? '<div class="item-detail">' + esc(ouSontLots(p.id, x.lots)) + '</div>' : '') + '</div>' +
+        '<span class="sorte-quantite">' + x.qte + '</span></div>').join('') + '</div></div>';
+  };
+  const alpha = (a, b) => String(a.nom).localeCompare(String(b.nom), 'fr');
+  const groupe = (nom, prods, cls) => {
+    const dedans = prods.map(ligne).join('');
+    return dedans ? '<div class="accordeon' + cls + '"><div class="accordeon-tete">' + esc(nom) + '</div>' +
+      '<div class="accordeon-corps" hidden><div class="liste-blanche">' + dedans + '</div></div></div>' : '';
+  };
+  const places = {};
+  let html = RAYONS.map(r => groupe(r.nom, [].concat(...(SOUSCATS[r.id] || []).map(sc => {
+    const ici = PRODUITS.filter(p => String(p.catId) === String(sc.id)).sort(alpha);
+    ici.forEach(p => { places[p.id] = true; });
+    return ici;
+  })), '')).join('');
+  html += groupe('Sans catégorie', PRODUITS.filter(p => !places[p.id]).sort(alpha), ' hors-suite');
+  return html ? '<div class="liste-suite">' + html + '</div>' : '';
+}
+/* « Frigo, Porte » : le meuble et l'espace (par catégorie, la pièce se devine). Rien = « Pas encore rangé ». */
+function endroitMeuble(emp) {
+  if (!emp) return 'Pas encore rangé';
+  const r = resoudreEmp(emp);
+  if (!r) return 'Endroit disparu';
+  const m = MEUBLES.find(x => String(x.id) === String(r.meubleId));
+  const e = r.espaceId ? (ESPACES[r.meubleId] || []).find(x => String(x.id) === String(r.espaceId)) : null;
+  return [m ? m.nom : '', e ? e.nom : ''].filter(Boolean).join(', ');
+}
+/* Où sont ces lots : « Frigo, Porte (1) · Congélateur, Haut (2) » — ses endroits habituels d'abord, « Pas encore rangé » au bout.
+   Un seul endroit : sans le nombre (il est déjà à droite). */
+function ouSontLots(pid, lots) {
+  const rang = endroitsHabituels(pid), ends = [];
+  lots.forEach(l => {
+    const k = endroitMeuble(l.emp), x = ends.find(y => y.k === k);
+    if (x) x.q += l.qte;
+    else ends.push({ k: k, q: l.qte, r: !l.emp ? Infinity : (rang.indexOf(String(l.emp)) + 1 || rang.length + 1) });
+  });
+  ends.sort((a, b) => (a.r - b.r) || a.k.localeCompare(b.k, 'fr'));
+  return ends.length === 1 ? ends[0].k : ends.map(x => x.k + ' (' + x.q + ')').join(' · ');
 }
 
 /* ---------- Rechercher (la loupe) : par le texte ou par le scan ----------
@@ -3264,6 +3340,8 @@ function initEntree() {
   $('recherche-retour').addEventListener('click', retourDeRecherche);
   $('vue-recherche').addEventListener('click', surClicRecherche);
   $('liste-inventaire').addEventListener('click', function (ev) {   // pièces et meubles de l'inventaire
+    const vue = ev.target.closest('[data-vue]');           // « Par catégorie » / « Par meuble »
+    if (vue) { if (vue.dataset.vue !== vueInventaire) { vueInventaire = vue.dataset.vue; remplirInventaire(); } return; }
     const lot = ev.target.closest('.crayon[data-lot]');    // « Pas encore rangé » : le crayon range
     if (lot) { ouvrirLot(lot); return; }
     if (ev.target.closest('.endroit')) return;             // toucher la carte ouverte ne plie pas l'accordéon
