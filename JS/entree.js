@@ -2065,7 +2065,8 @@ function nomCategorie(id) {
 /* ---------- Le scan dans Consommer et Déplacer : la sorte qu'on tient ----------
    Une sorte = même marque, même saveur, même format (J-C, 2026-09-30 : deux boîtes de café, deux codes).
    Les sortes d'un code : les lignes de STOCK qui le portent (même vides : un pack entamé change de format, pas de code).
-   Un format en unités (« 6 unité », le reste « 5 unité ») est la même sorte, quel que soit le nombre. */
+   Un format en unités (« 6 unité », le reste « 5 unité ») est la même sorte, quel que soit le nombre.
+   Aucune ligne ne porte le code (ne devrait pas arriver) : la sorte est inconnue, tout l'aliment s'affiche. */
 function codeNu(c) { return String(c || '').trim().replace(/^0+/, ''); }   // le 0 du début : mangé par le Sheet, remis ou pas
 function sortesDuCode(code) {
   const nu = codeNu(code), sortes = [];
@@ -2082,18 +2083,17 @@ function sorteColle(marque, saveur, format) {
   return !!sorteScannee && sorteScannee.sortes.some(s => s.marque === marque && s.saveur === saveur && memeFormat(s.format, format));
 }
 /* Les lots à montrer pour la boîte scannée (les autres deviennent des trous : l'index d'un lot reste le sien), et leur total.
-   null = pas de filtre : pas scanné, un autre aliment, ou il ne reste rien de cette sorte (on montre alors les autres). */
+   Plus rien de cette sorte : « Tu n'en as plus » (J-C : les autres sortes, pas utile). null = pas de filtre (pas scanné, un autre aliment). */
 function filtreSorte(prod, lots) {
-  if (!sorteScannee || !modeRecherche || sorteScannee.pid !== String(prod.id)) return null;
+  if (!sorteScannee || !modeRecherche || sorteScannee.pid !== String(prod.id) || !sorteScannee.sortes.length) return null;
   let total = 0;
   const garde = lots.map(l => {
-    if (modeRecherche === 'deplacer' && !l.emp) return null;            // Déplacer ne montre pas ce qui n'est pas encore rangé
     const q = lignesDuLot(l).filter(r => sorteColle(l.marque, l.saveur, String(r[6] || '').trim()))
                             .reduce((s, r) => s + (Number(r[3]) || 0), 0);
     total += q;
     return q > 0 ? l : null;
   });
-  return total > 0 ? { lots: garde, total: total } : null;
+  return { lots: garde, total: total };
 }
 /* L'écran de rayon : l'aliment en gros (où, combien, ce qui n'est pas encore rangé), puis ses voisins.
    Toucher un voisin le fait passer en gros, sur le même écran. */
