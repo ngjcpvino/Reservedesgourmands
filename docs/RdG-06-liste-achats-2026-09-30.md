@@ -24,9 +24,10 @@
 
 **Un aliment quitte la liste tout seul quand on l'ENTRE** (Ajouter), à la maison — pas quand on le coche. Coché = « dans le panier » : il reste sur la liste, **grisé**, jusqu'à l'entrée. Ainsi la liste et l'inventaire ne se contredisent jamais (un aliment coché puis oublié, ou pas entré, manque toujours).
 
+**Ajouter à la main** (J-C : « oh oui, bonne idée ») : un aliment qui ne manque pas — un ingrédient pour une recette de la semaine, un aliment jamais acheté. Il quitte la liste de la même façon : **quand on l'entre**. **Choix A : par l'entonnoir, comme Ajouter** (Catégorie → Sous-catégorie → Aliment, « Nouvel aliment… » au bout, **le scanner à côté**) — un aliment neuf reçoit sa sous-catégorie dès le départ (c'est elle qui le place dans le bon rayon au magasin), et on peut **scanner la boîte vide** avant de la jeter. (B, le champ à taper, écarté.)
+
 ## 3. QUESTIONS OUVERTES (une à la fois)
 
-- Ajouter à la main un aliment qui ne manque pas (une recette, un aliment jamais acheté) ?
 - Enlever de la liste sans acheter ?
 - Combien en acheter ?
 - Quel magasin ?
