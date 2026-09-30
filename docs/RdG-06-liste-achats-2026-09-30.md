@@ -26,9 +26,13 @@
 
 **Ajouter à la main** (J-C : « oh oui, bonne idée ») : un aliment qui ne manque pas — un ingrédient pour une recette de la semaine, un aliment jamais acheté. Il quitte la liste de la même façon : **quand on l'entre**. **Choix A : par l'entonnoir, comme Ajouter** (Catégorie → Sous-catégorie → Aliment, « Nouvel aliment… » au bout, **le scanner à côté**) — un aliment neuf reçoit sa sous-catégorie dès le départ (c'est elle qui le place dans le bon rayon au magasin), et on peut **scanner la boîte vide** avant de la jeter. (B, le champ à taper, écarté.)
 
+**Enlever sans acheter** :
+- un aliment **ajouté à la main** : on l'enlève soi-même (on a changé d'idée) — il ne s'en va jamais tout seul, sauf à l'entrée;
+- un aliment **venu tout seul** (tombé à zéro) : **« Pas pour l'instant »** (J-C, sur l'exemple des fraises en janvier) — il quitte la liste et n'y revient qu'à son **prochain** passage à zéro, donc après avoir été racheté et entré. L'été venu, on le rajoute à la main si on le veut plus tôt;
+- **pour toujours** : la poubelle de Gérer les bases → Aliments (elle paraît justement quand il n'en reste plus) — déjà bâtie.
+
 ## 3. QUESTIONS OUVERTES (une à la fois)
 
-- Enlever de la liste sans acheter ?
 - Combien en acheter ?
 - Quel magasin ?
 - Où vit la liste dans l'app, et à quoi elle ressemble (aperçu d'abord).
