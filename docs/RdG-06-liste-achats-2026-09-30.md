@@ -41,7 +41,14 @@
 
 **Sa propre icône dans le menu (choix B)** : deux touches au magasin (le menu, l'icône) au lieu de trois (menu → Listes → Liste d'achats). Le menu passe de 6 à 7 icônes (la dernière prend toute la largeur, comme toute grille impaire). La liste a **sa page à elle**; les deux accordéons vides de Listes s'en vont.
 
+**La page (aperçu du 30 septembre, choix A : les catégories en barres de couleur de la suite**, comme Gérer les bases; B, en bandeaux pâles, écarté) :
+- **tout est ouvert**, dans l'ordre des catégories : rien à toucher pour voir;
+- une ligne = une case + le nom (+ marque · saveur en petit); **toucher la ligne la coche** : grise et barrée;
+- **« pas pressé »** en petit, pâle, sous le nom (réserve vide);
+- **en spécial** : une ligne verte dessous (« En spécial chez Metro · 4,99 $ jusqu'au 7 oct. ») — quand les spéciaux seront branchés;
+- **la poubelle** au bout : l'enlever de la liste (« pas pour l'instant » pour un aliment venu tout seul);
+- au bas : **Ajouter à la liste** (vert : l'entonnoir et le scan), puis **Retour** (or).
+
 ## 3. QUESTIONS OUVERTES (une à la fois)
 
-- À quoi elle ressemble : la page, les lignes (à zéro, « pas pressé », cochée/grisée, en spécial), enlever, ajouter (aperçu d'abord).
 - L'icône du menu (aperçu d'abord).
