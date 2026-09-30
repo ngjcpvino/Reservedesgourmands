@@ -804,7 +804,7 @@ select.champ {
 .achat { cursor: pointer; }
 .achat .case { accent-color: var(--couleur-703); pointer-events: none; }   /* la ligne entière se touche : la case suit */
 .achat-coche .item-nom, .achat-coche .item-detail { color: var(--couleur-205); text-decoration: line-through; }
-.achat-pas { color: var(--couleur-302); font-style: italic; }   /* « pas pressé » : la réserve est vide */
+.achat-pas { color: var(--couleur-302); font-style: italic; }   /* « pour réserve » : la réserve est vide */
 
 /* ============================================================
    TOAST — petit avis flottant (confirmation / à venir / erreur)
