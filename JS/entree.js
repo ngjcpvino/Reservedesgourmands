@@ -160,6 +160,8 @@ async function montrerListes() {
   remplirInventaire();                         // puis la version fraîche, quand elle arrive
 }
 function montrerAccueil()    { toutCacher(); $('vue-accueil').hidden = false; $('btn-burger').hidden = false; $('btn-rechercher').hidden = false; $('entete-photo').hidden = false; }
+/* Le Retour final (J-C, 2026-10-01) : pas l'accueil nu, l'accueil avec le menu ouvert — la prochaine action est là. */
+function retourAuMenu()      { montrerAccueil(); ouvrirMenu(); }
 function montrerFormulaire(avecCode) {
   toutCacher(); $('vue-app').hidden = false;
   preparerFiche(avecCode);
@@ -2044,18 +2046,18 @@ function ouSontLots(pid, lots) {
    Tout vient de ce que l'app a déjà en mémoire : aucun appel réseau, la réponse est instantanée.
    Le texte cherche dans le nom, la marque et la saveur (sans accent, sans pluriel, une faute permise).
    Un aliment touché ouvre son ÉCRAN DE RAYON (RdG-03) : lui en gros, ses voisins de sous-catégorie dessous. */
-var retourRecherche = montrerAccueil;   // où ramène le Retour : l'écran d'où l'on a touché la loupe
+var retourRecherche = retourAuMenu;     // où ramène le Retour : l'écran d'où l'on a touché la loupe (l'accueil : avec le menu ouvert)
 var rechercheJeton = 0;                 // un scan plus ancien qui répond en retard ne remplace pas l'écran
 var modeRecherche = '';                 // '' = Rechercher · 'deplacer' · 'consommer' : le même écran, le lot touché fait le geste
 var sorteScannee = null;                // Consommer, Déplacer : la boîte scannée { pid, sortes: [{ marque, saveur, format }] } — elle seule à l'écran
 const TITRES_RECHERCHE = { '': 'Rechercher', deplacer: 'Déplacer', consommer: 'Consommer' };
-const RETOURS = { 'vue-accueil': () => montrerAccueil(), 'vue-choix-quoi': () => montrerChoixQuoi(),
+const RETOURS = { 'vue-accueil': () => retourAuMenu(), 'vue-choix-quoi': () => montrerChoixQuoi(),
                   'vue-listes': () => montrerListes(), 'vue-couleurs': () => montrerCouleurs() };
 /* depuis : true = on arrive de la loupe ou du menu (on retient d'où); false = on revient d'ailleurs (scan, rayon) */
 function montrerRecherche(depuis) {
   if (depuis) {
     const ici = Object.keys(RETOURS).find(id => !$(id).hidden);
-    if ($('vue-recherche').hidden) retourRecherche = ici ? RETOURS[ici] : montrerAccueil;   // la fiche en cours ne se rouvre pas vide : l'accueil
+    if ($('vue-recherche').hidden) retourRecherche = ici ? RETOURS[ici] : retourAuMenu;   // la fiche en cours ne se rouvre pas vide : l'accueil
     $('recherche-texte').value = '';
   }
   sorteScannee = null;                             // le champ revient : la prochaine recherche part de tout l'aliment
@@ -3179,7 +3181,7 @@ function initEntree() {
     const l = ev.target.closest('[data-achat]');
     if (l) cocherAchat(l.dataset.achat);
   });
-  $('achats-retour').addEventListener('click', montrerAccueil);
+  $('achats-retour').addEventListener('click', retourAuMenu);
   $('btn-achat-ajouter').addEventListener('click', () => { nomScanne = ''; ouvrirAjoutAchat(); });
   $('achat-annuler').addEventListener('click', () => { fermerAjoutAchat(); remplirAchats(); });
   $('achat-cat').addEventListener('change', surAchatCat);
@@ -3303,6 +3305,9 @@ function initEntree() {
   });
   document.querySelectorAll('.accordeon-tete[data-toggle]').forEach(tete =>
     tete.addEventListener('click', () => toggleAccordeon(tete)));
+  $('liste-inventaire').previousElementSibling.addEventListener('click', function () {   // l'Inventaire s'ouvre toujours sur ses deux boutons, rien de choisi
+    if (this.classList.contains('ouvert')) { vueInventaire = ''; remplirInventaire(); }
+  });
   $('btn-rechercher').addEventListener('click', ouvrirRecherche);   // la loupe, en haut à gauche
   // Rechercher : chaque lettre tapée relance la recherche (en mémoire, instantané)
   $('recherche-texte').addEventListener('input', surRecherche);
@@ -3326,13 +3331,16 @@ function initEntree() {
     const tete = ev.target.closest('.accordeon-tete');
     if (tete) toggleAccordeon(tete);
   });            // bouton bleu → la page des listes
-  $('btn-retour-listes').addEventListener('click', montrerAccueil);
+  $('btn-retour-listes').addEventListener('click', () => {   // Retour recule d'un pas (J-C, 2026-10-01) : une liste ouverte se referme; sinon, le menu
+    const ouverte = $('vue-listes').querySelector('.contenu > .accordeon > .accordeon-tete.ouvert');
+    if (ouverte) { toggleAccordeon(ouverte); window.scrollTo(0, 0); } else retourAuMenu();
+  });
   $('choix-produit').addEventListener('click', () => montrerFormulaire(false));   // l'entonnoir, et le scan à côté
   $('choix-epicerie').addEventListener('click', () => avis("Toute l'épicerie — à venir"));
   $('fiche-scan').addEventListener('click', () => {
     if (typeof montrerScanner === 'function') montrerScanner({ lu: ouvrirFicheScan, retour: () => montrerFormulaire(false) });
   });
-  $('btn-retour-quoi').addEventListener('click', montrerAccueil);        // retour : choix « quoi » → accueil
+  $('btn-retour-quoi').addEventListener('click', retourAuMenu);         // retour : choix « quoi » → le menu
   // formulaire d'entrée
   $('codebarres').addEventListener('change', surCode);
   $('nom').addEventListener('input', surNom);    // réagit pendant la saisie : plus besoin de fermer le clavier
