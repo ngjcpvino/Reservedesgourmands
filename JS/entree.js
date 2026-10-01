@@ -1795,12 +1795,12 @@ function libelleEndroit(emp) {
 function detailLot(l) { return [nomListe(l.marque), nomListe(l.saveur), l.formats.join(' + ')].filter(Boolean).join(' · '); }
 function htmlLot(pid, i, l, titre, sorte) {
   const detail = detailLot(l);
-  const ranger = '<button class="ranger" type="button" data-lot="' + esc(pid) + '|' + i + '" aria-label="Ranger"></button></div>';
+  const ranger = '<button class="ranger" type="button" data-lot="' + esc(pid) + '|' + i + '" aria-label="Ranger"></button>';   // AVANT la quantité (J-C) : les nombres restent au bout, sous le total
   if (sorte) return '<div class="item sorte"><div class="item-info"><div class="item-detail">' + esc(detail || titre) + '</div></div>' +
-    '<span class="sorte-quantite">' + esc(l.qte) + '</span>' + ranger;
+    ranger + '<span class="sorte-quantite">' + esc(l.qte) + '</span></div>';
   return '<div class="item"><div class="item-info"><div class="item-nom">' + esc(titre) + '</div>' +
     (detail ? '<div class="item-detail">' + esc(detail) + '</div>' : '') + '</div>' +
-    '<span class="item-quantite">' + esc(l.qte) + '</span>' + ranger;
+    ranger + '<span class="item-quantite">' + esc(l.qte) + '</span></div>';
 }
 /* « Pas encore rangé », à la fin de l'Inventaire par meuble : n'apparaît que s'il y a quelque chose.
    À l'écran, il s'appelle « Escale » (J-C, 2026-10-01 : un mot, du côté du transit — ça passe, ça ne s'installe pas).
