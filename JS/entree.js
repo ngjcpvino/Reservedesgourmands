@@ -402,7 +402,6 @@ async function chargerReferences() {
     data.achats = data.achats || [];
     lireAttenteAchats().forEach(e => poserLignesAchats(e.lignes, data.achats));   // idem pour la liste d'achats
     appliquer(data); ecrireCache(data); remplirListes(); statut('');
-    semerCouleursCategories();                    // ⏳ temporaire : les couleurs de départ des catégories, une fois
     expedierOrdre();                              // le réseau répond : on en profite pour renvoyer l'attente
     expedierCouleurs();                           // idem pour les couleurs (sinon un appareil garde les siennes)
     expedierGestes();                             // idem pour les consommations
@@ -1142,28 +1141,6 @@ function choisirCouleurCategorie(id, num) {
   const l = row.slice(); while (l.length < 8) l.push(''); l[7] = num;
   poserGeste({ action: 'lignes', table: 'Categories', opId: 'coulc-' + Date.now() + '-' + Math.random().toString(36).slice(2, 8), lignes: [l] });
   remplirPageCategories(true);
-}
-/* ⏳ TEMPORAIRE — les couleurs de départ (J-C, 2026-10-01, sur aperçu : « je trouve ça beau »), posées UNE fois sur cet appareil,
-   si aucune catégorie n'a encore de couleur. À RETIRER une fois les couleurs dans le Sheet (J-C les voit partout, sur ses deux appareils). */
-const COULEURS_CAT_DEPART = [['Fruits et légumes', '702'], ['Pains et pâtisseries', '607'], ['Viandes et volailles', '401'],
-  ['Poissons et fruits de mer', '802'], ['Charcuteries', '404'], ['Charcuteries et plats préparés', '404'], ['Produits laitiers et œufs', '801'],
-  ['Garde-manger', '304'], ['Collations', '505'], ['Produits surgelés', '901'], ['Boissons', '803'], ['Bières', '504'], ['Bières et vins', '504'],
-  ['Entretien ménager et nettoyage', '703']];
-function semerCouleursCategories() {
-  if (!RAYONS.length || RAYONS.some(r => numeroCouleur(r.couleur))) return;
-  try { if (localStorage.getItem('rdg_couleurs_cat_semees')) return; } catch (e) {}
-  const c = lireCache();
-  if (!c || !c.cats) return;
-  const lignes = [];
-  RAYONS.forEach(r => {
-    const d = COULEURS_CAT_DEPART.find(x => cleNom(x[0]) === cleNom(r.nom)), row = c.cats.find(x => String(x[0]) === String(r.id));
-    if (!d || !row) return;
-    const l = row.slice(); while (l.length < 8) l.push(''); l[7] = d[1];
-    lignes.push(l); r.couleur = d[1];
-  });
-  if (!lignes.length) return;
-  poserGeste({ action: 'lignes', table: 'Categories', opId: 'coulc-depart', lignes: lignes });
-  try { localStorage.setItem('rdg_couleurs_cat_semees', '1'); } catch (e) {}
 }
 
 /* ---------- Gérer les bases → Pièces (la porte) — décisions de J-C, 2026-09-30, sur aperçu ----------
