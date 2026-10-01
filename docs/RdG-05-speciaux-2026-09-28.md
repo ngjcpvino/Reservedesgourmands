@@ -174,8 +174,8 @@ bâtie trop vite, sur un aperçu de 3 aliments. J-C : « Faut réfléchir avant 
   vieux s'efface au fur et à mesure. Un an suffit pour voir revenir les mêmes rabais d'une saison à l'autre.
 - **Une case « Circulaire » Oui / Non par magasin** sur la page Magasins (Gérer les bases) (J-C, 1er octobre : « j'ai
   besoin du magasin mais pas besoin de la circulaire »). Seuls les magasins à **Oui** sont lus le jeudi. Le look : aperçu
-  d'abord. **Un magasin neuf part à Oui**, modifiable (J-C : « Oui de base mais modifiable »). Ce qui arrive en changeant
-  d'idée en pleine semaine : à décider.
+  d'abord. **Un magasin neuf part à Oui**, modifiable (J-C : « Oui de base mais modifiable »). Un magasin mis à Oui en pleine
+  semaine **attend le jeudi** (J-C : « pas à ce point frustrant »). Mis à Non en pleine semaine : à décider.
 
 **En suspens (une question à la fois) :**
 1. **Ses interrogations sur le fonctionnement** — c'est par là qu'on reprend : lui demander la première.
