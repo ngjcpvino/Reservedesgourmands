@@ -230,6 +230,8 @@ bâtie trop vite, sur un aperçu de 3 aliments. J-C : « Faut réfléchir avant 
   **La barre « En circulaire » passe du haut au BAS de la liste et ne contient QUE « Il y a aussi ceci »** (J-C : « au
   lieu d'avoir En circulaire en haut, ça serait en bas avec le il y a aussi »; « juste le il y a aussi ceci dans le En
   circulaire ») : les aliments de la liste en spécial n'y sont pas répétés — ils sont déjà sous leur aliment.
+  **Un toucher sur un article de « Il y a aussi ceci » l'ajoute à la liste**, dans sa catégorie, comme la flèche de
+  « Mis de côté » (J-C : « Oui, bonne idée »).
 
 **En suspens (une question à la fois) :**
 1. **Ses interrogations sur le fonctionnement** — c'est par là qu'on reprend : lui demander la première.
