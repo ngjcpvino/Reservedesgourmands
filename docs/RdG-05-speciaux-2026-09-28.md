@@ -356,7 +356,7 @@ tout essayer à blanc avant de dire « à coller ». Une fois une partie faite :
 **L'ordre de travail (proposé)** : 1 → 2 → (le rapport à J-C) → 3 → 4 → 5 → 6. Les parties 1 et 2 sont petites et
 débloquent tout; ne pas bâtir 3 à 5 avant d'avoir le rapport de la partie 2.
 
-### Partie 1 — L'interrupteur « Circulaire » des Magasins (déjà côté app, bâti le 1er octobre)
+### Partie 1 — L'interrupteur « Circulaire » des Magasins (déjà côté app, bâti le 1er octobre) — ✅ FAIT sur l'ordi le 1er octobre, essayé à blanc, ⚠️ à coller
 La consigne en 5 points est dans `CLAUDE.md`, « Gérer les bases → Magasins », paragraphe « ⚠️ À FAIRE SUR L'ORDI » :
 `references` renvoie les col. D (`Circulaire`, O / N, vide = Oui) et E (`Trouvee`, O / N) de Magasins; en-têtes posés;
 `lireSpeciaux()` saute les magasins à D = N; après chaque lecture, col. E = O / N pour chaque magasin à Oui (ne pas
@@ -374,6 +374,38 @@ Sur une vraie lecture (le code postal de J-C), répondre par écrit ici :
 5. **Le temps** : une lecture complète tient-elle dans les **6 minutes** d'Apps Script (paquets de 10, une seconde entre
    deux) ? Sinon : lire en plusieurs passes (une suite qui se relance toute seule jusqu'à la fin), **(à toi de voir)**.
 6. Confirmé par J-C : **Flipp n'a pas de code-barres**. (Le pont vers les codes-barres, c'est le tri, voir partie 5.)
+
+**✅ RAPPORT (1er octobre 2026, conversation de l'ordi — vraie lecture, code postal générique d'Ormstown; le vrai code
+de J-C reste dans les Propriétés du script) :**
+1. **Circulaire complète : OUI.** `/flipp/flyers/<id>` donne **tous** les articles : nom (« français | english »),
+   prix, marque (parfois), % d'économie, dates, photo. Mesuré : Super C 244 articles (234 avec prix) · IGA hebdo 409
+   (379) + « Cahier Automne » 47 (26, valide 3 semaines) · Metro 365 (346) + une 2e circulaire 48 (31, dont 6 déjà dans
+   la grande). **≈ 1 000 articles à prix par semaine** pour 3 magasins (Richelieu ne sort pas avec ce code postal; avec
+   lui, ~1 200). La liste montre aussi les circulaires **à venir** (Pharmaprix du 3 octobre, déjà là le 1er) : la
+   lecture ne garde que celles **en cours**.
+2. **La section : NON.** `category` est vide sur **90 détails sur 90** (Super C, IGA, Metro); les pages s'appellent
+   « Page 1 », « Page 2 »…; la circulaire ne dit que « Groceries ». La recherche de Flipp (`items/search`) donne un
+   classement `_L1` / `_L2` (en anglais, très grossier : « Food, Beverages & Tobacco › Food Items », « › Beverages »,
+   « Animals & Pet Supplies »), et seulement pour une recherche par mots, pas pour une circulaire entière.
+   → **La partie 4 est à revoir avec J-C avant de bâtir.**
+3. **La marque à part : en partie.** IGA 28 sur 30, Super C 11 sur 30, Metro 0 (vide). Elle est presque toujours dans
+   le texte (« bacon Maple Leaf ») : l'app la reconnaîtra d'après la liste Marques.
+4. **Le prix** : le prix est toujours là. Le régulier : `original_price` (Super C 4 / 30, IGA 11, Metro 14) ou
+   `dollars_off` (12 à 17 / 30), sinon « Rég. 8,49$ à 9,49$ » dans la description (IGA). Les conditions :
+   `pre_price_text` (« 2/ »), `price_text` (« le 100 g », « /lb », « +tx »), `sale_story` (« 50% d'économie »,
+   « 100 Scène+ PTS à l'achat de 2 »). Les dates : sur chaque article. **Le format** (« 375 g, choix varié »), le
+   régulier et les conditions ne sont **que dans le détail** (`/flipp/items/<id>`) : il faut le détail de chaque
+   article, ~1 000 appels par semaine.
+5. **Le temps** : sur l'ordi, 10 détails ≈ 0,4 s. Dans Apps Script, par paquets de 10 avec une seconde entre deux
+   (la limite de Google, vue le 1er octobre), ~100 paquets ≈ 3 à 5 minutes : **trop près des 6 minutes**. **Décidé
+   (à toi de voir)** : lire **en plusieurs passes** — une 1re passe lit la liste et les circulaires (≈ 10 appels) et
+   écrit l'archive; le détail suit par passes de 4 minutes au plus, chacune relançant la suivante (déclencheur d'une
+   minute) jusqu'à la fin. Le temps réel se mesurera à la 1re lecture.
+6. **Le code-barres : Super C et Metro, non** (`sku` = un code interne, « E726-09 »). **IGA : OUI** — `sku` =
+   le code-barres **sans son dernier chiffre** (« 00000_000000005889160231 » → 058891602315, la cassonade Lantic), ou le
+   **code PLU** d'un fruit ou d'un légume (« 3320 »). Vérifié : **10 sur 12** retrouvés dans Open Food Facts. ⚠️ C'est
+   le code d'**un** produit de l'offre (« choix varié » : le Yoplait crémeux donne le code d'un Oikos) — le bon
+   fabricant, pas forcément la sorte de J-C. Un pont partiel, utile pour proposer l'aliment.
 
 ### Partie 3 — L'archive : les circulaires COMPLÈTES, gardées un an
 - **Chaque jeudi** (le déclencheur de 1 h, heure du Québec, déjà posé), **tous** les articles des circulaires en cours
