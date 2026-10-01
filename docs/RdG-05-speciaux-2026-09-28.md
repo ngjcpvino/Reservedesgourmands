@@ -271,6 +271,11 @@ bâtie trop vite, sur un aperçu de 3 aliments. J-C : « Faut réfléchir avant 
   l'article (« Natrel lait 2 %, 2 L ») : la marque et la saveur sont dedans. Deux pistes : Flipp donne peut-être la
   marque à part (⚠️ à vérifier sur l'ordi); sinon l'app reconnaît dans le texte les marques et saveurs déjà connues
   (Marques, Saveurs) — une marque jamais vue, elle ne la devine pas.
+  **Comment tout se reconnaît** (expliqué à J-C le 1er octobre) : tes données au centre (liens par ID); le **code-barres**
+  relie une boîte à tes données (retenu à l'entrée); **Open Food Facts** ne sert qu'à la 1re entrée d'un produit inconnu;
+  **les circulaires n'ont PAS de code-barres** (J-C : « Flipp n'a pas de code-barres ») — le pont, c'est **le tri**
+  (une fois par genre d'article, ensuite reconnu tout seul). Plus tard, le site de Super C donne le code-barres : pont
+  direct pour comparer les prix (section 7).
   **Aperçu final approuvé par J-C le 1er octobre** (4 barres; À trier → ses catégories → la liste blanche; le feu; le
   point rouge; + Marque et Saveur dans l'entonnoir). Le bouton : l'étiquette
   et son $, en rouge, juste après Magasins (bâti; la page, pas encore).
