@@ -270,7 +270,9 @@ bâtie trop vite, sur un aperçu de 3 aliments. J-C : « Faut réfléchir avant 
   « ton Québon est en spécial », pas seulement « du lait ». Aujourd'hui le coffre-fort ne garde que le **texte** de
   l'article (« Natrel lait 2 %, 2 L ») : la marque et la saveur sont dedans. Deux pistes : Flipp donne peut-être la
   marque à part (⚠️ à vérifier sur l'ordi); sinon l'app reconnaît dans le texte les marques et saveurs déjà connues
-  (Marques, Saveurs) — une marque jamais vue, elle ne la devine pas. Le bouton : l'étiquette
+  (Marques, Saveurs) — une marque jamais vue, elle ne la devine pas.
+  **Aperçu final approuvé par J-C le 1er octobre** (4 barres; À trier → ses catégories → la liste blanche; le feu; le
+  point rouge; + Marque et Saveur dans l'entonnoir). Le bouton : l'étiquette
   et son $, en rouge, juste après Magasins (bâti; la page, pas encore).
 - **Une ligne d'article à trier = le nom seulement** (choix A de J-C : « Natrel lait 2 %, 2 L ») — ni prix ni magasin :
   on trie selon l'intérêt, c'est l'app qui juge le rabais. (B le prix le plus bas, C tous les magasins : rejetés.)
