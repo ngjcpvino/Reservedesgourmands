@@ -167,6 +167,11 @@
   --retrait:           12px;   /* LE retrait du site, un seul partout (J-C, 2026-09-30) : chaque niveau recule d'autant */
   --fleche-deplacer:   18px;   /* la flèche à tige ↑↓ « déplacer », dessinée en CSS */
   --fleche-trait:      0.55;   /* sa présence : discrète, comme le triangle */
+  --interrupteur-large:  40px;   /* l'interrupteur « Circulaire » (Magasins) : sa piste */
+  --interrupteur-haut:   22px;
+  --interrupteur-rond:   14px;   /* le bouton rond qui glisse */
+  --interrupteur-trait:  1.5px;  /* le contour de la piste */
+  --interrupteur-eteint: 0.6;    /* éteint : pâli, la piste vide */
   --fleche-eteinte:    0.15;   /* la 1re ne monte pas, la dernière ne descend pas */
   --plan-collant:      10;     /* un bouton collé au bas de l'écran passe par-dessus la liste */
   --pastille:          28px;   /* le carré qui montre une couleur (écran Couleurs, ajout d'un meuble) */
@@ -624,6 +629,59 @@ select.champ {
 .accordeon-tete .crayon { margin-top: calc(-1 * var(--espace-m)); margin-bottom: calc(-1 * var(--espace-m)); }
 .accordeon-item .crayon { margin-top: calc(-1 * var(--espace-s)); margin-bottom: calc(-1 * var(--espace-s)); }
 .crayon + .fleches { margin-left: 0; }
+/* L'INTERRUPTEUR « Circulaire » (Gérer les bases → Magasins — J-C, 2026-10-01, choix A sur aperçu) : allumé = la circulaire
+   du magasin est lue le jeudi. Dessiné ici (::before la piste, ::after le rond), currentColor comme le crayon : il suit le
+   texte de la barre; allumé, le rond prend la couleur de la barre (--c). Posé avant la poubelle. */
+.interrupteur {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  align-self: stretch;
+  width: var(--tactile);
+  padding: 0;
+  background: none;
+  border: none;
+  color: inherit;
+  cursor: pointer;
+}
+.accordeon-tete .interrupteur { margin-top: calc(-1 * var(--espace-m)); margin-bottom: calc(-1 * var(--espace-m)); }
+.interrupteur::before {
+  content: '';
+  width: var(--interrupteur-large);
+  height: var(--interrupteur-haut);
+  border: var(--interrupteur-trait) solid currentColor;
+  border-radius: var(--interrupteur-haut);
+  background: currentColor;
+}
+.interrupteur::after {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: calc(50% + var(--interrupteur-large) / 2 - var(--interrupteur-haut) / 2 - var(--interrupteur-rond) / 2);
+  width: var(--interrupteur-rond);
+  height: var(--interrupteur-rond);
+  transform: translateY(-50%);
+  border-radius: 50%;
+  background: var(--c);
+}
+.interrupteur[aria-checked="false"] { opacity: var(--interrupteur-eteint); }
+.interrupteur[aria-checked="false"]::before { background: none; }
+.interrupteur[aria-checked="false"]::after {
+  left: calc(50% - var(--interrupteur-large) / 2 + var(--interrupteur-haut) / 2 - var(--interrupteur-rond) / 2);
+  background: currentColor;
+}
+/* Le nom d'une colonne d'interrupteurs, écrit UNE fois au-dessus des barres (Magasins : « Circulaire »), son bord droit
+   sur celui des pistes : le rembourrage de la barre + la poubelle (moins son retrait) + la marge de la piste dans sa zone. */
+.entete-colonne {
+  display: flex;
+  justify-content: flex-end;
+  padding: 0 calc(var(--espace-l) + var(--tactile) - var(--espace-s) + (var(--tactile) - var(--interrupteur-large)) / 2) var(--espace-xs) 0;
+  font-size: var(--texte-petit);
+  color: var(--couleur-305);
+}
+/* Une petite ligne sous une barre, sur la page (Magasins : « Pas de circulaire trouvée »). */
+.note-barre { padding: var(--espace-micro) var(--espace-l) 0; font-size: var(--texte-petit); color: var(--couleur-305); }
 /* LA POUBELLE « retirer » (un meuble, un espace — J-C, 2026-09-30) : le jumeau du crayon, au bout de la ligne.
    LES DEUX FLÈCHES « ranger » (l'Escale — J-C, 2026-10-01, choix B sur aperçu) : le dessin de Déplacer, au bout de la ligne aussi;
    le crayon ne veut plus dire que « corriger un nom ».

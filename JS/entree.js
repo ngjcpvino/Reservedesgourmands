@@ -15,6 +15,7 @@ var CODES = {};             // { codeBarres: produitId } — reconnaître un pro
 var produitCourant = null;  // id du produit reconnu (existant) ; null = nouveau produit
 var modeManuel = false;     // entrée À LA MAIN : entonnoir catégorie -> sous-catégorie -> produit
 var LISTES = { Magasins: [], Marques: [], Saveurs: [] };   // les listes gérées : [{ id, nom }], actifs seulement
+                                                            // (un magasin : + circ, sa circulaire lue le jeudi; introuvable, Flipp ne la connaît pas)
 var NOMS_LISTES = {};        // { id: nom } des trois listes : STOCK retient l'ID, on lit le nom
 var LISTES_NEUVES = [];      // noms ajoutés à la fiche, pas encore au coffre-fort : partent avec la prochaine entrée
 const UNITES_BASE = ['unité', 'g', 'kg', 'ml', 'L'];   // le départ; toute unité déjà utilisée s'y ajoute
@@ -369,9 +370,12 @@ function appliquer(d) {
     .map(r => ({ id: r[0], nom: r[1], catId: r[2], ordre: String(r[9] || '') }));   // ordre = ses endroits, le 1er d'abord (J-C, flèches)
   LISTES = { Magasins: [], Marques: [], Saveurs: [] }; NOMS_LISTES = {};
   const L = d.listes || {};
-  Object.keys(LISTES).forEach(n => (L[n] || []).forEach(r => {   // [ID, Nom, Actif]
+  Object.keys(LISTES).forEach(n => (L[n] || []).forEach(r => {   // [ID, Nom, Actif] — Magasins : + Circulaire (D), Trouvee (E)
     NOMS_LISTES[String(r[0])] = String(r[1] || '');          // même réuni (désactivé) : une vieille ligne garde son nom
-    if (String(r[2]) !== 'N') LISTES[n].push({ id: String(r[0]), nom: String(r[1] || '') });
+    if (String(r[2]) === 'N') return;
+    const x = { id: String(r[0]), nom: String(r[1] || '') };
+    if (n === 'Magasins') { x.circ = String(r[3] || '').trim() !== 'N'; x.introuvable = String(r[4] || '').trim() === 'N'; }   // vide = Oui (un magasin neuf)
+    LISTES[n].push(x);
   }));
   LISTES_NEUVES.forEach(x => { if (!NOMS_LISTES[x.id]) { NOMS_LISTES[x.id] = x.nom; LISTES[x.liste].push({ id: x.id, nom: x.nom }); } });   // pas encore envoyés : gardés
   Object.keys(LISTES).forEach(n => LISTES[n].sort((a, b) => a.nom.localeCompare(b.nom, 'fr')));
@@ -1542,7 +1546,7 @@ function retirerAliment(pid) {
    « Nouveau magasin… » au bas, pour suivre les spéciaux d'une épicerie où l'on n'a encore rien acheté.
    Marques et saveurs naissent à l'entrée et restent collées aux lots : le crayon seulement (J-C). */
 const PAGES_NOMS = {
-  magasins: { titre: 'Magasins', choix: 'magasin', aucun: 'Aucun magasin.', gere: true },   // choix -> CHOIX_FICHE (la liste, « Nouveau… »)
+  magasins: { titre: 'Magasins', choix: 'magasin', aucun: 'Aucun magasin.', gere: true, circulaire: true },   // choix -> CHOIX_FICHE (la liste, « Nouveau… »)
   marques:  { titre: 'Marques',  choix: 'marque',  aucun: 'Aucune marque.' },
   saveurs:  { titre: 'Saveurs',  choix: 'saveur',  aucun: 'Aucune saveur.' },
   unites:   { titre: 'Unités',   unites: true }                             // pas une liste du Sheet : le texte des formats
@@ -1551,11 +1555,34 @@ var pageNoms = PAGES_NOMS.magasins;                // la liste que la page montr
 const listeNoms = () => CHOIX_FICHE[pageNoms.choix].liste;                                      // 'Magasins', 'Marques', 'Saveurs'
 const typeNoms = () => Object.keys(TABLES_NOM).find(k => TABLES_NOM[k][0] === listeNoms());   // la lettre du crayon : g, q, v
 function remplirPageNoms() {
+  $('noms-colonne').hidden = true;
   if (pageNoms.unites) { remplirPageUnites(); return; }
-  const xs = LISTES[listeNoms()].slice().sort((a, b) => a.nom.localeCompare(b.nom, 'fr')), t = typeNoms();
+  const xs = LISTES[listeNoms()].slice().sort((a, b) => a.nom.localeCompare(b.nom, 'fr')), t = typeNoms(), circ = pageNoms.circulaire;
   $('liste-noms').innerHTML = xs.map(x => '<div class="accordeon" data-id="' + esc(x.id) + '"><div class="accordeon-tete"><span>' + esc(x.nom) + '</span>' +
-    crayon(t + ':' + x.id) + (pageNoms.gere ? poubelle(t, x.id) : '') + '</div></div>').join('') ||
+    crayon(t + ':' + x.id) + (circ ? interrupteur(x) : '') + (pageNoms.gere ? poubelle(t, x.id) : '') + '</div>' +
+    (circ && sansCirculaire(x) ? '<div class="note-barre">Pas de circulaire trouvée</div>' : '') + '</div>').join('') ||
     '<div class="accordeon-item"><span class="texte-petit texte-pale">' + pageNoms.aucun + '</span></div>';
+  $('noms-colonne').hidden = !(circ && xs.some(x => !sansCirculaire(x)));   // « Circulaire », écrit une fois au-dessus des interrupteurs
+}
+/* L'interrupteur « Circulaire » (Magasins — J-C, 2026-10-01, choix A sur aperçu) : allumé = sa circulaire est lue le jeudi.
+   Un magasin à Oui que Flipp ne connaît pas (le coffre-fort l'écrit en col. E après le jeudi) : pas d'interrupteur, rien à
+   éteindre — « Pas de circulaire trouvée » sous sa barre. Il reste à Oui : le jeudi suivant, on la cherche encore. */
+const sansCirculaire = x => x.circ !== false && x.introuvable;
+function interrupteur(x) {
+  if (sansCirculaire(x)) return '';
+  return '<button class="interrupteur" type="button" role="switch" aria-checked="' + (x.circ !== false) + '" aria-label="Circulaire" data-circulaire="' + esc(x.id) + '"></button>';
+}
+/* Toucher l'interrupteur : instantané, Magasins col. D (O / N) par la file des gestes. Mis à Oui : il attend le jeudi.
+   (Mis à Non, ses spéciaux quitteront la liste d'achats tout de suite : à bâtir avec la liste, pas encore.) */
+function basculerCirculaire(id) {
+  const x = LISTES.Magasins.find(y => String(y.id) === String(id)), c = lireCache();
+  const row = c && c.listes && (c.listes.Magasins || []).find(r => String(r[0]) === String(id));
+  if (!x || !row) { avis('Pas changé — réessaie', 'erreur'); remplirPageNoms(); return; }
+  const l = row.slice(); while (l.length < 4) l.push('');
+  l[3] = x.circ === false ? 'O' : 'N';
+  poserGeste({ action: 'lignes', table: 'Magasins', opId: 'circ-' + Date.now() + '-' + Math.random().toString(36).slice(2, 8), lignes: [l] });
+  x.circ = l[3] === 'O';
+  remplirPageNoms();
 }
 async function montrerPageNoms(cle) {
   pageNoms = PAGES_NOMS[cle];
@@ -1584,13 +1611,13 @@ async function ajouterNom() {
   const ancien = rows && rows.find(r => String(r[2]) === 'N' && cleNom(r[1]) === cleNom(nom));
   btn.disabled = true; montrerVoile(true);
   try {
-    // Magasins, Marques, Saveurs : ID · Nom · Actif
-    const ligne = ancien ? [ancien[0], nom, 'O'] : ['', nom, 'O'];
+    // Magasins : ID · Nom · Actif · Circulaire · Trouvee — il part à Oui (J-C), même un magasin retiré qui revient
+    const ligne = [ancien ? ancien[0] : '', nom, 'O', 'O', ''];
     const r = ancien ? await Coffre.modifier(L, ancien[0], ligne) : await Coffre.ajouter(L, ligne);
     if (!r || !r.ok) throw new Error((r && r.erreur) || 'refus');
     const id = ancien ? String(ancien[0]) : String(r.id);
     ligne[0] = id;
-    LISTES[L].push({ id: id, nom: nom }); NOMS_LISTES[id] = nom;
+    LISTES[L].push({ id: id, nom: nom, circ: true, introuvable: false }); NOMS_LISTES[id] = nom;
     if (c) {
       c.listes = c.listes || {}; c.listes[L] = (c.listes[L] || []).filter(x => String(x[0]) !== id).concat([ligne]);
       ecrireCache(c);
@@ -3437,6 +3464,8 @@ function initEntree() {
     if (ev.target.closest('[data-retirer-non], [data-reunir-non]')) { remplirPageNoms(); return; }
     const pb = ev.target.closest('.retirer');
     if (pb) { demanderRetraitNom(pb.dataset.retirer.split('|')[1]); return; }
+    const it = ev.target.closest('[data-circulaire]');     // l'interrupteur « Circulaire » (Magasins)
+    if (it) { basculerCirculaire(it.dataset.circulaire); return; }
     const cr = ev.target.closest('.crayon');
     if (cr) ouvrirRenommer(cr);                            // la barre elle-même n'ouvre rien : un nom, c'est tout
   });

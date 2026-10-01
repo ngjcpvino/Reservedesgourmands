@@ -179,7 +179,10 @@ bâtie trop vite, sur un aperçu de 3 aliments. J-C : « Faut réfléchir avant 
   semaine **attend le jeudi** (J-C : « pas à ce point frustrant »). Mis à Non en pleine semaine : ses
   spéciaux **disparaissent tout de suite** de la liste, mais **son archive reste** (s'il revient à Oui, l'app n'a rien
   oublié) (J-C : « Ok »). Un magasin à Oui **sans circulaire dans Flipp** (la fruiterie du coin) : après la lecture du
-  jeudi, la page Magasins le dit à côté de son nom — « Pas de circulaire trouvée » (J-C : « Oui bonne idée »).
+  jeudi, la page Magasins le dit sous sa barre — « Pas de circulaire trouvée » (J-C : « Oui bonne idée »), **sans
+  interrupteur** (J-C : rien à éteindre). **Look : choix A sur aperçu** (un interrupteur par barre, « Circulaire » écrit
+  une fois en haut; rejetés : B le mot, C l'icône, D dans la barre ouverte). **✅ Bâti côté app le 1er octobre**
+  (Magasins col. D `Circulaire`, col. E `Trouvee`); le coffre-fort (lire D, écrire E) : sur l'ordi, voir `CLAUDE.md`.
 
 - **Le tri = TOUS les soldes** (J-C, 1er octobre — pas seulement ceux de sa
   liste, pas seulement les vrais rabais) : chaque article reçoit **Jamais / Peut-être / Oui** (« des articles que jamais
