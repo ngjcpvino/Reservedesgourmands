@@ -1800,7 +1800,7 @@ function htmlLot(pid, i, l, titre, sorte) {
     '<span class="item-quantite">' + esc(l.qte) + '</span>' +
     '<button class="crayon" type="button" data-lot="' + esc(pid) + '|' + i + '" aria-label="' + nom + '"></button></div>';
 }
-/* « Pas encore rangé », en tête de l'Inventaire : n'apparaît que s'il y a quelque chose.
+/* « Pas encore rangé », à la fin de l'Inventaire par meuble : n'apparaît que s'il y a quelque chose.
    La règle des listes : un aliment à plusieurs sortes = son nom une fois (bandeau en retrait), ses sortes dessous. */
 function htmlPasEncoreRange() {
   const lignes = [];
@@ -1988,17 +1988,18 @@ function remplirInventaire() {
   const transit = cible.querySelector('[data-transit] > .accordeon-tete');
   if (transitOuvert && transit) toggleAccordeon(transit);
 }
-/* Par meuble : pièce -> meuble -> espace -> produits, « Pas encore rangé » en tête. Les endroits vides ne paraissent pas. */
+/* Par meuble : pièce -> meuble -> espace -> produits, « Pas encore rangé » à la fin des meubles (J-C, 2026-10-01).
+   Les endroits vides ne paraissent pas. */
 function htmlInventaireMeubles() {
   const par = stockParEndroit();                 // calculé UNE fois pour toute la liste
-  let html = htmlPasEncoreRange();               // en tête : ce qui attend d'être rangé
+  let html = '';
   const groupe = (titre, meubles, piece) => {
     const dedans = meubles.map(m => htmlMeubleInventaire(m, par)).join(''), t = teinteBarre(piece);
     return dedans ? '<div class="accordeon"><div class="accordeon-tete' + t.pale + '"' + t.style + '>' + esc(titre) + '</div>' +
       '<div class="accordeon-corps" hidden>' + dedans + '</div></div>' : '';
   };
   PIECES.forEach(p => { html += groupe(p.nom, MEUBLES.filter(m => String(m.pieceId) === String(p.id)), p); });
-  return html + groupe('Meubles sans pièce', MEUBLES.filter(m => !m.pieceId));
+  return html + groupe('Meubles sans pièce', MEUBLES.filter(m => !m.pieceId)) + htmlPasEncoreRange();   // au bout : ce qui attend d'être rangé
 }
 /* Par catégorie : les catégories en barres de la suite, une liste blanche d'aliments dessous (comme la Liste d'achats),
    dans l'ordre des sous-catégories puis par nom. Sous chaque aliment, en petit : OÙ il est. Plusieurs sortes : l'accordéon
