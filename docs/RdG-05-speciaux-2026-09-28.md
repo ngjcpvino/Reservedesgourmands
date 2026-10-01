@@ -304,7 +304,9 @@ logique serait **le dernier prix payé pour cet article**. Et ça, ça va avec l
 le prix de la circulaire au **dernier prix payé** (STOCK col. M) pour cet article (sa sorte, son code-barres). Il dépend
 donc lui aussi de l'entrée de toute l'épicerie (c'est là que le prix payé se remplit, par l'idée des prix). Pas encore de
 prix payé (produit neuf, prix jamais entré) : le prix régulier annoncé par la circulaire (« rég. 6,49 $ ») en attendant
-(proposé).
+(proposé). **Le dernier prix payé, dans n'importe quel magasin** (J-C : « tous les magasins »). **Le même prix que la dernière
+fois** (fréquent : « j'achète presque tout à rabais ») : **« on trouvera bien une façon »** — à régler à l'usage, pas
+maintenant.
   **Aperçu final approuvé par J-C le 1er octobre** (4 barres; À trier → ses catégories → la liste blanche; le feu; le
   point rouge; + Marque et Saveur dans l'entonnoir). Le bouton : l'étiquette
   et son $, en rouge, juste après Magasins (bâti; la page, pas encore).
