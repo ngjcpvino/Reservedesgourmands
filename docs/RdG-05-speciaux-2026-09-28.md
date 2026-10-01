@@ -439,7 +439,8 @@ Sur une vraie lecture (le code postal de J-C), répondre par écrit ici :
     seulement). ⚠️ Rappel (leçon du 1er octobre) : un champ nouveau de `references` doit aussi entrer dans
     `chargerData()` côté app — c'est la conversation du nuage qui s'en charge.
   - **à la demande** (un appel, en ouvrant la page de tri — c'est dans Gérer les bases, pas tous les jours) : action
-    **`lireTri` (proposé)** → `aTrier` (les articles de la semaine dont le genre n'est pas trié : Cle, Texte, la
+    **`lireTri` (proposé)** → `aTrier` (les articles de la semaine dont le genre n'est pas trié — **une seule ligne par
+    genre, même s'il est annoncé chez trois magasins** (décidé) : Cle, Texte, la
     catégorie d'après `Sections`, l'aliment / la marque / la saveur **proposés** par le coffre-fort — c'est ce qui
     remplit l'entonnoir d'avance) et `tri` (les réponses déjà données, pour les barres Oui / Peut-être / Jamais).
 - **La proposition d'aliment** (ce que `lireSpeciaux` fait déjà) : J-C confirme ou corrige au tri, donc elle n'a pas
