@@ -341,7 +341,7 @@ function appliquer(d) {
   (d.cats || []).forEach(r => {                       // [ID,Nom,ParentID,SecteurID,DureeVie,Actif,Ordre]
     if (!SECTEUR_ID && r[3]) SECTEUR_ID = String(r[3]);   // secteur de l'app (Épicerie)
     if (String(r[5]) !== 'O') return;
-    const x = { id: r[0], nom: r[1], ordre: r[6] || '' };
+    const x = { id: r[0], nom: r[1], ordre: r[6] || '', couleur: r[7] || '' };   // col. H : la couleur (une catégorie; J-C, 2026-10-01)
     if (!r[2]) RAYONS.push(x);
     else (SOUSCATS[r[2]] = SOUSCATS[r[2]] || []).push(x);
   });
@@ -402,6 +402,7 @@ async function chargerReferences() {
     data.achats = data.achats || [];
     lireAttenteAchats().forEach(e => poserLignesAchats(e.lignes, data.achats));   // idem pour la liste d'achats
     appliquer(data); ecrireCache(data); remplirListes(); statut('');
+    semerCouleursCategories();                    // ⏳ temporaire : les couleurs de départ des catégories, une fois
     expedierOrdre();                              // le réseau répond : on en profite pour renvoyer l'attente
     expedierCouleurs();                           // idem pour les couleurs (sinon un appareil garde les siennes)
     expedierGestes();                             // idem pour les consommations
@@ -1124,6 +1125,46 @@ function teinteBarre(p) {
   const teinte = p ? couleurDe(p.couleur) : '';
   return { style: teinte ? ' style="--c:' + esc(teinte) + '"' : '', pale: (teinte && couleurPale(teinte)) ? ' tete-pale' : '' };
 }
+/* La couleur d'une catégorie (J-C, 2026-10-01, sur aperçu : choisie selon le sens, la MÊME partout — Inventaire, Liste d'achats,
+   Gérer les bases). Categories col. H, un numéro de la palette. Posée sur l'accordéon (--meuble) : la tête et les bandeaux de ses
+   sous-catégories la suivent. Sans couleur : brune, comme un meuble neuf. */
+function teinteCategorie(rid) {
+  const r = RAYONS.find(x => String(x.id) === String(rid)), t = r ? couleurDe(r.couleur) : '';
+  return { style: t ? ' style="--meuble:' + esc(t) + '"' : '', pale: (t && couleurPale(t)) ? ' tete-pale' : '' };
+}
+/* Une pastille touchée (Gérer les bases → Catégories) = la couleur de la catégorie, partout tout de suite;
+   envoyée en arrière-plan (geste « lignes » : la ligne de Categories réécrite, col. H). */
+function choisirCouleurCategorie(id, num) {
+  const r = RAYONS.find(x => String(x.id) === String(id)), c = lireCache();
+  const row = c && (c.cats || []).find(x => String(x[0]) === String(id));
+  if (!r || !row) { avis('Couleur pas enregistrée — réessaie', 'erreur'); return; }
+  r.couleur = num;
+  const l = row.slice(); while (l.length < 8) l.push(''); l[7] = num;
+  poserGeste({ action: 'lignes', table: 'Categories', opId: 'coulc-' + Date.now() + '-' + Math.random().toString(36).slice(2, 8), lignes: [l] });
+  remplirPageCategories(true);
+}
+/* ⏳ TEMPORAIRE — les couleurs de départ (J-C, 2026-10-01, sur aperçu : « je trouve ça beau »), posées UNE fois sur cet appareil,
+   si aucune catégorie n'a encore de couleur. À RETIRER une fois les couleurs dans le Sheet (J-C les voit partout, sur ses deux appareils). */
+const COULEURS_CAT_DEPART = [['Fruits et légumes', '702'], ['Pains et pâtisseries', '607'], ['Viandes et volailles', '401'],
+  ['Poissons et fruits de mer', '802'], ['Charcuteries', '404'], ['Charcuteries et plats préparés', '404'], ['Produits laitiers et œufs', '801'],
+  ['Garde-manger', '304'], ['Collations', '505'], ['Produits surgelés', '901'], ['Boissons', '803'], ['Bières', '504'], ['Bières et vins', '504'],
+  ['Entretien ménager et nettoyage', '703']];
+function semerCouleursCategories() {
+  if (!RAYONS.length || RAYONS.some(r => numeroCouleur(r.couleur))) return;
+  try { if (localStorage.getItem('rdg_couleurs_cat_semees')) return; } catch (e) {}
+  const c = lireCache();
+  if (!c || !c.cats) return;
+  const lignes = [];
+  RAYONS.forEach(r => {
+    const d = COULEURS_CAT_DEPART.find(x => cleNom(x[0]) === cleNom(r.nom)), row = c.cats.find(x => String(x[0]) === String(r.id));
+    if (!d || !row) return;
+    const l = row.slice(); while (l.length < 8) l.push(''); l[7] = d[1];
+    lignes.push(l); r.couleur = d[1];
+  });
+  if (!lignes.length) return;
+  poserGeste({ action: 'lignes', table: 'Categories', opId: 'coulc-depart', lignes: lignes });
+  try { localStorage.setItem('rdg_couleurs_cat_semees', '1'); } catch (e) {}
+}
 
 /* ---------- Gérer les bases → Pièces (la porte) — décisions de J-C, 2026-09-30, sur aperçu ----------
    Une barre par pièce, à sa couleur : le crayon (renommer), les flèches (l'ordre), et, touchée, sa palette dessous.
@@ -1297,7 +1338,8 @@ async function ajouterMeuble(pieceId, btn) {
 }
 
 /* ---------- Gérer les bases → Catégories (quatre cases) — décisions de J-C, 2026-09-30, sur aperçu ----------
-   Les catégories en barres (couleurs de la suite : .liste-suite), leurs sous-catégories dessous : crayon, flèches, poubelle.
+   Les catégories en barres, chacune à SA couleur (teinteCategorie; la palette en tête de son corps, comme un meuble),
+   leurs sous-catégories dessous : crayon, flèches, poubelle.
    L'ordre choisi (col. G) est celui de la fiche. Une catégorie ne se retire que VIDE (choix A); une sous-catégorie retirée
    envoie ses aliments là où on le dit (choix C). « Nouvelle catégorie… » au bout, « Nouvelle sous-catégorie… » dans chacune. */
 function remplirPageCategories(garderOuverts) {
@@ -1305,11 +1347,12 @@ function remplirPageCategories(garderOuverts) {
   const ouverte = garderOuverts && liste.querySelector('.accordeon-tete.ouvert');
   const idOuvert = ouverte ? ouverte.parentElement.dataset.id : '';
   liste.innerHTML = RAYONS.map((r, i) => {
-    const scs = SOUSCATS[r.id] || [], o = String(r.id) === idOuvert;
-    return '<div class="accordeon" data-type="c" data-id="' + esc(r.id) + '">' +
-      '<div class="accordeon-tete' + (o ? ' ouvert' : '') + '"><span>' + esc(r.nom) + '</span>' + crayon('c:' + r.id) +
+    const scs = SOUSCATS[r.id] || [], o = String(r.id) === idOuvert, t = teinteCategorie(r.id);
+    return '<div class="accordeon" data-type="c" data-id="' + esc(r.id) + '"' + t.style + '>' +
+      '<div class="accordeon-tete' + t.pale + (o ? ' ouvert' : '') + '"><span>' + esc(r.nom) + '</span>' + crayon('c:' + r.id) +
         fleches('c', r.id, i, RAYONS.length) + (scs.length ? '' : poubelle('c', r.id)) + '</div>' +
       '<div class="accordeon-corps"' + (o ? '' : ' hidden') + '>' +
+        '<div class="bloc accordeon-bloc"><div class="label">Couleur</div><div class="palette">' + htmlPalette(numeroCouleur(r.couleur)) + '</div></div>' +
         scs.map((sc, j) => '<div class="accordeon-item" data-type="s" data-id="' + esc(sc.id) + '"><span>' + esc(sc.nom) + '</span>' +
           crayon('c:' + sc.id) + fleches('s', sc.id, j, scs.length) + poubelle('s', sc.id) + '</div>').join('') +
         htmlAjout('souscat-nouvelle', 'Nouvelle sous-catégorie…', 'ajout-categorie', 'data-rayon', r.id) +
@@ -1431,9 +1474,9 @@ function remplirPageAliments(garderOuverts, ouvrir) {
         crayon('a:' + p.id) + (enReserve[p.id] ? '' : poubelle('a', p.id)) + '</div>' +
       '<div class="accordeon-corps"' + (o ? '' : ' hidden') + '>' + (o ? htmlCorpsAliment(p) : '') + '</div></div>';   // bâti à l'ouverture
   };
-  const groupe = (id, nom, corps, cls) => '<div class="accordeon' + cls + '" data-id="' + esc(id) + '">' +
-    '<div class="accordeon-tete' + (String(id) === cat ? ' ouvert' : '') + '"><span>' + esc(nom) + '</span></div>' +
-    '<div class="accordeon-corps"' + (String(id) === cat ? '' : ' hidden') + '>' + corps + '</div></div>';
+  const groupe = (id, nom, corps) => { const t = teinteCategorie(id); return '<div class="accordeon" data-id="' + esc(id) + '"' + t.style + '>' +
+    '<div class="accordeon-tete' + t.pale + (String(id) === cat ? ' ouvert' : '') + '"><span>' + esc(nom) + '</span></div>' +
+    '<div class="accordeon-corps"' + (String(id) === cat ? '' : ' hidden') + '>' + corps + '</div></div>'; };
   const classes = {};                                   // les aliments rangés sous une sous-catégorie qui existe
   const cats = RAYONS.map(r => {
     const corps = (SOUSCATS[r.id] || []).map(sc => {
@@ -1441,10 +1484,10 @@ function remplirPageAliments(garderOuverts, ouvrir) {
       ps.forEach(p => { classes[p.id] = true; });
       return ps.length ? '<div class="espace-bandeau">' + esc(sc.nom) + '</div>' + ps.map(aliment).join('') : '';
     }).join('');
-    return corps ? groupe(r.id, r.nom, corps, '') : '';
+    return corps ? groupe(r.id, r.nom, corps) : '';
   }).join('');
   const seuls = PRODUITS.filter(p => !classes[p.id]).sort(alpha);
-  const sans = seuls.length ? groupe('sans', 'Aliments sans catégorie (' + seuls.length + ')', seuls.map(aliment).join(''), ' hors-suite') : '';
+  const sans = seuls.length ? groupe('sans', 'Aliments sans catégorie (' + seuls.length + ')', seuls.map(aliment).join('')) : '';
   liste.innerHTML = (sans + cats) || '<div class="accordeon-item"><span class="texte-petit texte-pale">Aucun aliment.</span></div>';
 }
 /* Ce que contient un aliment se bâtit quand on l'ouvre : des centaines d'aliments, la page reste légère. */
@@ -1975,7 +2018,7 @@ function htmlInventaireMeubles() {
   PIECES.forEach(p => { html += groupe(p.nom, MEUBLES.filter(m => String(m.pieceId) === String(p.id)), p); });
   return html + groupe('Meubles sans pièce', MEUBLES.filter(m => !m.pieceId)) + htmlPasEncoreRange();   // au bout : ce qui attend d'être rangé
 }
-/* Par catégorie : les catégories en barres de la suite, une liste blanche d'aliments dessous (comme la Liste d'achats),
+/* Par catégorie : les catégories en barres, chacune à sa couleur, une liste blanche d'aliments dessous (comme la Liste d'achats),
    dans l'ordre des sous-catégories puis par nom. Sous chaque aliment, en petit : OÙ il est. Plusieurs sortes : l'accordéon
    de l'Inventaire (le nom, où, le total; on touche pour voir les sortes). Les catégories vides ne paraissent pas. */
 function htmlInventaireCategories() {
@@ -2006,9 +2049,9 @@ function htmlInventaireCategories() {
         '<span class="sorte-quantite">' + x.qte + '</span></div>').join('') + '</div></div>';
   };
   const alpha = (a, b) => String(a.nom).localeCompare(String(b.nom), 'fr');
-  const groupe = (nom, prods, cls) => {
-    const dedans = prods.map(ligne).join('');
-    return dedans ? '<div class="accordeon' + cls + '"><div class="accordeon-tete">' + esc(nom) + '</div>' +
+  const groupe = (nom, prods, rid) => {
+    const dedans = prods.map(ligne).join(''), t = teinteCategorie(rid);
+    return dedans ? '<div class="accordeon"' + t.style + '><div class="accordeon-tete' + t.pale + '">' + esc(nom) + '</div>' +
       '<div class="accordeon-corps" hidden><div class="liste-blanche">' + dedans + '</div></div></div>' : '';
   };
   const places = {};
@@ -2016,9 +2059,8 @@ function htmlInventaireCategories() {
     const ici = PRODUITS.filter(p => String(p.catId) === String(sc.id)).sort(alpha);
     ici.forEach(p => { places[p.id] = true; });
     return ici;
-  })), '')).join('');
-  html += groupe('Sans catégorie', PRODUITS.filter(p => !places[p.id]).sort(alpha), ' hors-suite');
-  return html ? '<div class="liste-suite">' + html + '</div>' : '';
+  })), r.id)).join('');
+  return html + groupe('Sans catégorie', PRODUITS.filter(p => !places[p.id]).sort(alpha), '');
 }
 /* « Frigo, Porte » : le meuble et l'espace (par catégorie, la pièce se devine). Rien = « Pas encore rangé ». */
 function endroitMeuble(emp) {
@@ -2568,8 +2610,8 @@ function remplirAchats() {
     }
     return html;
   };
-  const groupe = (nom, lignes, cls) => lignes.length ? '<div class="accordeon' + cls + '"><div class="accordeon-tete tete-fixe"><span>' + esc(nom) + '</span></div>' +
-    '<div class="liste-blanche achats-groupe">' + lignesHtml(lignes) + '</div></div>' : '';
+  const groupe = (nom, lignes, rid) => { const t = teinteCategorie(rid); return lignes.length ? '<div class="accordeon"' + t.style + '><div class="accordeon-tete tete-fixe' + t.pale + '"><span>' + esc(nom) + '</span></div>' +
+    '<div class="liste-blanche achats-groupe">' + lignesHtml(lignes) + '</div></div>' : ''; };
   const places = {};
   let html = RAYONS.map(r => {
     const lignes = [];
@@ -2577,9 +2619,9 @@ function remplirAchats() {
       const ici = items.filter(it => String((PRODUITS.find(p => String(p.id) === it.pid) || {}).catId) === String(sc.id)).sort(tri);
       ici.forEach(it => { places[it.cle] = true; lignes.push(it); });
     });
-    return groupe(r.nom, lignes, '');
+    return groupe(r.nom, lignes, r.id);
   }).join('');
-  html += groupe('Sans catégorie', items.filter(it => !places[it.cle]).sort(tri), ' hors-suite');
+  html += groupe('Sans catégorie', items.filter(it => !places[it.cle]).sort(tri), '');
   $('liste-achats').innerHTML = html || '<div class="accordeon-item"><span class="texte-petit texte-pale">Rien à acheter.</span></div>';
 }
 async function montrerAchats() {
@@ -3261,6 +3303,8 @@ function initEntree() {
     if (fl) { if (!fl.classList.contains('fleche-eteinte')) deplacer(fl.dataset.type, fl.dataset.id, Number(fl.dataset.sens)); return; }
     const b = ev.target.closest('.ajout-categorie');
     if (b) { ajouterCategoriePage(b.dataset.rayon, b); return; }
+    const pa = ev.target.closest('.pastille-choix');       // la couleur de la catégorie
+    if (pa) { choisirCouleurCategorie(pa.closest('.accordeon').dataset.id, pa.dataset.num); return; }
     const tete = ev.target.closest('.accordeon-tete');
     if (tete) toggleAccordeon(tete);
   });
