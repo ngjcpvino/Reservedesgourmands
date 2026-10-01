@@ -245,6 +245,8 @@ bâtie trop vite, sur un aperçu de 3 aliments. J-C : « Faut réfléchir avant 
 - **À l'ouverture de la page** (choix B de J-C) : **« À trier » déjà ouverte**, avec ses sections; dessous, les barres
   **Oui, Peut-être, Jamais**, fermées, pour corriger au besoin. (A, quatre barres fermées, rejeté.) Le bouton : l'étiquette
   et son $, en rouge, juste après Magasins (bâti; la page, pas encore).
+- **Une ligne d'article à trier = le nom seulement** (choix A de J-C : « Natrel lait 2 %, 2 L ») — ni prix ni magasin :
+  on trie selon l'intérêt, c'est l'app qui juge le rabais. (B le prix le plus bas, C tous les magasins : rejetés.)
 
 **En suspens (une question à la fois) :**
 1. **Ses interrogations sur le fonctionnement** — c'est par là qu'on reprend : lui demander la première.
