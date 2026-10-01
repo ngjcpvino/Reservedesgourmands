@@ -287,6 +287,9 @@ bâtie trop vite, sur un aperçu de 3 aliments. J-C : « Faut réfléchir avant 
   **Effet (vu par J-C) : le même produit chez chaque magasin** — Natrel 2 %, 2 L chez Metro et chez IGA porte le même
   code-barres, donc toutes les listes deviennent plus justes (comparer le même produit d'un magasin à l'autre). Chaque
   magasin écrit ses circulaires à sa façon : sa formulation se trie une fois, ensuite elle pointe vers le même code.
+  **Plusieurs produits possibles** (« variétés choisies » : 1 %, 2 %, 3,25 %) : **l'app montre les 3 ou 4 plus proches,
+  avec leur photo, et J-C touche le bon** (J-C : « Oui »). Aucun n'est le bon : « Aucun », le tri continue sans
+  code-barres — il s'attachera au premier scan de ce produit.
   **Aperçu final approuvé par J-C le 1er octobre** (4 barres; À trier → ses catégories → la liste blanche; le feu; le
   point rouge; + Marque et Saveur dans l'entonnoir). Le bouton : l'étiquette
   et son $, en rouge, juste après Magasins (bâti; la page, pas encore).
