@@ -195,6 +195,9 @@ bâtie trop vite, sur un aperçu de 3 aliments. J-C : « Faut réfléchir avant 
   tout ce qui commence par « Purina Dog Chow ». Les circulaires changent leurs mots d'une semaine à l'autre; sans ça, la
   liste ne raccourcirait pas. (Comment l'app reconnaît « le même genre » : la `Cle` d'aujourd'hui = les deux premiers
   mots — à revoir au moment de bâtir.)
+- **Oui = les deux** (choix C de J-C) : l'article **va dans la liste d'achats cette semaine**, ET le genre est **retenu
+  comme intéressant** (quand il revient en circulaire, il arrive déjà trié). « Le but est que je puisse associer ma
+  liste aux soldes. »
 
 **En suspens (une question à la fois) :**
 1. **Ses interrogations sur le fonctionnement** — c'est par là qu'on reprend : lui demander la première.
