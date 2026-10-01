@@ -172,7 +172,8 @@ bâtie trop vite, sur un aperçu de 3 aliments. J-C : « Faut réfléchir avant 
   seulement à juger. (Ordre de grandeur estimé : quelques centaines de lignes par semaine pour ses aliments, ~1 500 pour
   les circulaires complètes — à mesurer.)
 - **L'archive s'ajoute chaque jeudi, rien n'est effacé — et elle garde UN AN** (J-C, 1er octobre : « Oui ») : le plus
-  vieux s'efface au fur et à mesure. Un an suffit pour voir revenir les mêmes rabais d'une saison à l'autre.
+  vieux s'efface au fur et à mesure. Un an suffit pour voir revenir les mêmes rabais d'une saison à l'autre. **Sauf** (J-C, même jour) : **un produit qui n'est jamais réapparu garde sa dernière apparition**, même vieille de plus
+  d'un an — la mémoire d'un produit ne disparaît jamais tout à fait.
 - **Une case « Circulaire » Oui / Non par magasin** sur la page Magasins (Gérer les bases) (J-C, 1er octobre : « j'ai
   besoin du magasin mais pas besoin de la circulaire »). Seuls les magasins à **Oui** sont lus le jeudi. Le look : aperçu
   d'abord. **Un magasin neuf part à Oui**, modifiable (J-C : « Oui de base mais modifiable »). Un magasin mis à Oui en pleine
@@ -283,6 +284,9 @@ bâtie trop vite, sur un aperçu de 3 aliments. J-C : « Faut réfléchir avant 
   par Oui (pas 1 500), depuis l'app. Rien trouvé (fréquent au Canada, et jamais pour une pomme) : le tri continue sans
   code-barres, comme avant. (Claude avait proposé « deux pivots qui se tiennent par la main », jugé trop compliqué.)
   ⚠️ La recherche par nom d'Open Food Facts n'a pas pu être essayée d'ici (réseau refusé) : à essayer en vrai.
+  **Effet (vu par J-C) : le même produit chez chaque magasin** — Natrel 2 %, 2 L chez Metro et chez IGA porte le même
+  code-barres, donc toutes les listes deviennent plus justes (comparer le même produit d'un magasin à l'autre). Chaque
+  magasin écrit ses circulaires à sa façon : sa formulation se trie une fois, ensuite elle pointe vers le même code.
   **Aperçu final approuvé par J-C le 1er octobre** (4 barres; À trier → ses catégories → la liste blanche; le feu; le
   point rouge; + Marque et Saveur dans l'entonnoir). Le bouton : l'étiquette
   et son $, en rouge, juste après Magasins (bâti; la page, pas encore).
