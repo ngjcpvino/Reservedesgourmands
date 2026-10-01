@@ -264,7 +264,13 @@ bâtie trop vite, sur un aperçu de 3 aliments. J-C : « Faut réfléchir avant 
   légumes / le rouge de Viandes qui se confondaient avec Oui / Jamais). **Les boutons : en forme de FEU DE CIRCULATION**
   (choix C sur aperçu : trois ronds dans un boîtier foncé), **dans l'ordre vert, jaune, rouge** (Oui, Peut-être,
   Jamais), sans texte. **Le point « du nouveau à trier » : rouge.** (Rejetés : A trois ronds seuls, B trois boutons
-  pleins; le point doré, le point crème.) Le bouton : l'étiquette
+  pleins; le point doré, le point crème.)
+  **Après le vert (ou le jaune), l'entonnoir montre aussi Marque et Saveur** (J-C : « Oui »), **déjà remplies quand l'app
+  les reconnaît**, comme sur la fiche d'entrée; « Nouvelle marque… » pour une découverte. C'est ce qui permet de dire
+  « ton Québon est en spécial », pas seulement « du lait ». Aujourd'hui le coffre-fort ne garde que le **texte** de
+  l'article (« Natrel lait 2 %, 2 L ») : la marque et la saveur sont dedans. Deux pistes : Flipp donne peut-être la
+  marque à part (⚠️ à vérifier sur l'ordi); sinon l'app reconnaît dans le texte les marques et saveurs déjà connues
+  (Marques, Saveurs) — une marque jamais vue, elle ne la devine pas. Le bouton : l'étiquette
   et son $, en rouge, juste après Magasins (bâti; la page, pas encore).
 - **Une ligne d'article à trier = le nom seulement** (choix A de J-C : « Natrel lait 2 %, 2 L ») — ni prix ni magasin :
   on trie selon l'intérêt, c'est l'app qui juge le rabais. (B le prix le plus bas, C tous les magasins : rejetés.)
@@ -361,7 +367,7 @@ sites : son réseau les bloque).** La conversation sur l'ordi de J-C :
    (code-barres, format, prix, prix régulier) ?
 2. `iga.net` : y a-t-il une recherche qui donne le prix, et le code-barres ?
 3. Flipp : lire une circulaire **en entier** (section 2, toujours ouvert) — et chaque article dit-il **sa section**
-   (catégorie) ? C'est ce qui permettrait de trier par paquet (section 5 quater).
+   (catégorie) ? C'est ce qui permettrait de trier par paquet (section 5 quater). Et **la marque**, à part du texte ?
 4. Le prix est-il celui **d'une succursale** (Ormstown ≠ une autre) ? Comment
    choisir la sienne ?
 5. **Chercher une vraie porte, comme la SAQ dans Dionysos.** Dionysos lit la
