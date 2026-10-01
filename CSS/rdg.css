@@ -626,8 +626,9 @@ select.champ {
 .crayon + .fleches { margin-left: 0; }
 /* LA POUBELLE « retirer » (un meuble, un espace — J-C, 2026-09-30) : le jumeau du crayon, au bout de la ligne.
    LES DEUX FLÈCHES « ranger » (l'Escale — J-C, 2026-10-01, choix B sur aperçu) : le dessin de Déplacer, au bout de la ligne aussi;
-   le crayon ne veut plus dire que « corriger un nom ». */
-.retirer, .ranger {
+   le crayon ne veut plus dire que « corriger un nom ».
+   LA FLÈCHE « revenir » (Liste d'achats → Mis de côté — J-C, 2026-10-01, choix C sur aperçu) : remet sur la liste, au bout de la ligne. */
+.retirer, .ranger, .remettre {
   display: flex;
   align-items: center;
   justify-content: center;
@@ -641,7 +642,7 @@ select.champ {
 }
 .accordeon-tete .retirer { margin-top: calc(-1 * var(--espace-m)); margin-bottom: calc(-1 * var(--espace-m)); margin-right: calc(-1 * var(--espace-s)); }
 .accordeon-item .retirer { margin-top: calc(-1 * var(--espace-s)); margin-bottom: calc(-1 * var(--espace-s)); }
-.retirer::before, .crayon::before, .ranger::before {
+.retirer::before, .crayon::before, .ranger::before, .remettre::before {
   content: '';
   width: var(--fleche-deplacer);
   height: var(--fleche-deplacer);
@@ -659,6 +660,10 @@ select.champ {
 .ranger::before {
   -webkit-mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='1.8' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M3 8h17M16 4l4 4-4 4'/%3E%3Cpath d='M21 16H4M8 12l-4 4 4 4'/%3E%3C/svg%3E") center / contain no-repeat;
           mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='1.8' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M3 8h17M16 4l4 4-4 4'/%3E%3Cpath d='M21 16H4M8 12l-4 4 4 4'/%3E%3C/svg%3E") center / contain no-repeat;
+}
+.remettre::before {
+  -webkit-mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='1.8' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M9 14L4 9l5-5'/%3E%3Cpath d='M4 9h10.5a5.5 5.5 0 0 1 0 11H11'/%3E%3C/svg%3E") center / contain no-repeat;
+          mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='1.8' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M9 14L4 9l5-5'/%3E%3Cpath d='M4 9h10.5a5.5 5.5 0 0 1 0 11H11'/%3E%3C/svg%3E") center / contain no-repeat;
 }
 /* le nom devenu champ, dans sa ligne */
 .champ-renommer { flex: 1; min-width: 0; min-height: auto; padding: var(--espace-xs) var(--espace-s); margin-right: var(--espace-s); font-weight: var(--poids-fort); }
