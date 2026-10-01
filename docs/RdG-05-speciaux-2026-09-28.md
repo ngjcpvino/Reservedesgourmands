@@ -242,6 +242,9 @@ bâtie trop vite, sur un aperçu de 3 aliments. J-C : « Faut réfléchir avant 
 - **« À trier » se range par SECTION de la circulaire** (choix A de J-C; B par magasin, C une seule liste, rejetés) : une
   section fermée se trie d'un coup (« Jamais »). Dépend de Flipp (la section de chaque article : à vérifier sur l'ordi).
   Un article annoncé chez plusieurs magasins = **une seule ligne** (le tri vise le genre d'article).
+- **À l'ouverture de la page** (choix B de J-C) : **« À trier » déjà ouverte**, avec ses sections; dessous, les barres
+  **Oui, Peut-être, Jamais**, fermées, pour corriger au besoin. (A, quatre barres fermées, rejeté.) Le bouton : l'étiquette
+  et son $, en rouge, juste après Magasins (bâti; la page, pas encore).
 
 **En suspens (une question à la fois) :**
 1. **Ses interrogations sur le fonctionnement** — c'est par là qu'on reprend : lui demander la première.
