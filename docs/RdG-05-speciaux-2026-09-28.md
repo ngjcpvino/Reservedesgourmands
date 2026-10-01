@@ -295,8 +295,9 @@ bâtie trop vite, sur un aperçu de 3 aliments. J-C : « Faut réfléchir avant 
 se retrouve dans la circulaire de la semaine avec le nom du magasin, le prix payé pourrait être ma première référence, au
 lieu d'entrer tous les prix lors de l'arrivée de l'épicerie. » Autrement dit : à l'entrée, le produit scanné (son
 code-barres) + le magasin choisi → s'il est dans la circulaire de la semaine de ce magasin (relié par le tri), **le prix
-de la circulaire remplit le prix payé** (STOCK col. M). Fin de la saisie de tous les prix à l'arrivée. Détails : à
-décider (une question à la fois).
+de la circulaire remplit le prix payé** (STOCK col. M). Fin de la saisie de tous les prix à l'arrivée.
+**Mise de côté par J-C** (« on n'est pas rendu là », l'entrée de toute l'épicerie n'est pas encore pensée) — **notée en
+détail dans `RdG-01`, section « Le prix payé — l'idée de J-C »**, à reprendre avec l'entrée de toute l'épicerie.
   **Aperçu final approuvé par J-C le 1er octobre** (4 barres; À trier → ses catégories → la liste blanche; le feu; le
   point rouge; + Marque et Saveur dans l'entonnoir). Le bouton : l'étiquette
   et son $, en rouge, juste après Magasins (bâti; la page, pas encore).

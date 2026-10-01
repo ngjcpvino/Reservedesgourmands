@@ -124,6 +124,21 @@ Deux personnes, deux rôles, deux moments :
 - Statut **« en transit »** : entré mais pas encore placé — le compte est
   bon, l'emplacement pas encore confirmé. Rien ne ment.
 
+### Le prix payé — L'IDÉE DE J-C (2026-10-01), à prévoir pour l'entrée de toute l'épicerie
+*Notée pendant la réflexion sur les circulaires (`RdG-05`, « L'idée des prix de J-C »). J-C : « comme ce n'est pas
+encore écrit, le scan d'une épicerie, faut prévoir. Mais on n'est pas rendu là. Mais l'idée doit être notée comme il
+faut, sinon moi, ma mémoire… » — **à reprendre quand on bâtira l'entrée de toute l'épicerie (les deux sacs).***
+  - **Le chemin** : je scanne (code-barres) → je choisis le magasin → si ce code-barres est relié (par le tri des
+    circulaires) à un article de la circulaire **de ce magasin, en cours cette semaine** (Début ≤ aujourd'hui ≤ Fin),
+    **le prix de la circulaire s'écrit tout seul** dans le prix payé (STOCK col. M).
+  - **Ce que ça change** : plus besoin de taper tous les prix à l'arrivée de l'épicerie; le prix payé devient la
+    **première référence** de l'app pour juger un vrai rabais.
+  - **À régler quand on y sera (rien de décidé)** : le prix arrive écrit avec, en petit, « circulaire Metro », et J-C le
+    corrige seulement s'il est faux (proposé par Claude, pas répondu); les prix conditionnels (« 2 pour 7 $ » → 3,50 $
+    l'unité ?, « avec la carte », le prix au kilo de la viande); ce qui n'est pas en circulaire (prix vide, ou tapé);
+    le magasin doit être choisi **avant** le prix (dans la fiche, magasin et prix sont à la fin : l'ordre décidé le
+    2026-09-30 convient).
+
 ### Les nouveaux produits — séparation tête/bras
 - **Au placement (mode bras)** : l'emplacement se choisit TOUT DE SUITE,
   la boîte dans les mains
