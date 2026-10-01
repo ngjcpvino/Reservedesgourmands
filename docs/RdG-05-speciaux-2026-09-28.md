@@ -226,7 +226,9 @@ bâtie trop vite, sur un aperçu de 3 aliments. J-C : « Faut réfléchir avant 
 - **Dans la liste d'achats** (J-C, 1er octobre) : les soldes **sous les aliments, dans les catégories** (ci-dessus),
   **plus une ligne « Il y a aussi ceci en circulaire cette semaine »** — ce qui est en circulaire, trié pour lui, sans
   être sur la liste. Remplace la question « un Oui qui revient entre-t-il tout seul dans la liste ? » (A / B, dépassée).
-  Ce que la ligne contient (les Oui seulement, ou aussi les Peut-être) et où elle se place : à préciser.
+  Ce que la ligne contient (les Oui seulement, ou aussi les Peut-être) : à préciser. **La barre « En circulaire »
+  passe du haut au BAS de la liste, avec « Il y a aussi ceci »** (J-C : « au lieu d'avoir En circulaire en haut, ça
+  serait en bas avec le il y a aussi »).
 
 **En suspens (une question à la fois) :**
 1. **Ses interrogations sur le fonctionnement** — c'est par là qu'on reprend : lui demander la première.
