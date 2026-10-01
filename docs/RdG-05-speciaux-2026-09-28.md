@@ -265,6 +265,9 @@ bâtie trop vite, sur un aperçu de 3 aliments. J-C : « Faut réfléchir avant 
 - **Les barres de correction (Oui, Peut-être, Jamais) se rangent par section de la circulaire**, comme « À trier »
   (choix A de J-C; B, l'ordre alphabétique, rejeté). Corriger = toucher l'article : il se rouvre avec ses trois boutons,
   comme au tri.
+- **Savoir qu'il y a du nouveau à trier : un petit point sur le chemin** (choix B de J-C) — sur Outils, puis sur Gérer
+  les bases, puis sur l'étiquette rouge, tant que « À trier » n'est pas vide. (A rien, C une ligne dans la liste
+  d'achats : rejetés.) Le look du point : aperçu d'abord.
 
 **En suspens (une question à la fois) :**
 1. **Ses interrogations sur le fonctionnement** — c'est par là qu'on reprend : lui demander la première.
