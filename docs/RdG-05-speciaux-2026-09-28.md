@@ -145,11 +145,11 @@ ralentirait le reste.
 
 ## 5 ter. BÂTI DANS LA LISTE D'ACHATS (1er octobre 2026, décisions de J-C sur aperçus)
 
-J-C : « faut que je sache si un aliment est en solde ». À l'écran, **« en solde »** (son mot).
+J-C : « faut que je sache si un aliment est en solde ». À l'écran, **« en circulaire »** (son mot : « plus parlant que en solde »).
 - Sous l'aliment (le spécial vise l'aliment, pas la sorte) : **une ligne par magasin**, la moins chère en premier
   (« **Metro · 4,99 $** (rég. 6,49 $) · jusqu'au 7 oct. », dessous les mots de la circulaire).
 - Proposé (« ? ») : **la question sous la ligne**, « C'est le bon aliment ? » **Oui / Non**, une par genre d'article.
-- Un groupe **« En solde »** en tête de la liste, **par aliment** (pour comparer les magasins); rien sur les barres des
+- Un groupe **« En circulaire »** en tête de la liste, **par aliment** (pour comparer les magasins); rien sur les barres des
   catégories; « Mis de côté » montre aussi les soldes.
 - C'est la forme qu'a prise « Il en manque — en spécial » (section 3) : **dans la Liste d'achats**, là où J-C en a besoin.
 - Reste : Listes → « En spécial cette semaine » (par magasin) et l'écran de rayon.
