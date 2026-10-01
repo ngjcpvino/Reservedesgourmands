@@ -170,6 +170,11 @@ bâtie trop vite, sur un aperçu de 3 aliments. J-C : « Faut réfléchir avant 
   non — c'est une **archive en coulisse** dans le Sheet, jamais affichée, ni chargée à l'ouverture de l'app; elle sert
   seulement à juger. (Ordre de grandeur estimé : quelques centaines de lignes par semaine pour ses aliments, ~1 500 pour
   les circulaires complètes — à mesurer.)
+- **L'archive s'ajoute chaque jeudi, rien n'est effacé — et elle garde UN AN** (J-C, 1er octobre : « Oui ») : le plus
+  vieux s'efface au fur et à mesure. Un an suffit pour voir revenir les mêmes rabais d'une saison à l'autre.
+- **Une case « Circulaire » Oui / Non par magasin** sur la page Magasins (Gérer les bases) (J-C, 1er octobre : « j'ai
+  besoin du magasin mais pas besoin de la circulaire »). Seuls les magasins à **Oui** sont lus le jeudi. Le look : aperçu
+  d'abord. Le détail (le défaut d'un magasin neuf, ce qui arrive en changeant d'idée en pleine semaine) : à décider.
 
 **En suspens (une question à la fois) :**
 1. **Ses interrogations sur le fonctionnement** — c'est par là qu'on reprend : lui demander la première.
