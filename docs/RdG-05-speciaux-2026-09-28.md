@@ -252,7 +252,11 @@ bâtie trop vite, sur un aperçu de 3 aliments. J-C : « Faut réfléchir avant 
   circulaires »). Ce qui n'entre dans aucune (animaux, couches, pharmacie) : une dernière barre brune « Autres »
   (proposé). ⚠️ Le lien section de circulaire → sa catégorie : dépend de ce que Flipp donne (à vérifier sur l'ordi) et
   des noms de chaque bannière (Metro, IGA ≠ Super C). J-C : « quitte à modifier Gérer les catégories pour associer chaque
-  catégorie aux leurs » — la correspondance serait visible et corrigeable dans Gérer les bases → Catégories (à confirmer).
+  catégorie aux leurs ». **Confirmé (J-C : « Oui »)** : (1) le coffre-fort fait la correspondance tout seul, une fois;
+  (2) Gérer les bases → Catégories : une catégorie ouverte montre **ses sections des circulaires** (« Produits laitiers
+  (Metro) », « Laitiers (IGA) »), qu'on peut changer de catégorie; (3) une section que le coffre-fort n'a pas su placer
+  attend dans **« Sections sans catégorie »** (comme « Aliments sans catégorie »); sur la page de tri, ses articles vont
+  dans **« Autres »** (barre brune).
 
   Dessous, les barres **Oui, Peut-être, Jamais**, pour corriger au besoin. Le bouton : l'étiquette
   et son $, en rouge, juste après Magasins (bâti; la page, pas encore).
