@@ -994,6 +994,7 @@ async function enregistrer() {
   $('btn-enregistrer').disabled = true;
   montrerVoile(true);
   try {
+    if (!nouveau && !(await attendreCreation(produitId))) throw new Error('aliment pas encore enregistré — réessaie');
     const commun = { marque: marque, format: format, saveur: saveur, code: code, magasin: magasin, prix: prix,
                      qui: qui, endroits: endroits, opId: opCourant, nouveaux: nouveaux };
     const charge = nouveau
@@ -2460,6 +2461,11 @@ function poserGeste(envoi) {
 const TABLES_GESTE = { Emplacements: d => d.emps, Produits: d => d.prods, Categories: d => d.cats,
                        Magasins: d => (d.listes || {}).Magasins, Marques: d => (d.listes || {}).Marques, Saveurs: d => (d.listes || {}).Saveurs };
 function appliquerGeste(e, d) {
+  if (e.action === 'creer') {                         // une ligne neuve (un aliment créé instantanément), une seule fois
+    const rows = (TABLES_GESTE[e.table] || (() => null))(d);
+    if (rows && !rows.some(x => String(x[0]) === String(e.ligne[0]))) rows.push(e.ligne.slice());
+    return;
+  }
   if (e.lignes) {
     const rows = (TABLES_GESTE[e.table || 'Emplacements'] || (() => []))(d) || [];
     e.lignes.forEach(l => { const row = rows.find(x => String(x[0]) === String(l[0])); if (row) row.splice(0, l.length, ...l); });
@@ -2503,6 +2509,7 @@ async function expedierGestes() {
 async function envoyerGeste(e) {
   if (e.action === 'deplacer') return Coffre.deplacer(e);
   if (e.action === 'consommer') return Coffre.consommer(e);
+  if (e.action === 'creer') return Coffre.ajouter(e.table, e.ligne);   // l'ID vient de l'app : déjà créé = dejaFait, rien d'écrit
   for (const l of e.lignes || []) {
     const r = await Coffre.modifier(e.table || 'Emplacements', l[0], l);
     if (!(r && r.ok) && !(r && r.erreur === 'ID introuvable')) return r;
@@ -2789,34 +2796,37 @@ function surAchatAliment() {
   if (neuf && !$('achat-nom').value) $('achat-nom').focus();
 }
 /* « Mettre sur la liste » : un aliment choisi, ou nouveau (créé dans sa sous-catégorie; un nom qui existe déjà est repris). */
-async function validerAjoutAchat() {
-  const btn = $('achat-ok');
-  if (btn.disabled) return;
+function validerAjoutAchat() {
+  if ($('achat-ok').disabled) return;
   let pid = $('achat-aliment').value;
   if (!pid || !$('achat-souscat').value) { msgAchat('Choisis une catégorie, une sous-catégorie et un aliment.', true); return; }
   if (pid === 'neuf') {
     const nom = $('achat-nom').value.trim(), scid = $('achat-souscat').value;
     if (!nom) { msgAchat('Donne un nom au nouvel aliment.', true); $('achat-nom').focus(); return; }
     const deja = PRODUITS.find(p => cleNom(p.nom) === cleNom(nom));
-    if (deja) pid = deja.id;
-    else {
-      btn.disabled = true; montrerVoile(true);
-      try {
-        // Produits : ID · Nom · CategorieID · Unite · Actif · Marque · Format
-        const r = await Coffre.ajouter('Produits', ['', nom, scid, '', 'O', '', '']);
-        if (!r || !r.ok) throw new Error((r && r.erreur) || 'refus');
-        pid = r.id;
-        PRODUITS.push({ id: pid, nom: nom, catId: scid, ordre: '' });
-        const c = lireCache(); if (c) { (c.prods = c.prods || []).push([pid, nom, scid, '', 'O', '', '']); ecrireCache(c); }
-        remplirProduitsDatalist();
-      } catch (e) {
-        msgAchat('Aliment pas créé — réessaie.', true);
-        chargerReferences();                          // s'il a été créé quand même, le 2e essai le reprendra par son nom
-        return;
-      } finally { btn.disabled = false; montrerVoile(false); }
-    }
+    pid = deja ? deja.id : creerAlimentInstant(nom, scid);   // un 2e toucher retrouve l'aliment par son nom : jamais en double
   }
   mettreSurListe(pid);
+}
+/* Un nouvel aliment, INSTANTANÉ (J-C, 2026-10-01 : « on explore beaucoup les cuisines du monde, on achète des nouveautés
+   régulièrement ») : son ID est donné ici, il entre tout de suite dans la mémoire, le cache et la liste; sa création part
+   dans la file des gestes (« ajouter » avec l'ID : le coffre-fort ne le double jamais, un 2e envoi = dejaFait). */
+function creerAlimentInstant(nom, scid) {
+  const id = idLocal();
+  PRODUITS.push({ id: id, nom: nom, catId: scid, ordre: '' });
+  // Produits : ID · Nom · CategorieID · Unite · Actif · Marque · Format
+  poserGeste({ action: 'creer', table: 'Produits', opId: 'prod-' + id, ligne: [id, nom, scid, '', 'O', '', ''] });
+  remplirProduitsDatalist();                       // suggérable tout de suite à l'entrée
+  return id;
+}
+/* Une entrée d'un aliment dont la création n'est pas encore confirmée : la file d'abord (l'aliment doit exister avant ses lots).
+   Rend false s'il attend toujours (réseau) : l'entrée dira « réessaie ». */
+async function attendreCreation(pid) {
+  const enAttente = () => lireAttenteGestes().some(e => e.action === 'creer' && String(e.ligne[0]) === String(pid));
+  if (!enAttente()) return true;
+  await expedierGestes();
+  for (let i = 0; i < 40 && envoiGestes && enAttente(); i++) await new Promise(r => setTimeout(r, 250));   // une file déjà en route : on la laisse finir
+  return !enAttente();
 }
 function mettreSurListe(pid) {
   const p = PRODUITS.find(x => String(x.id) === String(pid)) || {}, nom = p.nom || '';
