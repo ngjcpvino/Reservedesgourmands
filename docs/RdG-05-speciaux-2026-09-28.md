@@ -239,6 +239,9 @@ bâtie trop vite, sur un aperçu de 3 aliments. J-C : « Faut réfléchir avant 
 - **La page « Circulaires » dans Gérer les bases — UN seul bouton** (choix A de J-C, 1er octobre; B, deux boutons, rejeté) :
   **« À trier »** en haut, puis dessous ses **Jamais, Peut-être et Oui**, pour les corriger. ⚠️ Elle se nourrit des
   circulaires complètes : tant que l'archive n'est pas bâtie (sur l'ordi), elle sera presque vide.
+- **« À trier » se range par SECTION de la circulaire** (choix A de J-C; B par magasin, C une seule liste, rejetés) : une
+  section fermée se trie d'un coup (« Jamais »). Dépend de Flipp (la section de chaque article : à vérifier sur l'ordi).
+  Un article annoncé chez plusieurs magasins = **une seule ligne** (le tri vise le genre d'article).
 
 **En suspens (une question à la fois) :**
 1. **Ses interrogations sur le fonctionnement** — c'est par là qu'on reprend : lui demander la première.
