@@ -209,8 +209,14 @@ bâtie trop vite, sur un aperçu de 3 aliments. J-C : « Faut réfléchir avant 
 - **Peut-être = la porte ouverte** (J-C : « un item que j'ai pas, mais c'est pas que j'aime pas. Si je fais une recette
   et il y a du XYZ, ah oui je vais essayer ») : ni dans la liste (Oui), ni rejeté (Jamais) — le milieu qui manquait
   quand il n'y avait que Oui / Non. **Il ne revient pas dans la barre à trier** (choix A de J-C) : il reste tranquille,
-  et on le retrouve **quand on le cherche** (« y a-t-il du XYZ en spécial ? », pour une recette). Où chercher : à
-  décider — rejoint « le trou » (section 6).
+  et on le retrouve **quand on le cherche** (« y a-t-il du XYZ en spécial ? », pour une recette).
+- **Où on le voit : dans la liste d'achats, sous l'aliment** (J-C : « dans ma liste d'achats j'ai du pain, avec des
+  marques. J'aimerais voir s'il n'est pas en solde. Est-ce qu'il y en a d'autres ? ») — sous « Pain » : ses pains à lui
+  s'ils sont en spécial, **et les autres pains en spécial triés Oui ou Peut-être**. **Les Jamais n'y paraissent pas**
+  (« du pain blanc : je cocherais Jamais, donc je ne le verrais pas dans ma liste d'épicerie »). La barre « En
+  circulaire » sert au **tri**; le résultat du tri se voit **sous l'aliment**. (Ni la loupe ni un champ de recherche
+  dans la barre — A et B proposés, dépassés.) Parenthèse notée, pas creusée : un aliment qui n'est **pas** sur la liste
+  (« y a-t-il du pain en solde ? » sans en manquer).
 
 **En suspens (une question à la fois) :**
 1. **Ses interrogations sur le fonctionnement** — c'est par là qu'on reprend : lui demander la première.
