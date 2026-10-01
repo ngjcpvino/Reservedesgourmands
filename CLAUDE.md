@@ -50,6 +50,8 @@ Principes structurels non négociables (détail dans `RdG-00`) : rien de fixe (l
 
 ## Où on en est
 
+> 📌 **NOTE POUR LA CONVERSATION DE L'ORDI (2026-10-01) — du travail t'attend dans `api.gs`** : l'interrupteur « Circulaire » des Magasins est bâti côté app, le coffre-fort ne le connaît pas encore. La consigne complète, en 5 points : section **« Gérer les bases → Magasins »**, paragraphe **« ⚠️ À FAIRE SUR L'ORDI »**. Une fois fait et essayé à blanc : l'inscrire là, retirer cette note, et dire à J-C de coller → Nouvelle version.
+
 > 🔁 **REPRISE — conversation relancée le 2026-10-01 (l'autre était trop longue). À lire avant de répondre.**
 > **Le sujet en cours : les circulaires, EN RÉFLEXION — ZÉRO CODE** (J-C : « Faut réfléchir avant de coder à tout vent »; « Tu vas vite, moi j'ai pas un ordi entre les 2 oreilles !! »). **Ralentir : une idée, une question à la fois, réponses courtes.** Détail : `docs/RdG-05`, section 5 quater.
 > - **Ce qui est bâti a été vu en vrai et jugé « pas fait pour les humains »** (les questions Oui / Non sous chaque ligne de la Liste d'achats) : un mur de questions, et de mauvais rapprochements (Pomme ← pommes de terre, purée de pommes). **On n'y retouche pas avant la fin de la réflexion.**
