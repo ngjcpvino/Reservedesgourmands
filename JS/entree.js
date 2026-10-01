@@ -1758,11 +1758,10 @@ async function reunirNoms(val) {
     avis('Pas réunis — réessaie', 'erreur');
   } finally { montrerVoile(false); rafraichirBases(); }
 }
-/* ---------- Corriger l'endroit d'un lot, ou ranger ce qui n'est pas encore rangé ----------
+/* ---------- Ranger ce qui est en Escale ----------
    Un lot = ce que l'Inventaire montre sur une ligne : aliment + marque + saveur, à un endroit.
-   Déjà rangé : le crayon CORRIGE une erreur de saisie (tablette 2 au lieu de 3) -> TOUT le lot bouge.
-   Pas encore rangé (endroit vide, « en transit ») : le crayon RANGE, avec une quantité -> le reste attend.
-   Déplacer une partie d'un lot déjà rangé : le bouton Déplacer du menu (ouvrirDeplacement), qui passe aussi par deplacerLot(). */
+   En Escale (endroit vide, « en transit ») : les deux flèches RANGENT, avec une quantité -> le reste attend.
+   Déplacer un lot déjà rangé (ou corriger son endroit) : le bouton Déplacer du menu (ouvrirDeplacement), qui passe aussi par deplacerLot(). */
 var LOTS = {};                                        // { produitId: [lot…] }, refait à chaque dessin d'une liste
 function lotsParProduit() {
   const par = {};
@@ -1781,32 +1780,32 @@ function lotsParProduit() {
   Object.keys(par).forEach(pid => par[pid].sort((a, b) => libelleEndroit(a.emp).localeCompare(libelleEndroit(b.emp), 'fr')));
   return par;
 }
-/* « Cuisine · Frigo · Tablette 2 » — le dernier mot seul si on le veut court. */
-function libelleEndroit(emp, court) {
+/* « Cuisine · Frigo · Tablette 2 ». */
+function libelleEndroit(emp) {
   if (!emp) return 'Escale';
   const r = resoudreEmp(emp);
   if (!r) return 'Endroit disparu';
   const nom = (liste, id) => { const x = liste.find(y => String(y.id) === String(id)); return x ? x.nom : ''; };
   const esp = r.espaceId ? nom(ESPACES[r.meubleId] || [], r.espaceId) : '';
-  if (court) return esp || nom(MEUBLES, r.meubleId);
   return [nom(PIECES, r.pieceId), nom(MEUBLES, r.meubleId), esp].filter(Boolean).join(' · ');
 }
-/* Une ligne de lot avec son crayon. titre = ce qui s'écrit en gros (l'endroit sous un aliment, l'aliment dans l'Escale).
-   sorte : une sorte sous l'accordéon de son aliment (l'Escale), du même trait que les sortes des meubles, le crayon en plus. */
+/* Une ligne de l'Escale avec ses deux flèches « ranger » (le dessin de Déplacer — J-C, 2026-10-01, choix B sur aperçu :
+   le crayon ne veut plus dire que « corriger un nom »). titre = le nom de l'aliment.
+   sorte : une sorte sous l'accordéon de son aliment, du même trait que les sortes des meubles, les flèches en plus. */
 function detailLot(l) { return [nomListe(l.marque), nomListe(l.saveur), l.formats.join(' + ')].filter(Boolean).join(' · '); }
 function htmlLot(pid, i, l, titre, sorte) {
   const detail = detailLot(l);
-  const crayon = '<button class="crayon" type="button" data-lot="' + esc(pid) + '|' + i + '" aria-label="' + (l.emp ? 'Corriger l\'endroit' : 'Ranger') + '"></button></div>';
+  const ranger = '<button class="ranger" type="button" data-lot="' + esc(pid) + '|' + i + '" aria-label="Ranger"></button></div>';
   if (sorte) return '<div class="item sorte"><div class="item-info"><div class="item-detail">' + esc(detail || titre) + '</div></div>' +
-    '<span class="sorte-quantite">' + esc(l.qte) + '</span>' + crayon;
-  return '<div class="item"><div class="item-info"><div class="item-nom">' + esc(titre || libelleEndroit(l.emp)) + '</div>' +
+    '<span class="sorte-quantite">' + esc(l.qte) + '</span>' + ranger;
+  return '<div class="item"><div class="item-info"><div class="item-nom">' + esc(titre) + '</div>' +
     (detail ? '<div class="item-detail">' + esc(detail) + '</div>' : '') + '</div>' +
-    '<span class="item-quantite">' + esc(l.qte) + '</span>' + crayon;
+    '<span class="item-quantite">' + esc(l.qte) + '</span>' + ranger;
 }
 /* « Pas encore rangé », à la fin de l'Inventaire par meuble : n'apparaît que s'il y a quelque chose.
    À l'écran, il s'appelle « Escale » (J-C, 2026-10-01 : un mot, du côté du transit — ça passe, ça ne s'installe pas).
    Comme les meubles au-dessus d'elle (J-C, 2026-10-01) : un aliment à plusieurs sortes = l'accordéon (le nom et le total,
-   on touche pour voir les sortes), chaque sorte avec son crayon pour ranger. */
+   on touche pour voir les sortes), chaque sorte avec ses deux flèches pour ranger. */
 function htmlPasEncoreRange() {
   const lignes = [];
   PRODUITS.forEach(p => {
@@ -1824,35 +1823,30 @@ function htmlPasEncoreRange() {
   return '<div class="accordeon" data-transit><div class="accordeon-tete">Escale</div>' +
     '<div class="accordeon-corps" hidden>' + lignes.map(x => x.html).join('') + '</div></div>';
 }
-/* Le crayon d'un lot : la ligne devient la carte d'endroit de la fiche.
-   Déjà rangé : placée sur l'endroit actuel. Pas encore rangé : vierge, avec la quantité (le total d'avance).
-   Un autre endroit choisi -> la question; Oui fait le geste, Non laisse tout tel quel. */
+/* Les deux flèches d'un lot en Escale : la ligne devient la carte d'endroit de la fiche, vierge, avec la quantité (le total d'avance).
+   Un endroit choisi -> la question; Oui fait le geste, Non laisse tout tel quel. */
 function ouvrirLot(btn) {
   const k = btn.dataset.lot.split('|'), lot = (LOTS[k[0]] || [])[Number(k[1])];
   if (!lot) return;
-  const ranger = !lot.emp;
   const carte = document.createElement('div');
   carte.className = 'endroit carte';
   carte.innerHTML = htmlChoixEndroit() +
-    (ranger ? '<div class="bloc"><div class="label">Quantité</div><input class="champ qte" type="text" inputmode="numeric" pattern="[0-9]*" value="' + esc(lot.qte) + '"></div>' : '') +
+    '<div class="bloc"><div class="label">Quantité</div><input class="champ qte" type="text" inputmode="numeric" pattern="[0-9]*" value="' + esc(lot.qte) + '"></div>' +
     '<div class="message"></div>' +
     '<div class="grille"><button class="bouton bouton-petit bouton-vert lot-oui" type="button" hidden>Oui</button>' +
     '<button class="bouton bouton-petit lot-non" type="button">Non</button></div>';
   btn.closest('.item').replaceWith(carte);
-  brancherEndroit(carte, resoudreEmp(lot.emp));
+  brancherEndroit(carte);
   const cible = () => carte.querySelector('.espace').value || carte.querySelector('.meuble').value;
-  const combien = () => ranger ? (parseInt(carte.querySelector('.qte').value, 10) || 0) : lot.qte;
+  const combien = () => parseInt(carte.querySelector('.qte').value, 10) || 0;
   const question = () => {
     const emp = cible(), q = combien(), m = carte.querySelector('.message'), oui = carte.querySelector('.lot-oui');
-    const ok = !!emp && emp !== lot.emp && q > 0 && q <= lot.qte;
-    const a = resoudreEmp(lot.emp), b = resoudreEmp(emp);
-    const court = !!(a && b && a.meubleId === b.meubleId);   // même meuble : « Tablette 2 vers Tablette 3 » suffit
+    const ok = !!emp && q > 0 && q <= lot.qte;
     const les = q > 1 ? 'les ' + q : 'le ' + q;
     m.className = 'message';
-    if (ranger && q > lot.qte) { m.className = 'message message-erreur'; m.textContent = 'Il y en a ' + lot.qte + ' à ranger.'; }
+    if (q > lot.qte) { m.className = 'message message-erreur'; m.textContent = 'Il y en a ' + lot.qte + ' à ranger.'; }
     else if (!ok) m.textContent = '';
-    else if (ranger) m.textContent = 'Ranger ' + les + ' à ' + libelleEndroit(emp) + ' ?' + (q < lot.qte ? ' (' + (lot.qte - q) + ' attendront)' : '');
-    else m.textContent = 'Déplacer ' + les + ' de ' + libelleEndroit(lot.emp, court) + ' vers ' + libelleEndroit(emp, court) + ' ?';
+    else m.textContent = 'Ranger ' + les + ' à ' + libelleEndroit(emp) + ' ?' + (q < lot.qte ? ' (' + (lot.qte - q) + ' attendront)' : '');
     oui.hidden = !ok;
   };
   carte.addEventListener('change', question);
@@ -1876,7 +1870,7 @@ async function deplacerLot(lot, emp, q, fin) {
   const parDeplacer = !!fin;                          // Déplacer (menu) décide lui-même de la suite
   fin = fin || redessinerLots;
   if (!emp || emp === lot.emp || !(q > 0)) { fin(false); return; }
-  const rate = (parDeplacer ? 'Pas déplacé' : !lot.emp ? 'Pas rangé' : 'Endroit pas corrigé') + ' — réessaie';
+  const rate = (parDeplacer ? 'Pas déplacé' : 'Pas rangé') + ' — réessaie';
   if (lot.lignes.some(id => !id)) {                   // filet : une ligne sans ID (ne devrait plus arriver) -> on relit d'abord
     montrerVoile(true);
     const lu = await chargerReferences();
@@ -3355,7 +3349,7 @@ function initEntree() {
   $('liste-inventaire').addEventListener('click', function (ev) {   // pièces et meubles de l'inventaire
     const vue = ev.target.closest('[data-vue]');           // « Par catégorie » / « Par meuble »
     if (vue) { if (vue.dataset.vue !== vueInventaire) { vueInventaire = vue.dataset.vue; remplirInventaire(); } return; }
-    const lot = ev.target.closest('.crayon[data-lot]');    // « Pas encore rangé » : le crayon range
+    const lot = ev.target.closest('.ranger[data-lot]');    // l'Escale : les deux flèches rangent
     if (lot) { ouvrirLot(lot); return; }
     if (ev.target.closest('.endroit')) return;             // toucher la carte ouverte ne plie pas l'accordéon
     const aliment = ev.target.closest('.aliment-tete');    // un aliment à plusieurs sortes : on les montre
