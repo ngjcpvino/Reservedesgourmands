@@ -79,6 +79,18 @@
   --suite-8:  var(--couleur-703);
   --suite-9:  var(--couleur-403);
   --suite-10: var(--couleur-704);
+  /* Gérer les bases : chaque bouton a SA couleur, fixe (J-C, 2026-10-01, choix B sur aperçu : chaud et froid en alternance,
+     deux pâles). Fini la suite par position pour cette grille : un bouton ajouté ne décale plus les autres.
+     Circulaires = le SEUL rouge. Un bouton qui a déjà sa couleur la garde partout où il paraît. */
+  --base-pieces:      var(--couleur-801);
+  --base-meubles:     var(--couleur-304);
+  --base-categories:  var(--couleur-607);
+  --base-aliments:    var(--couleur-702);
+  --base-magasins:    var(--couleur-802);
+  --base-circulaires: var(--couleur-401);
+  --base-marques:     var(--couleur-505);
+  --base-saveurs:     var(--couleur-701);
+  --base-unites:      var(--couleur-901);
 
   /* ---- Couleurs de service : DÉRIVÉES des couleurs ci-dessus, jamais écrites en dur.
      Change une couleur de base (écran Outils → Couleurs) : ses dérivées suivent. ---- */
@@ -190,8 +202,10 @@
   --bouton-forme-l:     167;     /* la proportion d'un gros bouton : sa largeur… */
   --bouton-forme-h:     50;      /* …pour sa hauteur */
   --bouton-grand-forme: var(--bouton-forme-l) / var(--bouton-forme-h);  /* sa proportion : celle de l'iPhone. Sur grand écran il grandit en hauteur au lieu de s'étirer */
-  --bouton-large-forme: calc(var(--bouton-forme-l) * 2) / var(--bouton-forme-h);  /* deux fois plus large, même hauteur : le Retour sous une grille, le bouton seul d'une grille impaire */
+  --bouton-large-forme: calc(var(--bouton-forme-l) * 2) / var(--bouton-forme-h);  /* deux fois plus large, même hauteur : le Retour sous une grille */
   --icone-taille:      40px;   /* le dessin dedans, sur un bouton ordinaire */
+  --icone-trait:       var(--couleur-105);   /* le trait des icônes : crème */
+  --icone-trait-pale:  var(--couleur-306);   /* sur un bouton pâle : brun, sinon le dessin disparaît */
   --icone-deux-forme:  835 / 600;   /* la proportion de l'icône « deux sacs » : plus large que haute */
   --icone-part:        60%;    /* sur un gros bouton, le dessin suit la hauteur */
 
@@ -392,9 +406,9 @@ body:has(.sur-photo:not([hidden]))::before { display: none; }
 }
 .bouton-grand .icone { height: var(--icone-part); width: auto; aspect-ratio: 1; }   /* le dessin grandit avec le bouton */
 .bouton-grand .icone-epicerie { aspect-ratio: var(--icone-deux-forme); }   /* deux sacs : l'icône s'élargit plutôt que de rapetisser */
-/* Grille impaire : le dernier prend toute la largeur, à la même hauteur (J-C, 2026-09-27) */
-.grille > .bouton-grand:last-child:nth-child(odd) { grid-column: 1 / -1; aspect-ratio: var(--bouton-large-forme); }
-/* Le bouton qui suit une grille (Retour) : la même hauteur que ceux de la grille, pour que rien ne bouge */
+/* Une grille = toujours des demi-boutons, même impaire : le dernier reste seul, à gauche (J-C, 2026-10-01 : « toujours des demis
+   sauf le Retour en bas »; avant : il prenait toute la largeur). Le bouton qui suit une grille (Retour) : toute la largeur,
+   la même hauteur que ceux de la grille, pour que rien ne bouge. */
 .grille + .bouton { aspect-ratio: var(--bouton-large-forme); min-height: var(--bouton-grand-haut); width: 100%; min-width: 0; }
 
 /* LA SUITE : un groupe de frères se colore selon la position — les grilles d'icônes, les accordéons de Listes et les listes
@@ -422,6 +436,16 @@ body:has(.sur-photo:not([hidden]))::before { display: none; }
 .liste-suite > .accordeon:nth-child(10n+8) { --meuble: var(--suite-8); }
 .liste-suite > .accordeon:nth-child(10n+9) { --meuble: var(--suite-9); }
 .liste-suite > .accordeon:nth-child(10n+10) { --meuble: var(--suite-10); }
+/* Gérer les bases : chaque bouton SA couleur (root, --base-…), plus la suite par position. Pâle : le dessin passe au brun. */
+.grille > .bouton-grand[data-base="pieces"]      { --c: var(--base-pieces); --icone-trait: var(--icone-trait-pale); }
+.grille > .bouton-grand[data-base="meubles"]     { --c: var(--base-meubles); }
+.grille > .bouton-grand[data-base="categories"]  { --c: var(--base-categories); }
+.grille > .bouton-grand[data-base="aliments"]    { --c: var(--base-aliments); }
+.grille > .bouton-grand[data-base="magasins"]    { --c: var(--base-magasins); }
+.grille > .bouton-grand[data-base="circulaires"] { --c: var(--base-circulaires); }
+.grille > .bouton-grand[data-base="marques"]     { --c: var(--base-marques); }
+.grille > .bouton-grand[data-base="saveurs"]     { --c: var(--base-saveurs); --icone-trait: var(--icone-trait-pale); }
+.grille > .bouton-grand[data-base="unites"]      { --c: var(--base-unites); }
 .bouton-petit { min-height: auto; padding: var(--espace-s) var(--espace-l); font-size: var(--texte-petit); }
 
 /* Ou le bouton se pose par rapport a ce qui le precede */
@@ -843,7 +867,7 @@ select.champ {
   flex-shrink: 0;
   width: var(--icone-taille);
   height: var(--icone-taille);
-  background-color: var(--couleur-105);   /* le trait suit le crème du root */
+  background-color: var(--icone-trait);   /* le trait suit le crème du root (brun sur un bouton pâle) */
   -webkit-mask: var(--dessin) center / contain no-repeat;
           mask: var(--dessin) center / contain no-repeat;
 }
@@ -866,6 +890,7 @@ select.champ {
 .icone-categories { --dessin: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='0.8' stroke-linecap='round' stroke-linejoin='round'%3E%3Crect x='3' y='3' width='7.5' height='7.5' rx='1'/%3E%3Crect x='13.5' y='3' width='7.5' height='7.5' rx='1'/%3E%3Crect x='3' y='13.5' width='7.5' height='7.5' rx='1'/%3E%3Crect x='13.5' y='13.5' width='7.5' height='7.5' rx='1'/%3E%3C/svg%3E"); }   /* Catégories : quatre cases */
 .icone-aliments { --dessin: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='0.8' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M12 20.94c1.5 0 2.75 1.06 4 1.06 3 0 6-8 6-12.22A4.91 4.91 0 0 0 17 5c-2.22 0-4 1.44-5 2-1-.56-2.78-2-5-2a4.9 4.9 0 0 0-5 4.78C2 14 5 22 8 22c1.25 0 2.5-1.06 4-1.06Z'/%3E%3Cpath d='M10 2c1 .5 2 2 2 5'/%3E%3C/svg%3E"); }   /* Aliments : la pomme */
 .icone-magasins { --dessin: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='0.8' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M2 7l4.41-4.41A2 2 0 0 1 7.83 2h8.34a2 2 0 0 1 1.42.59L22 7'/%3E%3Cpath d='M4 12v8a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-8'/%3E%3Cpath d='M15 22v-4a2 2 0 0 0-2-2h-2a2 2 0 0 0-2 2v4'/%3E%3Cpath d='M2 7h20'/%3E%3Cpath d='M22 7v3a2 2 0 0 1-2 2 2.7 2.7 0 0 1-1.59-.63.7.7 0 0 0-.82 0A2.7 2.7 0 0 1 16 12a2.7 2.7 0 0 1-1.59-.63.7.7 0 0 0-.82 0A2.7 2.7 0 0 1 12 12a2.7 2.7 0 0 1-1.59-.63.7.7 0 0 0-.82 0A2.7 2.7 0 0 1 8 12a2.7 2.7 0 0 1-1.59-.63.7.7 0 0 0-.82 0A2.7 2.7 0 0 1 4 12a2 2 0 0 1-2-2V7'/%3E%3C/svg%3E"); }   /* Magasins : la devanture */
+.icone-circulaires { --dessin: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='0.8' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M20.6 13.4l-7.2 7.2a2 2 0 0 1-2.8 0L3 13V4a1 1 0 0 1 1-1h9l7.6 7.6a2 2 0 0 1 0 2.8z'/%3E%3Ccircle cx='7.5' cy='7.5' r='1.3'/%3E%3Cpath d='M14.6 10.3c-.4-.6-1.1-.9-1.9-.9-1 0-1.8.6-1.8 1.4 0 1.9 3.9 1 3.9 3 0 .8-.8 1.4-1.9 1.4-.9 0-1.7-.4-2.1-1M12.7 8.4v1M12.7 15.2v1'/%3E%3C/svg%3E"); }   /* Circulaires : l'étiquette de prix et son $ (J-C, 2026-10-01, choix B sur aperçu, le % remplacé par $) */
 .icone-marques { --dessin: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='0.8' stroke-linecap='round' stroke-linejoin='round'%3E%3Ccircle cx='12' cy='12' r='9'/%3E%3Cpath d='M9.5 16.5v-9h3.5a2.5 2.5 0 0 1 0 5H9.5M12.5 12.5l3 4'/%3E%3C/svg%3E"); }   /* Marques : le ® de la marque déposée */
 .icone-saveurs { --dessin: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='0.8' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M12 21.5c-4 0-7-5.5-7-9.5 0-2.5 2-4 4-4 1 0 2 .5 3 .5s2-.5 3-.5c2 0 4 1.5 4 4 0 4-3 9.5-7 9.5z'/%3E%3Cpath d='M12 8.5C11 6.5 9 5.5 7 5.5c1.5-.5 3.5 0 5 1.5 1.5-1.5 3.5-2 5-1.5-2 0-4 1-5 3zM12 6.5V2.5'/%3E%3Ccircle cx='9.5' cy='12' r='0.35'/%3E%3Ccircle cx='14.5' cy='12' r='0.35'/%3E%3Ccircle cx='12' cy='14.5' r='0.35'/%3E%3Ccircle cx='9.5' cy='17' r='0.35'/%3E%3Ccircle cx='14.5' cy='17' r='0.35'/%3E%3C/svg%3E"); }   /* Saveurs : la fraise */
 .icone-unites { --dessin: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='0.8' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M16 16l3-8 3 8c-.87.65-1.92 1-3 1s-2.13-.35-3-1Z'/%3E%3Cpath d='M2 16l3-8 3 8c-.87.65-1.92 1-3 1s-2.13-.35-3-1Z'/%3E%3Cpath d='M7 21h10M12 3v18M3 7h2c2 0 5-1 7-2 2 1 5 2 7 2h2'/%3E%3C/svg%3E"); }   /* Unités : la balance à plateaux */
