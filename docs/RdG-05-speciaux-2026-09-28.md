@@ -236,6 +236,10 @@ bâtie trop vite, sur un aperçu de 3 aliments. J-C : « Faut réfléchir avant 
   **Un toucher sur un article de « Il y a aussi ceci » l'ajoute à la liste**, dans sa catégorie, comme la flèche de
   « Mis de côté » (J-C : « Oui, bonne idée »).
 
+- **La page « Circulaires » dans Gérer les bases — UN seul bouton** (choix A de J-C, 1er octobre; B, deux boutons, rejeté) :
+  **« À trier »** en haut, puis dessous ses **Jamais, Peut-être et Oui**, pour les corriger. ⚠️ Elle se nourrit des
+  circulaires complètes : tant que l'archive n'est pas bâtie (sur l'ordi), elle sera presque vide.
+
 **En suspens (une question à la fois) :**
 1. **Ses interrogations sur le fonctionnement** — c'est par là qu'on reprend : lui demander la première.
 2. Comment l'app juge : le prix régulier annoncé, le prix habituel du magasin (d'après l'archive), le prix payé
