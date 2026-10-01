@@ -180,6 +180,12 @@ bâtie trop vite, sur un aperçu de 3 aliments. J-C : « Faut réfléchir avant 
   oublié) (J-C : « Ok »). Un magasin à Oui **sans circulaire dans Flipp** (la fruiterie du coin) : après la lecture du
   jeudi, la page Magasins le dit à côté de son nom — « Pas de circulaire trouvée » (J-C : « Oui bonne idée »).
 
+- **La barre « En circulaire » = TOUS les soldes, pour un premier tri** (J-C, 1er octobre — pas seulement ceux de sa
+  liste, pas seulement les vrais rabais) : chaque article reçoit **Jamais / Peut-être / Oui** (« des articles que jamais
+  j'achèterai, des peut-être et des oui »). C'est la première étape, faite par J-C; l'app retient ses réponses, donc
+  **la liste à trier raccourcit de semaine en semaine** (« après 1 an, la liste va devenir de moins en moins longue à
+  gérer »). Remplace les questions Oui / Non « C'est le bon aliment ? » sous les lignes (5 ter).
+
 **En suspens (une question à la fois) :**
 1. **Ses interrogations sur le fonctionnement** — c'est par là qu'on reprend : lui demander la première.
 2. Comment l'app juge : le prix régulier annoncé, le prix habituel du magasin (d'après l'archive), le prix payé
