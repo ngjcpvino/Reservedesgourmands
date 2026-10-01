@@ -191,6 +191,10 @@ bâtie trop vite, sur un aperçu de 3 aliments. J-C : « Faut réfléchir avant 
   session dans le nuage n'atteint pas Flipp (vérifié le 1er octobre : refusé par le réseau).
 - **Les « Jamais » se défont dans Gérer les bases** (choix B de J-C : « pour moi c'est une correction de base ») — une
   liste de tous ses « Jamais » (articles et sections), pas au bas de la barre « En circulaire » (A, proposé, rejeté).
+- **Un « Jamais » vise le même genre d'article**, pas l'article exact (choix B de J-C) : « Purina Dog Chow 8 kg » →
+  tout ce qui commence par « Purina Dog Chow ». Les circulaires changent leurs mots d'une semaine à l'autre; sans ça, la
+  liste ne raccourcirait pas. (Comment l'app reconnaît « le même genre » : la `Cle` d'aujourd'hui = les deux premiers
+  mots — à revoir au moment de bâtir.)
 
 **En suspens (une question à la fois) :**
 1. **Ses interrogations sur le fonctionnement** — c'est par là qu'on reprend : lui demander la première.
