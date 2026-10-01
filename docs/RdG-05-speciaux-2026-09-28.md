@@ -196,9 +196,9 @@ bâtie trop vite, sur un aperçu de 3 aliments. J-C : « Faut réfléchir avant 
   tout ce qui commence par « Purina Dog Chow ». Les circulaires changent leurs mots d'une semaine à l'autre; sans ça, la
   liste ne raccourcirait pas. (Comment l'app reconnaît « le même genre » : la `Cle` d'aujourd'hui = les deux premiers
   mots — à revoir au moment de bâtir.)
-- **Oui = les deux** (choix C de J-C) : l'article **va dans la liste d'achats cette semaine**, ET le genre est **retenu
-  comme intéressant** (quand il revient en circulaire, il arrive déjà trié). ⚠️ « Va dans la liste » est peut-être
-  dépassé par la ligne « Il y a aussi ceci » (plus bas) : à confirmer avec J-C. « Le but est que je puisse associer ma
+- **Oui = retenu comme intéressant** : quand il revient en circulaire, il arrive déjà trié. **Il n'entre PAS tout seul
+  dans la liste d'achats** (J-C, 1er octobre : « Oui » — d'abord choix C, « les deux », dépassé par « Il y a aussi
+  ceci » plus bas) : il attend dans la barre « En circulaire », et un toucher l'ajoute à la liste. « Le but est que je puisse associer ma
   liste aux soldes. »
 - **Le lien se fait avec l'ALIMENT, pas la marque** (J-C : « Oui ») : du Natrel en solde = du « Lait », un remplaçant
   possible du Québon habituel. **L'app propose l'aliment le plus proche, J-C confirme
