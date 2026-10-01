@@ -247,7 +247,11 @@ bâtie trop vite, sur un aperçu de 3 aliments. J-C : « Faut réfléchir avant 
   **La base de tout = la Liste d'achats** (J-C : « tout le travail déjà fait sur Achats, qui devait être la base de
   tout ») : les mêmes barres fermées, la même liste blanche dessous — pas un nouveau look. **Couleurs = les feux de
   circulation** : **Oui vert, Peut-être jaune, Jamais rouge**, **sans texte** (J-C : « j'ai pas besoin de textes »).
-  Les sections : J-C, « les couleurs pour les sections sont déjà fixes dans l'Inventaire » (ses catégories) — à préciser.
+  **Les sections = SES catégories**, avec leurs couleurs fixes de l'Inventaire (J-C : « les couleurs pour les sections
+  sont déjà fixes dans l'Inventaire »; « mes catégories ont une base de Super C, ça doit bien avoir un lien avec les
+  circulaires »). Ce qui n'entre dans aucune (animaux, couches, pharmacie) : une dernière barre brune « Autres »
+  (proposé). ⚠️ Le lien section de circulaire → sa catégorie : dépend de ce que Flipp donne (à vérifier sur l'ordi) et
+  des noms de chaque bannière (Metro, IGA ≠ Super C).
   Dessous, les barres **Oui, Peut-être, Jamais**, pour corriger au besoin. Le bouton : l'étiquette
   et son $, en rouge, juste après Magasins (bâti; la page, pas encore).
 - **Une ligne d'article à trier = le nom seulement** (choix A de J-C : « Natrel lait 2 %, 2 L ») — ni prix ni magasin :
