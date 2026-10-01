@@ -249,6 +249,10 @@ bâtie trop vite, sur un aperçu de 3 aliments. J-C : « Faut réfléchir avant 
   on trie selon l'intérêt, c'est l'app qui juge le rabais. (B le prix le plus bas, C tous les magasins : rejetés.)
 - **Trier un article = le toucher** (choix B de J-C) : il s'ouvre avec ses trois boutons **Jamais / Peut-être / Oui**,
   **un seul ouvert à la fois** (la règle des accordéons). (A, les trois boutons toujours visibles : rejeté, le mur.)
+- **Oui (ou Peut-être) → l'entonnoir s'ouvre DÉJÀ REMPLI avec la proposition de l'app** (choix A de J-C) : Catégorie →
+  Sous-catégorie → Aliment (Produits laitiers → Lait → Lait); on touche **« C'est ça »**, ou on change seulement le
+  morceau fautif. L'app n'a aucune idée (une découverte) : l'entonnoir vide, « Nouvel aliment… » au bout. (B, la question
+  « C'est du Lait ? » puis l'entonnoir vide sur Non : rejeté.) Confirmé : l'article quitte « À trier » pour sa barre.
 
 **En suspens (une question à la fois) :**
 1. **Ses interrogations sur le fonctionnement** — c'est par là qu'on reprend : lui demander la première.
