@@ -91,6 +91,8 @@ var envoiGestes = false;                            // la file des gestes est en
 var ACHATS = [];                                    // onglet Achats : [ID, ProduitID, Marque, Saveur, Etat, Date, Qui, Actif] — la liste d'achats
 const ATTENTE_ACHATS = 'rdg_achats_attente';        // ce qui a été coché, ajouté, mis de côté, pas encore confirmé
 var envoiAchats = false;                            // la file de la liste d'achats est en route
+var SPECIAUX = [];                                  // onglet Speciaux (lu le jeudi par le coffre-fort) : [ID, Magasin, ProduitID, Texte, Prix,
+                                                    // Regulier, Unite, Description, Debut, Fin, Cle, Etat (? proposé · O confirmé), FlippId]
 var nomScanne = '';                                 // un code inconnu scanné pour la liste : son nom (Open Food Facts), prêt pour « Nouvel aliment… »
 var couleursModif = { site: {}, meubles: {} };      // changées à l'écran, pas encore envoyées
 var envoiCouleurs = false;                          // un envoi de couleurs est en route
@@ -379,6 +381,7 @@ function appliquer(d) {
   COULEURS = d.couleurs || [];                        // [ID, SecteurID, Nom, Valeur]
   PAS_AIMES = d.pasAimes || [];
   ACHATS = d.achats || [];
+  SPECIAUX = d.speciaux || [];
   // une couleur pas encore confirmée (attente) ou en cours d'essai (écran) l'emporte sur le Sheet
   const cm = Object.assign({}, lireAttenteCouleurs().meubles, couleursModif.meubles);
   PIECES.concat(MEUBLES).forEach(m => { if (cm[m.id] !== undefined) m.couleur = cm[m.id]; });
@@ -399,8 +402,9 @@ async function chargerReferences() {
     poserOrdresCats(data.cats, lireAttenteCats());            // idem pour l'ordre des catégories
     data.stock = data.stock || []; data.pasAimes = data.pasAimes || [];
     lireAttenteGestes().forEach(e => appliquerGeste(e, data));   // idem : un geste en route reste fait
-    data.achats = data.achats || [];
-    lireAttenteAchats().forEach(e => poserLignesAchats(e.lignes, data.achats));   // idem pour la liste d'achats
+    data.achats = data.achats || []; data.speciaux = data.speciaux || [];
+    lireAttenteAchats().forEach(e => e.reponse ? appliquerReponse(e.reponse, data.speciaux)       // idem pour la liste d'achats
+                                               : poserLignesAchats(e.lignes, data.achats));     // (et les Oui / Non aux soldes)
     appliquer(data); ecrireCache(data); remplirListes(); statut('');
     expedierOrdre();                              // le réseau répond : on en profite pour renvoyer l'attente
     expedierCouleurs();                           // idem pour les couleurs (sinon un appareil garde les siennes)
@@ -2569,6 +2573,8 @@ function lignesAchats(cote) {
    « Sans catégorie » au bout (brune). Puis « Mis de côté » (sans compteur : J-C) : ce que la poubelle a écarté, chacun avec
    la flèche « revenir » (J-C, 2026-10-01 : une poubelle touchée par erreur se répare).
    TOUT FERMÉ à l'ouverture de la page (J-C, 2026-10-01 : « une vraie épicerie, je vais trop scroller »), une barre ouverte à la fois.
+   Les soldes (J-C, 2026-10-01) : sous chaque aliment, partout (catégories, « Mis de côté »), et un groupe « En solde » EN TÊTE
+   qui reprend, par aliment, ceux de la liste qui sont en solde (ils restent aussi dans leur catégorie).
    ouvrir : le groupe à ouvrir (data-groupe : l'ID de la catégorie, 'sans' ou 'cote'); sinon celui qui l'était reste ouvert. */
 function remplirAchats(ouvrir) {
   const cible = $('liste-achats');
@@ -2584,7 +2590,8 @@ function remplirAchats(ouvrir) {
     const d = [!sorte ? detail(it) : '', it.auto === 'pas' && !it.main ? '(pour réserve)' : ''].filter(Boolean).join(' ');
     return '<div class="item achat' + (sorte ? ' item-sorte' : '') + (it.coche ? ' achat-coche' : '') + '" data-achat="' + esc(it.cle) + '">' +
       '<input class="case" type="checkbox" tabindex="-1"' + (it.coche ? ' checked' : '') + '>' +
-      '<div class="item-info"><div class="item-nom">' + esc(nom) + '</div>' + (d ? '<div class="item-detail">' + esc(d) + '</div>' : '') + '</div>' +
+      '<div class="item-info"><div class="item-nom">' + esc(nom) + '</div>' + (d ? '<div class="item-detail">' + esc(d) + '</div>' : '') +
+      (sorte ? '' : htmlSoldes(it.pid)) + '</div>' +
       '<button class="retirer" type="button" data-achat-retirer="' + esc(it.cle) + '" aria-label="Enlever de la liste"></button></div>';
   };
   // une ligne de « Mis de côté » : pas de case (on ne coche pas ce qui est écarté), la flèche « revenir » au bout
@@ -2592,7 +2599,7 @@ function remplirAchats(ouvrir) {
     const nom = sorte ? (detail(it) || nomDe(it.pid)) : nomDe(it.pid);
     const d = [!sorte ? detail(it) : '', it.auto === 'pas' ? '(pour réserve)' : ''].filter(Boolean).join(' ');
     return '<div class="item' + (sorte ? ' item-sorte' : '') + '"><div class="item-info"><div class="item-nom">' + esc(nom) + '</div>' +
-      (d ? '<div class="item-detail">' + esc(d) + '</div>' : '') + '</div>' +
+      (d ? '<div class="item-detail">' + esc(d) + '</div>' : '') + (sorte ? '' : htmlSoldes(it.pid)) + '</div>' +
       '<button class="remettre" type="button" data-achat-remettre="' + esc(it.cle) + '" aria-label="Remettre sur la liste"></button></div>';
   };
   // LA RÈGLE DES LISTES (J-C, 2026-09-30, choix B1) : un aliment à plusieurs sortes = son nom UNE fois, en bandeau pâle en retrait,
@@ -2603,7 +2610,9 @@ function remplirAchats(ouvrir) {
     for (let i = 0; i < lignes.length; ) {
       let j = i; while (j < lignes.length && lignes[j].pid === lignes[i].pid) j++;
       const memes = lignes.slice(i, j);
-      html += memes.length > 1 ? '<div class="espace-bandeau bandeau-aliment">' + esc(nomDe(memes[0].pid)) + '</div>' + memes.map(it => fait(it, true)).join('')
+      const soldes = memes.length > 1 ? htmlSoldes(memes[0].pid) : '';   // plusieurs sortes : le solde vise l'aliment, sous son nom
+      html += memes.length > 1 ? '<div class="espace-bandeau bandeau-aliment">' + esc(nomDe(memes[0].pid)) + '</div>' +
+                                 (soldes ? '<div class="soldes-bandeau">' + soldes + '</div>' : '') + memes.map(it => fait(it, true)).join('')
                                : fait(memes[0], false);
       i = j;
     }
@@ -2613,6 +2622,7 @@ function remplirAchats(ouvrir) {
     '<div class="accordeon-tete' + t.pale + '"><span>' + esc(nom) + '</span></div>' +
     '<div class="liste-blanche achats-groupe" hidden>' + lignesHtml(lignes) + '</div></div>' : ''; };
   const places = {};
+  const enSolde = items.filter(it => soldesDe(it.pid).length).sort(tri);
   let html = RAYONS.map(r => {
     const lignes = [];
     (SOUSCATS[r.id] || []).forEach(sc => {
@@ -2622,6 +2632,8 @@ function remplirAchats(ouvrir) {
     return groupe(r.nom, lignes, r.id);
   }).join('');
   html += groupe('Sans catégorie', items.filter(it => !places[it.cle]).sort(tri), '');
+  if (enSolde.length) html = '<div class="accordeon groupe-solde" data-groupe="solde"><div class="accordeon-tete tete-pale"><span>En solde</span></div>' +
+    '<div class="liste-blanche achats-groupe" hidden>' + lignesHtml(enSolde) + '</div></div>' + html;
   html = html || '<div class="accordeon-item"><span class="texte-petit texte-pale">Rien à acheter.</span></div>';
   if (cote.length) html += '<div class="accordeon" data-groupe="cote"><div class="accordeon-tete">Mis de côté</div>' +
     '<div class="liste-blanche achats-groupe" hidden>' + lignesHtml(cote.sort(tri), ligneCote) + '</div></div>';
@@ -2693,12 +2705,60 @@ async function expedierAchats() {
   envoiAchats = true;
   try {
     while (lireAttenteAchats().length) {
+      const e = lireAttenteAchats()[0];
       let r = null;
-      try { r = await Coffre.achats({ lignes: lireAttenteAchats()[0].lignes }); } catch (x) {}
-      if (!(r && r.ok)) break;                          // réseau, ou coffre-fort pas encore à jour : tout reste, ça repartira
+      try { r = e.reponse ? await Coffre.repondreSpecial(e.reponse) : await Coffre.achats({ lignes: e.lignes }); } catch (x) {}
+      if (!(r && (r.ok || r.definitif))) break;         // réseau, ou coffre-fort pas encore à jour : tout reste, ça repartira
       ecrireAttenteAchats(lireAttenteAchats().slice(1));
     }
   } finally { envoiAchats = false; }
+}
+/* ---------- LES SOLDES (J-C, 2026-10-01, sur aperçu; RdG-05) ----------
+   Le coffre-fort lit les circulaires le jeudi et renvoie SPECIAUX. Sous un aliment : une ligne par magasin, la confirmée d'abord,
+   la moins chère en premier (choix C : « Metro · 4,99 $ (rég. 6,49 $) · jusqu'au 7 oct. », dessous les mots de la circulaire).
+   Ce qui n'est que proposé (?) ne s'affiche JAMAIS comme un fait : la question Oui / Non, une par genre d'article (Cle).
+   Seulement ce qui est en cours (Debut ≤ aujourd'hui ≤ Fin) : un cache de la semaine passée ne montre rien de périmé. */
+function soldesDe(pid) {
+  const auj = dateDuJour(), jour = v => String(dateCourte(v) || '').slice(0, 10);
+  const prix = r => { const t = String(r[4] == null ? '' : r[4]).trim(), n = Number(t.replace(',', '.')); return t && isFinite(n) ? n : Infinity; };
+  const vus = {};
+  return SPECIAUX.filter(r => Array.isArray(r) && String(r[2]) === String(pid) && (r[11] === 'O' || r[11] === '?') &&
+      (!r[8] || jour(r[8]) <= auj) && (!r[9] || jour(r[9]) >= auj))
+    .sort((a, b) => a[11] !== b[11] ? (a[11] === 'O' ? -1 : 1) : prix(a) === prix(b) ? 0 : prix(a) < prix(b) ? -1 : 1)
+    .filter(r => r[11] === 'O' || !vus[r[10]] && (vus[r[10]] = true));   // une seule question par genre d'article
+}
+function textePrix(v) {
+  const t = String(v == null ? '' : v).trim(), n = Number(t.replace(',', '.'));
+  return !t ? '' : isFinite(n) ? n.toLocaleString('fr-CA', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) + ' $' : t;
+}
+function finSolde(v) {   // « 7 oct. »
+  const m = String(dateCourte(v) || '').match(/^(\d{4})-(\d{2})-(\d{2})/);
+  return m ? new Date(+m[1], +m[2] - 1, +m[3]).toLocaleDateString('fr-CA', { day: 'numeric', month: 'short' }) : String(v || '');
+}
+function htmlSoldes(pid) {
+  return soldesDe(pid).map(r => {
+    const u = String(r[6] || '').trim(), prix = textePrix(r[4]) + (u ? (u[0] === '/' ? '' : ' ') + u : ''), reg = textePrix(r[5]);
+    const quoi = [r[3], r[7]].map(x => String(x || '').trim()).filter(Boolean).join(', '), cle = esc(r[10]) + '|' + esc(pid);
+    if (r[11] === '?') return '<div class="solde solde-question"><span>En solde chez ' + esc(nomListe(r[1])) + ' : <span class="solde-quoi">' + esc(quoi) +
+      '</span> — ' + esc(prix) + '. C\'est le bon aliment ?</span><div class="grille">' +
+      '<button class="bouton bouton-petit bouton-vert" type="button" data-solde-oui="' + cle + '">Oui</button>' +
+      '<button class="bouton bouton-petit" type="button" data-solde-non="' + cle + '">Non</button></div></div>';
+    return '<div class="solde"><span class="solde-prix">' + esc(nomListe(r[1]) + ' · ' + prix) + '</span>' +
+      esc((reg ? ' (rég. ' + reg + ')' : '') + (r[9] ? ' · jusqu\'au ' + finSolde(r[9]) : '')) +
+      (quoi ? '<span class="solde-texte">' + esc(quoi) + '</span>' : '') + '</div>';
+  }).join('');
+}
+/* Oui / Non : retenu « pour le même genre d'article » (Cle) et cet aliment. Instantané; la réponse part par la file de la liste d'achats. */
+function appliquerReponse(rep, rows) {
+  rows.forEach(r => { if (Array.isArray(r) && String(r[10]) === String(rep.cle) && String(r[2]) === String(rep.produitId)) r[11] = rep.reponse; });
+}
+function repondreSolde(val, reponse) {
+  const k = val.split('|'), rep = { cle: k[0], produitId: k[1], reponse: reponse, qui: localStorage.getItem(QUI) || '' };
+  ecrireAttenteAchats(lireAttenteAchats().concat([{ reponse: rep }]));   // gardé AVANT tout
+  appliquerReponse(rep, SPECIAUX);
+  const c = lireCache(); if (c) { appliquerReponse(rep, c.speciaux = c.speciaux || []); ecrireCache(c); }
+  remplirAchats();
+  expedierAchats();
 }
 /* ---- « Ajouter à la liste » : l'entonnoir (catégorie → sous-catégorie → aliment, « Nouvel aliment… » au bout) et le scan,
    à la place de la liste. L'aliment seul (sans marque ni saveur). ---- */
@@ -3238,6 +3298,9 @@ function initEntree() {
     if (pb) { enleverAchat(pb.dataset.achatRetirer); return; }
     const rv = ev.target.closest('[data-achat-remettre]');
     if (rv) { remettreAchat(rv.dataset.achatRemettre); return; }
+    const so = ev.target.closest('[data-solde-oui], [data-solde-non]');   // « C'est le bon aliment ? » Oui / Non
+    if (so) { repondreSolde(so.dataset.soldeOui || so.dataset.soldeNon, so.dataset.soldeOui ? 'O' : 'N'); return; }
+    if (ev.target.closest('.solde-question')) return;     // toucher la question ne coche pas la ligne
     const tete = ev.target.closest('.accordeon-tete');     // une catégorie, ou « Mis de côté » : une seule ouverte à la fois
     if (tete) { toggleAccordeon(tete); return; }
     const l = ev.target.closest('[data-achat]');
