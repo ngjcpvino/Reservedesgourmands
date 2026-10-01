@@ -161,8 +161,9 @@ Oui / Non sous presque chaque ligne, et des rapprochements faux (Pomme ← pomme
 bâtie trop vite, sur un aperçu de 3 aliments. J-C : « Faut réfléchir avant de coder à tout vent. »
 
 **Acquis :**
-- Les questions quittent les lignes des catégories : elles vont dans la barre **« En circulaire » en tête de la liste**
-  (« l'onglet en haut de la liste »), **présentées autrement** — comment : pas décidé. Pas de page Circulaire à part.
+- Les questions quittent les lignes des catégories. **Le tri des circulaires se fait dans Gérer les bases** (J-C, 1er
+  octobre : « je change d'idée, le tri des circulaires va passer dans Gérer les bases ») — d'abord prévu dans la barre
+  « En circulaire » en tête de la liste d'achats (« l'onglet en haut de la liste »), abandonné le même jour.
 - **C'est l'app qui juge si un rabais est vrai**, pas J-C (« L'app sera l'outil. Tout ça pour aider, ben il va aider »).
   Un prix « en circulaire » ne dit pas que c'est un vrai rabais.
 - Pour juger, il faut **une mémoire** : aujourd'hui l'onglet Speciaux est **remplacé** chaque jeudi, rien n'est gardé.
@@ -180,7 +181,7 @@ bâtie trop vite, sur un aperçu de 3 aliments. J-C : « Faut réfléchir avant 
   oublié) (J-C : « Ok »). Un magasin à Oui **sans circulaire dans Flipp** (la fruiterie du coin) : après la lecture du
   jeudi, la page Magasins le dit à côté de son nom — « Pas de circulaire trouvée » (J-C : « Oui bonne idée »).
 
-- **La barre « En circulaire » = TOUS les soldes, pour un premier tri** (J-C, 1er octobre — pas seulement ceux de sa
+- **Le tri = TOUS les soldes** (J-C, 1er octobre — pas seulement ceux de sa
   liste, pas seulement les vrais rabais) : chaque article reçoit **Jamais / Peut-être / Oui** (« des articles que jamais
   j'achèterai, des peut-être et des oui »). C'est la première étape, faite par J-C; l'app retient ses réponses, donc
   **la liste à trier raccourcit de semaine en semaine** (« après 1 an, la liste va devenir de moins en moins longue à
@@ -196,7 +197,8 @@ bâtie trop vite, sur un aperçu de 3 aliments. J-C : « Faut réfléchir avant 
   liste ne raccourcirait pas. (Comment l'app reconnaît « le même genre » : la `Cle` d'aujourd'hui = les deux premiers
   mots — à revoir au moment de bâtir.)
 - **Oui = les deux** (choix C de J-C) : l'article **va dans la liste d'achats cette semaine**, ET le genre est **retenu
-  comme intéressant** (quand il revient en circulaire, il arrive déjà trié). « Le but est que je puisse associer ma
+  comme intéressant** (quand il revient en circulaire, il arrive déjà trié). ⚠️ « Va dans la liste » est peut-être
+  dépassé par la ligne « Il y a aussi ceci » (plus bas) : à confirmer avec J-C. « Le but est que je puisse associer ma
   liste aux soldes. »
 - **Le lien se fait avec l'ALIMENT, pas la marque** (J-C : « Oui ») : du Natrel en solde = du « Lait », un remplaçant
   possible du Québon habituel. **L'app propose l'aliment le plus proche, J-C confirme
@@ -208,25 +210,29 @@ bâtie trop vite, sur un aperçu de 3 aliments. J-C : « Faut réfléchir avant 
   Natrel reste possible. (B, toute la marque, rejeté.)
 - **Peut-être = la porte ouverte** (J-C : « un item que j'ai pas, mais c'est pas que j'aime pas. Si je fais une recette
   et il y a du XYZ, ah oui je vais essayer ») : ni dans la liste (Oui), ni rejeté (Jamais) — le milieu qui manquait
-  quand il n'y avait que Oui / Non. **Il ne revient pas dans la barre à trier** (choix A de J-C) : il reste tranquille,
+  quand il n'y avait que Oui / Non. **Il ne revient pas au tri** (choix A de J-C) : il reste tranquille,
   et on le retrouve **quand on le cherche** (« y a-t-il du XYZ en spécial ? », pour une recette).
 - **Où on le voit : dans la liste d'achats, sous l'aliment** (J-C : « dans ma liste d'achats j'ai du pain, avec des
   marques. J'aimerais voir s'il n'est pas en solde. Est-ce qu'il y en a d'autres ? ») — sous « Pain » : ses pains à lui
   s'ils sont en spécial, **et les autres pains en spécial triés Oui ou Peut-être**. **Les Jamais n'y paraissent pas**
-  (« du pain blanc : je cocherais Jamais, donc je ne le verrais pas dans ma liste d'épicerie »). La barre « En
-  circulaire » sert au **tri**; le résultat du tri se voit **sous l'aliment**. (Ni la loupe ni un champ de recherche
+  (« du pain blanc : je cocherais Jamais, donc je ne le verrais pas dans ma liste d'épicerie »). Le tri se fait
+  dans Gérer les bases; le résultat se voit **sous l'aliment**. (Ni la loupe ni un champ de recherche
   dans la barre — A et B proposés, dépassés.) Parenthèse notée, pas creusée : un aliment qui n'est **pas** sur la liste
   (« y a-t-il du pain en solde ? » sans en manquer).
 - **Le lien à l'aliment se fait aussi pour un Peut-être**, au tri (l'app propose « Pain », J-C confirme) — sinon il ne
   pourrait pas paraître sous « Pain » (J-C : « Oui »).
 - **Un Peut-être essayé et pas aimé** : J-C le dit **en le consommant** — la case « Ne pas racheter » de Consommer
   (« Pas aimé », déjà bâtie, déjà absente des spéciaux). Pas besoin de passer par Gérer les bases.
+- **Dans la liste d'achats** (J-C, 1er octobre) : les soldes **sous les aliments, dans les catégories** (ci-dessus),
+  **plus une ligne « Il y a aussi ceci en circulaire cette semaine »** — ce qui est en circulaire, trié pour lui, sans
+  être sur la liste. Remplace la question « un Oui qui revient entre-t-il tout seul dans la liste ? » (A / B, dépassée).
+  Ce que la ligne contient (les Oui seulement, ou aussi les Peut-être) et où elle se place : à préciser.
 
 **En suspens (une question à la fois) :**
 1. **Ses interrogations sur le fonctionnement** — c'est par là qu'on reprend : lui demander la première.
 2. Comment l'app juge : le prix régulier annoncé, le prix habituel du magasin (d'après l'archive), le prix payé
    (STOCK col. M). Fiable seulement après quelques semaines d'archive (voir section 7).
-3. La présentation dans la barre « En circulaire ».
+3. La présentation : la page de tri dans Gérer les bases, la ligne « Il y a aussi ceci » (aperçu d'abord).
 4. Le rapprochement côté serveur : un article qui colle à un aliment **plus précis** (« Pommes de terre ») ne va pas à
    « Pomme » — proposé par Claude, **pas validé**.
 5. « Le trou » (section 6) se règle peut-être du même coup : avec les circulaires complètes archivées, « y a-t-il du pain
