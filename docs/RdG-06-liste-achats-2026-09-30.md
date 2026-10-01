@@ -30,7 +30,7 @@ du menu, le calcul, cocher, la poubelle, ajouter à la main et au scan). **Le co
 
 **Enlever sans acheter** :
 - un aliment **ajouté à la main** : on l'enlève soi-même (on a changé d'idée) — il ne s'en va jamais tout seul, sauf à l'entrée;
-- un aliment **venu tout seul** (tombé à zéro) : **« Pas pour l'instant »** (J-C, sur l'exemple des fraises en janvier) — il quitte la liste et n'y revient qu'à son **prochain** passage à zéro, donc après avoir été racheté et entré. L'été venu, on le rajoute à la main si on le veut plus tôt. **Ajouté le 1er octobre** (J-C est tombé dans le piège : une poubelle touchée par erreur ne se réparait pas) : il ne disparaît plus en cachette, il passe dans le groupe **« Mis de côté (N) »** au bas de la liste (fermé à l'ouverture de la page), et sa **flèche « revenir »** le remet sur la liste (choix C sur aperçu, contre toucher la ligne et le +);
+- un aliment **venu tout seul** (tombé à zéro) : **« Pas pour l'instant »** (J-C, sur l'exemple des fraises en janvier) — il quitte la liste et n'y revient qu'à son **prochain** passage à zéro, donc après avoir été racheté et entré. L'été venu, on le rajoute à la main si on le veut plus tôt. **Ajouté le 1er octobre** (J-C est tombé dans le piège : une poubelle touchée par erreur ne se réparait pas) : il ne disparaît plus en cachette, il passe dans le groupe **« Mis de côté »** au bas de la liste (fermé à l'ouverture de la page, sans compteur), et sa **flèche « revenir »** le remet sur la liste (choix C sur aperçu, contre toucher la ligne et le +);
 - **pour toujours** : la poubelle de Gérer les bases → Aliments (elle paraît justement quand il n'en reste plus) — déjà bâtie.
 
 **Pas de quantité** sur la liste (J-C : « pas besoin de qté ») — ni à taper, ni rappelée (« la dernière fois : 2 × 4 L » a été proposé et refusé). On décide au magasin.
@@ -50,7 +50,7 @@ du menu, le calcul, cocher, la poubelle, ajouter à la main et au scan). **Le co
 - **« (pour réserve) »** en petit, pâle, sous le nom (réserve vide), **entre parenthèses, sans italique** — d'abord écrit « pas pressé » en italique, changé par J-C le 30 septembre après l'avoir vu;
 - **en spécial** : une ligne verte dessous (« En spécial chez Metro · 4,99 $ jusqu'au 7 oct. ») — quand les spéciaux seront branchés;
 - **la poubelle** au bout : l'enlever de la liste (« pas pour l'instant » pour un aliment venu tout seul — il passe dans « Mis de côté »);
-- après les catégories : **« Mis de côté (N) »**, une barre brune fermée; ouverte, ce que la poubelle a écarté (la règle des listes), sans case, chacun avec la **flèche « revenir »** au bout;
+- après les catégories : **« Mis de côté »**, une barre brune fermée, sans compteur; ouverte, ce que la poubelle a écarté (la règle des listes), sans case, chacun avec la **flèche « revenir »** au bout;
 - au bas : **Ajouter à la liste** (vert : l'entonnoir et le scan), puis **Retour** (or).
 
 **L'icône du menu (aperçu, choix B) : le chariot vide** — le même dessin que le chariot du chargement, sans baguette ni bouteille (A garni, C feuille à cocher, D planchette : écartés). La 7e du menu, la dernière : toute la largeur au bas de l'écran, la plus grosse cible pour le magasin.

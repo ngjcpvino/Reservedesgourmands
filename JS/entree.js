@@ -2566,7 +2566,7 @@ function lignesAchats(cote) {
   return Object.values(items).map(it => Object.assign(it, { coche: a(it.cle, 'coche') }));
 }
 /* La page : dans l'ordre des catégories (comme J-C les a classées), puis des sous-catégories; les aliments par nom.
-   Tout est ouvert. « Sans catégorie » au bout (brune). Puis « Mis de côté (N) », fermé à l'ouverture de la page :
+   Tout est ouvert. « Sans catégorie » au bout (brune). Puis « Mis de côté » (sans compteur : J-C), fermé à l'ouverture de la page :
    ce que la poubelle a écarté, chacun avec la flèche « revenir » (J-C, 2026-10-01 : une poubelle touchée par erreur se répare). */
 function remplirAchats() {
   const cible = $('liste-achats');
@@ -2620,7 +2620,7 @@ function remplirAchats() {
   html += groupe('Sans catégorie', items.filter(it => !places[it.cle]).sort(tri), '');
   html = html || '<div class="accordeon-item"><span class="texte-petit texte-pale">Rien à acheter.</span></div>';
   // à part dans son enveloppe : toggleAccordeon fermerait sinon les catégories, ses sœurs
-  if (cote.length) html += '<div data-cote><div class="accordeon"><div class="accordeon-tete">Mis de côté (' + cote.length + ')</div>' +
+  if (cote.length) html += '<div data-cote><div class="accordeon"><div class="accordeon-tete">Mis de côté</div>' +
     '<div class="liste-blanche achats-groupe" hidden>' + lignesHtml(cote.sort(tri), ligneCote) + '</div></div></div>';
   cible.innerHTML = html;
   const tete = cible.querySelector('[data-cote] .accordeon-tete');
