@@ -199,7 +199,9 @@ bâtie trop vite, sur un aperçu de 3 aliments. J-C : « Faut réfléchir avant 
   comme intéressant** (quand il revient en circulaire, il arrive déjà trié). « Le but est que je puisse associer ma
   liste aux soldes. »
 - **Le lien se fait avec l'ALIMENT, pas la marque** (J-C : « Oui ») : du Natrel en solde = du « Lait », un remplaçant
-  possible du Québon habituel. Qui fait le lien (l'app propose / J-C choisit dans l'entonnoir) : **pas encore répondu**.
+  possible du Québon habituel. **L'app propose l'aliment le plus proche, J-C confirme
+  ou en choisit un autre** (choix A de J-C; B, choisir lui-même dans l'entonnoir, rejeté) — une seule fois par genre
+  d'article, ensuite l'app s'en souvient. Une découverte jamais achetée : l'aliment se crée sur place.
 - **Au tri, « Jamais » doit distinguer la marque de l'aliment** (J-C : « si je dis non à la marque XYZ, c'est pas parce
   que j'aime pas l'aliment, mais j'aime pas cette marque »). Voisin de « Pas aimé » (Consommer), déjà absent des spéciaux.
   **« Jamais cette marque » vaut pour CET aliment seulement** (choix A de J-C) : pas de lait Natrel, mais la crème
