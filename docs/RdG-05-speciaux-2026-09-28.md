@@ -407,7 +407,7 @@ de J-C reste dans les Propriétés du script) :**
    le code d'**un** produit de l'offre (« choix varié » : le Yoplait crémeux donne le code d'un Oikos) — le bon
    fabricant, pas forcément la sorte de J-C. Un pont partiel, utile pour proposer l'aliment.
 
-### Partie 3 — L'archive : les circulaires COMPLÈTES, gardées un an
+### Partie 3 — L'archive : les circulaires COMPLÈTES, gardées un an — ✅ FAIT (1er octobre, ordi; voir « Ce qui est bâti » plus bas)
 - **Chaque jeudi** (le déclencheur de 1 h, heure du Québec, déjà posé), **tous** les articles des circulaires en cours
   des magasins à Oui — **plus seulement ceux qui ressemblent à ses aliments** (le filtre « nos aliments » de
   `lireSpeciaux` tombe). Ils **s'ajoutent** (rien n'est remplacé) dans un onglet d'archive (nom **(proposé)** :
@@ -429,7 +429,7 @@ de J-C reste dans les Propriétés du script) :**
   les mots triés (pour que « Lait Natrel » et « Natrel lait » se rejoignent). L'essayer sur l'archive réelle et en parler
   à J-C avant de la changer : les réponses déjà données (Correspondances) sont rangées par l'ancienne clé.
 
-### Partie 4 — Les sections des circulaires → SES catégories
+### Partie 4 — Les sections des circulaires → SES catégories — ✅ FAIT AUTREMENT (Flipp ne donne pas de section : J-C a dit « oui » au rangement par mots, 1er octobre)
 - Décidé : « À trier » est rangé par **ses** catégories (leurs couleurs), « Autres » (barre brune) pour le reste
   (animaux, couches, pharmacie…). La correspondance est **faite par le coffre-fort, tout seul, une fois**; J-C la voit et
   la corrige dans **Gérer les bases → Catégories** (sous chaque catégorie, ses sections; « Sections sans catégorie »
@@ -444,7 +444,7 @@ de J-C reste dans les Propriétés du script) :**
 - **Si Flipp ne donne pas de section** (partie 2) : en parler à J-C avant de bâtir (piste : ranger l'article d'après
   l'aliment proposé et sa sous-catégorie; sinon « Autres »).
 
-### Partie 5 — Le tri : où ranger les réponses, et ce que l'app reçoit
+### Partie 5 — Le tri : où ranger les réponses, et ce que l'app reçoit — ✅ FAIT (1er octobre, ordi)
 - **Les réponses (décidé)** : par **genre d'article** — **Oui** (vert), **Peut-être** (jaune), **Jamais tout ce genre**
   (rouge), **Jamais cette marque, pour cet aliment** (rouge, puis « Cette marque seulement »). Oui et Peut-être portent
   **l'aliment** (ProduitID), **la marque et la saveur** (IDs, reconnues dans le texte ou choisies par J-C), et **le
@@ -479,11 +479,53 @@ de J-C reste dans les Propriétés du script) :**
   besoin d'être parfaite; mais mieux elle vise, moins il touche. Le défaut connu : « Pomme » proposé pour « pommes de
   terre » — un article qui colle à un aliment **plus précis** devrait aller à celui-là **(proposé)**.
 
-### Partie 6 — Ménage et documents
+### Partie 6 — Ménage et documents — ✅ FAIT pour l'ordi (reste : retirer `repondreSpecial` avec l'app nouvelle)
 - Ce qui ne sert plus une fois l'app nouvelle en ligne : le filtre « nos aliments seulement », `repondreSpecial`,
   l'onglet `Correspondances` (après la conversion), l'état « ? » de `Speciaux`. L'onglet `Speciaux` lui-même : le garder
   comme « la semaine en cours » ou le remplacer par l'archive filtrée sur la semaine **(à toi de voir)** — le dire ici.
 - Inscrire chaque onglet et ses colonnes (positions exactes) dans `RdG-structure-donnees.md`.
+
+### ✅ CE QUI EST BÂTI DANS `api.gs` (1er octobre 2026, conversation de l'ordi — essayé à blanc sur les VRAIES circulaires de la semaine, ⚠️ à coller → Nouvelle version, puis lancer `installerDeclencheur`)
+
+**Le jeudi, en passes.** `lireSpeciaux()` (le déclencheur de 1 h) lit la liste et chaque circulaire en entier (≈ 10 appels),
+écrit **Speciaux** (la semaine, 20 colonnes, voir `RdG-structure-donnees.md`) et programme `suiteCirculaires()` une
+minute plus tard : le détail de chaque article (~1 000 appels, paquets de 10), 3 min 30 par passe, chacune relançant la
+suivante; à la fin, la semaine s'ajoute à **Circulaires** (l'archive) et l'archive garde un an. Essai : 1 016 articles,
+2 passes; relancer la même lecture ne double rien. `SPECIAUX_ETAT` dit « en cours — … » pendant les passes, « ok — … » à
+la fin. Au plus 12 passes (jamais de boucle sans fin).
+
+**Le rangement par mots (partie 4, autrement).** Chaque article reçoit **sa catégorie racine** (col. L) : l'aliment
+proposé s'il y en a un, sinon le premier mot reconnu (un dictionnaire dans `api.gs`, `RAYONS_MOTS` / `PAIRES_MOTS` /
+`MOTS_AUTRES`, qui trouve chaque catégorie par un morceau de son nom : « legume » → « Fruits et légumes »). Essai sur
+les 1 016 articles : **10 % en « Autres »** (repas prêts, pizza, quenelles, plantes, litière… — vous n'en achetez pas).
+Les erreurs se corrigent au tri (l'entonnoir). **Il n'y a donc PAS d'onglet Sections, ni de « sections sous chaque
+catégorie » dans Gérer les bases → Catégories** (ce qui était prévu tombe).
+
+**Le genre d'article (`Cle`) : gardé tel quel** (les deux premiers mots) — sur l'essai, 96 genres se retrouvent déjà
+chez plusieurs magasins (une seule ligne à trier). Une clé plus fine reste possible : à proposer à J-C à l'usage, pas
+avant (les réponses sont rangées par cette clé). Corrigé en passant : « bœuf » se coupait en « b uf » (le « œ »).
+
+**Ce que l'app reçoit — pour la conversation du nuage :**
+- `references` (à chaque ouverture) :
+  - `speciaux` = les articles **en cours cette semaine**, des magasins à Oui, dont le genre est trié **Oui ou Peut-être**
+    (pas une marque rejetée pour cet aliment). **Même format qu'avant** (l'app d'aujourd'hui les lit déjà : plus aucune
+    question « ? » n'arrive, les lignes sous les aliments ne montrent que ce qui est trié) + 5 colonnes au bout :
+    `[0 ID, 1 Magasin, 2 ProduitID, 3 Texte, 4 Prix, 5 Regulier, 6 Unite, 7 Description, 8 Debut, 9 Fin, 10 Cle, 11 'O',
+    12 FlippId, 13 Reponse (O / P), 14 Marque, 15 Saveur, 16 CodeBarres, 17 Categorie]`.
+  - `nbATrier` = le nombre de genres de la semaine sans réponse → **le point rouge**. ⚠️ à ajouter dans `chargerData()`.
+  - Un magasin mis à **Non** : ses soldes et ses articles à trier disparaissent **dès la relecture**; son archive reste.
+- `lireTri` (une action de LECTURE, un appel en ouvrant la page de tri) → `{ ok, aTrier, tri }` :
+  - `aTrier` = **une ligne par genre**, même annoncé chez trois magasins : `{ cle, texte, categorie (ID de la catégorie
+    racine, '' = Autres), produitId, marque, saveur (proposés : ils remplissent l'entonnoir), code (IGA), magasins: [ID…] }`.
+    Essai : **736 genres la 1re semaine** (rien n'est encore trié), 109 Ko.
+  - `tri` = les lignes de l'onglet Tri (positions : voir `RdG-structure-donnees.md`), pour les barres Oui / Peut-être / Jamais.
+- `trier` (écriture, à envoyer par la file des gestes) : `{ cles: [...], reponse: 'O' | 'P' | 'J' | 'M', produitId, marque,
+  saveur, code, qui }` → `{ ok: true }`. Une **liste** de genres (la ligne « Jamais » d'une section = un seul appel). Oui,
+  Peut-être et M **exigent l'aliment** (M exige aussi la marque) : sinon refus `definitif`. La même réponse renvoyée =
+  rien d'écrit; une autre = la ligne réécrite (la correction). Un nouvel aliment créé au tri : l'envoyer **avant** (même
+  file : `ajouter` accepte l'ID de l'app). ⚠️ `Coffre.lireTri()` et `Coffre.trier()` sont à ajouter dans `coffre.js`.
+- `repondreSpecial` (l'ancienne question) : un Oui devient un Oui du tri, un Non n'écrit rien. **À retirer** quand l'app
+  nouvelle est en ligne (avec `Coffre.repondreSpecial`, la question sous les lignes et son attente).
 
 ### Ce qui n'est PAS pour l'ordi (le nuage s'en charge, après toi)
 La page de tri (4 barres, le feu vert-jaune-rouge, l'entonnoir rempli avec marque et saveur, la recherche par nom dans

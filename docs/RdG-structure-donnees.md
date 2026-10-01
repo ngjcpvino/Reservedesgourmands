@@ -153,33 +153,66 @@ aliment + marque + saveur, tous formats. S'enlève dans Gérer les bases → Ali
 | C | Marque | la marque visée, ID dans MARQUES (vide = sans marque) |
 | D | Saveur | la saveur visée, ID dans SAVEURS (vide = sans saveur) |
 
-### SPECIAUX — les spéciaux de la semaine (2026-09-29)
-*Remplacé en entier chaque jeudi par le coffre-fort (`lireSpeciaux`, circulaires Flipp). Seulement NOS magasins et NOS aliments.*
+### SPECIAUX et CIRCULAIRES — les circulaires (refait le 2026-10-01, RdG-05 section 8)
+*Deux onglets aux mêmes colonnes, créés tout seuls par le coffre-fort. **SPECIAUX = la semaine en cours** : remplacé en
+entier chaque jeudi (1 h, heure du Québec) par TOUS les articles des circulaires en cours des magasins à Oui (plus
+seulement nos aliments); c'est de lui que l'app reçoit ses soldes. **CIRCULAIRES = l'archive** : la semaine s'y ajoute à
+la fin de la lecture (un article déjà archivé — même circulaire, même article — est sauté), gardée **un an**, sauf la
+dernière apparition de chaque genre d'article, qui reste toujours. Jamais envoyée à l'app. (Avant le 2026-10-01, SPECIAUX
+avait 13 colonnes : ID · Magasin · ProduitID · Texte · Prix · Regulier · Unite · Description · Debut · Fin · Cle · Etat ·
+FlippId — remplacé à la 1re lecture nouvelle.)*
 
 | Col | Nom | Sens |
 |-----|-----|------|
 | A | ID | date/heure de la lecture |
 | B | Magasin | ID dans MAGASINS |
-| C | ProduitID | l'aliment reconnu (lien vers PRODUITS) |
-| D | Texte | le nom de l'article dans la circulaire (en français) |
-| E | Prix | le prix en spécial |
-| F | Regulier | le prix régulier, s'il est connu (prix + économie, ou « Rég. » de la description) |
-| G | Unite | ce qui entoure le prix (« /lb », « prix membre », « 2 pour »…) |
-| H | Description | format et précisions de la circulaire (« 650 g, choix varié ») |
-| I | Debut | premier jour du spécial |
-| J | Fin | dernier jour |
-| K | Cle | « le même genre d'article » : les deux premiers mots (« lait chocolat ») |
-| L | Etat | ? = proposé (jamais affiché comme un fait) · O = J-C a dit oui · N = non (n'est plus renvoyé) |
-| M | FlippId | l'article chez Flipp |
+| C | FlyerId | la circulaire chez Flipp |
+| D | FlippId | l'article chez Flipp |
+| E | Texte | le nom de l'article, en français (« bacon Maple Leaf ») |
+| F | Description | format et précisions (« 375 g, choix varié ») + l'histoire du rabais (« 50% d'économie ») — vient du détail |
+| G | Prix | le prix en circulaire |
+| H | Regulier | le prix régulier s'il est connu (le prix « original », sinon prix + économie, sinon « Rég. » de la description) |
+| I | Unite | ce qui entoure le prix (« 2/ », « le 100 g », « /lb », « +tx ») |
+| J | Debut | premier jour de l'offre |
+| K | Fin | dernier jour |
+| L | Categorie | **sa catégorie racine** (ID dans CATEGORIES), devinée d'après les mots de l'article — Flipp ne donne pas de rayon. Vide = « Autres » |
+| M | Cle | le genre d'article : les deux premiers mots (« lait chocolat »). Un « Jamais » vise ce genre |
+| N | Marque | la marque telle que Flipp la donne (souvent vide; le texte la contient d'habitude) |
+| O | CodeBarres | **IGA seulement** : le code-barres tiré de son « sku » (UPC, ou code PLU d'un fruit/légume) — celui d'UN produit de l'offre. En texte |
+| P | DateLecture | le jeudi de la lecture |
+| Q | Detail | O = le détail est lu · X = tenté, Flipp n'a pas répondu (le prix de la circulaire reste) · vide = pas encore |
+| R | ProduitPropose | l'aliment proposé (lien vers PRODUITS) : tous ses mots dans l'article, le plus précis l'emporte |
+| S | MarquePropose | une marque de MARQUES reconnue dans le texte |
+| T | SaveurPropose | une saveur de SAVEURS reconnue dans le texte (« 2% » cherché tel quel) |
 
-### CORRESPONDANCES — les réponses Oui / Non aux spéciaux (2026-09-29)
+### TRI — les réponses de J-C aux circulaires (2026-10-01)
+*Créé tout seul à la 1re lecture nouvelle; à sa naissance, chaque Oui de l'ancienne CORRESPONDANCES y devient un Oui
+(un Non n'y entre pas : il voulait dire « pas le bon aliment », pas « jamais »). **Une ligne par genre d'article** : une
+nouvelle réponse réécrit la ligne (c'est aussi la correction). Écrit par l'action `trier`.*
 
 | Col | Nom | Sens |
 |-----|-----|------|
 | A | ID | date/heure de création |
-| B | Cle | le genre d'article (col. K de SPECIAUX) |
+| B | Cle | le genre d'article (col. M de SPECIAUX) |
+| C | Reponse | O = Oui · P = Peut-être · J = Jamais ce genre · M = Jamais cette marque, pour cet aliment |
+| D | ProduitID | l'aliment (Oui, Peut-être, M); vide pour J |
+| E | Marque | ID dans MARQUES (Oui, Peut-être; obligatoire pour M) |
+| F | Saveur | ID dans SAVEURS (Oui, Peut-être) |
+| G | CodeBarres | le code-barres accepté par J-C (Open Food Facts, cherché par l'app). En texte |
+| H | Date | quand J-C a répondu |
+| I | Qui | qui a répondu |
+| J | Texte | le nom de l'article au moment du tri (pour les barres de correction, même quand il n'est plus en circulaire) |
+| K | Categorie | sa catégorie racine (celle de l'aliment s'il y en a un, sinon celle devinée) |
+
+### CORRESPONDANCES — les anciennes réponses Oui / Non (2026-09-29, remplacé par TRI le 2026-10-01)
+*Plus écrit. Lu une seule fois, à la naissance de TRI (ses Oui y sont copiés). Peut être effacé du Sheet une fois TRI créé.*
+
+| Col | Nom | Sens |
+|-----|-----|------|
+| A | ID | date/heure de création |
+| B | Cle | le genre d'article |
 | C | ProduitID | l'aliment proposé |
-| D | Reponse | O / N — retenue pour les semaines suivantes |
+| D | Reponse | O / N |
 | E | Date | quand J-C a répondu |
 | F | Qui | qui a répondu |
 
@@ -190,10 +223,10 @@ On choisit dans la fiche, « Nouveau… » au bout; on corrige au crayon dans G�
 | Col | Nom | Sens |
 |-----|-----|------|
 | A | ID | date/heure de création (un nom ajouté à la fiche reçoit son ID dans l'app, même forme) |
-| B | Nom | « Super C », « Liberté », « fraise »… Deux noms qui ne diffèrent que par les accents, majuscules ou espaces sont LE MÊME (jamais de doublon) |
-| C | Actif | O / N — N = réuni dans un autre (« Libertee » dans « Liberté ») : ses liens ont été repointés, la ligne reste |
-| E | Date | quand c'est arrivé |
-| F | Qui | qui l'a coché |
+| B | Nom | « Super C », « Liberté », « fraise »… Deux noms qui ne diffèrent que par les accents, majuscules ou espaces sont LE MÊME (jamais de doublon). Écrit en texte (« 0% » reste « 0% ») |
+| C | Actif | O / N — N = réuni dans un autre (« Libertee » dans « Liberté ») ou retiré : ses liens ont été repointés, la ligne reste |
+| D | Circulaire | **MAGASINS seulement** (2026-10-01) : O / N — sa circulaire est-elle lue le jeudi ? Vide = Oui (un magasin neuf part à Oui) |
+| E | Trouvee | **MAGASINS seulement**, écrit par le coffre-fort après chaque lecture, pour les magasins à Oui : O = sa circulaire a été trouvée chez Flipp · N = non (l'app écrit « Pas de circulaire trouvée ») |
 
 ### CODES-BARRES — PAS de table séparée (décision 2026-09-20)
 
