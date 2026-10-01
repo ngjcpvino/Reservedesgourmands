@@ -156,6 +156,8 @@ J-C : « faut que je sache si un aliment est en solde ». À l'écran, **« en c
 
 ## 6. PARENTHÈSES (à ne pas perdre)
 
+- **Le trou (vu par J-C le 1er octobre)** : seuls ses aliments sont retenus, donc une nouveauté en circulaire ne paraît jamais (« y a-t-il du pain en solde ? »). Pistes : A tel quel · B circulaires complètes sur une page à part · C chercher à la demande dans la loupe (reco). **J-C y pense — ne pas relancer.**
+
 - La liste d'achats (point 5) pourra un jour dire « achète-le chez Metro
   cette semaine ».
 - Le prix payé (STOCK, colonne Prix) permettra un jour de dire si un
