@@ -138,6 +138,9 @@ faut, sinon moi, ma mémoire… » — **à reprendre quand on bâtira l'entrée
     l'unité ?, « avec la carte », le prix au kilo de la viande); ce qui n'est pas en circulaire (prix vide, ou tapé);
     le magasin doit être choisi **avant** le prix (dans la fiche, magasin et prix sont à la fin : l'ordre décidé le
     2026-09-30 convient).
+  - **Le juge du vrai rabais en dépend aussi** (J-C, même jour) : l'app compare le prix d'une circulaire au **dernier
+    prix payé pour cet article** — le prix payé est donc la mémoire des prix de la maison. Voir `RdG-05`, « Comment
+    l'app juge un vrai rabais ».
 
 ### Les nouveaux produits — séparation tête/bras
 - **Au placement (mode bras)** : l'emplacement se choisit TOUT DE SUITE,
