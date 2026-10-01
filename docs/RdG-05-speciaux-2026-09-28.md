@@ -219,6 +219,8 @@ bâtie trop vite, sur un aperçu de 3 aliments. J-C : « Faut réfléchir avant 
   (« y a-t-il du pain en solde ? » sans en manquer).
 - **Le lien à l'aliment se fait aussi pour un Peut-être**, au tri (l'app propose « Pain », J-C confirme) — sinon il ne
   pourrait pas paraître sous « Pain » (J-C : « Oui »).
+- **Un Peut-être essayé et pas aimé** : J-C le dit **en le consommant** — la case « Ne pas racheter » de Consommer
+  (« Pas aimé », déjà bâtie, déjà absente des spéciaux). Pas besoin de passer par Gérer les bases.
 
 **En suspens (une question à la fois) :**
 1. **Ses interrogations sur le fonctionnement** — c'est par là qu'on reprend : lui demander la première.
