@@ -251,7 +251,9 @@ bâtie trop vite, sur un aperçu de 3 aliments. J-C : « Faut réfléchir avant 
   sont déjà fixes dans l'Inventaire »; « mes catégories ont une base de Super C, ça doit bien avoir un lien avec les
   circulaires »). Ce qui n'entre dans aucune (animaux, couches, pharmacie) : une dernière barre brune « Autres »
   (proposé). ⚠️ Le lien section de circulaire → sa catégorie : dépend de ce que Flipp donne (à vérifier sur l'ordi) et
-  des noms de chaque bannière (Metro, IGA ≠ Super C).
+  des noms de chaque bannière (Metro, IGA ≠ Super C). J-C : « quitte à modifier Gérer les catégories pour associer chaque
+  catégorie aux leurs » — la correspondance serait visible et corrigeable dans Gérer les bases → Catégories (à confirmer).
+
   Dessous, les barres **Oui, Peut-être, Jamais**, pour corriger au besoin. Le bouton : l'étiquette
   et son $, en rouge, juste après Magasins (bâti; la page, pas encore).
 - **Une ligne d'article à trier = le nom seulement** (choix A de J-C : « Natrel lait 2 %, 2 L ») — ni prix ni magasin :
