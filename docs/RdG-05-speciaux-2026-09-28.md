@@ -290,6 +290,13 @@ bâtie trop vite, sur un aperçu de 3 aliments. J-C : « Faut réfléchir avant 
   **Plusieurs produits possibles** (« variétés choisies » : 1 %, 2 %, 3,25 %) : **l'app montre les 3 ou 4 plus proches,
   avec leur photo, et J-C touche le bon** (J-C : « Oui »). Aucun n'est le bon : « Aucun », le tri continue sans
   code-barres — il s'attachera au premier scan de ce produit.
+
+**L'IDÉE DES PRIX DE J-C (1er octobre)** — « Fallait régler le code-barres avant » (fait ci-dessus). « Si le code-barres
+se retrouve dans la circulaire de la semaine avec le nom du magasin, le prix payé pourrait être ma première référence, au
+lieu d'entrer tous les prix lors de l'arrivée de l'épicerie. » Autrement dit : à l'entrée, le produit scanné (son
+code-barres) + le magasin choisi → s'il est dans la circulaire de la semaine de ce magasin (relié par le tri), **le prix
+de la circulaire remplit le prix payé** (STOCK col. M). Fin de la saisie de tous les prix à l'arrivée. Détails : à
+décider (une question à la fois).
   **Aperçu final approuvé par J-C le 1er octobre** (4 barres; À trier → ses catégories → la liste blanche; le feu; le
   point rouge; + Marque et Saveur dans l'entonnoir). Le bouton : l'étiquette
   et son $, en rouge, juste après Magasins (bâti; la page, pas encore).
