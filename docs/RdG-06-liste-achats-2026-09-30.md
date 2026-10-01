@@ -1,8 +1,8 @@
 # RdG-06 — La liste d'achats (point 5)
 
 *Réflexion du 30 septembre 2026 avec Jean-Claude, finie le même jour. **L'app est bâtie le 30 septembre** (sa page, le chariot
-du menu, le calcul, cocher, la poubelle, ajouter à la main et au scan). **Le coffre-fort est écrit le 30 septembre aussi** (conversation sur l'ordi, section 4) — ⚠️ il reste à **coller `api.gs`**
-(Nouvelle version); d'ici là, ce qu'on coche, ajoute ou met de côté reste **sur l'appareil**, en attente, et partira tout seul.*
+du menu, le calcul, cocher, la poubelle, ajouter à la main et au scan). **Le coffre-fort est écrit le 30 septembre aussi** (conversation sur l'ordi, section 4) — **collé par J-C et vérifié le 1er octobre** : un aliment ajouté sur l'iPad
+paraît sur l'iPhone (la liste est partagée entre les deux appareils).*
 
 ---
 
