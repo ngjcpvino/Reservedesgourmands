@@ -276,6 +276,13 @@ bâtie trop vite, sur un aperçu de 3 aliments. J-C : « Faut réfléchir avant 
   **les circulaires n'ont PAS de code-barres** (J-C : « Flipp n'a pas de code-barres ») — le pont, c'est **le tri**
   (une fois par genre d'article, ensuite reconnu tout seul). Plus tard, le site de Super C donne le code-barres : pont
   direct pour comparer les prix (section 7).
+  **Le code-barres comme pivot, quand même (idée de J-C, 1er octobre : « quand je dis oui à un solde, il pourrait faire
+  la même chose [qu'au scan], car on peut chercher par nom sur Open Food Facts »)** : après le vert (ou le jaune), l'app
+  **cherche le nom de l'article dans Open Food Facts**, propose ce qu'elle trouve (photo, nom, marque, format, code-barres),
+  **J-C accepte ou corrige** — le même geste qu'au scan. Le code-barres se rattache alors au genre d'article. Un appel
+  par Oui (pas 1 500), depuis l'app. Rien trouvé (fréquent au Canada, et jamais pour une pomme) : le tri continue sans
+  code-barres, comme avant. (Claude avait proposé « deux pivots qui se tiennent par la main », jugé trop compliqué.)
+  ⚠️ La recherche par nom d'Open Food Facts n'a pas pu être essayée d'ici (réseau refusé) : à essayer en vrai.
   **Aperçu final approuvé par J-C le 1er octobre** (4 barres; À trier → ses catégories → la liste blanche; le feu; le
   point rouge; + Marque et Saveur dans l'entonnoir). Le bouton : l'étiquette
   et son $, en rouge, juste après Magasins (bâti; la page, pas encore).
