@@ -177,7 +177,8 @@ bâtie trop vite, sur un aperçu de 3 aliments. J-C : « Faut réfléchir avant 
   d'abord. **Un magasin neuf part à Oui**, modifiable (J-C : « Oui de base mais modifiable »). Un magasin mis à Oui en pleine
   semaine **attend le jeudi** (J-C : « pas à ce point frustrant »). Mis à Non en pleine semaine : ses
   spéciaux **disparaissent tout de suite** de la liste, mais **son archive reste** (s'il revient à Oui, l'app n'a rien
-  oublié) (J-C : « Ok »).
+  oublié) (J-C : « Ok »). Un magasin à Oui **sans circulaire dans Flipp** (la fruiterie du coin) : après la lecture du
+  jeudi, la page Magasins le dit à côté de son nom — « Pas de circulaire trouvée » (J-C : « Oui bonne idée »).
 
 **En suspens (une question à la fois) :**
 1. **Ses interrogations sur le fonctionnement** — c'est par là qu'on reprend : lui demander la première.
