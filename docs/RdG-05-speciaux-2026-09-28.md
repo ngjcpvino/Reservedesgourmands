@@ -189,6 +189,8 @@ bâtie trop vite, sur un aperçu de 3 aliments. J-C : « Faut réfléchir avant 
   section de la circulaire (nourriture pour animaux, couches). **Toujours réversible** (« à moins que j'adopte un chien
   l'an prochain! »). ⚠️ **À vérifier sur l'ordi** : Flipp donne-t-il la section (catégorie) de chaque article ? La
   session dans le nuage n'atteint pas Flipp (vérifié le 1er octobre : refusé par le réseau).
+- **Les « Jamais » se défont dans Gérer les bases** (choix B de J-C : « pour moi c'est une correction de base ») — une
+  liste de tous ses « Jamais » (articles et sections), pas au bas de la barre « En circulaire » (A, proposé, rejeté).
 
 **En suspens (une question à la fois) :**
 1. **Ses interrogations sur le fonctionnement** — c'est par là qu'on reprend : lui demander la première.
