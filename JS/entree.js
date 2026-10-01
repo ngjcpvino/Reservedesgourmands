@@ -3318,7 +3318,8 @@ function initEntree() {
   // les 8 bases : chacune ouvre sa page
   const PAGES_BASES = { pieces: montrerPieces, meubles: montrerMeubles, categories: montrerPageCategories, aliments: montrerPageAliments,
                         magasins: () => montrerPageNoms('magasins'), marques: () => montrerPageNoms('marques'), saveurs: () => montrerPageNoms('saveurs'),
-                        unites: () => montrerPageNoms('unites') };
+                        unites: () => montrerPageNoms('unites'),
+                        circulaires: () => avis('Circulaires : la page n\'est pas encore bâtie') };   // le tri des circulaires : en réflexion (RdG-05, 5 quater)
   document.querySelectorAll('[data-base]').forEach(b => b.addEventListener('click', PAGES_BASES[b.dataset.base]));
   $('menu-couleurs').addEventListener('click', montrerCouleurs);
   // le menu mène exactement où mènent les 4 boutons de l'accueil
