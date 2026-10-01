@@ -258,7 +258,13 @@ bâtie trop vite, sur un aperçu de 3 aliments. J-C : « Faut réfléchir avant 
   attend dans **« Sections sans catégorie »** (comme « Aliments sans catégorie »); sur la page de tri, ses articles vont
   dans **« Autres »** (barre brune).
 
-  Dessous, les barres **Oui, Peut-être, Jamais**, pour corriger au besoin. Le bouton : l'étiquette
+  Dessous, les barres **Oui, Peut-être, Jamais**, pour corriger au besoin.
+  **Après le 2e aperçu (J-C, 1er octobre)** : **en arrivant, QUATRE barres fermées — « À trier » d'abord**, puis Oui,
+  Peut-être, Jamais (ses catégories sont DANS « À trier », pas au premier niveau : ça règle aussi le vert de Fruits et
+  légumes / le rouge de Viandes qui se confondaient avec Oui / Jamais). **Les boutons : en forme de FEU DE CIRCULATION**
+  (choix C sur aperçu : trois ronds dans un boîtier foncé), **dans l'ordre vert, jaune, rouge** (Oui, Peut-être,
+  Jamais), sans texte. **Le point « du nouveau à trier » : rouge.** (Rejetés : A trois ronds seuls, B trois boutons
+  pleins; le point doré, le point crème.) Le bouton : l'étiquette
   et son $, en rouge, juste après Magasins (bâti; la page, pas encore).
 - **Une ligne d'article à trier = le nom seulement** (choix A de J-C : « Natrel lait 2 %, 2 L ») — ni prix ni magasin :
   on trie selon l'intérêt, c'est l'app qui juge le rabais. (B le prix le plus bas, C tous les magasins : rejetés.)
