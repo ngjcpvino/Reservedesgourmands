@@ -881,27 +881,6 @@ function poserFormat(txt) {
   montrer('bloc-unite-autre', false); $('unite-autre').value = '';
 }
 
-/* ---------- La quantité mesurable : « 2 x 1 L » se lit « 2 L » ---------- */
-/* Un format écrit à la main -> { valeur, unite } ; null si ce n'est pas mesurable. */
-function mesure(format) {
-  const t = String(format || '').toLowerCase().replace(',', '.').trim();
-  const m = t.match(/^([0-9]+(?:\.[0-9]+)?)\s*(kg|g|mg|l|ml|cl)\b/);
-  if (!m) return null;
-  const v = parseFloat(m[1]);
-  if (m[2] === 'kg') return { valeur: v, unite: 'kg' };
-  if (m[2] === 'g')  return { valeur: v / 1000, unite: 'kg' };
-  if (m[2] === 'mg') return { valeur: v / 1000000, unite: 'kg' };
-  if (m[2] === 'l')  return { valeur: v, unite: 'L' };
-  if (m[2] === 'ml') return { valeur: v / 1000, unite: 'L' };
-  if (m[2] === 'cl') return { valeur: v / 100, unite: 'L' };
-  return null;
-}
-/* Un total propre : 0,5 kg, 6 L, 1,25 kg. */
-function ecrireMesure(valeur, unite) {
-  const arrondi = Math.round(valeur * 1000) / 1000;
-  return String(arrondi).replace('.', ',') + ' ' + unite;
-}
-
 /* ---------- Endroits ---------- */
 /* « Pas encore rangé » (on) : les endroits font place à la seule quantité. « Choisir un endroit » (off) : l'inverse. */
 function pasEncoreRange(on) {
@@ -1914,13 +1893,10 @@ function stockParEndroit() {
     const cleMarque = marque, cleSaveur = saveur;
     const cle = prod.id + '|' + cleMarque + '|' + cleSaveur;
     const liste = (par[emp] = par[emp] || {});
-    const m = mesure(format);
-    if (!liste[cle]) liste[cle] = { pid: String(prod.id), nom: prod.nom, marque: cleMarque, saveur: cleSaveur, formats: [], qte: 0, total: 0, unite: '' };
+    if (!liste[cle]) liste[cle] = { pid: String(prod.id), nom: prod.nom, marque: cleMarque, saveur: cleSaveur, formats: [], qte: 0 };
     const x = liste[cle];
     x.qte += qte;
     if (format && x.formats.indexOf(format) === -1) x.formats.push(format);
-    if (m && (!x.unite || x.unite === m.unite)) { x.unite = m.unite; x.total += m.valeur * qte; }
-    else if (m) x.unite = '';                    // des unités mélangées : on ne totalise pas
   });
   return par;
 }
@@ -1931,11 +1907,7 @@ function stockParEndroit() {
 function htmlLignesEndroit(par, empId) {
   const dedans = par[empId];
   if (!dedans) return '';
-  const detailDe = x => {
-    const mesureTotale = (x.unite && x.total) ? ecrireMesure(x.total, x.unite) : '';
-    const format = x.formats.length > 1 ? x.formats.join(' + ') : x.formats[0];
-    return [nomListe(x.marque), nomListe(x.saveur), format, mesureTotale ? 'total ' + mesureTotale : ''].filter(Boolean).join(' · ');
-  };
+  const detailDe = x => [nomListe(x.marque), nomListe(x.saveur), x.formats.join(' + ')].filter(Boolean).join(' · ');   // plus de « total 0,454 kg » (J-C, 2026-10-01 : pas besoin)
   const groupes = {};
   Object.keys(dedans).forEach(k => { const x = dedans[k]; (groupes[x.pid] = groupes[x.pid] || []).push(x); });
   return Object.keys(groupes).map(pid => groupes[pid])

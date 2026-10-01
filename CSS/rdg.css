@@ -138,7 +138,7 @@
   --burger-trait-haut:  3.5px;
   --burger-fond:      transparent;   /* les trois traits seuls, sans fond (J-C, 2026-09-25) */
   --coin-icone:       46px;      /* la loupe en haut à gauche (J-C, 2026-09-27 : 46, un cran plus grosse que le burger) */
-  --bandeau-teinte:   22%;       /* la force de la couleur du meuble dans le bandeau d'un espace */
+  --bandeau-teinte:   18%;       /* la force de la couleur du meuble dans le bandeau d'un espace, mêlée au blanc : opaque (J-C, 2026-10-01, choix B sur aperçu; avant : 22 %, transparent) */
   --bandeau-haut:     var(--tactile);   /* un bandeau (l'espace, l'endroit, l'aliment) aussi haut que la barre du meuble (J-C, 2026-09-30) */
   --coin-taille:      52px;      /* la zone à toucher du burger et de la loupe : plus grande que la loupe */
 
@@ -539,7 +539,7 @@ select.champ {
   display: flex;
   align-items: center;
   min-height: var(--bandeau-haut);
-  background: color-mix(in srgb, var(--meuble, var(--couleur-305)) var(--bandeau-teinte), transparent);
+  background: color-mix(in srgb, var(--meuble, var(--couleur-305)) var(--bandeau-teinte), var(--couleur-101));   /* opaque : la même teinte partout, la photo ne passe plus */
   border-radius: var(--rayon);
   padding: var(--espace-m) var(--espace-l);
   margin: var(--espace-s) 0 var(--espace-xs);
@@ -696,7 +696,7 @@ select.champ {
 }
 .item-info { flex: 1; }
 .item-nom { font-size: var(--texte-moyen); font-weight: var(--poids-normal); color: var(--couleur-306); }
-.item-detail { font-size: var(--texte-petit); font-weight: var(--poids-leger); color: var(--couleur-302); }
+.item-detail { font-size: var(--texte-petit); font-weight: var(--poids-normal); color: var(--couleur-305); }   /* marque, format… : brun 305, normal (J-C, 2026-10-01, choix C sur aperçu; avant : 302 léger, trop pâle) */
 .item-quantite {
   font-size: var(--texte-petit);
   font-weight: var(--poids-fort);
