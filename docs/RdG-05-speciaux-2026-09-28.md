@@ -132,7 +132,7 @@ ralentirait le reste.
   et le premier est **en tête** (« courge Ambercup orange » ne propose pas les oranges). C'est une **proposition** (« ? »).
 - **Retenir la réponse** : onglet **Correspondances**, par « genre d'article » = les deux premiers mots
   (« lait au chocolat Québon » → « lait chocolat »). Un **Non** ne revient plus; un **Oui** s'affiche d'office.
-- **Chaque jeudi, 7 h** : déclencheur posé par `installerDeclencheur()` (J-C la lance une fois, depuis l'éditeur).
+- **Chaque jeudi, entre 1 h et 2 h du matin, heure du Québec** (7 h avant le 1er octobre : trop tard pour J-C) : déclencheur posé par `installerDeclencheur()` (J-C la lance une fois, depuis l'éditeur).
 - **Panne** : l'erreur est notée (`SPECIAUX_ETAT`, renvoyé par `references`), la semaine d'avant reste.
 - **Essai réel (24 sept., code postal générique d'Ormstown, 7 aliments d'essai)** : IGA (3 circulaires), Super C,
   Metro → 78 propositions, 59 avec prix régulier, ~35 s (appels un par un; Apps Script les fait en parallèle).
