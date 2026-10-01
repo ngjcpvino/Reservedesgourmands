@@ -217,6 +217,8 @@ bâtie trop vite, sur un aperçu de 3 aliments. J-C : « Faut réfléchir avant 
   circulaire » sert au **tri**; le résultat du tri se voit **sous l'aliment**. (Ni la loupe ni un champ de recherche
   dans la barre — A et B proposés, dépassés.) Parenthèse notée, pas creusée : un aliment qui n'est **pas** sur la liste
   (« y a-t-il du pain en solde ? » sans en manquer).
+- **Le lien à l'aliment se fait aussi pour un Peut-être**, au tri (l'app propose « Pain », J-C confirme) — sinon il ne
+  pourrait pas paraître sous « Pain » (J-C : « Oui »).
 
 **En suspens (une question à la fois) :**
 1. **Ses interrogations sur le fonctionnement** — c'est par là qu'on reprend : lui demander la première.
