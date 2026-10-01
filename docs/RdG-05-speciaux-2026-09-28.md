@@ -262,6 +262,9 @@ bâtie trop vite, sur un aperçu de 3 aliments. J-C : « Faut réfléchir avant 
   article reçoit son « Jamais » (son genre), la section elle-même n'est jamais rejetée : un article nouveau la semaine
   suivante revient à trier. (Remplace « Jamais d'un coup à toute une section » du même jour.) Le prix, accepté par J-C :
   une section comme « Animaux » risque de revenir chaque semaine (un toucher). **À revoir à l'usage.**
+- **Les barres de correction (Oui, Peut-être, Jamais) se rangent par section de la circulaire**, comme « À trier »
+  (choix A de J-C; B, l'ordre alphabétique, rejeté). Corriger = toucher l'article : il se rouvre avec ses trois boutons,
+  comme au tri.
 
 **En suspens (une question à la fois) :**
 1. **Ses interrogations sur le fonctionnement** — c'est par là qu'on reprend : lui demander la première.
