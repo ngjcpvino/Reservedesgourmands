@@ -185,6 +185,10 @@ bâtie trop vite, sur un aperçu de 3 aliments. J-C : « Faut réfléchir avant 
   j'achèterai, des peut-être et des oui »). C'est la première étape, faite par J-C; l'app retient ses réponses, donc
   **la liste à trier raccourcit de semaine en semaine** (« après 1 an, la liste va devenir de moins en moins longue à
   gérer »). Remplace les questions Oui / Non « C'est le bon aliment ? » sous les lignes (5 ter).
+- **Trier aussi par paquet** (J-C : « il y a des sections qui ne m'intéressent pas ») : « Jamais » d'un coup à toute une
+  section de la circulaire (nourriture pour animaux, couches). **Toujours réversible** (« à moins que j'adopte un chien
+  l'an prochain! »). ⚠️ **À vérifier sur l'ordi** : Flipp donne-t-il la section (catégorie) de chaque article ? La
+  session dans le nuage n'atteint pas Flipp (vérifié le 1er octobre : refusé par le réseau).
 
 **En suspens (une question à la fois) :**
 1. **Ses interrogations sur le fonctionnement** — c'est par là qu'on reprend : lui demander la première.
@@ -256,7 +260,8 @@ sites : son réseau les bloque).** La conversation sur l'ordi de J-C :
    (`/recherche?freeText=true&filter=nutella`) donne-t-elle les mêmes tuiles
    (code-barres, format, prix, prix régulier) ?
 2. `iga.net` : y a-t-il une recherche qui donne le prix, et le code-barres ?
-3. Flipp : lire une circulaire **en entier** (section 2, toujours ouvert).
+3. Flipp : lire une circulaire **en entier** (section 2, toujours ouvert) — et chaque article dit-il **sa section**
+   (catégorie) ? C'est ce qui permettrait de trier par paquet (section 5 quater).
 4. Le prix est-il celui **d'une succursale** (Ormstown ≠ une autre) ? Comment
    choisir la sienne ?
 5. **Chercher une vraie porte, comme la SAQ dans Dionysos.** Dionysos lit la
