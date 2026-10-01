@@ -344,6 +344,124 @@ maintenant.
 5. « Le trou » (section 6) se règle peut-être du même coup : avec les circulaires complètes archivées, « y a-t-il du pain
    en solde ? » devient possible.
 
+## 8. ⚠️ CONSIGNE POUR L'ORDI — LE COFFRE-FORT DES CIRCULAIRES (écrite le 1er octobre 2026, conversation du nuage)
+
+*Pour la conversation qui tourne sur l'ordi de J-C (la seule qui voit `api.gs`). J-C : « Oublie rien, car l'ordi est
+souvent occupé… pas par moi. Je passe le dernier! » — donc cette consigne doit se suffire à elle-même. Tout ce qui suit a
+été **décidé par J-C** (section 5 quater) sauf ce qui est marqué **(proposé)** ou **(à toi de voir)**. Les règles du
+projet valent : une question à la fois à J-C, réponses courtes, à l'épreuve du reclic, colonnes par position,
+tout essayer à blanc avant de dire « à coller ». Une fois une partie faite : l'inscrire ici (✅), dans
+`RdG-structure-donnees.md` (les colonnes, positions exactes) et dans `CLAUDE.md`; puis J-C colle → **Nouvelle version**.*
+
+**L'ordre de travail (proposé)** : 1 → 2 → (le rapport à J-C) → 3 → 4 → 5 → 6. Les parties 1 et 2 sont petites et
+débloquent tout; ne pas bâtir 3 à 5 avant d'avoir le rapport de la partie 2.
+
+### Partie 1 — L'interrupteur « Circulaire » des Magasins (déjà côté app, bâti le 1er octobre)
+La consigne en 5 points est dans `CLAUDE.md`, « Gérer les bases → Magasins », paragraphe « ⚠️ À FAIRE SUR L'ORDI » :
+`references` renvoie les col. D (`Circulaire`, O / N, vide = Oui) et E (`Trouvee`, O / N) de Magasins; en-têtes posés;
+`lireSpeciaux()` saute les magasins à D = N; après chaque lecture, col. E = O / N pour chaque magasin à Oui (ne pas
+toucher aux magasins à Non); `modifier` / `ajouter` acceptent la ligne de 5 colonnes.
+
+### Partie 2 — Vérifier Flipp, puis FAIRE RAPPORT à J-C (avant de bâtir la suite)
+Sur une vraie lecture (le code postal de J-C), répondre par écrit ici :
+1. **La circulaire complète** : `/flipp/flyers/<id>` donne-t-il **tous** les articles, avec leur prix ? Combien
+   d'articles par circulaire, et **au total par semaine** pour les magasins à Oui (estimé ~1 500 : à mesurer) ?
+2. **La section** de chaque article (« Produits laitiers », « Animaux »…) : existe-t-elle ? En quelle langue ? Le même
+   nom d'une semaine à l'autre ? C'est elle qui range la page de tri.
+3. **La marque à part** du texte ? (sinon l'app la reconnaît dans le texte, d'après la liste Marques)
+4. **Le prix** : prix, prix régulier ou économie, conditions (« 2 pour 7 $ », « avec la carte », « /lb »), dates
+   (début, fin). Le **détail** (`/flipp/items/<id>`) est-il nécessaire pour chaque article, ou la circulaire suffit-elle ?
+5. **Le temps** : une lecture complète tient-elle dans les **6 minutes** d'Apps Script (paquets de 10, une seconde entre
+   deux) ? Sinon : lire en plusieurs passes (une suite qui se relance toute seule jusqu'à la fin), **(à toi de voir)**.
+6. Confirmé par J-C : **Flipp n'a pas de code-barres**. (Le pont vers les codes-barres, c'est le tri, voir partie 5.)
+
+### Partie 3 — L'archive : les circulaires COMPLÈTES, gardées un an
+- **Chaque jeudi** (le déclencheur de 1 h, heure du Québec, déjà posé), **tous** les articles des circulaires en cours
+  des magasins à Oui — **plus seulement ceux qui ressemblent à ses aliments** (le filtre « nos aliments » de
+  `lireSpeciaux` tombe). Ils **s'ajoutent** (rien n'est remplacé) dans un onglet d'archive (nom **(proposé)** :
+  `Circulaires`).
+- **Colonnes (proposé)** : ID · Magasin (ID) · FlyerId · FlippId · Texte · Description · Prix · Regulier · Unite
+  (conditions) · Debut · Fin · Section (le nom Flipp, tel quel) · Cle (le genre, voir plus bas) · Marque (texte Flipp,
+  si donnée) · DateLecture.
+- **Rejouable** : relancer la lecture du même jeudi ne double rien (un article déjà archivé — même FlippId, même
+  circulaire — est sauté).
+- **Garder UN AN** : à chaque lecture, effacer ce qui a plus de 365 jours, **SAUF la dernière apparition d'un genre
+  d'article qui n'est jamais revenu** — on garde toujours au moins sa dernière ligne (J-C : la mémoire d'un produit ne
+  disparaît jamais tout à fait).
+- **Jamais envoyée en entier à l'app** (trop gros; J-C : « jamais une liste de 1000 km »). L'app n'en reçoit que ce
+  qu'il faut (partie 5).
+- **Panne de Flipp** : comme aujourd'hui, l'erreur est notée et la semaine d'avant reste.
+- **Le genre d'article (`Cle`)** — aujourd'hui « les deux premiers mots ». **Le but (décidé)** : un « Jamais » vise **le
+  même genre** (« Purina Dog Chow », tous formats), et un genre trié une fois revient **déjà trié** les semaines
+  suivantes. **(À toi de voir)** une meilleure clé : sans accents, sans petits mots, **sans format ni quantité**, peut-être
+  les mots triés (pour que « Lait Natrel » et « Natrel lait » se rejoignent). L'essayer sur l'archive réelle et en parler
+  à J-C avant de la changer : les réponses déjà données (Correspondances) sont rangées par l'ancienne clé.
+
+### Partie 4 — Les sections des circulaires → SES catégories
+- Décidé : « À trier » est rangé par **ses** catégories (leurs couleurs), « Autres » (barre brune) pour le reste
+  (animaux, couches, pharmacie…). La correspondance est **faite par le coffre-fort, tout seul, une fois**; J-C la voit et
+  la corrige dans **Gérer les bases → Catégories** (sous chaque catégorie, ses sections; « Sections sans catégorie »
+  pour l'inconnu). Ses catégories viennent de Super C (`RdG-categories-superc.md`) : les noms de Super C devraient se
+  placer presque tout seuls; Metro, IGA, Richelieu nomment autrement.
+- **Onglet (proposé)** `Sections` : ID · Magasin (ID) · Section (le nom Flipp, tel quel) · CategorieID (vide = sans
+  catégorie) · Auto (O = placée par le coffre-fort, N = corrigée par J-C).
+- Chaque jeudi : une section **nouvelle** reçoit une proposition (ou reste sans catégorie); une ligne **corrigée par
+  J-C (Auto = N) n'est jamais réécrite**.
+- `references` renvoie les lignes de `Sections` (petit). Corriger côté app = un geste « lignes » sur `Sections`
+  (`Coffre.modifier`, déjà rejouable) : rien d'autre à faire.
+- **Si Flipp ne donne pas de section** (partie 2) : en parler à J-C avant de bâtir (piste : ranger l'article d'après
+  l'aliment proposé et sa sous-catégorie; sinon « Autres »).
+
+### Partie 5 — Le tri : où ranger les réponses, et ce que l'app reçoit
+- **Les réponses (décidé)** : par **genre d'article** — **Oui** (vert), **Peut-être** (jaune), **Jamais tout ce genre**
+  (rouge), **Jamais cette marque, pour cet aliment** (rouge, puis « Cette marque seulement »). Oui et Peut-être portent
+  **l'aliment** (ProduitID), **la marque et la saveur** (IDs, reconnues dans le texte ou choisies par J-C), et **le
+  code-barres** si J-C a accepté un produit d'Open Food Facts (recherche par nom, faite **par l'app**, pas par toi).
+  « Jamais cette marque » porte l'aliment et la marque.
+- **Onglet (proposé)** `Tri` : ID · Cle · Reponse (O = Oui · P = Peut-être · J = Jamais ce genre · M = Jamais cette
+  marque) · ProduitID · Marque (ID) · Saveur (ID) · CodeBarres · Date · Qui.
+- **Action `trier` (proposé)** `{ cles: [...], reponse, produitId, marque, saveur, code, qui }` — **une liste de clés**,
+  parce que la ligne « Jamais » en tête d'une section vise **tout ce qui s'y trouve ce jour-là** (chaque article reçoit
+  son Jamais, la section elle-même n'est jamais rejetée) : **un seul appel**, pas un par article. **Rejouable** : une
+  ligne par Cle (pour M : par Cle + ProduitID + Marque); la même réponse déjà là = rien d'écrit, `{ ok: true }`; une
+  autre réponse = la ligne réécrite (c'est aussi **la correction**, depuis les barres Oui / Peut-être / Jamais). L'app
+  l'enverra par sa file de gestes (`poserGeste`), donc dans l'ordre et en arrière-plan.
+- **Les anciennes réponses** (`Correspondances`, `repondreSpecial`, les questions Oui / Non sous les lignes de la liste
+  d'achats — jugées « pas faites pour les humains ») : un **O** devient une ligne `Tri` **Oui** (même Cle, même aliment);
+  un **N** voulait dire « pas le bon aliment », **pas** Jamais → rien (le genre revient à trier). Garder
+  `repondreSpecial` jusqu'à ce que l'app nouvelle soit en ligne, puis **le retirer** (ménage, même envoi que l'app).
+- **Ce que l'app reçoit — la vitesse d'abord** (chaque appel compte, ~1 s) :
+  - dans `references` (à chaque ouverture, donc **léger**) : `nbATrier` (le **point rouge** sur le chemin Outils →
+    Gérer les bases → l'étiquette, tant que ce n'est pas 0); `sections`; et `speciaux` **redéfini** = les articles **en
+    cours cette semaine** dont le genre est trié **Oui ou Peut-être** (pas les Jamais, ni une marque rejetée pour cet
+    aliment), avec Magasin, Prix, Regulier, Unite, Debut, Fin, Texte, Cle, Reponse, ProduitID, Marque, Saveur,
+    CodeBarres — c'est ce qui s'affiche **sous l'aliment** dans la liste d'achats et dans « Il y a aussi ceci » (Oui
+    seulement). ⚠️ Rappel (leçon du 1er octobre) : un champ nouveau de `references` doit aussi entrer dans
+    `chargerData()` côté app — c'est la conversation du nuage qui s'en charge.
+  - **à la demande** (un appel, en ouvrant la page de tri — c'est dans Gérer les bases, pas tous les jours) : action
+    **`lireTri` (proposé)** → `aTrier` (les articles de la semaine dont le genre n'est pas trié : Cle, Texte, la
+    catégorie d'après `Sections`, l'aliment / la marque / la saveur **proposés** par le coffre-fort — c'est ce qui
+    remplit l'entonnoir d'avance) et `tri` (les réponses déjà données, pour les barres Oui / Peut-être / Jamais).
+- **La proposition d'aliment** (ce que `lireSpeciaux` fait déjà) : J-C confirme ou corrige au tri, donc elle n'a pas
+  besoin d'être parfaite; mais mieux elle vise, moins il touche. Le défaut connu : « Pomme » proposé pour « pommes de
+  terre » — un article qui colle à un aliment **plus précis** devrait aller à celui-là **(proposé)**.
+
+### Partie 6 — Ménage et documents
+- Ce qui ne sert plus une fois l'app nouvelle en ligne : le filtre « nos aliments seulement », `repondreSpecial`,
+  l'onglet `Correspondances` (après la conversion), l'état « ? » de `Speciaux`. L'onglet `Speciaux` lui-même : le garder
+  comme « la semaine en cours » ou le remplacer par l'archive filtrée sur la semaine **(à toi de voir)** — le dire ici.
+- Inscrire chaque onglet et ses colonnes (positions exactes) dans `RdG-structure-donnees.md`.
+
+### Ce qui n'est PAS pour l'ordi (le nuage s'en charge, après toi)
+La page de tri (4 barres, le feu vert-jaune-rouge, l'entonnoir rempli avec marque et saveur, la recherche par nom dans
+Open Food Facts avec les 3 ou 4 plus proches en photo), le point rouge, les sections sous chaque catégorie dans Gérer les
+bases, la liste d'achats (soldes sous l'aliment, « Il y a aussi ceci » au bas, un magasin mis à Non qui disparaît tout de
+suite, le retrait des questions Oui / Non), et **le juge du vrai rabais** (le dernier prix payé, tous magasins, lu dans
+STOCK col. M — rien à faire côté coffre-fort). **L'idée des prix de J-C** (le prix de la circulaire remplit le prix payé
+à l'entrée) attend l'entrée de toute l'épicerie (`RdG-01`).
+
+---
+
 ## 6. PARENTHÈSES (à ne pas perdre)
 
 - **Le trou (vu par J-C le 1er octobre)** : seuls ses aliments sont retenus, donc une nouveauté en circulaire ne paraît jamais (« y a-t-il du pain en solde ? »). Pistes : A tel quel · B circulaires complètes sur une page à part · C chercher à la demande dans la loupe (reco). **J-C y pense — ne pas relancer.** → Repris le 1er octobre dans la section 5 quater.
