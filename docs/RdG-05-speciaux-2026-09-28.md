@@ -260,7 +260,8 @@ bâtie trop vite, sur un aperçu de 3 aliments. J-C : « Faut réfléchir avant 
   « pour que je voie ce qu'il y a dedans »; A, sur la barre, rejeté). **Ce qu'il vise : tout ce qui s'y trouve LE JOUR DU
   TRI** (J-C : « jamais cette section… ça va dépendre; plutôt tout ce qui s'y retrouve la journée du tri ») — chaque
   article reçoit son « Jamais » (son genre), la section elle-même n'est jamais rejetée : un article nouveau la semaine
-  suivante revient à trier. (Remplace « Jamais d'un coup à toute une section » du même jour.)
+  suivante revient à trier. (Remplace « Jamais d'un coup à toute une section » du même jour.) Le prix, accepté par J-C :
+  une section comme « Animaux » risque de revenir chaque semaine (un toucher). **À revoir à l'usage.**
 
 **En suspens (une question à la fois) :**
 1. **Ses interrogations sur le fonctionnement** — c'est par là qu'on reprend : lui demander la première.
