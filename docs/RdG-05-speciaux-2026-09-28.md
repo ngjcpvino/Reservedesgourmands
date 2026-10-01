@@ -206,6 +206,11 @@ bâtie trop vite, sur un aperçu de 3 aliments. J-C : « Faut réfléchir avant 
   que j'aime pas l'aliment, mais j'aime pas cette marque »). Voisin de « Pas aimé » (Consommer), déjà absent des spéciaux.
   **« Jamais cette marque » vaut pour CET aliment seulement** (choix A de J-C) : pas de lait Natrel, mais la crème
   Natrel reste possible. (B, toute la marque, rejeté.)
+- **Peut-être = la porte ouverte** (J-C : « un item que j'ai pas, mais c'est pas que j'aime pas. Si je fais une recette
+  et il y a du XYZ, ah oui je vais essayer ») : ni dans la liste (Oui), ni rejeté (Jamais) — le milieu qui manquait
+  quand il n'y avait que Oui / Non. **Il ne revient pas dans la barre à trier** (choix A de J-C) : il reste tranquille,
+  et on le retrouve **quand on le cherche** (« y a-t-il du XYZ en spécial ? », pour une recette). Où chercher : à
+  décider — rejoint « le trou » (section 6).
 
 **En suspens (une question à la fois) :**
 1. **Ses interrogations sur le fonctionnement** — c'est par là qu'on reprend : lui demander la première.
