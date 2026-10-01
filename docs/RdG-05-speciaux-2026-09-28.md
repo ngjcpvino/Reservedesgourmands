@@ -198,6 +198,10 @@ bâtie trop vite, sur un aperçu de 3 aliments. J-C : « Faut réfléchir avant 
 - **Oui = les deux** (choix C de J-C) : l'article **va dans la liste d'achats cette semaine**, ET le genre est **retenu
   comme intéressant** (quand il revient en circulaire, il arrive déjà trié). « Le but est que je puisse associer ma
   liste aux soldes. »
+- **Le lien se fait avec l'ALIMENT, pas la marque** (J-C : « Oui ») : du Natrel en solde = du « Lait », un remplaçant
+  possible du Québon habituel. Qui fait le lien (l'app propose / J-C choisit dans l'entonnoir) : **pas encore répondu**.
+- **Au tri, « Jamais » doit distinguer la marque de l'aliment** (J-C : « si je dis non à la marque XYZ, c'est pas parce
+  que j'aime pas l'aliment, mais j'aime pas cette marque »). Voisin de « Pas aimé » (Consommer), déjà absent des spéciaux.
 
 **En suspens (une question à la fois) :**
 1. **Ses interrogations sur le fonctionnement** — c'est par là qu'on reprend : lui demander la première.
