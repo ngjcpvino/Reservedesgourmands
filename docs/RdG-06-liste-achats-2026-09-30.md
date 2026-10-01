@@ -44,7 +44,7 @@ du menu, le calcul, cocher, la poubelle, ajouter à la main et au scan). **Le co
 **Sa propre icône dans le menu (choix B)** : deux touches au magasin (le menu, l'icône) au lieu de trois (menu → Listes → Liste d'achats). Le menu passe de 6 à 7 icônes (la dernière prend toute la largeur, comme toute grille impaire). La liste a **sa page à elle**; les deux accordéons vides de Listes s'en vont.
 
 **La page (aperçu du 30 septembre, choix A : les catégories en barres de couleur de la suite**, comme Gérer les bases; B, en bandeaux pâles, écarté) :
-- **tout est ouvert**, dans l'ordre des catégories : rien à toucher pour voir;
+- ~~**tout est ouvert**, dans l'ordre des catégories : rien à toucher pour voir~~ — **changé le 1er octobre** (J-C : « quand ça sera une vraie épicerie, je vais trop scroller ») : **tout fermé** à l'ouverture de la page, **une catégorie ouverte à la fois**, dans l'ordre des catégories; une catégorie toute cochée ne se distingue pas (J-C : « pour le moment, non »);
 - une ligne = une case + le nom (+ marque · saveur en petit); **toucher la ligne la coche** : grise et barrée;
 - **un aliment à plusieurs sortes** (Café : Agga Kenya, Nespresso Intensio…) : **son nom une fois**, en bandeau pâle en retrait, ses sortes dessous au même retrait, chacune sa case et sa poubelle (J-C, 30 septembre, choix B1 — devenu la **règle des listes** de toute l'app, voir `CLAUDE.md`);
 - **« (pour réserve) »** en petit, pâle, sous le nom (réserve vide), **entre parenthèses, sans italique** — d'abord écrit « pas pressé » en italique, changé par J-C le 30 septembre après l'avoir vu;

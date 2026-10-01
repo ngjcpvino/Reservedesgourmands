@@ -2566,11 +2566,14 @@ function lignesAchats(cote) {
   return Object.values(items).map(it => Object.assign(it, { coche: a(it.cle, 'coche') }));
 }
 /* La page : dans l'ordre des catégories (comme J-C les a classées), puis des sous-catégories; les aliments par nom.
-   Tout est ouvert. « Sans catégorie » au bout (brune). Puis « Mis de côté » (sans compteur : J-C), fermé à l'ouverture de la page :
-   ce que la poubelle a écarté, chacun avec la flèche « revenir » (J-C, 2026-10-01 : une poubelle touchée par erreur se répare). */
-function remplirAchats() {
+   « Sans catégorie » au bout (brune). Puis « Mis de côté » (sans compteur : J-C) : ce que la poubelle a écarté, chacun avec
+   la flèche « revenir » (J-C, 2026-10-01 : une poubelle touchée par erreur se répare).
+   TOUT FERMÉ à l'ouverture de la page (J-C, 2026-10-01 : « une vraie épicerie, je vais trop scroller »), une barre ouverte à la fois.
+   ouvrir : le groupe à ouvrir (data-groupe : l'ID de la catégorie, 'sans' ou 'cote'); sinon celui qui l'était reste ouvert. */
+function remplirAchats(ouvrir) {
   const cible = $('liste-achats');
-  const coteOuvert = !!cible.querySelector('[data-cote] .accordeon-tete.ouvert');   // on remet l'un après l'autre : il reste ouvert
+  const ouverte = cible.querySelector(':scope > .accordeon > .accordeon-tete.ouvert');   // on coche l'un après l'autre : elle reste ouverte
+  ouvrir = ouvrir || (ouverte ? ouverte.parentElement.dataset.groupe : '');
   const items = lignesAchats(), cote = lignesAchats(true);
   const nomDe = pid => (PRODUITS.find(p => String(p.id) === String(pid)) || {}).nom || '';
   const detail = it => [nomListe(it.marque), nomListe(it.saveur)].filter(Boolean).join(' ');
@@ -2606,8 +2609,9 @@ function remplirAchats() {
     }
     return html;
   };
-  const groupe = (nom, lignes, rid) => { const t = teinteCategorie(rid); return lignes.length ? '<div class="accordeon"' + t.style + '><div class="accordeon-tete tete-fixe' + t.pale + '"><span>' + esc(nom) + '</span></div>' +
-    '<div class="liste-blanche achats-groupe">' + lignesHtml(lignes) + '</div></div>' : ''; };
+  const groupe = (nom, lignes, rid) => { const t = teinteCategorie(rid); return lignes.length ? '<div class="accordeon" data-groupe="' + esc(rid || 'sans') + '"' + t.style + '>' +
+    '<div class="accordeon-tete' + t.pale + '"><span>' + esc(nom) + '</span></div>' +
+    '<div class="liste-blanche achats-groupe" hidden>' + lignesHtml(lignes) + '</div></div>' : ''; };
   const places = {};
   let html = RAYONS.map(r => {
     const lignes = [];
@@ -2619,17 +2623,16 @@ function remplirAchats() {
   }).join('');
   html += groupe('Sans catégorie', items.filter(it => !places[it.cle]).sort(tri), '');
   html = html || '<div class="accordeon-item"><span class="texte-petit texte-pale">Rien à acheter.</span></div>';
-  // à part dans son enveloppe : toggleAccordeon fermerait sinon les catégories, ses sœurs
-  if (cote.length) html += '<div data-cote><div class="accordeon"><div class="accordeon-tete">Mis de côté</div>' +
-    '<div class="liste-blanche achats-groupe" hidden>' + lignesHtml(cote.sort(tri), ligneCote) + '</div></div></div>';
+  if (cote.length) html += '<div class="accordeon" data-groupe="cote"><div class="accordeon-tete">Mis de côté</div>' +
+    '<div class="liste-blanche achats-groupe" hidden>' + lignesHtml(cote.sort(tri), ligneCote) + '</div></div>';
   cible.innerHTML = html;
-  const tete = cible.querySelector('[data-cote] .accordeon-tete');
-  if (coteOuvert && tete) toggleAccordeon(tete);
+  const acc = [...cible.querySelectorAll(':scope > .accordeon')].find(a => ouvrir && a.dataset.groupe === ouvrir);
+  if (acc) toggleAccordeon(acc.firstElementChild);
 }
 async function montrerAchats() {
   toutCacher(); $('vue-achats').hidden = false; $('btn-burger').hidden = false;
   fermerAjoutAchat();
-  $('liste-achats').innerHTML = '';                // une nouvelle visite : « Mis de côté » repart fermé
+  $('liste-achats').innerHTML = '';                // une nouvelle visite : tout repart fermé
   if (!RAYONS.length) {                            // pas encore chargé → on charge (même patron que les bases)
     $('liste-achats').innerHTML = '<div class="texte-petit texte-pale">Chargement…</div>';
     await chargerReferences();
@@ -2756,11 +2759,12 @@ async function validerAjoutAchat() {
   mettreSurListe(pid);
 }
 function mettreSurListe(pid) {
-  const nom = (PRODUITS.find(p => String(p.id) === String(pid)) || {}).nom || '';
+  const p = PRODUITS.find(x => String(x.id) === String(pid)) || {}, nom = p.nom || '';
   fermerAjoutAchat();
   if (lignesAchats().some(it => it.pid === String(pid))) avis('Déjà sur la liste : ' + nom);
   else { poserAchats([ligneAchat(pid, '', '', 'main')]); avis('Sur la liste : ' + nom, 'succes'); }
-  remplirAchats();
+  const r = RAYONS.find(x => (SOUSCATS[x.id] || []).some(sc => String(sc.id) === String(p.catId)));
+  remplirAchats(r ? String(r.id) : 'sans');        // sa catégorie s'ouvre : on le voit sur la liste
 }
 /* Le scan : un code à nous -> sur la liste; sinon le nom d'Open Food Facts, pour « Nouvel aliment… » (sa catégorie à choisir). */
 function scannerPourAchat() {
@@ -3234,8 +3238,8 @@ function initEntree() {
     if (pb) { enleverAchat(pb.dataset.achatRetirer); return; }
     const rv = ev.target.closest('[data-achat-remettre]');
     if (rv) { remettreAchat(rv.dataset.achatRemettre); return; }
-    const cote = ev.target.closest('[data-cote] .accordeon-tete');
-    if (cote) { toggleAccordeon(cote); return; }
+    const tete = ev.target.closest('.accordeon-tete');     // une catégorie, ou « Mis de côté » : une seule ouverte à la fois
+    if (tete) { toggleAccordeon(tete); return; }
     const l = ev.target.closest('[data-achat]');
     if (l) cocherAchat(l.dataset.achat);
   });

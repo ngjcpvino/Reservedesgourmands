@@ -816,10 +816,9 @@ select.champ {
 .icone-deco { --dessin: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='0.8' stroke-linecap='round' stroke-linejoin='round'%3E%3Crect x='5' y='11' width='14' height='10' rx='1.5'/%3E%3Cpath d='M8 11V7a4 4 0 0 1 7.7-1.5'/%3E%3C/svg%3E"); }   /* Se déconnecter : le cadenas ouvert */
 
 /* ============================================================
-   LA LISTE D'ACHATS (J-C, 2026-09-30, choix A sur aperçu) — les catégories en barres de la suite, TOUT OUVERT :
-   une barre ne s'ouvre ni ne se ferme. Toucher une ligne la coche (dans le panier) : grise et barrée.
+   LA LISTE D'ACHATS (J-C, 2026-09-30, choix A sur aperçu) — les catégories en barres, chacune à sa couleur,
+   TOUT FERMÉ à l'ouverture (J-C, 2026-10-01), une seule ouverte à la fois. Toucher une ligne la coche (dans le panier) : grise et barrée.
 ============================================================ */
-.tete-fixe { cursor: default; }
 .achats-groupe { margin-top: var(--espace-xs); margin-bottom: var(--espace-m); }
 .achat { cursor: pointer; }
 .achat .case { accent-color: var(--couleur-703); pointer-events: none; }   /* la ligne entière se touche : la case suit */
