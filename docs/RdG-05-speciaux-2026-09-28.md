@@ -253,6 +253,9 @@ bâtie trop vite, sur un aperçu de 3 aliments. J-C : « Faut réfléchir avant 
   Sous-catégorie → Aliment (Produits laitiers → Lait → Lait); on touche **« C'est ça »**, ou on change seulement le
   morceau fautif. L'app n'a aucune idée (une découverte) : l'entonnoir vide, « Nouvel aliment… » au bout. (B, la question
   « C'est du Lait ? » puis l'entonnoir vide sur Non : rejeté.) Confirmé : l'article quitte « À trier » pour sa barre.
+- **Jamais → deux boutons** (choix A de J-C) : **« Tout ce genre »** (tout le Purina Dog Chow) ou **« Cette marque
+  seulement »** (pas de Natrel pour le lait — l'entonnoir rempli paraît alors aussi, pour savoir de quel aliment).
+  (B, quatre boutons dès l'ouverture : rejeté.)
 
 **En suspens (une question à la fois) :**
 1. **Ses interrogations sur le fonctionnement** — c'est par là qu'on reprend : lui demander la première.
