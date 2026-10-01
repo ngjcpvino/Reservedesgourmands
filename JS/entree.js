@@ -152,7 +152,9 @@ function enregistrerQui() {
 function montrerChoixQuoi()    { toutCacher(); $('vue-choix-quoi').hidden = false; $('btn-burger').hidden = false; $('btn-rechercher').hidden = false; $('entete-photo').hidden = false; }
 async function montrerListes() {
   toutCacher(); $('vue-listes').hidden = false; $('btn-burger').hidden = false;
-  vueInventaire = 'categorie';                 // à l'ouverture : toujours par catégorie (J-C, 2026-09-30)
+  // À l'ouverture (J-C, 2026-10-01) : tout est fermé, toutes les listes paraissent; l'Inventaire s'ouvrira sur ses deux boutons, rien de choisi
+  $('vue-listes').querySelectorAll('.contenu > .accordeon > .accordeon-tete').forEach(t => { t.classList.remove('ouvert'); t.nextElementSibling.hidden = true; });
+  vueInventaire = '';
   remplirInventaire();                         // instantané : ce qu'on a déjà en mémoire
   if (!MEUBLES.length) await chargerReferences();
   remplirInventaire();                         // puis la version fraîche, quand elle arrive
@@ -1969,19 +1971,20 @@ function htmlMeubleInventaire(m, par) {
     '<div class="accordeon-corps" hidden>' + corps + '</div></div>';
 }
 /* L'Inventaire : UNE liste, deux vues (J-C, 2026-09-30, piste 2 sur aperçu : « l'inventaire mélange l'inventaire et les meubles »).
-   En haut, « Par catégorie » (ce que j'ai) et « Par meuble » (ce qu'il y a dans ce meuble). À l'ouverture : par catégorie. */
-var vueInventaire = 'categorie';                 // 'categorie' | 'meuble'
+   En haut, « Par catégorie » (ce que j'ai) et « Par meuble » (ce qu'il y a dans ce meuble). À l'ouverture : les deux boutons
+   seulement, rien de choisi; un bouton touché ouvre sa liste (J-C, 2026-10-01). */
+var vueInventaire = '';                          // '' (rien de choisi) | 'categorie' | 'meuble'
 function remplirInventaire() {
   const cible = $('liste-inventaire');
   if (!cible) return;
   const transitOuvert = !!cible.querySelector('[data-transit] > .ouvert');   // on range l'un après l'autre : il reste ouvert
   LOTS = lotsParProduit();
-  const html = vueInventaire === 'meuble' ? htmlInventaireMeubles() : htmlInventaireCategories();
+  const html = vueInventaire === 'meuble' ? htmlInventaireMeubles() : vueInventaire === 'categorie' ? htmlInventaireCategories() : '';
   const choix = '<div class="grille choix-vue">' + [['categorie', 'Par catégorie'], ['meuble', 'Par meuble']].map(v =>
     '<button class="bouton bouton-petit ' + (v[0] === vueInventaire ? 'bouton-brun' : 'choix-eteint') + '" type="button" data-vue="' + v[0] + '">' + v[1] + '</button>').join('') + '</div>';
   const vide = t => '<div class="accordeon-item"><span class="texte-petit texte-pale">' + t + '</span></div>';
   cible.innerHTML = !Object.keys(LOTS).length ? vide('Rien d\'entré pour le moment.')
-                  : choix + (html || vide('Rien à montrer ici.'));   // le choix reste là : on peut toujours changer de vue
+                  : choix + (!vueInventaire ? '' : html || vide('Rien à montrer ici.'));   // le choix reste là : on peut toujours changer de vue
   const transit = cible.querySelector('[data-transit] > .accordeon-tete');
   if (transitOuvert && transit) toggleAccordeon(transit);
 }

@@ -489,6 +489,8 @@ select.champ {
    La règle vaut pour le PREMIER élément quel qu'il soit : un accordéon, une ligne, un item.
    (`accordeon-bloc` fait exception : il porte déjà son propre rembourrage en haut.) */
 .accordeon-corps { padding-left: var(--retrait); }
+/* Une liste ouverte cache ses sœurs (Listes, J-C 2026-10-01 : on ouvre l'Inventaire, les autres listes se cachent; refermé, elles reviennent) */
+.une-a-la-fois:has(> .accordeon > .accordeon-tete.ouvert) > .accordeon:not(:has(> .accordeon-tete.ouvert)) { display: none; }
 .accordeon-corps > :first-child:not(.accordeon-bloc) { margin-top: var(--espace-s); }
 .accordeon-bloc { padding: var(--espace-m) var(--espace-l) 0; }   /* un bloc rentre dans le corps d'un accordeon */
 .accordeon-tete {
