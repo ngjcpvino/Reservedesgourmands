@@ -1791,25 +1791,33 @@ function libelleEndroit(emp, court) {
   if (court) return esp || nom(MEUBLES, r.meubleId);
   return [nom(PIECES, r.pieceId), nom(MEUBLES, r.meubleId), esp].filter(Boolean).join(' · ');
 }
-/* Une ligne de lot avec son crayon. titre = ce qui s'écrit en gros (l'endroit sous un aliment, l'aliment dans « Pas encore rangé »). */
+/* Une ligne de lot avec son crayon. titre = ce qui s'écrit en gros (l'endroit sous un aliment, l'aliment dans l'Escale).
+   sorte : une sorte sous l'accordéon de son aliment (l'Escale), du même trait que les sortes des meubles, le crayon en plus. */
+function detailLot(l) { return [nomListe(l.marque), nomListe(l.saveur), l.formats.join(' + ')].filter(Boolean).join(' · '); }
 function htmlLot(pid, i, l, titre, sorte) {
-  const detail = [sorte ? '' : nomListe(l.marque), sorte ? '' : nomListe(l.saveur), l.formats.join(' + ')].filter(Boolean).join(' · ');
-  const nom = l.emp ? 'Corriger l\'endroit' : 'Ranger';
-  return '<div class="item' + (sorte ? ' item-sorte' : '') + '"><div class="item-info"><div class="item-nom">' + esc(titre || libelleEndroit(l.emp)) + '</div>' +
+  const detail = detailLot(l);
+  const crayon = '<button class="crayon" type="button" data-lot="' + esc(pid) + '|' + i + '" aria-label="' + (l.emp ? 'Corriger l\'endroit' : 'Ranger') + '"></button></div>';
+  if (sorte) return '<div class="item sorte"><div class="item-info"><div class="item-detail">' + esc(detail || titre) + '</div></div>' +
+    '<span class="sorte-quantite">' + esc(l.qte) + '</span>' + crayon;
+  return '<div class="item"><div class="item-info"><div class="item-nom">' + esc(titre || libelleEndroit(l.emp)) + '</div>' +
     (detail ? '<div class="item-detail">' + esc(detail) + '</div>' : '') + '</div>' +
-    '<span class="item-quantite">' + esc(l.qte) + '</span>' +
-    '<button class="crayon" type="button" data-lot="' + esc(pid) + '|' + i + '" aria-label="' + nom + '"></button></div>';
+    '<span class="item-quantite">' + esc(l.qte) + '</span>' + crayon;
 }
 /* « Pas encore rangé », à la fin de l'Inventaire par meuble : n'apparaît que s'il y a quelque chose.
    À l'écran, il s'appelle « Escale » (J-C, 2026-10-01 : un mot, du côté du transit — ça passe, ça ne s'installe pas).
-   La règle des listes : un aliment à plusieurs sortes = son nom une fois (bandeau en retrait), ses sortes dessous. */
+   Comme les meubles au-dessus d'elle (J-C, 2026-10-01) : un aliment à plusieurs sortes = l'accordéon (le nom et le total,
+   on touche pour voir les sortes), chaque sorte avec son crayon pour ranger. */
 function htmlPasEncoreRange() {
   const lignes = [];
   PRODUITS.forEach(p => {
     const ici = (LOTS[p.id] || []).map((l, i) => ({ l: l, i: i })).filter(x => !x.l.emp);
     if (ici.length === 1) lignes.push({ nom: p.nom, html: htmlLot(p.id, ici[0].i, ici[0].l, p.nom) });
-    else if (ici.length) lignes.push({ nom: p.nom, html: '<div class="espace-bandeau bandeau-aliment">' + esc(p.nom) + '</div>' +
-      ici.map(x => htmlLot(p.id, x.i, x.l, [nomListe(x.l.marque), nomListe(x.l.saveur)].filter(Boolean).join(' ') || p.nom, true)).join('') });
+    else if (ici.length) {
+      ici.sort((a, b) => detailLot(a.l).localeCompare(detailLot(b.l), 'fr'));
+      lignes.push({ nom: p.nom, html: '<div class="accordeon aliment" data-aliment="' + esc(p.id) + '"><div class="item aliment-tete"><div class="item-info">' +
+        '<div class="item-nom">' + esc(p.nom) + '</div></div><span class="item-quantite">' + totalLots(ici.map(x => x.l)) + '</span></div>' +
+        '<div class="aliment-sortes" hidden>' + ici.map(x => htmlLot(p.id, x.i, x.l, p.nom, true)).join('') + '</div></div>' });
+    }
   });
   if (!lignes.length) return '';
   lignes.sort((a, b) => String(a.nom).localeCompare(String(b.nom), 'fr'));
@@ -1972,6 +1980,7 @@ function remplirInventaire() {
   const cible = $('liste-inventaire');
   if (!cible) return;
   const transitOuvert = !!cible.querySelector('[data-transit] > .ouvert');   // on range l'un après l'autre : il reste ouvert
+  const a = cible.querySelector('[data-transit] .aliment-tete.ouvert'), alimentOuvert = a ? a.parentElement.dataset.aliment : '';   // ses sortes aussi
   LOTS = lotsParProduit();
   const html = vueInventaire === 'meuble' ? htmlInventaireMeubles() : vueInventaire === 'categorie' ? htmlInventaireCategories() : '';
   const choix = '<div class="grille choix-vue">' + [['categorie', 'Par catégorie'], ['meuble', 'Par meuble']].map(v =>
@@ -1981,6 +1990,8 @@ function remplirInventaire() {
                   : choix + (!vueInventaire ? '' : html || vide('Rien à montrer ici.'));   // le choix reste là : on peut toujours changer de vue
   const transit = cible.querySelector('[data-transit] > .accordeon-tete');
   if (transitOuvert && transit) toggleAccordeon(transit);
+  const aliment = [...cible.querySelectorAll('[data-transit] [data-aliment] > .aliment-tete')].find(t => alimentOuvert && t.parentElement.dataset.aliment === alimentOuvert);
+  if (aliment) toggleAccordeon(aliment);
 }
 /* Par meuble : pièce -> meuble -> espace -> produits, « Pas encore rangé » à la fin des meubles (J-C, 2026-10-01).
    Les endroits vides ne paraissent pas. */
