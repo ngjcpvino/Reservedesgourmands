@@ -1241,7 +1241,7 @@ function demanderRetrait(type, id) {
   remplirMeubles(true);                            // une seule question à la fois : celle d'avant s'efface
   const L = lieuARetirer(type, id);
   let q = 'Retirer ' + L.nom + (L.espaces ? ' et ' + (L.espaces === 1 ? 'son espace' : 'ses ' + L.espaces + ' espaces') : '') + ' ?';
-  if (L.aliments) q += ' ' + (L.aliments === 1 ? 'Son aliment passera' : 'Ses ' + L.aliments + ' aliments passeront') + ' dans « Pas encore rangé ».';
+  if (L.aliments) q += ' ' + (L.aliments === 1 ? 'Son aliment passera' : 'Ses ' + L.aliments + ' aliments passeront') + ' dans « Escale ».';
   const ligne = '<div class="accordeon-item accordeon-item-saisie" data-confirme><span>' + esc(q) + '</span>' + ouiNon(type, id) + '</div>';
   const cible = $('liste-meubles').querySelector((type === 'm' ? '.accordeon' : '.accordeon-item') + '[data-type="' + type + '"][data-id="' + esc(id) + '"]');
   if (!cible) return;
@@ -1763,7 +1763,7 @@ function lotsParProduit() {
 }
 /* « Cuisine · Frigo · Tablette 2 » — le dernier mot seul si on le veut court. */
 function libelleEndroit(emp, court) {
-  if (!emp) return 'Pas encore rangé';
+  if (!emp) return 'Escale';
   const r = resoudreEmp(emp);
   if (!r) return 'Endroit disparu';
   const nom = (liste, id) => { const x = liste.find(y => String(y.id) === String(id)); return x ? x.nom : ''; };
@@ -1781,6 +1781,7 @@ function htmlLot(pid, i, l, titre, sorte) {
     '<button class="crayon" type="button" data-lot="' + esc(pid) + '|' + i + '" aria-label="' + nom + '"></button></div>';
 }
 /* « Pas encore rangé », à la fin de l'Inventaire par meuble : n'apparaît que s'il y a quelque chose.
+   À l'écran, il s'appelle « Escale » (J-C, 2026-10-01 : un mot, du côté du transit — ça passe, ça ne s'installe pas).
    La règle des listes : un aliment à plusieurs sortes = son nom une fois (bandeau en retrait), ses sortes dessous. */
 function htmlPasEncoreRange() {
   const lignes = [];
@@ -1792,7 +1793,7 @@ function htmlPasEncoreRange() {
   });
   if (!lignes.length) return '';
   lignes.sort((a, b) => String(a.nom).localeCompare(String(b.nom), 'fr'));
-  return '<div class="accordeon" data-transit><div class="accordeon-tete">Pas encore rangé</div>' +
+  return '<div class="accordeon" data-transit><div class="accordeon-tete">Escale</div>' +
     '<div class="accordeon-corps" hidden>' + lignes.map(x => x.html).join('') + '</div></div>';
 }
 /* Le crayon d'un lot : la ligne devient la carte d'endroit de la fiche.
@@ -2021,7 +2022,7 @@ function htmlInventaireCategories() {
 }
 /* « Frigo, Porte » : le meuble et l'espace (par catégorie, la pièce se devine). Rien = « Pas encore rangé ». */
 function endroitMeuble(emp) {
-  if (!emp) return 'Pas encore rangé';
+  if (!emp) return 'Escale';
   const r = resoudreEmp(emp);
   if (!r) return 'Endroit disparu';
   const m = MEUBLES.find(x => String(x.id) === String(r.meubleId));
@@ -2180,7 +2181,7 @@ function montrerRayon(pid, sansDefiler) {
   let corps;
   if (!total) corps = htmlVide('Tu n\'en as plus', '', modeRecherche ? '' : 'data-ajouter-produit="' + esc(prod.id) + '"');
   else if (modeRecherche === 'deplacer') corps = htmlLotsParEndroit(prod, lots, true, (l, i) => htmlLigneLot(prod, l, 'data-bouger="' + esc(prod.id) + '|' + i + '"'))
-                                            || htmlVide('Rien à déplacer', 'Tout est encore à ranger', '');
+                                            || htmlVide('Rien à déplacer', 'Tout est en escale', '');
   else if (modeRecherche === 'consommer') corps = htmlLotsParEndroit(prod, lots, false, (l, i) => htmlPartsConsommer(prod, l, i, !!sorte));
   else corps = htmlLotsParEndroit(prod, lots, false, l => htmlLigneLot(prod, l, ''));
   if (!modeRecherche) corps += htmlPasAimes(prod);   // au magasin : ce qu'on n'a pas aimé, même quand on n'en a plus
