@@ -825,7 +825,7 @@ select.champ {
 .achat-coche .item-nom, .achat-coche .item-detail { color: var(--couleur-205); text-decoration: line-through; }
 /* LES SOLDES (J-C, 2026-10-01, choix C sur aperçu) : sous l'aliment, en vert — le magasin et le prix en gras, (rég.), la fin;
    dessous, les mots de la circulaire. Une proposition : la question Oui / Non, en brun (jamais en vert : ce n'est pas un fait).
-   « En solde » en tête de la liste : une barre vert pâle. */
+   « En circulaire » en tête de la liste : une barre vert pâle. */
 .solde { margin-top: var(--espace-xs); font-size: var(--texte-petit); color: var(--couleur-703); }
 .solde-prix { font-weight: var(--poids-fort); }
 .solde-texte { display: block; }

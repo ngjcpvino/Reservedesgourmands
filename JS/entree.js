@@ -2573,8 +2573,8 @@ function lignesAchats(cote) {
    « Sans catégorie » au bout (brune). Puis « Mis de côté » (sans compteur : J-C) : ce que la poubelle a écarté, chacun avec
    la flèche « revenir » (J-C, 2026-10-01 : une poubelle touchée par erreur se répare).
    TOUT FERMÉ à l'ouverture de la page (J-C, 2026-10-01 : « une vraie épicerie, je vais trop scroller »), une barre ouverte à la fois.
-   Les soldes (J-C, 2026-10-01) : sous chaque aliment, partout (catégories, « Mis de côté »), et un groupe « En solde » EN TÊTE
-   qui reprend, par aliment, ceux de la liste qui sont en solde (ils restent aussi dans leur catégorie).
+   Les soldes (J-C, 2026-10-01) : sous chaque aliment, partout (catégories, « Mis de côté »), et un groupe « En circulaire » EN TÊTE
+   (le mot de J-C, plus parlant que « en solde ») qui reprend, par aliment, ceux de la liste qui sont en circulaire (ils restent aussi dans leur catégorie).
    ouvrir : le groupe à ouvrir (data-groupe : l'ID de la catégorie, 'sans' ou 'cote'); sinon celui qui l'était reste ouvert. */
 function remplirAchats(ouvrir) {
   const cible = $('liste-achats');
@@ -2632,7 +2632,7 @@ function remplirAchats(ouvrir) {
     return groupe(r.nom, lignes, r.id);
   }).join('');
   html += groupe('Sans catégorie', items.filter(it => !places[it.cle]).sort(tri), '');
-  if (enSolde.length) html = '<div class="accordeon groupe-solde" data-groupe="solde"><div class="accordeon-tete tete-pale"><span>En solde</span></div>' +
+  if (enSolde.length) html = '<div class="accordeon groupe-solde" data-groupe="solde"><div class="accordeon-tete tete-pale"><span>En circulaire</span></div>' +
     '<div class="liste-blanche achats-groupe" hidden>' + lignesHtml(enSolde) + '</div></div>' + html;
   html = html || '<div class="accordeon-item"><span class="texte-petit texte-pale">Rien à acheter.</span></div>';
   if (cote.length) html += '<div class="accordeon" data-groupe="cote"><div class="accordeon-tete">Mis de côté</div>' +
@@ -2739,7 +2739,7 @@ function htmlSoldes(pid) {
   return soldesDe(pid).map(r => {
     const u = String(r[6] || '').trim(), prix = textePrix(r[4]) + (u ? (u[0] === '/' ? '' : ' ') + u : ''), reg = textePrix(r[5]);
     const quoi = [r[3], r[7]].map(x => String(x || '').trim()).filter(Boolean).join(', '), cle = esc(r[10]) + '|' + esc(pid);
-    if (r[11] === '?') return '<div class="solde solde-question"><span>En solde chez ' + esc(nomListe(r[1])) + ' : <span class="solde-quoi">' + esc(quoi) +
+    if (r[11] === '?') return '<div class="solde solde-question"><span>En circulaire chez ' + esc(nomListe(r[1])) + ' : <span class="solde-quoi">' + esc(quoi) +
       '</span> — ' + esc(prix) + '. C\'est le bon aliment ?</span><div class="grille">' +
       '<button class="bouton bouton-petit bouton-vert" type="button" data-solde-oui="' + cle + '">Oui</button>' +
       '<button class="bouton bouton-petit" type="button" data-solde-non="' + cle + '">Non</button></div></div>';
