@@ -154,9 +154,36 @@ J-C : « faut que je sache si un aliment est en solde ». À l'écran, **« en c
 - C'est la forme qu'a prise « Il en manque — en spécial » (section 3) : **dans la Liste d'achats**, là où J-C en a besoin.
 - Reste : Listes → « En spécial cette semaine » (par magasin) et l'écran de rayon.
 
+## 5 quater. EN RÉFLEXION : LE VRAI RABAIS (1er octobre 2026, zéro code)
+
+**Le déclencheur.** La version bâtie (5 ter), vue en vrai : « Oh boy, c'est pas fait pour les humains » — une question
+Oui / Non sous presque chaque ligne, et des rapprochements faux (Pomme ← pommes de terre, purée de pommes). Elle a été
+bâtie trop vite, sur un aperçu de 3 aliments. J-C : « Faut réfléchir avant de coder à tout vent. »
+
+**Acquis :**
+- Les questions quittent les lignes des catégories : elles vont dans la barre **« En circulaire » en tête de la liste**
+  (« l'onglet en haut de la liste »), **présentées autrement** — comment : pas décidé. Pas de page Circulaire à part.
+- **C'est l'app qui juge si un rabais est vrai**, pas J-C (« L'app sera l'outil. Tout ça pour aider, ben il va aider »).
+  Un prix « en circulaire » ne dit pas que c'est un vrai rabais.
+- Pour juger, il faut **une mémoire** : aujourd'hui l'onglet Speciaux est **remplacé** chaque jeudi, rien n'est gardé.
+- J-C penche pour garder **les circulaires complètes** (pas seulement ses aliments). Sa crainte, « une liste de 1000 km » :
+  non — c'est une **archive en coulisse** dans le Sheet, jamais affichée, ni chargée à l'ouverture de l'app; elle sert
+  seulement à juger. (Ordre de grandeur estimé : quelques centaines de lignes par semaine pour ses aliments, ~1 500 pour
+  les circulaires complètes — à mesurer.)
+
+**En suspens (une question à la fois) :**
+1. **Ses interrogations sur le fonctionnement** — c'est par là qu'on reprend : lui demander la première.
+2. Comment l'app juge : le prix régulier annoncé, le prix habituel du magasin (d'après l'archive), le prix payé
+   (STOCK col. M). Fiable seulement après quelques semaines d'archive (voir section 7).
+3. La présentation dans la barre « En circulaire ».
+4. Le rapprochement côté serveur : un article qui colle à un aliment **plus précis** (« Pommes de terre ») ne va pas à
+   « Pomme » — proposé par Claude, **pas validé**.
+5. « Le trou » (section 6) se règle peut-être du même coup : avec les circulaires complètes archivées, « y a-t-il du pain
+   en solde ? » devient possible.
+
 ## 6. PARENTHÈSES (à ne pas perdre)
 
-- **Le trou (vu par J-C le 1er octobre)** : seuls ses aliments sont retenus, donc une nouveauté en circulaire ne paraît jamais (« y a-t-il du pain en solde ? »). Pistes : A tel quel · B circulaires complètes sur une page à part · C chercher à la demande dans la loupe (reco). **J-C y pense — ne pas relancer.**
+- **Le trou (vu par J-C le 1er octobre)** : seuls ses aliments sont retenus, donc une nouveauté en circulaire ne paraît jamais (« y a-t-il du pain en solde ? »). Pistes : A tel quel · B circulaires complètes sur une page à part · C chercher à la demande dans la loupe (reco). **J-C y pense — ne pas relancer.** → Repris le 1er octobre dans la section 5 quater.
 
 - La liste d'achats (point 5) pourra un jour dire « achète-le chez Metro
   cette semaine ».
