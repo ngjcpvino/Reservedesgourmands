@@ -202,6 +202,8 @@ bâtie trop vite, sur un aperçu de 3 aliments. J-C : « Faut réfléchir avant 
   possible du Québon habituel. Qui fait le lien (l'app propose / J-C choisit dans l'entonnoir) : **pas encore répondu**.
 - **Au tri, « Jamais » doit distinguer la marque de l'aliment** (J-C : « si je dis non à la marque XYZ, c'est pas parce
   que j'aime pas l'aliment, mais j'aime pas cette marque »). Voisin de « Pas aimé » (Consommer), déjà absent des spéciaux.
+  **« Jamais cette marque » vaut pour CET aliment seulement** (choix A de J-C) : pas de lait Natrel, mais la crème
+  Natrel reste possible. (B, toute la marque, rejeté.)
 
 **En suspens (une question à la fois) :**
 1. **Ses interrogations sur le fonctionnement** — c'est par là qu'on reprend : lui demander la première.
