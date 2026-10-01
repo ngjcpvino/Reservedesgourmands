@@ -137,10 +137,9 @@
   --burger-trait-large: 34px;   /* grossis le 2026-09-25 : sans cadre, ils se perdaient ; encore le 2026-09-27 (choix de J-C sur aperçu) */
   --burger-trait-haut:  3.5px;
   --burger-fond:      transparent;   /* les trois traits seuls, sans fond (J-C, 2026-09-25) */
-  --coin-icone:       46px;      /* la loupe en haut à gauche (J-C, 2026-09-27 : 46, un cran plus grosse que le burger) */
   --bandeau-teinte:   18%;       /* la force de la couleur du meuble dans le bandeau d'un espace, mêlée au blanc : opaque (J-C, 2026-10-01, choix B sur aperçu; avant : 22 %, transparent) */
   --bandeau-haut:     var(--tactile);   /* un bandeau (l'espace, l'endroit, l'aliment) aussi haut que la barre du meuble (J-C, 2026-09-30) */
-  --coin-taille:      52px;      /* la zone à toucher du burger et de la loupe : plus grande que la loupe */
+  --coin-taille:      52px;      /* la zone à toucher du burger */
 
 
   /* ---- Durees ---- */
@@ -848,7 +847,6 @@ select.champ {
 
 /* ============================================================
    MENU BURGER — bouton fixe en haut à DROITE + menu plein écran
-   La loupe : même bouton de coin, en haut à GAUCHE.
 ============================================================ */
 .coin {
   position: fixed;
@@ -867,10 +865,6 @@ select.champ {
   transition: var(--transition);
 }
 .burger { right: max(var(--espace-l), calc(50% - var(--largeur-max) / 2 + var(--espace-l))); gap: var(--burger-gap); }   /* collé au conteneur (700px), pas au bord de l'écran */
-.coin-gauche { left: max(var(--espace-l), calc(50% - var(--largeur-max) / 2 + var(--espace-l))); }
-/* la loupe du coin : le brun et l'épaisseur des traits du burger (trait 2 au lieu de 0.8) */
-.coin .icone { width: var(--coin-icone); height: var(--coin-icone); background-color: var(--couleur-305); }
-.coin .icone-trouver { --dessin: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23f5efe6' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Ccircle cx='10.5' cy='10.5' r='7'/%3E%3Cpath d='M15.6 15.6 21 21'/%3E%3C/svg%3E") }
 .burger span { display: block; width: var(--burger-trait-large); height: var(--burger-trait-haut); background: var(--couleur-305); border-radius: var(--rayon); }
 
 /* Le menu : la page ne bouge pas; les icônes montent du bas de l'écran et se posent par-dessus. */
@@ -897,9 +891,8 @@ select.champ {
 }
 .menu.ouvert .menu-contenu { transform: translateY(0); }
 body.menu-ouvert { overflow: hidden; }                          /* rien ne défile derrière */
-body.menu-ouvert .coin-gauche { visibility: hidden; }
 .conteneur > [id^="vue-"] { transition: opacity var(--transition-menu) ease-in-out; }
-body.menu-ouvert .conteneur > [id^="vue-"] { opacity: 0; pointer-events: none; }   /* menu ouvert : la page consultée s'efface, on ne la voit plus derrière */           /* la loupe : Rechercher est déjà dans la grille */
+body.menu-ouvert .conteneur > [id^="vue-"] { opacity: 0; pointer-events: none; }   /* menu ouvert : la page consultée s'efface, on ne la voit plus derrière */        
 /* Le burger devient un X : le trait du milieu s'efface, les deux autres se croisent. */
 .burger span { transition: transform var(--transition-menu) ease, opacity var(--transition-menu) ease; }
 .burger.ouvert span:nth-child(1) { transform: translateY(calc(var(--burger-gap) + var(--burger-trait-haut))) rotate(45deg); }

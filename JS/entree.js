@@ -119,7 +119,6 @@ function toutCacher() {
   const vs = $('vue-scan'); if (vs) vs.hidden = true;
   if (window.stopScanner) window.stopScanner();   // coupe la caméra en quittant la vue scan
   $('btn-burger').hidden = true;   // burger caché par défaut ; ré-affiché sur accueil + choix + bases
-  $('btn-rechercher').hidden = true;   // la loupe : sur les écrans à photo seulement (ailleurs elle couvrirait le titre)
   $('entete-photo').hidden = true; // l'en-tête photo est écrit UNE fois dans le HTML ; on le montre écran par écran
   fermerMenu();   // tout changement d'écran ferme le menu : personne d'autre n'a à le faire
 }
@@ -149,7 +148,7 @@ function enregistrerQui() {
   try { localStorage.setItem(QUI, nom); } catch (e) {}
   montrerAccueil();                             // le nom est posé : on passe à la suite
 }
-function montrerChoixQuoi()    { toutCacher(); $('vue-choix-quoi').hidden = false; $('btn-burger').hidden = false; $('btn-rechercher').hidden = false; $('entete-photo').hidden = false; }
+function montrerChoixQuoi()    { toutCacher(); $('vue-choix-quoi').hidden = false; $('btn-burger').hidden = false; $('entete-photo').hidden = false; }
 async function montrerListes() {
   toutCacher(); $('vue-listes').hidden = false; $('btn-burger').hidden = false;
   // À l'ouverture (J-C, 2026-10-01) : tout est fermé, toutes les listes paraissent; l'Inventaire s'ouvrira sur ses deux boutons, rien de choisi
@@ -159,7 +158,7 @@ async function montrerListes() {
   if (!MEUBLES.length) await chargerReferences();
   remplirInventaire();                         // puis la version fraîche, quand elle arrive
 }
-function montrerAccueil()    { toutCacher(); $('vue-accueil').hidden = false; $('btn-burger').hidden = false; $('btn-rechercher').hidden = false; $('entete-photo').hidden = false; }
+function montrerAccueil()    { toutCacher(); $('vue-accueil').hidden = false; $('btn-burger').hidden = false; $('entete-photo').hidden = false; }
 /* Le Retour final (J-C, 2026-10-01) : pas l'accueil nu, l'accueil avec le menu ouvert — la prochaine action est là. */
 function retourAuMenu()      { montrerAccueil(); ouvrirMenu(); }
 function montrerFormulaire(avecCode) {
@@ -3170,10 +3169,11 @@ function initEntree() {
   $('menu-couleurs').addEventListener('click', montrerCouleurs);
   // le menu mène exactement où mènent les 4 boutons de l'accueil
   $('menu-ajouter').addEventListener('click', montrerChoixQuoi);
-  $('menu-deplacer').addEventListener('click', montrerDeplacer);   // Rechercher reste la loupe, en haut à gauche
+  $('menu-deplacer').addEventListener('click', montrerDeplacer);
   $('menu-consommer').addEventListener('click', montrerConsommer);
   $('menu-listes').addEventListener('click', montrerListes);
   $('menu-achats').addEventListener('click', montrerAchats);
+  $('menu-rechercher').addEventListener('click', ouvrirRecherche);   // la loupe : le 8e bouton du menu (J-C, 2026-10-01; plus de loupe dans le coin)
   // la liste d'achats : toucher une ligne la coche; la poubelle l'enlève; « Ajouter à la liste » ouvre l'entonnoir
   $('liste-achats').addEventListener('click', function (ev) {
     const pb = ev.target.closest('[data-achat-retirer]');
@@ -3308,7 +3308,6 @@ function initEntree() {
   $('liste-inventaire').previousElementSibling.addEventListener('click', function () {   // l'Inventaire s'ouvre toujours sur ses deux boutons, rien de choisi
     if (this.classList.contains('ouvert')) { vueInventaire = ''; remplirInventaire(); }
   });
-  $('btn-rechercher').addEventListener('click', ouvrirRecherche);   // la loupe, en haut à gauche
   // Rechercher : chaque lettre tapée relance la recherche (en mémoire, instantané)
   $('recherche-texte').addEventListener('input', surRecherche);
   $('recherche-texte').addEventListener('keydown', e => {
