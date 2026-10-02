@@ -336,7 +336,9 @@ bâtie trop vite, sur un aperçu de 3 aliments. J-C : « Faut réfléchir avant 
   (Oui et Peut-être, eux, portent l'aliment : d'une épicerie à l'autre, « Serait-ce celui-ci ? ».) **Vu dans sa feuille
   Flipp** : environ **1 ligne sur 10** annonce plusieurs produits (« germes de haricot ou épinards », « radis en feuilles,
   oignons verts ou menthe », « vin rouge, blanc ou rosé ») — 29 chez Super C, 42 chez IGA, 21 chez Metro. IGA en fait une
-  ligne **par code** (le même nom répété : « Couronne de brocoli, carottes ou tomates » ×3, trois codes). En question.
+  ligne **par code** (le même nom répété : « Couronne de brocoli, carottes ou tomates » ×3, trois codes). **Une telle
+  ligne se relie à plusieurs aliments** (choix B de J-C) : épinards **et** germes de haricot, pour voir les deux en solde
+  sous leur aliment. (A, un seul aliment : rejeté.)
 
 **L'IDÉE DES PRIX DE J-C (1er octobre)** — « Fallait régler le code-barres avant » (fait ci-dessus). « Si le code-barres
 se retrouve dans la circulaire de la semaine avec le nom du magasin, le prix payé pourrait être ma première référence, au
