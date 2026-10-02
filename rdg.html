@@ -10,7 +10,7 @@
   <!-- Ecran d'accueil iPad : le meme sac, en PNG (iOS n'accepte pas le SVG ici) -->
   <link rel="apple-touch-icon" href="apple-touch-icon.png?v=2">
 
-<link rel="stylesheet" href="CSS/rdg.css?v=116">
+<link rel="stylesheet" href="CSS/rdg.css?v=117">
 </head>
 <body>
 
@@ -410,6 +410,18 @@
 </div>
 
 <!-- ============================================================
+     GÉRER LES BASES → CIRCULAIRES : le tri des articles des circulaires (le JS bâtit tout).
+     Quatre barres fermées : À trier (rangé par catégories), Oui, Peut-être, Jamais. Une barre ouverte cache les autres.
+============================================================ -->
+<div id="vue-circulaires" hidden>
+  <div class="entete"><div class="titre">Circulaires</div></div>
+  <div class="contenu">
+    <div class="une-a-la-fois" id="liste-tri"></div>
+    <button class="bouton bouton-or bouton-pleine bouton-detache" id="circulaires-retour" type="button">Retour</button>
+  </div>
+</div>
+
+<!-- ============================================================
      OUTILS — couleurs : la palette du site. Les lignes sont bâties par le JS.
 ============================================================ -->
 <div id="vue-couleurs" hidden>
@@ -436,8 +448,8 @@
 
 </div><!-- fin du conteneur -->
 
-<script src="JS/coffre.js?v=10"></script>
-<script src="JS/entree.js?v=137"></script>
+<script src="JS/coffre.js?v=11"></script>
+<script src="JS/entree.js?v=138"></script>
 <script src="JS/essai.js?v=1"></script>
 <script src="JS/scan.js?v=10"></script>
 </body>
