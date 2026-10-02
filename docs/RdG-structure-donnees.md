@@ -186,24 +186,27 @@ FlippId — remplacé à la 1re lecture nouvelle.)*
 | T | SaveurPropose | une saveur de SAVEURS reconnue dans le texte (« 2% » cherché tel quel) |
 | U | Histoire | l'histoire du rabais (« 50% d'économie », « 100 Scène+ PTS à l'achat de 2 ») — vient du détail. Ajoutée le 2026-10-02 : le tri montre le format sans elle |
 
-### TRI — les réponses de J-C aux circulaires (2026-10-01)
-*Créé tout seul (le 2026-10-01, à la 1re lecture nouvelle : chaque Oui de l'ancienne CORRESPONDANCES y est devenu un Oui;
-un Non n'y est pas entré — il voulait dire « pas le bon aliment », pas « jamais »). Créé au 1er tri s'il manque. **Une ligne par genre d'article** : une
-nouvelle réponse réécrit la ligne (c'est aussi la correction). Écrit par l'action `trier`.*
+### TRI — les réponses de J-C aux circulaires (2026-10-01; repensé le 2026-10-02 : par épicerie)
+*Vidé à la main par J-C le 2026-10-02 (repartir à neuf avec le tri par épicerie). Créé au 1er tri s'il manque; l'en-tête est
+remis à jour à chaque tri (colonnes ajoutées au bout). **Une ligne par article** (sa clé, col. B) : une nouvelle réponse réécrit la
+ligne (c'est aussi la correction). Écrit par l'action `trier`.*
 
 | Col | Nom | Sens |
 |-----|-----|------|
 | A | ID | date/heure de création |
-| B | Cle | le genre d'article (col. M de SPECIAUX). Une réponse d'avant le 2026-10-02 (ancienne clé, sans « \| ») suit l'article de la semaine qui porte son nom (col. J) et prend la nouvelle clé à sa 1re correction |
-| C | Reponse | O = Oui · P = Peut-être · J = Jamais (ce genre, pour l'instant) · (M = Jamais cette marque : plus envoyé ni accepté depuis le 2026-10-02; une vieille ligne M compte comme trié) |
-| D | ProduitID | l'aliment (Oui, Peut-être); vide pour J |
-| E | Marque | ID dans MARQUES (Oui, Peut-être) |
-| F | Saveur | ID dans SAVEURS (Oui, Peut-être) |
-| G | CodeBarres | le code-barres accepté par J-C (Open Food Facts, cherché par l'app). En texte |
+| B | Cle | l'article, TOUJOURS dans son épicerie : « IDmagasin ~ #code » (un code — IGA : code-barres ou PLU — = un produit précis, une ligne par code) ou « IDmagasin ~ genre ~ format » sans code (le genre = col. M de SPECIAUX recalculé; un nouveau format revient à trier) |
+| C | Reponse | O = Oui · P = Peut-être · J = Jamais. **Un Jamais vaut dans toutes les épiceries** (par le genre, col. L) |
+| D | ProduitID | l'aliment (Oui, Peut-être); vide pour J. **Une ligne à plusieurs produits** (« germes de haricot ou épinards ») : plusieurs ID séparés par des virgules |
+| E | Marque | ID dans MARQUES (Oui, Peut-être) — plusieurs : séparés par des virgules, dans l'ordre de D |
+| F | Saveur | ID dans SAVEURS (Oui, Peut-être) — idem |
+| G | CodeBarres | le code de l'article : celui d'IGA (code-barres ou PLU), celui d'un article relié (« Serait-ce celui-ci ? », même format), un PLU de la liste officielle, ou un code d'Open Food Facts (12 chiffres pour un UPC). En texte. Sert aussi au scan à l'entrée (`codesTri` de `references`) |
 | H | Date | quand J-C a répondu |
 | I | Qui | qui a répondu |
 | J | Texte | le nom de l'article au moment du tri (pour les barres de correction, même quand il n'est plus en circulaire) |
-| K | Categorie | sa catégorie racine (celle de l'aliment s'il y en a un, sinon celle devinée) |
+| K | Categorie | sa catégorie racine (celle du 1er aliment s'il y en a un, sinon celle devinée) |
+| L | Genre | le même produit d'une épicerie à l'autre (les deux premiers mots sans la marque + la marque) : un Jamais vaut partout, et il propose son aliment à un nouveau format de la même épicerie |
+| M | Format | les quantités de la description (« 2 l », « 12x200 ml »), pour comparer : le code d'un article relié ne suit que le même format |
+| N | Magasin | l'épicerie de l'article (ID dans MAGASINS) |
 
 ### CORRESPONDANCES — les anciennes réponses Oui / Non (2026-09-29, remplacé par TRI le 2026-10-01)
 *Plus écrit ni lu (ses Oui sont passés dans TRI le 2026-10-01; `repondreSpecial` retiré le 2026-10-02). Peut être effacé du Sheet à la main.*

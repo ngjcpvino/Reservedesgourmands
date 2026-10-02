@@ -198,6 +198,8 @@
   --feu-arrondi:       30px;
   --feu-ombre:         0 2px 4px color-mix(in srgb, var(--couleur-903) 30%, transparent);   /* le boîtier se détache */
   --feu-relief:        inset 0 -2px 0 color-mix(in srgb, var(--couleur-903) 22%, transparent);   /* un relief net, sans flou (la lueur d'avant rendait les lumières floues) */
+  --photo-tri:         56px;   /* au tri : la petite photo d'un produit (derrière un code, une proposition) — J-C, 2026-10-02, sur aperçu */
+  --photo-vide:        color-mix(in srgb, var(--couleur-201) 60%, var(--couleur-101));   /* pas de photo : une case pâle */
   --point-taille:      14px;   /* le point rouge « du nouveau à trier », sur le chemin (Outils, Gérer les bases, Circulaires) */
   --point-marge:       8px;    /* son écart du coin du bouton */
   --point-bord:        2px;    /* son anneau crème : il se voit même sur le bouton rouge */
@@ -944,7 +946,7 @@ select.champ {
 .tri-peutetre > .accordeon-tete { --c: var(--tri-peutetre); color: var(--couleur-306); }   /* pâle : le texte passe au brun */
 .tri-jamais > .accordeon-tete   { --c: var(--tri-jamais); }
 .tri-article { cursor: pointer; }
-/* Un article touché s'ouvre dessous : le feu, puis l'entonnoir déjà rempli ou les deux « Jamais ». Un seul ouvert à la fois. */
+/* Un article touché s'ouvre dessous : le produit derrière son code, le feu, puis l'entonnoir déjà rempli. Un seul ouvert à la fois. */
 .tri-panneau { padding: 0 var(--espace-l) var(--espace-m); }
 /* LE FEU DE CIRCULATION (choix C sur aperçu) : un boîtier foncé, trois lumières — vert Oui, jaune Peut-être, rouge Jamais. Sans texte. */
 .feu { display: inline-flex; gap: var(--feu-ecart); padding: var(--feu-bord); background: var(--feu-boitier); border-radius: var(--feu-arrondi); box-shadow: var(--feu-ombre); }
@@ -965,6 +967,10 @@ select.champ {
 .feu-jamais   { color: var(--tri-jamais); }
 .feu-seul { flex-shrink: 0; padding: var(--feu-bord-petit); }   /* « Tout ce qui est ici aujourd'hui » : la lumière rouge seule */
 .feu-seul > button { width: var(--feu-rond-petit); height: var(--feu-rond-petit); }
+/* LE TRI PAR ÉPICERIE (J-C, 2026-10-02) : tout le reste réutilise ce qui existe (J-C : « du CSS déjà là seulement ») — les lignes
+   (.item), la liste blanche, les petits textes. Seule nouveauté : la petite photo d'un produit (Open Food Facts), carrée, sur blanc. */
+.tri-photo { display: block; flex-shrink: 0; width: var(--photo-tri); height: var(--photo-tri); padding: var(--espace-micro); object-fit: contain; background: var(--couleur-101); border-radius: var(--rayon); box-shadow: var(--ombre-carte); }
+.tri-photo-vide { background: var(--photo-vide); }
 /* LE POINT ROUGE (choix B de J-C) : du nouveau à trier — sur Outils, Gérer les bases et Circulaires, tant qu'« À trier » n'est pas vide.
    Le JS ne pose que la classe. */
 .a-trier::after {

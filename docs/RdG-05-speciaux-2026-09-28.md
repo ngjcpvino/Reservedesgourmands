@@ -358,6 +358,18 @@ bâtie trop vite, sur un aperçu de 3 aliments. J-C : « Faut réfléchir avant 
   premier scan. **Le travail après IGA = donner des codes à Super C et Metro** (J-C, qui corrige Claude) : leurs
   circulaires n'en ont pas, c'est son tri qui leur en donne — le code d'IGA (« Serait-ce celui-ci ? », même format), un
   PLU de la liste officielle, ou Open Food Facts.
+  **✅ BÂTI le 2 octobre (après deux aperçus approuvés, puis un 3e fait du vrai code : J-C, « fais attention aux styles, du CSS
+  déjà là seulement » — les propositions étaient écrites plus gros que l'aliment)** : `api.gs` (à coller) — la clé par épicerie
+  (`cleArticle`), le format (`formatCle`), le Jamais par le genre (Tri col. L), plusieurs aliments (D, E, F séparés par des
+  virgules), `codesTri` dans `references`, la recherche **`chercherOFF`** (le nouveau service d'Open Food Facts,
+  search.openfoodfacts.org, ne répond pas à une page web — pas d'en-tête CORS, vérifié — et l'ancien refuse souvent : le
+  coffre-fort cherche à la place de l'app; la marque filtre par son étiquette, « Québon » → quebon). Côté app : l'étage par
+  épicerie, le produit derrière un code, « Serait-ce celui-ci ? » → « Repris de », « Un autre aliment », l'étape du code (PLU ou
+  Open Food Facts, « Aucun »), le scan qui reconnaît un code appris au tri, un PLU tapé à la fiche. **La liste officielle des PLU** :
+  téléchargée de l'IFPS (en français : 1 406 codes, des variétés restées vides), complétée par l'anglais traduit (205 variétés,
+  10 produits) → `JS/plu.json`, 1 546 codes, lue à la demande. Essai à blanc : 26 vérifications sur le coffre-fort (vraies
+  circulaires de la semaine), 30 dans l'app (un faux navigateur qui touche comme J-C). **Prix à savoir : ~1 040 lignes à trier la
+  1re semaine** (IGA 425, Metro 385, Super C 234) au lieu de 845 — une ligne par épicerie et par code; ça fond de semaine en semaine.
 
 **L'IDÉE DES PRIX DE J-C (1er octobre)** — « Fallait régler le code-barres avant » (fait ci-dessus). « Si le code-barres
 se retrouve dans la circulaire de la semaine avec le nom du magasin, le prix payé pourrait être ma première référence, au

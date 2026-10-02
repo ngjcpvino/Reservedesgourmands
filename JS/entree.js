@@ -12,6 +12,7 @@ const montrer = (id, ok) => { $(id).hidden = !ok; };
 var RAYONS = [], SOUSCATS = {}, MEUBLES = [], ESPACES = {}, PRODUITS = [], VARIANTES = {}, PIECES = [];
 var codeScan = '';          // code-barres de l'entrée en cours (le champ #codebarres fait foi)
 var CODES = {};             // { codeBarres: produitId } — reconnaître un produit déjà à nous
+var CODES_TRI = {};         // { code: [produitId, marque, saveur] } — appris au tri des circulaires (Oui, Peut-être) : le scan les reconnaît aussi
 var produitCourant = null;  // id du produit reconnu (existant) ; null = nouveau produit
 var modeManuel = false;     // entrée À LA MAIN : entonnoir catégorie -> sous-catégorie -> produit
 var LISTES = { Magasins: [], Marques: [], Saveurs: [] };   // les listes gérées : [{ id, nom }], actifs seulement
@@ -96,9 +97,10 @@ var SPECIAUX = [];                                  // les soldes de la semaine 
                                                     // [ID, Magasin, ProduitID, Texte, Prix, Regulier, Unite, Description, Debut, Fin, Cle, 'O',
                                                     //  FlippId, Reponse (O / P), Marque, Saveur, CodeBarres, Categorie]
 var NB_A_TRIER = 0;                                 // les genres d'articles de la semaine sans réponse : le point rouge (Outils, Gérer les bases, Circulaires)
-var TRI = null;                                     // la page de tri, lue à l'ouverture (lireTri) : { aTrier: [{ cle, texte, categorie, produitId,
-                                                    //   marque, saveur, code, magasins }], tri: [lignes de l'onglet Tri : ID, Cle, Reponse, ProduitID,
-                                                    //   Marque, Saveur, CodeBarres, Date, Qui, Texte, Categorie] }
+var TRI = null;                                     // la page de tri, lue à l'ouverture (lireTri) : { aTrier: [{ cle, magasin, texte, categorie,
+                                                    //   produitId, marque, saveur, produits, code, genre, format, description, marqueFlipp }],
+                                                    //   tri: [lignes de l'onglet Tri : ID, Cle, Reponse, ProduitID, Marque, Saveur, CodeBarres, Date,
+                                                    //   Qui, Texte, Categorie, Genre, Format, Magasin — D, E, F : un ou plusieurs aliments] }
 var nomScanne = '';                                 // un code inconnu scanné pour la liste : son nom (Open Food Facts), prêt pour « Nouvel aliment… »
 var couleursModif = { site: {}, meubles: {} };      // changées à l'écran, pas encore envoyées
 var envoiCouleurs = false;                          // un envoi de couleurs est en route
@@ -203,15 +205,31 @@ function ouvrirFicheScan(code) {
   surCode();
 }
 
-/* Le code-barres est la clé : STOCK d'abord (reconnu ?), sinon Open Food Facts. */
+/* Le code-barres est la clé : ses données d'abord — STOCK (déjà entré), puis le tri des circulaires (J-C, 2026-10-02 : un code appris
+   au tri remplit la fiche, sa marque et sa saveur comprises) —, un PLU tapé (4 ou 5 chiffres) : la liste officielle; sinon Open Food Facts. */
 async function surCode() {
   const code = $('codebarres').value.trim();
   codeScan = code;
   if (!code) return;
-  const pid = CODES[String(code)];
+  const tri = !CODES[String(code)] && (CODES_TRI[formeCode(code)] || CODES_TRI[code]);
+  const pid = CODES[String(code)] || (tri && tri[0]);
   if (pid) {                                        // déjà à nous
     const prod = PRODUITS.find(p => String(p.id) === String(pid));
-    if (prod) { $('nom').value = prod.nom; surNom(); return; }
+    if (prod) {
+      $('nom').value = prod.nom; surNom();
+      if (tri && produitCourant !== null) {          // appris au tri : sa marque et sa saveur
+        if (nomListe(tri[1])) choisirParNom('marque', nomListe(tri[1]));
+        if (nomListe(tri[2])) choisirParNom('saveur', nomListe(tri[2]));
+      }
+      return;
+    }
+  }
+  if (estPlu(code)) {                               // un fruit, un légume (J-C : « je vais taper les 4 chiffres »)
+    statut('Recherche du PLU…');
+    await chargerPlu();
+    statut('');
+    if (nomPlu(code)) { $('nom').value = nomPlu(code); surNom(); }   // J-C confirme, ou choisit « Serait-ce plutôt celui-ci ? »
+    return;
   }
   statut('Recherche du produit…');
   let d = null;
@@ -387,6 +405,7 @@ function appliquer(d) {
   Object.keys(LISTES).forEach(n => LISTES[n].sort((a, b) => a.nom.localeCompare(b.nom, 'fr')));
   VARIANTES = d.variantes || {};                      // { produitId: { marques:[], formats:[] } }
   CODES = d.codes || {};                              // { codeBarres: produitId }
+  CODES_TRI = d.codesTri || {};                       // { code: [produitId, marque, saveur] } (le tri des circulaires)
   STOCK = d.stock || [];
   COULEURS = d.couleurs || [];                        // [ID, SecteurID, Nom, Valeur]
   PAS_AIMES = d.pasAimes || [];
@@ -438,7 +457,7 @@ async function chargerData() {
   for (let i = 0; i < 3; i++) {
     try {
       const r = await Coffre.references();
-      if (r && r.ok && r.categories !== undefined) return { cats: r.categories, emps: r.emplacements, prods: r.produits, stock: r.stock, variantes: r.variantes, codes: r.codes, couleurs: r.couleurs, listes: r.listes, pasAimes: r.pasAimes, achats: r.achats, speciaux: r.speciaux, nbATrier: r.nbATrier };   // tout ce que l'app lit : un oubli ici = une donnée qui n'arrive jamais
+      if (r && r.ok && r.categories !== undefined) return { cats: r.categories, emps: r.emplacements, prods: r.produits, stock: r.stock, variantes: r.variantes, codes: r.codes, codesTri: r.codesTri, couleurs: r.couleurs, listes: r.listes, pasAimes: r.pasAimes, achats: r.achats, speciaux: r.speciaux, nbATrier: r.nbATrier };   // tout ce que l'app lit : un oubli ici = une donnée qui n'arrive jamais
       if (r && r.erreur === 'non autorisé') throw new Error('non autorisé');   // inutile de réessayer
       err = new Error((r && r.erreur) || 'refus'); err.refus = true;          // le coffre-fort a répondu, mais pas oui
     } catch (e) { if (e.message === 'non autorisé') throw e; err = e; }
@@ -2789,20 +2808,22 @@ function htmlSoldes(pid) {
       (quoi ? '<span class="solde-texte">' + esc(quoi) + '</span>' : '') + '</div>';
   }).join('');
 }
-/* ---------- GÉRER LES BASES → CIRCULAIRES : LE TRI (J-C, 2026-10-01, sur aperçus; RdG-05, 5 quater) ----------
-   Chaque genre d'article des circulaires de la semaine reçoit UNE fois sa réponse — le feu : vert Oui · jaune Peut-être · rouge
-   Jamais, sans texte. Oui et Peut-être : l'entonnoir déjà rempli par la proposition du coffre-fort (Catégorie → Sous-catégorie →
-   Aliment → Marque → Saveur) — « C'est ça », ou on corrige le morceau fautif. Rouge = Jamais, d'un seul toucher (J-C, 2026-10-02 :
-   « si je dis non, c'est non à ce produit pour l'instant »; avant : « Tout ce genre » / « Cette marque seulement »). À l'arrivée, quatre barres fermées — À trier (rangé par SES catégories, « Autres »
-   au bout), Oui, Peut-être, Jamais (pour corriger : toucher l'article le rouvre sur le feu); une barre ouverte cache les autres.
-   En tête d'une catégorie d'« À trier » : « Tout ce qui est ici aujourd'hui » → Jamais pour chaque article qui s'y trouve CE jour-là
-   (jamais la catégorie pour toujours : un article nouveau reviendra à trier). Lu en UN appel à l'ouverture (lireTri); chaque réponse
-   est INSTANTANÉE et part par la file des gestes (action trier, rejouable), après l'aliment, la marque ou la saveur neufs qu'elle porte. */
+/* ---------- GÉRER LES BASES → CIRCULAIRES : LE TRI (J-C, 2026-10-01 et 2026-10-02, sur aperçus; RdG-05, 5 quater) ----------
+   Le but (J-C, 2026-10-02) : un code sur chaque produit — le code-barres, ou le PLU d'un fruit. Le tri se fait PAR ÉPICERIE :
+   À trier → IGA, Super C, Metro (celle qui donne le plus de codes d'abord) → SES catégories → une ligne par article (chez IGA, une
+   par code). Toucher un article : le vrai produit derrière son code (Open Food Facts, ou la liste officielle des PLU), puis le feu —
+   vert Oui · jaune Peut-être · rouge Jamais (un toucher). Vert ou jaune : « Serait-ce celui-ci ? » (ce qui ressemble chez lui : trié
+   dans une autre épicerie, ou déjà entré — son code suit s'il a le même format), l'entonnoir déjà rempli (« Un autre aliment » pour
+   une ligne à plusieurs produits), « C'est ça »; sans code, ensuite : les PLU de la liste officielle (un fruit, un légume) ou Open
+   Food Facts (le reste), ou « Aucun ». Rien d'automatique d'une épicerie à l'autre, sauf un Jamais, qui vaut partout. Oui · Peut-être
+   · Jamais : pour corriger (toucher l'article le rouvre sur le feu). En tête d'une catégorie : « Tout ce qui est ici aujourd'hui ».
+   Lu en UN appel à l'ouverture (lireTri); chaque réponse est INSTANTANÉE et part par la file des gestes (action trier, rejouable),
+   après l'aliment, la marque ou la saveur neufs qu'elle porte. */
 const CHEMIN_TRI = '#menu-outils, #menu-bases, [data-base="circulaires"]';   // le point rouge, sur le chemin (choix B de J-C)
 function poserPoints() {
   document.querySelectorAll(CHEMIN_TRI).forEach(b => b.classList.toggle('a-trier', NB_A_TRIER > 0));
 }
-/* Les genres que des tris pas encore confirmés retirent d'« À trier » : une relecture du coffre-fort les compte encore. */
+/* Ce que des tris pas encore confirmés retirent d'« À trier » : une relecture du coffre-fort les compte encore. */
 function triesEnRoute() { return lireAttenteGestes().reduce((s, e) => s + (e.action === 'trier' ? Number(e.neufs) || 0 : 0), 0); }
 function noterNbATrier(n) {                            // le point suit, et le cache aussi (une ouverture sur le cache ne le rallume pas)
   NB_A_TRIER = Math.max(0, n); poserPoints();
@@ -2824,12 +2845,51 @@ async function montrerCirculaires() {
   } else avis('Circulaires pas lues — réessaie dans un instant', 'erreur');
   remplirTri();                                    // (pas relues : ce qu'on avait, s'il y a lieu)
 }
+/* D, E, F d'une ligne de Tri : un ou plusieurs aliments (une ligne à plusieurs produits), séparés par des virgules. */
+const morceaux = v => String(v == null ? '' : v).split(',');
 /* Une catégorie de la page : une des siennes, sinon « Autres ». */
 const groupeTri = rid => RAYONS.some(r => String(r.id) === String(rid)) ? String(rid) : 'autres';
-/* Une réponse se range sous la catégorie de son aliment (s'il en a un), sinon sous celle que le coffre-fort a devinée. */
+/* Une réponse se range sous la catégorie de son (1er) aliment, sinon sous celle que le coffre-fort a devinée. */
 function categorieLigneTri(r) {
-  const p = r[3] && PRODUITS.find(x => String(x.id) === String(r[3]));
+  const pid = morceaux(r[3])[0], p = pid && PRODUITS.find(x => String(x.id) === String(pid));
   return (p && rayonDe(p.catId)) || String(r[10] || '');
+}
+/* Un PLU : 4 ou 5 chiffres (un code-barres en a de 8 à 13). */
+function estPlu(code) { return /^\d{4,5}$/.test(String(code || '').trim()); }
+/* Un code d'Open Food Facts de 13 chiffres qui commence par 0 = l'UPC de 12 chiffres que le scan lit. */
+const formeCode = c => { c = String(c || '').replace(/\D/g, ''); return /^0\d{12}$/.test(c) ? c.slice(1) : c; };
+/* Le format, pour comparer (le même calcul que le coffre-fort, formatCle; ici aussi « 2 litres ») : « 2 L » → « 2 l ». */
+function formatCle(t) {
+  t = String(t || '').toLowerCase().replace(/(\d),(\d)/g, '$1.$2');
+  const re = /(\d+(?:\.\d+)?)\s*[x×]\s*(\d+(?:\.\d+)?)\s*(kg|mg|ml|lbs?|oz|g|litres?|l)\b|(\d+(?:\.\d+)?)(?:\s*(?:-|à)\s*(\d+(?:\.\d+)?))?\s*(kg|mg|ml|lbs?|oz|g|litres?|l)\b/g;
+  const vus = []; let m;
+  while ((m = re.exec(t))) {
+    const u = String(m[3] || m[6]).replace('lbs', 'lb').replace(/^litres?$/, 'l');
+    const q = m[1] ? m[1] + 'x' + m[2] + ' ' + u : m[4] + (m[5] ? '-' + m[5] : '') + ' ' + u;
+    if (vus.indexOf(q) === -1) vus.push(q);
+  }
+  return vus.join(' + ');
+}
+const formatAffiche = f => String(f || '').replace(/(\d) l\b/g, '$1 L').replace(/(\d) ml\b/g, '$1 mL');
+/* LA LISTE OFFICIELLE DES PLU (IFPS, en français; l'anglais traduit là où il manquait) : { code: nom }, lue à la demande. */
+var PLU = null;
+const PLU_VERSION = '1';
+function chargerPlu() {
+  if (!chargerPlu.p) chargerPlu.p = fetch('JS/plu.json?v=' + PLU_VERSION).then(r => r.json()).then(j => { PLU = j; })
+    .catch(() => { chargerPlu.p = null; });         // pas de réseau : on réessaiera la prochaine fois
+  return chargerPlu.p;
+}
+function nomPlu(code) {                               // 9 + le code = le même, biologique
+  code = String(code || '').trim();
+  if (!PLU) return '';
+  if (PLU[code]) return PLU[code];
+  return code.length === 5 && code[0] === '9' && PLU[code.slice(1)] ? PLU[code.slice(1)] + ', biologique' : '';
+}
+/* Les épiceries d'« À trier » : celle qui donne le plus de codes d'abord (IGA), puis par nom. */
+function ordreMagasins(items) {
+  const st = {};
+  items.forEach(x => { const s = st[x.magasin] = st[x.magasin] || { n: 0, c: 0 }; s.n++; if (x.code) s.c++; });
+  return Object.keys(st).sort((a, b) => (st[b].c / st[b].n) - (st[a].c / st[a].n) || nomListe(a).localeCompare(nomListe(b), 'fr'));
 }
 /* Les articles rangés par catégorie (leurs couleurs, dans l'ordre de J-C), « Autres » (brune) au bout. tete : la 1re ligne d'une catégorie. */
 function htmlGroupesTri(items, rid, ligne, tete) {
@@ -2872,42 +2932,55 @@ function adoucir(t, debut) {
   return debut === false ? s : s.charAt(0).toUpperCase() + s.slice(1);
 }
 /* Ce qui aide à décider (J-C, 2026-10-02 : « la marque, le poids, la saveur » — pas le magasin ni le prix : « on fait juste le tri ») :
-   la marque et la saveur reconnues dans l'article, puis le format de la circulaire (description, envoyée par lireTri). */
+   la marque et la saveur reconnues dans l'article, le format de la circulaire, et le PLU d'un fruit. */
 function detailATrier(x) {
   const marque = nomListe(idListe('Marques', x.marque)) || adoucir(x.marqueFlipp);
-  return [marque, nomListe(idListe('Saveurs', x.saveur)), adoucir(x.description, false)].filter(Boolean).join(' · ');
+  return [marque, nomListe(idListe('Saveurs', x.saveur)), adoucir(x.description, false), estPlu(x.code) ? 'PLU ' + x.code : '']
+    .filter(Boolean).join(' · ');
 }
 function detailTri(r) {
-  const p = PRODUITS.find(x => String(x.id) === String(r[3]));
-  return [p ? p.nom : '', nomListe(r[4]), nomListe(r[5])].filter(Boolean).join(' · ');
+  const noms = morceaux(r[3]).map(id => (PRODUITS.find(p => String(p.id) === String(id)) || {}).nom).filter(Boolean);
+  return [noms.join(' + '), noms.length > 1 ? '' : nomListe(r[4]), noms.length > 1 ? '' : nomListe(r[5]), nomListe(r[13])].filter(Boolean).join(' · ');
 }
+const selVal = v => String(v).replace(/["\\]/g, '\\$&');   // une valeur dans un sélecteur [data-…="…"]
 function ligneTout(k) {
   return '<div class="item tri-tout"><div class="item-info"><div class="item-detail">Tout ce qui est ici aujourd\'hui</div></div>' +
     '<span class="feu feu-seul"><button class="feu-jamais" type="button" data-tout="' + esc(k) + '" aria-label="Jamais pour tout"></button></span></div>';
 }
-/* La page. Ce qui était ouvert (la barre, la catégorie) le reste : on trie l'un après l'autre. */
+/* La page. Ce qui était ouvert (la barre, l'épicerie, la catégorie) le reste : on trie l'un après l'autre. */
 function remplirTri() {
   const cible = $('liste-tri');
   if (!TRI) { cible.innerHTML = '<div class="texte-petit texte-pale">Circulaires pas lues — réessaie dans un instant.</div>'; return; }
-  const tB = cible.querySelector(':scope > .accordeon > .accordeon-tete.ouvert'), barre = tB ? tB.parentElement.dataset.barre : '';
-  const tG = tB && tB.nextElementSibling.querySelector(':scope > .accordeon > .accordeon-tete.ouvert'), groupe = tG ? tG.parentElement.dataset.groupe : '';
+  const ouverte = el => el ? el.querySelector(':scope > .accordeon > .accordeon-tete.ouvert') : null;
+  const tB = ouverte(cible), barre = tB ? tB.parentElement.dataset.barre : '';
+  const tM = barre === 'a' ? ouverte(tB.nextElementSibling) : null, mag = tM ? tM.parentElement.dataset.mag : '';
+  const tG = ouverte(tM ? tM.nextElementSibling : tB ? tB.nextElementSibling : null), groupe = tG ? tG.parentElement.dataset.groupe : '';
   const parTexte = (a, b) => String(a).localeCompare(String(b), 'fr');
-  const corps = (items, rid, ligne, tete, vide) => items.length ? htmlGroupesTri(items, rid, ligne, tete)
-    : '<div class="accordeon-item"><span class="texte-petit texte-pale">' + vide + '</span></div>';
-  const reponses = reps => corps(TRI.tri.filter(r => reps.indexOf(String(r[2])) !== -1).sort((a, b) => parTexte(a[9] || a[1], b[9] || b[1])),
-    categorieLigneTri, r => ligneTri('r:' + r[0], r[9] || r[1], detailTri(r)), null, 'Rien pour l\'instant.');
+  const vide = t => '<div class="accordeon-item"><span class="texte-petit texte-pale">' + t + '</span></div>';
+  const reponses = reps => {
+    const rs = TRI.tri.filter(r => reps.indexOf(String(r[2])) !== -1).sort((a, b) => parTexte(a[9] || a[1], b[9] || b[1]));
+    return rs.length ? htmlGroupesTri(rs, categorieLigneTri, r => ligneTri('r:' + r[0], r[9] || r[1], detailTri(r))) : vide('Rien pour l\'instant.');
+  };
+  const aTrier = TRI.aTrier.slice().sort((a, b) => parTexte(a.texte, b.texte));
+  const parMagasin = aTrier.length ? ordreMagasins(aTrier).map(m =>
+    '<div class="accordeon" data-mag="' + esc(m) + '"><div class="accordeon-tete"><span>' + esc(nomListe(m)) + '</span></div>' +
+    '<div class="accordeon-corps une-a-la-fois" hidden>' + htmlGroupesTri(aTrier.filter(x => x.magasin === m), x => x.categorie,
+      x => ligneTri('a:' + x.cle, x.texte, detailATrier(x)), k => ligneTout(m + '¦' + k)) + '</div></div>').join('') : vide('Rien à trier cette semaine.');
   const barreTri = (cle, nom, classe, html) => '<div class="accordeon' + classe + '" data-barre="' + cle + '"><div class="accordeon-tete"><span>' + nom + '</span></div>' +
     '<div class="accordeon-corps une-a-la-fois" hidden>' + html + '</div></div>';
-  cible.innerHTML =
-    barreTri('a', 'À trier', '', corps(TRI.aTrier.slice().sort((a, b) => parTexte(a.texte, b.texte)), x => x.categorie,
-      x => ligneTri('a:' + x.cle, x.texte, detailATrier(x)), ligneTout, 'Rien à trier cette semaine.')) +
-    barreTri('O', 'Oui', ' tri-oui', reponses(['O'])) +
-    barreTri('P', 'Peut-être', ' tri-peutetre', reponses(['P'])) +
-    barreTri('J', 'Jamais', ' tri-jamais', reponses(['J', 'M']));
+  cible.innerHTML = barreTri('a', 'À trier', '', parMagasin) + barreTri('O', 'Oui', ' tri-oui', reponses(['O'])) +
+    barreTri('P', 'Peut-être', ' tri-peutetre', reponses(['P'])) + barreTri('J', 'Jamais', ' tri-jamais', reponses(['J', 'M']));
   const accB = [...cible.children].find(a => a.dataset.barre === barre);
   if (!accB) return;
   toggleAccordeon(accB.firstElementChild);
-  const accG = [...accB.lastElementChild.children].find(a => a.dataset.groupe === groupe);
+  let corps = accB.lastElementChild;
+  if (barre === 'a') {
+    const accM = [...corps.children].find(a => a.dataset.mag === mag);
+    if (!accM) return;
+    toggleAccordeon(accM.firstElementChild);
+    corps = accM.lastElementChild;
+  }
+  const accG = [...corps.children].find(a => a.dataset.groupe === groupe);
   if (accG) toggleAccordeon(accG.firstElementChild);
 }
 /* Un article de la page ('a:' + Cle, à trier · 'r:' + ID, une réponse déjà donnée) → ce qu'on en sait. */
@@ -2916,24 +2989,57 @@ function articleTri(art) {
   const k = art.slice(2);
   if (art.slice(0, 2) === 'a:') { const x = TRI.aTrier.find(y => String(y.cle) === k); return x ? Object.assign({}, x, { reponse: '' }) : null; }
   const r = TRI.tri.find(y => String(y[0]) === k);
-  return r ? { cle: String(r[1]), texte: String(r[9] || r[1]), categorie: String(r[10] || ''), produitId: String(r[3] || ''),
-               marque: String(r[4] || ''), saveur: String(r[5] || ''), code: String(r[6] || ''), reponse: String(r[2]) } : null;
+  if (!r) return null;
+  const pids = morceaux(r[3]), mqs = morceaux(r[4]), svs = morceaux(r[5]);
+  return { cle: String(r[1]), texte: String(r[9] || r[1]), categorie: String(r[10] || ''), produitId: pids[0] || '', marque: mqs[0] || '',
+           saveur: svs[0] || '', produits: pids.length > 1 ? pids.map((p, i) => [p, mqs[i] || '', svs[i] || '']) : null,
+           code: String(r[6] || '').trim(), reponse: String(r[2]), genre: String(r[11] || ''), format: String(r[12] || ''),
+           magasin: String(r[13] || ''), description: '', marqueFlipp: '' };
 }
-function articleOuvert() { const p = $('liste-tri').querySelector('.tri-panneau'); return p ? articleTri(p.dataset.art) : null; }
-/* Toucher un article : il s'ouvre sur le feu (un seul ouvert à la fois); le retoucher le referme. */
+const panneauTri = () => $('liste-tri').querySelector('.tri-panneau');
+function articleOuvert() { const p = panneauTri(); return p ? articleTri(p.dataset.art) : null; }
+const htmlFeu = () => '<div class="feu">' +
+  '<button class="feu-oui" type="button" data-reponse="O" aria-label="Oui"></button>' +
+  '<button class="feu-peutetre" type="button" data-reponse="P" aria-label="Peut-être"></button>' +
+  '<button class="feu-jamais" type="button" data-reponse="J" aria-label="Jamais"></button></div>';
+const photoTri = src => src ? '<img class="tri-photo" src="' + esc(src) + '" alt="">' : '<span class="tri-photo tri-photo-vide"></span>';
+/* Toucher un article : il s'ouvre — le vrai produit derrière son code, s'il en a un, puis le feu (un seul ouvert à la fois);
+   le retoucher le referme. */
 function ouvrirArticleTri(el) {
   const deja = el.classList.contains('ouvert');
   fermerArticleTri();
   if (deja) return;
   el.classList.add('ouvert');
-  el.insertAdjacentHTML('afterend', '<div class="tri-panneau" data-art="' + esc(el.dataset.art) + '"><div class="feu">' +
-    '<button class="feu-oui" type="button" data-reponse="O" aria-label="Oui"></button>' +
-    '<button class="feu-peutetre" type="button" data-reponse="P" aria-label="Peut-être"></button>' +
-    '<button class="feu-jamais" type="button" data-reponse="J" aria-label="Jamais"></button></div></div>');
+  const x = articleTri(el.dataset.art), code = x ? x.code : '';
+  el.insertAdjacentHTML('afterend', '<div class="tri-panneau" data-art="' + esc(el.dataset.art) + '">' + (code ? '<div class="item" data-code-produit="' + esc(code) + '">' +
+    photoTri('') + '<div class="item-info"><div class="code-barres">' + esc(estPlu(code) ? 'PLU ' + code : code) + '</div></div></div>' : '') + htmlFeu() + '</div>');
+  if (code) montrerProduitCode(code);
 }
 function fermerArticleTri() {
-  const p = $('liste-tri').querySelector('.tri-panneau'); if (p) p.remove();
+  const p = panneauTri(); if (p) p.remove();
+  TRI_CODE = null;
   $('liste-tri').querySelectorAll('.tri-article.ouvert').forEach(x => x.classList.remove('ouvert'));
+}
+/* Le vrai produit derrière un code (J-C, 2026-10-02, choix A — « Crème glacée Coaticook » d'IGA porte le code d'un sorbet) :
+   un PLU → la liste officielle; un code-barres → Open Food Facts. Une fois par code : gardé en mémoire. */
+const PRODUITS_CODE = {};
+function produitDuCode(code) {
+  if (!PRODUITS_CODE[code]) PRODUITS_CODE[code] = estPlu(code)
+    ? chargerPlu().then(() => ({ nom: nomPlu(code), detail: 'Liste officielle des PLU', photo: '', trouve: !!nomPlu(code) }))
+    : (typeof window.chercherOFF === 'function' ? window.chercherOFF(code) : Promise.resolve({ trouve: false }))
+      .then(d => ({ nom: d.nom || d.nomAutre || '', detail: [d.marque, d.format].filter(Boolean).join(' · '), photo: d.photo || '', trouve: !!d.trouve }));
+  return PRODUITS_CODE[code];
+}
+async function montrerProduitCode(code) {
+  let d = null;
+  try { d = await produitDuCode(code); } catch (e) {}
+  const b = $('liste-tri').querySelector('[data-code-produit="' + selVal(code) + '"]');
+  if (!b) return;                                    // refermé entre-temps
+  d = d || { trouve: false };
+  b.innerHTML = photoTri(d.photo) + '<div class="item-info">' + (d.trouve
+      ? '<div class="item-detail">' + esc(d.nom) + '</div>' + (d.detail ? '<div class="texte-petit texte-pale">' + esc(d.detail) + '</div>' : '')
+      : '<div class="texte-petit texte-pale">' + (estPlu(code) ? 'Pas dans la liste officielle des PLU' : 'Pas dans Open Food Facts') + '</div>') +
+    '<div class="code-barres">' + esc(estPlu(code) ? 'PLU ' + code : code) + '</div></div>';
 }
 /* Une marque ou une saveur proposée (un ID, ou un nom) → l'ID d'un nom actif de la liste; sinon rien. */
 function idListe(liste, v) {
@@ -2942,81 +3048,187 @@ function idListe(liste, v) {
   const x = LISTES[liste].find(y => y.id === v) || LISTES[liste].find(y => cleNom(y.nom) === cleNom(v));
   return x ? x.id : '';
 }
-/* Vert ou jaune : l'entonnoir, déjà rempli. (Le rouge ne passe pas par ici : un toucher, et c'est Jamais.) */
+/* « SERAIT-CE CELUI-CI ? » (J-C, 2026-10-02, choix A) : ce qui ressemble chez lui — un article trié Oui ou Peut-être dans une AUTRE
+   épicerie (IGA : avec son code), ou un produit déjà entré avec son code-barres. Le même genre d'abord; sinon la même marque (si
+   l'article en a une) et un mot du nom en commun — deux sans marque. 3 au plus. Rien d'automatique : J-C touche. */
+const MOTS_VIDES_TRI = ['les', 'des', 'une', 'aux', 'avec', 'pour', 'sans', 'choix', 'varie', 'variete', 'format', 'paquet', 'sac'];
+function motsTri(t) {
+  return String(t || '').normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase().replace(/œ/g, 'oe').replace(/[^a-z0-9]+/g, ' ').trim()
+    .split(' ').filter(m => m.length > 2 && MOTS_VIDES_TRI.indexOf(m) === -1).map(m => m.length > 3 ? m.replace(/(s|x)$/, '') : m);
+}
+var TRI_PROPS = [];                                  // les propositions affichées (« Serait-ce celui-ci ? »)
+function propositionsTri(x) {
+  const mots = motsTri(x.texte), marqueX = cleNom(nomListe(idListe('Marques', x.marque)) || x.marqueFlipp);
+  const proche = (texte, marque) => {
+    if (marqueX && cleNom(marque) && cleNom(marque) !== marqueX) return 0;
+    const n = motsTri(texte).filter((w, i, t) => t.indexOf(w) === i && mots.indexOf(w) !== -1 && cleNom(w) !== marqueX).length;
+    return n >= (marqueX ? 1 : 2) ? n : 0;
+  };
+  const props = [], vus = {};
+  TRI.tri.forEach(r => {                             // triés ailleurs (Oui, Peut-être), à un seul aliment
+    const rep = String(r[2]), pid = String(r[3] || '');
+    if ((rep !== 'O' && rep !== 'P') || !pid || pid.indexOf(',') !== -1 || String(r[13] || '') === x.magasin) return;
+    const score = String(r[11] || '') && String(r[11]) === String(x.genre) ? 99 : proche(r[9], nomListe(r[4]));
+    const code = String(r[6] || '').trim(), k = code ? formeCode(code) : 'r' + r[0];
+    if (!score || vus[k]) return;
+    vus[k] = 1;
+    props.push({ score: score, pid: pid, marque: String(r[4] || ''), saveur: String(r[5] || ''), code: code, format: String(r[12] || ''),
+                 ou: 'chez ' + nomListe(r[13]), nom: adoucir(r[9]), detail: [nomListe(r[4]), formatAffiche(r[12]), 'trié chez ' + nomListe(r[13])].filter(Boolean).join(' · ') });
+  });
+  STOCK.forEach(l => {                               // déjà entrés chez lui, avec leur code-barres (STOCK col. I)
+    const code = String(l[8] || '').trim(), p = code && PRODUITS.find(q => String(q.id) === String(l[1]));
+    if (!p || vus[formeCode(code)]) return;
+    const score = proche([p.nom, nomListe(l[5]), nomListe(l[9])].join(' '), nomListe(l[5]));
+    if (!score) return;
+    vus[formeCode(code)] = 1;
+    props.push({ score: score, pid: String(l[1]), marque: String(l[5] || ''), saveur: String(l[9] || ''), code: code, format: formatCle(l[6]),
+                 ou: 'chez toi', nom: [p.nom, nomListe(l[5]), nomListe(l[9])].filter(Boolean).join(' '), detail: [nomListe(l[5]), l[6], 'chez toi'].filter(Boolean).join(' · ') });
+  });
+  return props.sort((a, b) => b.score - a.score).slice(0, 3);
+}
+function htmlProposition(c, attr) {
+  return '<div class="item" ' + attr + '>' + (c.sansPhoto ? '' : photoTri(c.photo)) + '<div class="item-info"><div class="item-detail">' + esc(c.nom) + '</div>' +
+    (c.detail ? '<div class="' + (c.sansPhoto ? 'code-barres' : 'texte-petit texte-pale') + '">' + esc(c.detail) + '</div>' : '') + '</div></div>';
+}
+const ligneAucun = attr => '<div class="item" ' + attr + '><div class="item-info"><div class="texte-petit texte-pale">Aucun</div></div></div>';
+async function photoProposition(c, attr) {          // la photo d'Open Food Facts, si son code y est
+  if (!c.code || estPlu(c.code) || c.photo) return;
+  let d = null;
+  try { d = await produitDuCode(c.code); } catch (e) {}
+  const el = $('liste-tri').querySelector('[' + attr + '] .tri-photo-vide');
+  if (d && d.photo && el) el.outerHTML = photoTri(d.photo);
+}
+/* Vert ou jaune : « Serait-ce celui-ci ? » (un article sans code), puis l'entonnoir déjà rempli — un par aliment. (Le rouge ne passe
+   pas par ici : un toucher, et c'est Jamais.) */
 function etapeTri(rep) {
-  const p = $('liste-tri').querySelector('.tri-panneau'), x = p && articleTri(p.dataset.art);
+  const p = panneauTri(), x = p && articleTri(p.dataset.art);
   if (!x) return;
   p.dataset.etape = rep;                           // jamais « data-reponse » sur le panneau : tout toucher dedans le prendrait pour le feu
-  const choix = (champ, nom) => '<div class="bloc"><div class="label">' + nom + '</div><select class="champ" id="tri-' + champ + '"></select>' +
-    '<input class="champ bloc-suite" id="tri-' + champ + '-neuve" autocomplete="off" enterkeyhint="done" placeholder="' + CHOIX_FICHE[champ].neuve + '" hidden></div>';
-  p.innerHTML = '<div class="bloc"><div class="label">Catégorie</div><select class="champ" id="tri-cat"></select></div>' +
-    '<div class="bloc" id="tri-bloc-souscat" hidden><div class="label">Sous-catégorie</div><select class="champ" id="tri-souscat"></select></div>' +
-    '<div class="bloc" id="tri-bloc-aliment" hidden><div class="label">Aliment</div><select class="champ champ-fort" id="tri-aliment"></select>' +
-      '<input class="champ bloc-suite" id="tri-nom" autocomplete="off" enterkeyhint="done" placeholder="Nom du nouvel aliment" hidden></div>' +
-    '<div id="tri-bloc-sorte" hidden>' + choix('marque', 'Marque') + choix('saveur', 'Saveur') + '</div>' +
-    '<button class="bouton bouton-petit bouton-vert bouton-pleine" type="button" data-tri-ok>C\'est ça</button>' +
+  delete p.dataset.code;
+  TRI_PROPS = x.code ? [] : propositionsTri(x);
+  const prods = x.produits && x.produits.length ? x.produits : [[x.produitId, x.marque, x.saveur]];
+  const plusieurs = prods.length > 1 || /\sou\s|,/i.test(x.texte);   // « germes de haricot ou épinards » : « Un autre aliment »
+  p.innerHTML = (TRI_PROPS.length ? '<div class="bloc bloc-suite" id="tri-props"><div class="label label-fort">Serait-ce celui-ci ?</div><div class="liste-blanche">' +
+      TRI_PROPS.map((c, i) => htmlProposition(c, 'data-prop="' + i + '"')).join('') + '</div></div>' : '') +
+    '<div id="tri-entonnoirs">' + prods.map((q, i) => htmlEntonnoir(i)).join('') + '</div>' +
+    (plusieurs ? '<button class="bouton bouton-petit bouton-pleine" type="button" data-tri-autre>Un autre aliment</button>' : '') +
+    '<button class="bouton bouton-petit bouton-vert bouton-pleine' + (plusieurs ? ' bouton-suite' : '') + '" type="button" data-tri-ok>C\'est ça</button>' +
     '<div class="message message-repli message-erreur" id="tri-msg"></div>';
   // la proposition du coffre-fort — ou, pour corriger, ce qui avait été choisi
-  const prod = PRODUITS.find(q => String(q.id) === String(x.produitId)), scid = prod ? String(prod.catId) : '';
-  const rid = (scid && rayonDe(scid)) || (groupeTri(x.categorie) !== 'autres' ? String(x.categorie) : '');
-  $('tri-cat').innerHTML = options(RAYONS, '— Catégorie —');
-  $('tri-cat').value = rid;
-  triSurCat(scid, prod ? String(prod.id) : '', idListe('Marques', x.marque), idListe('Saveurs', x.saveur));
+  prods.forEach((q, i) => remplirEntonnoir(i, q[0], q[1], q[2], i === 0 ? x : null));
+  TRI_PROPS.forEach((c, i) => photoProposition(c, 'data-prop="' + i + '"'));
 }
-function triSurCat(scid, pid, marque, saveur) {
-  const rid = $('tri-cat').value;
-  $('tri-souscat').innerHTML = options(SOUSCATS[rid] || [], '— Sous-catégorie —');
-  $('tri-souscat').value = scid || '';
-  montrer('tri-bloc-souscat', !!rid);
-  triSurSousCat(pid, marque, saveur);
+function htmlEntonnoir(i) {
+  const choix = (champ, nom) => '<div class="bloc"><div class="label">' + nom + '</div><select class="champ" id="tri-' + champ + '-' + i + '" data-champ="' + champ + '" data-i="' + i + '"></select>' +
+    '<input class="champ bloc-suite" id="tri-' + champ + '-neuve-' + i + '" autocomplete="off" enterkeyhint="done" placeholder="' + CHOIX_FICHE[champ].neuve + '" hidden></div>';
+  return (i ? '<div class="label label-fort">' + (i + 1) + 'e aliment</div>' : '') +
+    '<div class="bloc"><div class="label">Catégorie</div><select class="champ" id="tri-cat-' + i + '" data-champ="cat" data-i="' + i + '"></select></div>' +
+    '<div class="bloc" id="tri-bloc-souscat-' + i + '" hidden><div class="label">Sous-catégorie</div><select class="champ" id="tri-souscat-' + i + '" data-champ="souscat" data-i="' + i + '"></select></div>' +
+    '<div class="bloc" id="tri-bloc-aliment-' + i + '" hidden><div class="label">Aliment</div><select class="champ champ-fort" id="tri-aliment-' + i + '" data-champ="aliment" data-i="' + i + '"></select>' +
+      '<input class="champ bloc-suite" id="tri-nom-' + i + '" autocomplete="off" enterkeyhint="done" placeholder="Nom du nouvel aliment" hidden></div>' +
+    '<div id="tri-bloc-sorte-' + i + '" hidden>' + choix('marque', 'Marque') + choix('saveur', 'Saveur') + '</div>';
 }
-function triSurSousCat(pid, marque, saveur) {
-  const scid = $('tri-souscat').value;
+/* Un entonnoir rempli : l'aliment (sa catégorie, sa sous-catégorie), sa marque, sa saveur. x : l'article (le 1er entonnoir) —
+   sans aliment proposé, la catégorie devinée par le coffre-fort. */
+function remplirEntonnoir(i, pid, marque, saveur, x) {
+  const prod = PRODUITS.find(q => String(q.id) === String(pid)), scid = prod ? String(prod.catId) : '';
+  const rid = (scid && rayonDe(scid)) || (x && groupeTri(x.categorie) !== 'autres' ? String(x.categorie) : '');
+  $('tri-cat-' + i).innerHTML = options(RAYONS, '— Catégorie —');
+  $('tri-cat-' + i).value = rid;
+  triSurCat(i, scid, prod ? String(prod.id) : '', idListe('Marques', marque), idListe('Saveurs', saveur));
+}
+function ajouterEntonnoir() {
+  const box = $('tri-entonnoirs');
+  if (!box) return;
+  const i = box.querySelectorAll('select[data-champ="cat"]').length;
+  box.insertAdjacentHTML('beforeend', htmlEntonnoir(i));
+  remplirEntonnoir(i, '', '', '', null);
+}
+function triSurCat(i, scid, pid, marque, saveur) {
+  const rid = $('tri-cat-' + i).value;
+  $('tri-souscat-' + i).innerHTML = options(SOUSCATS[rid] || [], '— Sous-catégorie —');
+  $('tri-souscat-' + i).value = scid || '';
+  montrer('tri-bloc-souscat-' + i, !!rid);
+  triSurSousCat(i, pid, marque, saveur);
+}
+function triSurSousCat(i, pid, marque, saveur) {
+  const scid = $('tri-souscat-' + i).value;
   const ps = PRODUITS.filter(p => String(p.catId) === String(scid)).sort((a, b) => String(a.nom).localeCompare(String(b.nom), 'fr'));
-  $('tri-aliment').innerHTML = options(ps, '— Aliment —') + '<option value="neuf">Nouvel aliment…</option>';
-  $('tri-aliment').value = pid || '';
-  montrer('tri-bloc-aliment', !!scid);
-  triSurAliment(marque, saveur);
+  $('tri-aliment-' + i).innerHTML = options(ps, '— Aliment —') + '<option value="neuf">Nouvel aliment…</option>';
+  $('tri-aliment-' + i).value = pid || '';
+  montrer('tri-bloc-aliment-' + i, !!scid);
+  triSurAliment(i, marque, saveur);
 }
 /* L'aliment choisi : ses marques et saveurs déjà vues (comme la fiche), plus celle de la circulaire, et « Nouvelle… ».
    Changer d'aliment garde la marque et la saveur choisies. */
-function triSurAliment(marque, saveur) {
-  const pid = $('tri-aliment').value, vr = (pid && VARIANTES[pid]) || {};
-  montrer('tri-nom', pid === 'neuf');
-  if (pid === 'neuf' && !$('tri-nom').value) $('tri-nom').focus();
-  montrer('tri-bloc-sorte', !!pid);
+function triSurAliment(i, marque, saveur) {
+  const pid = $('tri-aliment-' + i).value, vr = (pid && VARIANTES[pid]) || {};
+  montrer('tri-nom-' + i, pid === 'neuf');
+  if (pid === 'neuf' && !$('tri-nom-' + i).value) $('tri-nom-' + i).focus();
+  montrer('tri-bloc-sorte-' + i, !!pid);
   [['marque', marque], ['saveur', saveur]].forEach(([champ, garde]) => {
-    const el = $('tri-' + champ);
+    const el = $('tri-' + champ + '-' + i);
     if (!el) return;
     const v = garde !== undefined ? garde : el.value;
     el.innerHTML = optionsListe(champ, vr[champ + 's'], v === 'neuve' ? '' : v);
     el.value = v || '';
-    montrer('tri-' + champ + '-neuve', el.value === 'neuve');
+    montrer('tri-' + champ + '-neuve-' + i, el.value === 'neuve');
   });
 }
-/* « C'est ça » : tout est vérifié d'abord, puis ce qui est neuf naît (aliment, marque, saveur), puis la réponse. */
+/* Une proposition touchée : l'entonnoir prend ses infos — et son code s'il a le même format (J-C : « tout sauf le code » sinon).
+   La liste devient « Repris de » : on voit ce qui a été pris, même quand l'entonnoir avait déjà les mêmes valeurs. */
+function choisirProposition(i) {
+  const p = panneauTri(), x = p && articleTri(p.dataset.art), c = TRI_PROPS[i];
+  if (!x || !c) return;
+  remplirEntonnoir(0, c.pid, c.marque, c.saveur, x);
+  const meme = !!(c.code && c.format && x.format && c.format === x.format);
+  if (meme) p.dataset.code = c.code; else delete p.dataset.code;
+  const note = !c.code || meme ? '' : c.format && x.format ? 'Autre format (' + formatAffiche(c.format) + ' ' + c.ou + ') : tout est repris, sauf le code.'
+    : 'Format pas sûr : tout est repris, sauf le code.';
+  $('tri-props').innerHTML = '<div class="label label-fort">Repris de</div><div class="item-detail">' + esc(c.nom) + '</div>' +
+    (c.detail ? '<div class="texte-petit texte-pale">' + esc(c.detail) + '</div>' : '') + (note ? '<div class="item-detail bloc-suite">' + esc(note) + '</div>' : '');
+}
+/* L'aliment du 1er entonnoir change après « Repris de » : il ne vaut plus (son code non plus). */
+function oublierProposition() {
+  const p = panneauTri(), b = $('tri-props');
+  if (!p || !b || b.querySelector('[data-prop]')) return;          // rien de repris : la liste reste
+  delete p.dataset.code;
+  b.remove();
+}
+/* « C'est ça » : tout est vérifié d'abord, puis ce qui est neuf naît (aliment, marque, saveur). Avec un code (IGA, ou une proposition
+   du même format), ou plusieurs aliments : la réponse part. Sinon : l'étape du code. */
 function validerTri() {
-  const p = $('liste-tri').querySelector('.tri-panneau'), x = p && articleTri(p.dataset.art), rep = p && p.dataset.etape;
-  if (!x || !rep || !$('tri-aliment')) return;
+  const p = panneauTri(), x = p && articleTri(p.dataset.art), rep = p && p.dataset.etape;
+  if (!x || (rep !== 'O' && rep !== 'P') || !$('tri-aliment-0')) return;
   const msg = t => { $('tri-msg').textContent = t; };
-  const scid = $('tri-souscat').value, choix = $('tri-aliment').value, nom = $('tri-nom').value.trim();
-  if (!scid || !choix) { msg('Choisis la catégorie, la sous-catégorie et l\'aliment.'); return; }
-  if (choix === 'neuf' && !nom) { msg('Donne un nom au nouvel aliment.'); $('tri-nom').focus(); return; }
-  for (const champ of ['marque', 'saveur']) {
-    const el = $('tri-' + champ);
-    if (el && el.value === 'neuve' && !$('tri-' + champ + '-neuve').value.trim()) { msg('Donne un nom à la ' + (champ === 'marque' ? 'nouvelle marque.' : 'nouvelle saveur.')); $('tri-' + champ + '-neuve').focus(); return; }
+  const n = p.querySelectorAll('select[data-champ="cat"]').length, lus = [];
+  for (let i = 0; i < n; i++) {
+    if (i > 0 && !$('tri-cat-' + i).value) continue;            // un aliment de plus laissé vide : ignoré
+    const scid = $('tri-souscat-' + i).value, choix = $('tri-aliment-' + i).value, nom = $('tri-nom-' + i).value.trim();
+    if (!scid || !choix) { msg('Choisis la catégorie, la sous-catégorie et l\'aliment.'); return; }
+    if (choix === 'neuf' && !nom) { msg('Donne un nom au nouvel aliment.'); $('tri-nom-' + i).focus(); return; }
+    for (const champ of ['marque', 'saveur']) {
+      const el = $('tri-' + champ + '-' + i), nv = $('tri-' + champ + '-neuve-' + i);
+      if (el && el.value === 'neuve' && !nv.value.trim()) { msg('Donne un nom à la ' + (champ === 'marque' ? 'nouvelle marque.' : 'nouvelle saveur.')); nv.focus(); return; }
+    }
+    lus.push({ i: i, scid: scid, choix: choix, nom: nom });
   }
-  const deja = choix === 'neuf' && PRODUITS.find(q => cleNom(q.nom) === cleNom(nom));   // un nom qui existe déjà : repris, jamais doublé
-  const pid = choix !== 'neuf' ? choix : deja ? deja.id : creerAlimentInstant(nom, scid);
-  trier([x], rep, { produitId: pid, marque: choixListeTri('marque'), saveur: choixListeTri('saveur'),
-                    code: x.reponse && String(pid) === String(x.produitId) ? x.code : '' });   // corriger garde le code-barres du même aliment
+  const produits = lus.map(l => {
+    const deja = l.choix === 'neuf' && PRODUITS.find(q => cleNom(q.nom) === cleNom(l.nom));   // un nom qui existe déjà : repris, jamais doublé
+    const pid = l.choix !== 'neuf' ? l.choix : deja ? deja.id : creerAlimentInstant(l.nom, l.scid);
+    return { produitId: String(pid), marque: choixListeTri('marque', l.i), saveur: choixListeTri('saveur', l.i) };
+  }).filter((q, k, t) => t.findIndex(z => z.produitId === q.produitId) === k);           // le même aliment deux fois : une seule
+  // le code : celui de l'article (IGA : c'est lui, l'article); une correction garde celui du même aliment; sinon une proposition du même format
+  const code = x.code && (x.cle.indexOf(' ~ #') !== -1 || (produits.length === 1 && produits[0].produitId === String(x.produitId))) ? x.code : (p.dataset.code || '');
+  if (code || produits.length > 1) { trier([x], rep, { produits: produits, code: code }); return; }
+  etapeCode(x, rep, produits);
 }
 /* La marque ou la saveur choisie; « Nouvelle… » : retrouvée par son nom, sinon elle naît ici (ID de l'app) et part dans la file. */
-function choixListeTri(champ) {
-  const el = $('tri-' + champ);
+function choixListeTri(champ, i) {
+  const el = $('tri-' + champ + '-' + i);
   if (!el) return '';
   if (el.value !== 'neuve') return el.value;
-  const liste = CHOIX_FICHE[champ].liste, nom = $('tri-' + champ + '-neuve').value.trim();
+  const liste = CHOIX_FICHE[champ].liste, nom = $('tri-' + champ + '-neuve-' + i).value.trim();
   const x = LISTES[liste].find(y => cleNom(y.nom) === cleNom(nom));
   if (x) return x.id;
   const id = idLocal();
@@ -3024,40 +3236,110 @@ function choixListeTri(champ) {
   poserGeste({ action: 'creer', table: liste, opId: 'liste-' + id, ligne: [id, nom, 'O'] });   // Marques, Saveurs : ID · Nom · Actif
   return id;
 }
-/* La réponse, pour un ou plusieurs genres. INSTANTANÉE : l'article quitte sa barre tout de suite, l'envoi part dans la file. */
+/* L'ÉTAPE DU CODE (un article sans code, un seul aliment) : un fruit ou un légume → les PLU de la liste officielle qui ressemblent;
+   le reste → Open Food Facts (par le coffre-fort : le nom de l'aliment et sa marque). Les 4 plus proches, ou « Aucun ». Rien
+   trouvé : la réponse part sans code (il viendra au premier scan). */
+var TRI_CODE = null;                                 // l'étape en cours : { x, rep, produits, props }
+async function etapeCode(x, rep, produits) {
+  const p = panneauTri();
+  if (!p) return;
+  const q = produits[0], prod = PRODUITS.find(z => String(z.id) === String(q.produitId)), rid = prod ? rayonDe(prod.catId) : '';
+  const fruit = !!rid && cleNom((RAYONS.find(r => String(r.id) === String(rid)) || {}).nom).indexOf('legume') !== -1;
+  const t = TRI_CODE = { x: x, rep: rep, produits: produits, props: [] };
+  p.dataset.etape = 'code';
+  p.innerHTML = '<div class="bloc bloc-suite"><div class="item-nom">' + esc([prod ? prod.nom : '', nomListe(q.marque), nomListe(q.saveur)].filter(Boolean).join(' · ')) + '</div></div>' +
+    '<div class="label label-fort">' + (fruit ? 'Quel PLU ?' : 'Lequel est-ce ?') + '</div>' +
+    '<div class="liste-blanche" id="tri-codes"><div class="item"><div class="item-info"><div class="texte-petit texte-pale">Recherche…</div></div></div></div>';
+  let props = [];
+  try { props = fruit ? await pluProches(x, prod) : await offProches(x, prod, q); } catch (e) {}
+  if (TRI_CODE !== t || panneauTri() !== p) return;  // parti ailleurs entre-temps
+  if (!props.length) { TRI_CODE = null; trier([x], rep, { produits: produits, code: '' }); avis('Rien trouvé : le code viendra au premier scan'); return; }
+  t.props = props;
+  $('tri-codes').innerHTML = props.map((c, i) => htmlProposition(c, 'data-code-i="' + i + '"')).join('') +
+    ligneAucun('data-code-i="-1"');
+}
+function choisirCode(i) {
+  const t = TRI_CODE;
+  if (!t) return;
+  const c = i >= 0 ? t.props[i] : null;
+  TRI_CODE = null;
+  trier([t.x], t.rep, { produits: t.produits, code: c ? c.code : '' });
+}
+/* Les PLU qui ressemblent : le produit (le 1er mot du nom officiel, « pommes ») dans l'aliment ou l'article, puis le plus de mots
+   en commun (« McIntosh »); à égalité, les codes de tous les jours (4000 à 4999) avant les variétés plus rares (3000 à 3999), puis
+   le plus petit (4011, la banane ordinaire). « bio » dans l'article : le 9 devant. */
+async function pluProches(x, prod) {
+  await chargerPlu();
+  if (!PLU) return [];
+  const mots = motsTri((prod ? prod.nom : '') + ' ' + x.texte + ' ' + (x.description || '')), bio = /\bbio/i.test(x.texte);
+  const res = [];
+  Object.keys(PLU).forEach(code => {
+    const m = motsTri(PLU[code]);
+    if (!m.length || mots.indexOf(m[0]) === -1) return;
+    res.push({ code: bio ? '9' + code : code, nom: PLU[code] + (bio ? ', biologique' : ''), score: m.filter(w => mots.indexOf(w) !== -1).length, n: Number(code) });
+  });
+  const rare = r => r.n < 4000 || r.n > 4999 ? 1 : 0;
+  return res.sort((a, b) => b.score - a.score || rare(a) - rare(b) || a.n - b.n).slice(0, 4)
+    .map(r => ({ code: r.code, nom: r.nom, detail: 'PLU ' + r.code, sansPhoto: true }));
+}
+/* Open Food Facts, par le coffre-fort : le nom de l'aliment (+ sa saveur) et sa marque; le texte de la circulaire en rechange.
+   Le même code deux fois (« 5926301001 » et « 0005926301001 ») : une seule ligne. Le même format que l'article d'abord. */
+async function offProches(x, prod, q) {
+  const r = await Coffre.chercherOFF({ mots: [prod ? prod.nom : '', nomListe(q.saveur)].filter(Boolean).join(' '), rechange: adoucir(x.texte),
+                                       marque: nomListe(q.marque) || adoucir(x.marqueFlipp) });
+  if (!r || !r.ok) return [];
+  const vus = {}, out = [];
+  (r.produits || []).forEach(h => {
+    const code = formeCode(h.code), k = code.replace(/^0+/, '');
+    if (!code || vus[k]) return;
+    vus[k] = 1;
+    out.push({ code: code, nom: adoucir(h.nom || h.marque || code), detail: [h.marque, h.format].filter(Boolean).join(' · '), photo: h.photo || '',
+               meme: !!(x.format && formatCle(h.format) === x.format) });
+  });
+  return out.sort((a, b) => (b.meme ? 1 : 0) - (a.meme ? 1 : 0)).slice(0, 4);
+}
+/* La réponse, pour un ou plusieurs articles. INSTANTANÉE : l'article quitte sa barre tout de suite, l'envoi part dans la file. */
 function trier(xs, rep, quoi) {
   quoi = quoi || {};
   const avec = rep === 'O' || rep === 'P';
-  const e = { action: 'trier', opId: 'tri-' + idLocal(), cles: xs.map(x => String(x.cle)), reponse: rep,
-              produitId: rep === 'J' ? '' : String(quoi.produitId || ''), marque: rep === 'J' ? '' : String(quoi.marque || ''),
-              saveur: avec ? String(quoi.saveur || '') : '', code: avec ? String(quoi.code || '') : '', qui: localStorage.getItem(QUI) || '',
-              neufs: xs.filter(x => TRI.aTrier.some(y => String(y.cle) === String(x.cle))).length };   // ce qui quitte « À trier » (le point rouge)
-  poserGeste(e);
+  const produits = avec ? (quoi.produits || []).map(q => ({ produitId: String(q.produitId || ''), marque: String(q.marque || ''), saveur: String(q.saveur || '') })) : [];
+  const e = { action: 'trier', opId: 'tri-' + idLocal(), cles: xs.map(x => String(x.cle)), reponse: rep, produits: produits,
+              code: avec ? String(quoi.code || '') : '', qui: localStorage.getItem(QUI) || '' };
+  const avant = TRI.aTrier.length;
   appliquerTri(e, TRI);
+  e.neufs = avant - TRI.aTrier.length;               // ce qui quitte « À trier » — un Jamais : aussi le même genre ailleurs (le point rouge)
+  poserGeste(e);
   noterNbATrier(TRI.aTrier.length);
   remplirTri();
 }
-/* Pose une réponse sur la page (à l'écran, ou sur une relecture tant qu'elle n'est pas confirmée). Une seule réponse par genre :
-   la nouvelle remplace l'ancienne (c'est la correction). */
+/* Pose une réponse sur la page (à l'écran, ou sur une relecture tant qu'elle n'est pas confirmée). Une seule réponse par article :
+   la nouvelle remplace l'ancienne (c'est la correction). Un Jamais retire aussi le même genre des autres épiceries. */
 function appliquerTri(e, T) {
   if (!T) return;
+  const prods = e.produits && e.produits.length ? e.produits : (e.produitId ? [{ produitId: e.produitId, marque: e.marque, saveur: e.saveur }] : []);
+  const pids = prods.map(q => q.produitId).join(','), mqs = prods.map(q => q.marque || '').join(','), svs = prods.map(q => q.saveur || '').join(',');
+  const prod = prods[0] && PRODUITS.find(p => String(p.id) === String(prods[0].produitId)), jamais = [];
   (e.cles || []).forEach(cle => {
     cle = String(cle);
     const a = T.aTrier.find(y => String(y.cle) === cle), vieille = T.tri.find(r => String(r[1]) === cle);
-    if (!a && !vieille) return;                        // un genre qu'on ne connaît plus : rien à montrer
-    const prod = PRODUITS.find(p => String(p.id) === String(e.produitId));
-    const cat = (prod && rayonDe(prod.catId)) || (a ? String(a.categorie || '') : String(vieille[10] || ''));
+    if (!a && !vieille) return;                        // un article qu'on ne connaît plus : rien à montrer
+    const de = (k, col) => a ? String(a[k] || '') : String(vieille[col] || '');
+    const cat = (prod && rayonDe(prod.catId)) || de('categorie', 10), genre = de('genre', 11);
+    if (e.reponse === 'J' && genre) jamais.push(genre);
     T.aTrier = T.aTrier.filter(y => String(y.cle) !== cle);
     T.tri = T.tri.filter(r => String(r[1]) !== cle);
-    // Tri : ID · Cle · Reponse · ProduitID · Marque · Saveur · CodeBarres · Date · Qui · Texte · Categorie
-    T.tri.push([vieille ? vieille[0] : e.opId + '-' + cle, cle, e.reponse, e.produitId || '', e.marque || '', e.saveur || '', e.code || '',
-                dateDuJour(), e.qui || '', a ? a.texte : String(vieille[9] || cle), cat]);
+    // Tri : ID · Cle · Reponse · ProduitID · Marque · Saveur · CodeBarres · Date · Qui · Texte · Categorie · Genre · Format · Magasin
+    T.tri.push([vieille ? vieille[0] : e.opId + '-' + cle, cle, e.reponse, pids, mqs, svs, e.code || '', dateDuJour(), e.qui || '',
+                a ? a.texte : String(vieille[9] || cle), cat, genre, de('format', 12), de('magasin', 13)]);
   });
+  if (jamais.length) T.aTrier = T.aTrier.filter(y => jamais.indexOf(String(y.genre || '')) === -1);   // un Jamais vaut dans toutes les épiceries
 }
-/* « Tout ce qui est ici aujourd'hui » : la question d'abord, à la place de la ligne (une catégorie entière, ça ne se touche pas par erreur). */
+/* « Tout ce qui est ici aujourd'hui » (une épicerie, une catégorie : « IGA¦<catégorie> ») : la question d'abord, à la place de la
+   ligne (une catégorie entière, ça ne se touche pas par erreur). */
+const dansGroupeTri = (x, k) => x.magasin + '¦' + groupeTri(x.categorie) === k;
 function demanderToutJamais(k) {
   fermerArticleTri();
-  const n = TRI.aTrier.filter(x => groupeTri(x.categorie) === k).length, b = $('liste-tri').querySelector('[data-tout="' + esc(k) + '"]');
+  const n = TRI.aTrier.filter(x => dansGroupeTri(x, k)).length, b = $('liste-tri').querySelector('[data-tout="' + selVal(k) + '"]');
   if (!n || !b) return;
   b.closest('.tri-tout').outerHTML = '<div class="accordeon-item accordeon-item-saisie" data-confirme><span>' +
     (n === 1 ? 'Jamais pour cet article ?' : 'Jamais pour ces ' + n + ' articles ?') + '</span>' +
@@ -3065,7 +3347,7 @@ function demanderToutJamais(k) {
     '<button class="bouton bouton-petit" type="button" data-tout-non>Non</button></div>';
 }
 function toutJamais(k) {
-  const xs = TRI.aTrier.filter(x => groupeTri(x.categorie) === k);
+  const xs = TRI.aTrier.filter(x => dansGroupeTri(x, k));
   if (!xs.length) { remplirTri(); return; }
   trier(xs, 'J');                                  // un seul envoi pour toute la catégorie
   avis('Jamais : ' + xs.length + (xs.length > 1 ? ' articles' : ' article'), 'succes');
@@ -3735,6 +4017,11 @@ function initEntree() {
     const f = ev.target.closest('.feu [data-reponse]');    // le feu : vert ou jaune → l'entonnoir; rouge → Jamais, tout de suite
     if (f) { const x = articleOuvert(); if (f.dataset.reponse !== 'J') etapeTri(f.dataset.reponse); else if (x) trier([x], 'J'); return; }
     if (ev.target.closest('[data-tri-ok]')) { validerTri(); return; }
+    const pr = ev.target.closest('[data-prop]');           // « Serait-ce celui-ci ? » : l'entonnoir prend ses infos
+    if (pr) { choisirProposition(Number(pr.dataset.prop)); return; }
+    const ci = ev.target.closest('[data-code-i]');         // le code : une proposition d'Open Food Facts, un PLU, ou « Aucun »
+    if (ci) { choisirCode(Number(ci.dataset.codeI)); return; }
+    if (ev.target.closest('[data-tri-autre]')) { ajouterEntonnoir(); return; }   // une ligne à plusieurs produits
     const to = ev.target.closest('[data-tout-oui]');       // « Jamais pour ces 12 articles ? » Oui
     if (to) { toutJamais(to.dataset.toutOui); return; }
     if (ev.target.closest('[data-tout-non]')) { remplirTri(); return; }
@@ -3746,14 +4033,17 @@ function initEntree() {
     const tete = ev.target.closest('.accordeon-tete');
     if (tete) { fermerArticleTri(); toggleAccordeon(tete); }
   });
-  $('liste-tri').addEventListener('change', function (ev) {   // l'entonnoir d'un article ouvert
-    const id = ev.target.id;
-    if (id === 'tri-cat') triSurCat('');
-    else if (id === 'tri-souscat') triSurSousCat('');
-    else if (id === 'tri-aliment') triSurAliment();
-    else if (id === 'tri-marque' || id === 'tri-saveur') {
-      montrer(id + '-neuve', ev.target.value === 'neuve');
-      if (ev.target.value === 'neuve') $(id + '-neuve').focus();
+  $('liste-tri').addEventListener('change', function (ev) {   // un entonnoir d'un article ouvert (data-i : lequel)
+    const champ = ev.target.dataset.champ, i = Number(ev.target.dataset.i);
+    if (!champ) return;
+    if (i === 0 && (champ === 'cat' || champ === 'souscat' || champ === 'aliment')) oublierProposition();   // un autre aliment : la proposition ne vaut plus
+    if (champ === 'cat') triSurCat(i, '');
+    else if (champ === 'souscat') triSurSousCat(i, '');
+    else if (champ === 'aliment') triSurAliment(i);
+    else if (champ === 'marque' || champ === 'saveur') {
+      const nv = $('tri-' + champ + '-neuve-' + i);
+      montrer(nv.id, ev.target.value === 'neuve');
+      if (ev.target.value === 'neuve') nv.focus();
     }
   });
   $('liste-tri').addEventListener('keydown', e => {          // Entrée dans un nom neuf = « C'est ça »
