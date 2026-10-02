@@ -315,6 +315,13 @@ bâtie trop vite, sur un aperçu de 3 aliments. J-C : « Faut réfléchir avant 
   de J-C (« dans le champ code-barres? ») — proposé par Claude : oui, le même champ (STOCK col. I). ⚠️ À savoir : sur
   l'essai, deux « PLU » d'IGA ne sont pas des PLU officiels (54553 SweeTango, 20894 mangues : 5 chiffres sans le 9 du
   bio) — des codes propres à IGA.
+  **LE TRI PAR ÉPICERIE (J-C, 2 octobre : « il faudra que le tri se fasse par épicerie pour être efficace »)** : **IGA
+  d'abord** (ses codes), ensuite Super C et Metro. Ça règle aussi un défaut trouvé dans `lireTri` le même jour : une
+  ligne réunit un genre de tous les magasins et prend le code **du seul article qui lui donne son nom** — si ce nom vient
+  de Metro, le code d'IGA se perd. **Pas d'association automatique d'une épicerie à l'autre** (J-C : « si le produit
+  Metro est le même que IGA, je dois lui dire : prends les infos du IGA ») — donc le genre ne réunit plus les magasins;
+  le lien entre un article de Metro et celui d'IGA, c'est J-C qui le fait. Proposé par Claude, pas encore répondu : un
+  étage de plus dans « À trier » (IGA, Super C, Metro, puis ses catégories).
 
 **L'IDÉE DES PRIX DE J-C (1er octobre)** — « Fallait régler le code-barres avant » (fait ci-dessus). « Si le code-barres
 se retrouve dans la circulaire de la semaine avec le nom du magasin, le prix payé pourrait être ma première référence, au
