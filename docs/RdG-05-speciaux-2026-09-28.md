@@ -503,9 +503,10 @@ les 1 016 articles : **10 % en « Autres »** (repas prêts, pizza, quenelles, p
 Les erreurs se corrigent au tri (l'entonnoir). **Il n'y a donc PAS d'onglet Sections, ni de « sections sous chaque
 catégorie » dans Gérer les bases → Catégories** (ce qui était prévu tombe).
 
-**Le genre d'article (`Cle`) : gardé tel quel** (les deux premiers mots) — sur l'essai, 96 genres se retrouvent déjà
-chez plusieurs magasins (une seule ligne à trier). Une clé plus fine reste possible : à proposer à J-C à l'usage, pas
-avant (les réponses sont rangées par cette clé). Corrigé en passant : « bœuf » se coupait en « b uf » (le « œ »).
+**Le genre d'article (`Cle`) : changé le 2 octobre** (J-C : « la marque, si elle est clairement inscrite, sinon je vais devoir
+corriger chaque fois ») — les deux premiers mots du nom **sans la marque** + la marque quand elle est écrite (une de SES
+marques reconnue, sinon celle de Flipp) : « Crème glacée Chagnon » et « Crème glacée Coaticook » ne sont plus une seule ligne.
+Avant : les deux premiers mots seuls (28 genres sur 737 mêlaient des marques). Sur l'essai : 845 lignes à trier au lieu de 737. Corrigé en passant : « bœuf » se coupait en « b uf » (le « œ »).
 
 **Ce que l'app reçoit — pour la conversation du nuage :**
 - `references` (à chaque ouverture) :

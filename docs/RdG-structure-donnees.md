@@ -176,7 +176,7 @@ FlippId — remplacé à la 1re lecture nouvelle.)*
 | J | Debut | premier jour de l'offre |
 | K | Fin | dernier jour |
 | L | Categorie | **sa catégorie racine** (ID dans CATEGORIES), devinée d'après les mots de l'article — Flipp ne donne pas de rayon. Vide = « Autres » |
-| M | Cle | le genre d'article : les deux premiers mots (« lait chocolat »). Un « Jamais » vise ce genre |
+| M | Cle | le genre d'article, c'est lui qu'on trie : les deux premiers mots du nom **sans la marque**, + « \| » + la marque quand elle est écrite (une de MARQUES reconnue, sinon celle de Flipp) — « creme glacee \| coaticook »; sans marque : « lait chocolat » (J-C, 2026-10-02). La semaine lue le 2026-10-01 a encore l'ancienne clé (les deux premiers mots) : le coffre-fort la recalcule à la lecture |
 | N | Marque | la marque telle que Flipp la donne (souvent vide; le texte la contient d'habitude) |
 | O | CodeBarres | **IGA seulement** : le code-barres tiré de son « sku » (UPC, ou code PLU d'un fruit/légume) — celui d'UN produit de l'offre. En texte |
 | P | DateLecture | le jeudi de la lecture |
@@ -194,7 +194,7 @@ nouvelle réponse réécrit la ligne (c'est aussi la correction). Écrit par l'a
 | Col | Nom | Sens |
 |-----|-----|------|
 | A | ID | date/heure de création |
-| B | Cle | le genre d'article (col. M de SPECIAUX) |
+| B | Cle | le genre d'article (col. M de SPECIAUX). Une réponse d'avant le 2026-10-02 (ancienne clé, sans « \| ») suit l'article de la semaine qui porte son nom (col. J) et prend la nouvelle clé à sa 1re correction |
 | C | Reponse | O = Oui · P = Peut-être · J = Jamais (ce genre, pour l'instant) · (M = Jamais cette marque : plus envoyé ni accepté depuis le 2026-10-02; une vieille ligne M compte comme trié) |
 | D | ProduitID | l'aliment (Oui, Peut-être); vide pour J |
 | E | Marque | ID dans MARQUES (Oui, Peut-être) |
