@@ -46,11 +46,14 @@
     }
     try {
       stream = await navigator.mediaDevices.getUserMedia({
-        video: { facingMode: { ideal: 'environment' } }, audio: false
+        // une image fine (1080p) : le code se lit de plus loin, là où la caméra fait le point (J-C, 2026-10-02 : « c'est moi qui dois
+        // bouger mon iPhone pour zoomer » — sans taille demandée, Safari donne ~640 px : il fallait coller le code, trop près pour le point)
+        video: { facingMode: { ideal: 'environment' }, width: { ideal: 1920 }, height: { ideal: 1080 } }, audio: false
       });
     } catch (e) {
       msg('Caméra refusée ou indisponible. Autorise la caméra, puis reviens.'); return;
     }
+    await reglerCamera(stream.getVideoTracks()[0]);
     video.srcObject = stream;
     video.setAttribute('playsinline', '');
     try { await video.play(); } catch (e) {}
@@ -61,13 +64,29 @@
     boucle();
   }
 
-  /* Boucle douce (~5 lectures/s) : moins gourmande que chaque image. */
+  /* Si l'appareil le permet : la mise au point continue, et un zoom 2× (le code paraît grand, le téléphone reste à bonne distance).
+     Rien d'obligatoire : un appareil qui ne connaît pas ces réglages scanne comme avant. */
+  var ZOOM = 2;
+  async function reglerCamera(piste) {
+    if (!piste || typeof piste.getCapabilities !== 'function') return;
+    try {
+      var cap = piste.getCapabilities() || {}, voulu = {};
+      if (cap.focusMode && cap.focusMode.indexOf('continuous') !== -1) voulu.focusMode = 'continuous';
+      if (cap.zoom && cap.zoom.max >= ZOOM) voulu.zoom = Math.max(cap.zoom.min || 1, ZOOM);
+      if (Object.keys(voulu).length) await piste.applyConstraints({ advanced: [voulu] });
+    } catch (e) { /* réglage refusé : on garde l'image telle quelle */ }
+  }
+
+  /* Boucle douce (~5 lectures/s) : moins gourmande que chaque image. On lit le CENTRE de l'image (70 % × 60 %), là où l'on vise :
+     l'image 1080p reste rapide à lire. */
+  var CENTRE_L = 0.7, CENTRE_H = 0.6;
   async function boucle() {
     if (!scanning) return;
     try {
       if (video && video.readyState >= 2 && video.videoWidth) {
-        canvas.width = video.videoWidth; canvas.height = video.videoHeight;
-        ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+        var vw = video.videoWidth, vh = video.videoHeight, sw = Math.round(vw * CENTRE_L), sh = Math.round(vh * CENTRE_H);
+        canvas.width = sw; canvas.height = sh;
+        ctx.drawImage(video, Math.round((vw - sw) / 2), Math.round((vh - sh) / 2), sw, sh, 0, 0, sw, sh);
         var img = ctx.getImageData(0, 0, canvas.width, canvas.height);
         var res = await readBarcodes(img, { tryHarder: true, maxNumberOfSymbols: 1 });
         if (res && res.length && res[0].text) { trouve(res[0].text); return; }
