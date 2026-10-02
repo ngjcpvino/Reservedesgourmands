@@ -370,6 +370,12 @@ bâtie trop vite, sur un aperçu de 3 aliments. J-C : « Faut réfléchir avant 
   10 produits) → `JS/plu.json`, 1 546 codes, lue à la demande. Essai à blanc : 26 vérifications sur le coffre-fort (vraies
   circulaires de la semaine), 30 dans l'app (un faux navigateur qui touche comme J-C). **Prix à savoir : ~1 040 lignes à trier la
   1re semaine** (IGA 425, Metro 385, Super C 234) au lieu de 845 — une ligne par épicerie et par code; ça fond de semaine en semaine.
+  **DÉJÀ ENTRÉ = OUI TOUT SEUL (J-C, 2 octobre, revenu d'IGA : « si j'entre ces items par le code-barres, j'aurai pas besoin de les
+  associer ? » — choix A : « donc ma liste va diminuer tout seul »)** : un article de la semaine dont le code (IGA : code-barres ou
+  PLU) a déjà été entré (STOCK col. I, comparé sans les 0 de tête) passe **Oui** tout seul, relié à l'aliment, la marque et la saveur
+  de l'entrée; il quitte « À trier » et paraît dans la barre Oui (corrigeable). Calculé à la lecture (`codesEntres`, `triAuto` dans
+  `api.gs`), jamais écrit dans Tri : une correction écrit la vraie ligne, qui l'emporte; un Jamais du genre l'emporte aussi; un
+  produit « Pas aimé » ne passe pas Oui tout seul (il revient à trier). (B, rester à trier avec l'entonnoir rempli : rejeté.)
 
 **L'IDÉE DES PRIX DE J-C (1er octobre)** — « Fallait régler le code-barres avant » (fait ci-dessus). « Si le code-barres
 se retrouve dans la circulaire de la semaine avec le nom du magasin, le prix payé pourrait être ma première référence, au

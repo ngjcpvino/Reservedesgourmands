@@ -208,6 +208,10 @@ ligne (c'est aussi la correction). Écrit par l'action `trier`.*
 | M | Format | les quantités de la description (« 2 l », « 12x200 ml »), pour comparer : le code d'un article relié ne suit que le même format |
 | N | Magasin | l'épicerie de l'article (ID dans MAGASINS) |
 
+*Pas dans l'onglet, mais lus comme des Oui (2026-10-02) : un article de la semaine dont le code a déjà été **entré** (STOCK col. I)
+est trié Oui tout seul, relié à l'entrée — `lireTri` le renvoie avec les réponses (ID « auto-… », Qui « entré »). Une correction
+écrit la vraie ligne, qui l'emporte.*
+
 ### CORRESPONDANCES — les anciennes réponses Oui / Non (2026-09-29, remplacé par TRI le 2026-10-01)
 *Plus écrit ni lu (ses Oui sont passés dans TRI le 2026-10-01; `repondreSpecial` retiré le 2026-10-02). Peut être effacé du Sheet à la main.*
 
