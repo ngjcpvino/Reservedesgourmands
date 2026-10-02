@@ -342,7 +342,9 @@ bâtie trop vite, sur un aperçu de 3 aliments. J-C : « Faut réfléchir avant 
   vert, l'app offre les PLU de la liste officielle d'après le nom, J-C choisit le bon (J-C : « oui ») — le même geste
   qu'Open Food Facts pour l'emballé. **Chez IGA, un même nom porte parfois plusieurs codes** : 39 noms sur 361, 83 lignes
   (« Farine Compliments » ×3, « Épices Club House » ×3, « Couronne de brocoli, carottes ou tomates » ×3) — le nom seul ne
-  dit pas lequel est lequel. En question.
+  dit pas lequel est lequel. **Trois codes, trois lignes** (choix A de J-C, « ouin… je dirais 3 codes, 3 lignes ») : en
+  touchant l'une, l'app montre le vrai produit derrière son code (photo, nom, format — Open Food Facts, ou la liste des
+  PLU). (B, une ligne qui s'ouvre sur ses produits, recommandé par Claude : rejeté.)
 
 **L'IDÉE DES PRIX DE J-C (1er octobre)** — « Fallait régler le code-barres avant » (fait ci-dessus). « Si le code-barres
 se retrouve dans la circulaire de la semaine avec le nom du magasin, le prix payé pourrait être ma première référence, au
