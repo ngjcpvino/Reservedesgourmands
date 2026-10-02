@@ -261,6 +261,15 @@
       <select class="champ champ-fort" id="produit"></select>
     </div>
 
+    <!-- Un fruit, un légume (à la main) : son PLU — la liste officielle propose, ou on tape les chiffres de l'étiquette.
+         Il va dans la même colonne que le code-barres (STOCK col. I), comme IGA le fait. -->
+    <div class="bloc" id="bloc-plu" hidden>
+      <div class="label">PLU</div>
+      <select class="champ" id="plu"></select>
+      <input class="champ bloc-suite" id="plu-tape" type="text" inputmode="numeric" autocomplete="off" placeholder="Les chiffres de l'étiquette" hidden>
+      <div class="message message-repli" id="plu-nom"></div>
+    </div>
+
     <!-- Un nom qui ressemble à un produit déjà là : on propose, on ne devine pas -->
     <div class="bloc" id="bloc-doublons" hidden>
       <div class="label label-fort">Serait-ce plutôt celui-ci ?</div>
@@ -449,7 +458,7 @@
 </div><!-- fin du conteneur -->
 
 <script src="JS/coffre.js?v=12"></script>
-<script src="JS/entree.js?v=143"></script>
+<script src="JS/entree.js?v=144"></script>
 <script src="JS/essai.js?v=1"></script>
 <script src="JS/scan.js?v=10"></script>
 </body>
