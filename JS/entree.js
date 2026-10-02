@@ -2588,13 +2588,13 @@ function idLocal() {
    · « pour réserve » : l'aliment a au moins 2 endroits habituels, et tout ce qui reste est à l'emplacement 1 (la réserve est vide).
    Un « Pas aimé » à zéro : la ligne dit seulement l'aliment — s'il n'en reste plus du tout, et si aucune autre sorte n'y est déjà.
    Ce qui S'ÉCRIT (onglet Achats, ID donné ici, jamais effacé : Actif = N) : « coche » (dans le panier), « main » (ajouté à la main,
-   l'aliment seul), « plustard » (la poubelle d'un aliment venu tout seul : il ne revient qu'au prochain passage à zéro).
+   l'aliment seul), « plustard » (la flèche « mettre de côté » — la poubelle avant le 2026-10-02 : il attend dans « Mis de côté »).
    Une ENTRÉE nettoie tout ça (nettoyerAchats) : l'aliment quitte la liste quand on l'entre, jamais quand on le coche. */
 const cleAchat = (pid, m, s) => [pid, m, s].map(v => String(v == null ? '' : v).trim()).join('|');
 const achatActif = r => String(r[7]) !== 'N';
 const ligneAchat = (pid, m, s, etat) => [idLocal(), String(pid), m || '', s || '', etat, dateDuJour(), localStorage.getItem(QUI) || '', 'O'];
 /* Ce qui est sur la liste : [{ cle, pid, marque, saveur, auto: '' | 'zero' | 'pas', main, coche }].
-   cote : ce que la poubelle a mis de côté (« plustard ») et qui manquerait encore — le groupe « Mis de côté » (J-C, 2026-10-01, choix C). */
+   cote : ce que la flèche a mis de côté (« plustard ») — le groupe « Mis de côté » (J-C, 2026-10-01, choix C). */
 function lignesAchats(cote) {
   const actifs = ACHATS.filter(achatActif);
   const a = (k, etat) => actifs.some(r => r[4] === etat && cleAchat(r[1], r[2], r[3]) === k);
@@ -2609,7 +2609,7 @@ function lignesAchats(cote) {
   });
   const items = {}, ecartes = {}, pasAimes = {};
   const mettre = (pid, m, sv, quoi) => {
-    const k = cleAchat(pid, m, sv), ou = quoi !== 'main' && a(k, 'plustard') ? ecartes : items;
+    const k = cleAchat(pid, m, sv), ou = a(k, 'plustard') ? ecartes : items;   // mis de côté (venu tout seul ou ajouté à la main)
     const it = ou[k] = ou[k] || { cle: k, pid: String(pid), marque: m, saveur: sv, auto: '', main: false };
     if (quoi === 'main') it.main = true; else it.auto = quoi;
   };
@@ -2638,9 +2638,11 @@ function lignesAchats(cote) {
    « Sans catégorie » au bout (brune). Puis « Mis de côté » (sans compteur : J-C) : ce que la poubelle a écarté, chacun avec
    la flèche « revenir » (J-C, 2026-10-01 : une poubelle touchée par erreur se répare).
    TOUT FERMÉ à l'ouverture de la page (J-C, 2026-10-01 : « une vraie épicerie, je vais trop scroller »), une barre ouverte à la fois.
-   Les soldes (J-C, 2026-10-01) : sous chaque aliment, partout (catégories, « Mis de côté »), et un groupe « En circulaire » EN TÊTE
-   (le mot de J-C, plus parlant que « en solde ») qui reprend, par aliment, ceux de la liste qui sont en circulaire (ils restent aussi dans leur catégorie).
-   ouvrir : le groupe à ouvrir (data-groupe : l'ID de la catégorie, 'sans' ou 'cote'); sinon celui qui l'était reste ouvert. */
+   Les soldes (J-C, 2026-10-01) : sous chaque aliment, partout (catégories, « Mis de côté »). Et AU BAS, la barre « En circulaire »
+   (le mot de J-C, plus parlant que « en solde ») = « Il y a aussi ceci » SEULEMENT (J-C, 2026-10-01; bâti le 2026-10-02) : les aliments
+   triés Oui en solde cette semaine qui ne sont NI sur la liste NI mis de côté — ceux de la liste ne s'y répètent plus. La flèche
+   l'ajoute à la liste, dans sa catégorie (comme « revenir » dans « Mis de côté »).
+   ouvrir : le groupe à ouvrir (data-groupe : l'ID de la catégorie, 'sans', 'cote' ou 'solde'); sinon celui qui l'était reste ouvert. */
 function remplirAchats(ouvrir) {
   const cible = $('liste-achats');
   const ouverte = cible.querySelector(':scope > .accordeon > .accordeon-tete.ouvert');   // on coche l'un après l'autre : elle reste ouverte
@@ -2653,19 +2655,22 @@ function remplirAchats(ouvrir) {
   const ligne = (it, sorte) => {
     const nom = sorte ? (detail(it) || nomDe(it.pid)) : nomDe(it.pid);
     const d = [!sorte ? detail(it) : '', it.auto === 'pas' && !it.main ? '(pour réserve)' : ''].filter(Boolean).join(' ');
+    // en haut à droite, côte à côte (J-C, 2026-10-02, choix C sur aperçu) : la flèche « mettre de côté » (celle de « revenir »,
+    // inversée — plus de poubelle), puis la case « dans le panier »; l'aliment et la case alignés par le haut
     return '<div class="item achat' + (sorte ? ' item-sorte' : '') + (it.coche ? ' achat-coche' : '') + '" data-achat="' + esc(it.cle) + '">' +
-      '<input class="case" type="checkbox" tabindex="-1"' + (it.coche ? ' checked' : '') + '>' +
-      '<div class="item-info"><div class="item-nom">' + esc(nom) + '</div>' + (d ? '<div class="item-detail">' + esc(d) + '</div>' : '') +
-      (sorte ? '' : htmlSoldes(it.pid)) + '</div>' +
-      '<button class="retirer" type="button" data-achat-retirer="' + esc(it.cle) + '" aria-label="Enlever de la liste"></button></div>';
+      '<div class="item-info"><div class="item-nom">' + esc(nom) + '</div>' + (d ? '<div class="item-detail">' + esc(d) + '</div>' : '') + '</div>' +
+      '<div class="achat-boutons"><button class="remettre ecarter" type="button" data-achat-cote="' + esc(it.cle) + '" aria-label="Mettre de côté"></button>' +
+      '<input class="case" type="checkbox" tabindex="-1"' + (it.coche ? ' checked' : '') + '></div>' + (sorte ? '' : soldesSous(it.pid)) + '</div>';
   };
+  // les soldes d'un aliment : SOUS sa ligne, sur toute la largeur (J-C, 2026-10-02 : « sur une même ligne si possible »)
+  const soldesSous = (pid, rep) => { const h = htmlSoldes(pid, rep); return h ? '<div class="soldes-ligne">' + h + '</div>' : ''; };
   // une ligne de « Mis de côté » : pas de case (on ne coche pas ce qui est écarté), la flèche « revenir » au bout
   const ligneCote = (it, sorte) => {
     const nom = sorte ? (detail(it) || nomDe(it.pid)) : nomDe(it.pid);
     const d = [!sorte ? detail(it) : '', it.auto === 'pas' ? '(pour réserve)' : ''].filter(Boolean).join(' ');
     return '<div class="item' + (sorte ? ' item-sorte' : '') + '"><div class="item-info"><div class="item-nom">' + esc(nom) + '</div>' +
-      (d ? '<div class="item-detail">' + esc(d) + '</div>' : '') + (sorte ? '' : htmlSoldes(it.pid)) + '</div>' +
-      '<button class="remettre" type="button" data-achat-remettre="' + esc(it.cle) + '" aria-label="Remettre sur la liste"></button></div>';
+      (d ? '<div class="item-detail">' + esc(d) + '</div>' : '') + '</div>' +
+      '<button class="remettre" type="button" data-achat-remettre="' + esc(it.cle) + '" aria-label="Remettre sur la liste"></button>' + (sorte ? '' : soldesSous(it.pid)) + '</div>';
   };
   // LA RÈGLE DES LISTES (J-C, 2026-09-30, choix B1) : un aliment à plusieurs sortes = son nom UNE fois, en bandeau pâle en retrait,
   // ses sortes dessous au même retrait; une seule sorte = une ligne complète. Les lignes arrivent triées par aliment.
@@ -2687,7 +2692,6 @@ function remplirAchats(ouvrir) {
     '<div class="accordeon-tete' + t.pale + '"><span>' + esc(nom) + '</span></div>' +
     '<div class="liste-blanche achats-groupe" hidden>' + lignesHtml(lignes) + '</div></div>' : ''; };
   const places = {};
-  const enSolde = items.filter(it => soldesDe(it.pid).length).sort(tri);
   let html = RAYONS.map(r => {
     const lignes = [];
     (SOUSCATS[r.id] || []).forEach(sc => {
@@ -2697,11 +2701,17 @@ function remplirAchats(ouvrir) {
     return groupe(r.nom, lignes, r.id);
   }).join('');
   html += groupe('Sans catégorie', items.filter(it => !places[it.cle]).sort(tri), '');
-  if (enSolde.length) html = '<div class="accordeon groupe-solde" data-groupe="solde"><div class="accordeon-tete tete-pale"><span>En circulaire</span></div>' +
-    '<div class="liste-blanche achats-groupe" hidden>' + lignesHtml(enSolde) + '</div></div>' + html;
   html = html || '<div class="accordeon-item"><span class="texte-petit texte-pale">Rien à acheter.</span></div>';
   if (cote.length) html += '<div class="accordeon" data-groupe="cote"><div class="accordeon-tete">Mis de côté</div>' +
     '<div class="liste-blanche achats-groupe" hidden>' + lignesHtml(cote.sort(tri), ligneCote) + '</div></div>';
+  // « Il y a aussi ceci » : un aliment par ligne, ses soldes triés Oui dessous, la flèche pour l'ajouter
+  const surListe = {};
+  items.concat(cote).forEach(it => { surListe[it.pid] = true; });
+  const aussi = [...new Set(SPECIAUX.filter(r => Array.isArray(r) && r[13] === 'O').map(r => String(r[2])))]
+    .filter(pid => !surListe[pid] && nomDe(pid) && soldesDe(pid, 'O').length).sort((x, y) => nomDe(x).localeCompare(nomDe(y), 'fr'));
+  if (aussi.length) html += '<div class="accordeon groupe-solde" data-groupe="solde"><div class="accordeon-tete tete-pale"><span>En circulaire</span></div>' +
+    '<div class="liste-blanche achats-groupe" hidden>' + aussi.map(pid => '<div class="item"><div class="item-info"><div class="item-nom">' + esc(nomDe(pid)) + '</div>' +
+      '</div><button class="remettre" type="button" data-achat-ajouter="' + esc(pid) + '" aria-label="Ajouter à la liste"></button>' + soldesSous(pid, 'O') + '</div>').join('') + '</div></div>';
   cible.innerHTML = html;
   const acc = [...cible.querySelectorAll(':scope > .accordeon')].find(a => ouvrir && a.dataset.groupe === ouvrir);
   if (acc) toggleAccordeon(acc.firstElementChild);
@@ -2725,14 +2735,15 @@ function cocherAchat(k) {
   poserAchats(coches.length ? coches.map(r => { const l = r.slice(); l[7] = 'N'; return l; }) : [ligneAchat(it.pid, it.marque, it.saveur, 'coche')]);
   remplirAchats();
 }
-/* La poubelle : ajouté à la main -> il s'en va; venu tout seul -> « pas pour l'instant » : il passe dans « Mis de côté ».
+/* La flèche « mettre de côté » (la poubelle avant le 2026-10-02) : « pas pour l'instant » — il passe dans « Mis de côté », d'où la
+   flèche « revenir » le ramène. Ajouté à la main aussi (avant : il disparaissait) : son ajout reste, le « plus tard » le cache.
    Sa coche s'en va avec lui. */
-function enleverAchat(k) {
+function mettreDeCote(k) {
   const it = lignesAchats().find(x => x.cle === k);
   if (!it) return;
-  const lignes = ACHATS.filter(r => achatActif(r) && (r[4] === 'coche' || r[4] === 'main') && cleAchat(r[1], r[2], r[3]) === k)
+  const lignes = ACHATS.filter(r => achatActif(r) && r[4] === 'coche' && cleAchat(r[1], r[2], r[3]) === k)
     .map(r => { const l = r.slice(); l[7] = 'N'; return l; });
-  if (it.auto) lignes.push(ligneAchat(it.pid, it.marque, it.saveur, 'plustard'));
+  lignes.push(ligneAchat(it.pid, it.marque, it.saveur, 'plustard'));
   poserAchats(lignes);
   remplirAchats();
 }
@@ -2781,31 +2792,31 @@ async function expedierAchats() {
 }
 /* ---------- LES SOLDES (J-C, 2026-10-01, sur aperçu; RdG-05) ----------
    Le coffre-fort lit les circulaires le jeudi et renvoie SPECIAUX : seulement ce que J-C a trié Oui ou Peut-être (Gérer les bases
-   → Circulaires). Sous un aliment : une ligne par magasin, la moins chère en premier (choix C : « Metro · 4,99 $ (rég. 6,49 $) ·
-   jusqu'au 7 oct. », dessous les mots de la circulaire). Seulement ce qui est en cours (Debut ≤ aujourd'hui ≤ Fin) : un cache de la
-   semaine passée ne montre rien de périmé. */
-function soldesDe(pid) {
+   → Circulaires). Sous un aliment : une ligne par magasin, la moins chère en premier — COURTE (J-C, 2026-10-02 : « trop d'info ») :
+   « IGA · Québon · 2 L · 4,99 (6,49) » — le magasin, la marque, le format, le prix (le régulier entre parenthèses); LE MEILLEUR PRIX
+   EN ROUGE. (Avant : « Metro · 4,99 $ (rég. 6,49 $) · jusqu'au 7 oct. » et dessous les mots de la circulaire.) Le régulier sera un
+   jour le vrai prix du magasin, pour comparer (J-C; RdG-05, section 7). Seulement ce qui est en cours (Debut ≤ aujourd'hui ≤ Fin) : un
+   cache de la semaine passée ne montre rien de périmé. Un magasin dont l'interrupteur « Circulaire » est à Non : ses soldes
+   disparaissent TOUT DE SUITE (J-C, 2026-10-01), sans attendre la relecture. rep ('O') : seulement ce qui est trié Oui (« Il y a aussi ceci »). */
+const prixSolde = r => { const t = String(r[4] == null ? '' : r[4]).trim(), n = Number(t.replace(',', '.')); return t && isFinite(n) ? n : Infinity; };
+function soldesDe(pid, rep) {
   const auj = dateDuJour(), jour = v => String(dateCourte(v) || '').slice(0, 10);
-  const prix = r => { const t = String(r[4] == null ? '' : r[4]).trim(), n = Number(t.replace(',', '.')); return t && isFinite(n) ? n : Infinity; };
-  return SPECIAUX.filter(r => Array.isArray(r) && String(r[2]) === String(pid) && r[11] === 'O' &&
+  const eteint = m => { const x = LISTES.Magasins.find(y => y.id === String(m)); return !!x && x.circ === false; };
+  return SPECIAUX.filter(r => Array.isArray(r) && String(r[2]) === String(pid) && r[11] === 'O' && (!rep || r[13] === rep) && !eteint(r[1]) &&
       (!r[8] || jour(r[8]) <= auj) && (!r[9] || jour(r[9]) >= auj))
-    .sort((a, b) => prix(a) === prix(b) ? 0 : prix(a) < prix(b) ? -1 : 1);
+    .sort((a, b) => prixSolde(a) === prixSolde(b) ? 0 : prixSolde(a) < prixSolde(b) ? -1 : 1);
 }
-function textePrix(v) {
+function textePrix(v) {                               // « 4,99 » (J-C l'écrit sans le $)
   const t = String(v == null ? '' : v).trim(), n = Number(t.replace(',', '.'));
-  return !t ? '' : isFinite(n) ? n.toLocaleString('fr-CA', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) + ' $' : t;
+  return !t ? '' : isFinite(n) ? n.toLocaleString('fr-CA', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) : t;
 }
-function finSolde(v) {   // « 7 oct. »
-  const m = String(dateCourte(v) || '').match(/^(\d{4})-(\d{2})-(\d{2})/);
-  return m ? new Date(+m[1], +m[2] - 1, +m[3]).toLocaleDateString('fr-CA', { day: 'numeric', month: 'short' }) : String(v || '');
-}
-function htmlSoldes(pid) {
-  return soldesDe(pid).map(r => {
+function htmlSoldes(pid, rep) {
+  const soldes = soldesDe(pid, rep), min = Math.min(...soldes.map(prixSolde));
+  return soldes.map(r => {
     const u = String(r[6] || '').trim(), prix = textePrix(r[4]) + (u ? (u[0] === '/' ? '' : ' ') + u : ''), reg = textePrix(r[5]);
-    const quoi = [adoucir(r[3]), adoucir(r[7], false)].filter(Boolean).join(', ');   // les mots de la circulaire, sans majuscules qui crient
-    return '<div class="solde"><span class="solde-prix">' + esc(nomListe(r[1]) + ' · ' + prix) + '</span>' +
-      esc((reg ? ' (rég. ' + reg + ')' : '') + (r[9] ? ' · jusqu\'au ' + finSolde(r[9]) : '')) +
-      (quoi ? '<span class="solde-texte">' + esc(quoi) + '</span>' : '') + '</div>';
+    const fmt = formatAffiche(formatCle(r[7])).replace(/(\d)x(\d)/g, '$1 x $2').replace(/ \+ /g, ' ou ');   // le format de la circulaire : « 2 L »
+    const t = [nomListe(r[1]), nomListe(r[14]), fmt, prix + (reg ? ' (' + reg + ')' : '')].filter(Boolean).join(' · ');
+    return '<div class="solde' + (min !== Infinity && prixSolde(r) === min ? ' solde-meilleur' : '') + '">' + esc(t) + '</div>';
   }).join('');
 }
 /* ---------- GÉRER LES BASES → CIRCULAIRES : LE TRI (J-C, 2026-10-01 et 2026-10-02, sur aperçus; RdG-05, 5 quater) ----------
@@ -3417,7 +3428,13 @@ function mettreSurListe(pid) {
   const p = PRODUITS.find(x => String(x.id) === String(pid)) || {}, nom = p.nom || '';
   fermerAjoutAchat();
   if (lignesAchats().some(it => it.pid === String(pid))) avis('Déjà sur la liste : ' + nom);
-  else { poserAchats([ligneAchat(pid, '', '', 'main')]); avis('Sur la liste : ' + nom, 'succes'); }
+  else {                                           // un ajout mis de côté plus tôt revient (son « plus tard » s'en va), sinon il naît
+    const k = cleAchat(pid, '', ''), cote = ACHATS.filter(r => achatActif(r) && r[4] === 'plustard' && cleAchat(r[1], r[2], r[3]) === k)
+      .map(r => { const l = r.slice(); l[7] = 'N'; return l; });
+    const main = ACHATS.some(r => achatActif(r) && r[4] === 'main' && cleAchat(r[1], r[2], r[3]) === k);
+    poserAchats(cote.concat(main ? [] : [ligneAchat(pid, '', '', 'main')]));
+    avis('Sur la liste : ' + nom, 'succes');
+  }
   const r = RAYONS.find(x => (SOUSCATS[x.id] || []).some(sc => String(sc.id) === String(p.catId)));
   remplirAchats(r ? String(r.id) : 'sans');        // sa catégorie s'ouvre : on le voit sur la liste
 }
@@ -3432,7 +3449,7 @@ function montrerPageAchatsAjout() {                    // revenir du scan sur l'
 }
 async function achatParCode(code) {
   code = String(code || '').trim();
-  const pid = CODES[code];
+  const pid = CODES[code] || (CODES_TRI[formeCode(code)] || CODES_TRI[code] || [])[0];   // ses données d'abord : entrées, puis apprises au tri
   toutCacher(); $('vue-achats').hidden = false; $('btn-burger').hidden = false;
   if (pid && PRODUITS.some(p => String(p.id) === String(pid))) { mettreSurListe(pid); return; }
   ouvrirAjoutAchat(); msgAchat('Recherche du produit…');
@@ -3889,11 +3906,13 @@ function initEntree() {
   // la liste d'achats : toucher une ligne la coche; la poubelle la met de côté; la flèche « revenir » la remet;
   // « Ajouter à la liste » ouvre l'entonnoir
   $('liste-achats').addEventListener('click', function (ev) {
-    const pb = ev.target.closest('[data-achat-retirer]');
-    if (pb) { enleverAchat(pb.dataset.achatRetirer); return; }
+    const mc = ev.target.closest('[data-achat-cote]');     // la flèche « mettre de côté »
+    if (mc) { mettreDeCote(mc.dataset.achatCote); return; }
     const rv = ev.target.closest('[data-achat-remettre]');
     if (rv) { remettreAchat(rv.dataset.achatRemettre); return; }
-    const tete = ev.target.closest('.accordeon-tete');     // une catégorie, ou « Mis de côté » : une seule ouverte à la fois
+    const aj = ev.target.closest('[data-achat-ajouter]');  // « En circulaire » : la flèche l'ajoute à la liste, sa catégorie s'ouvre
+    if (aj) { mettreSurListe(aj.dataset.achatAjouter); return; }
+    const tete = ev.target.closest('.accordeon-tete');     // une catégorie, « Mis de côté » ou « En circulaire » : une seule ouverte à la fois
     if (tete) { toggleAccordeon(tete); return; }
     const l = ev.target.closest('[data-achat]');
     if (l) cocherAchat(l.dataset.achat);

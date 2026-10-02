@@ -49,7 +49,16 @@ paraît sur l'iPhone (la liste est partagée entre les deux appareils).*
 - **un aliment à plusieurs sortes** (Café : Agga Kenya, Nespresso Intensio…) : **son nom une fois**, en bandeau pâle en retrait, ses sortes dessous au même retrait, chacune sa case et sa poubelle (J-C, 30 septembre, choix B1 — devenu la **règle des listes** de toute l'app, voir `CLAUDE.md`);
 - **« (pour réserve) »** en petit, pâle, sous le nom (réserve vide), **entre parenthèses, sans italique** — d'abord écrit « pas pressé » en italique, changé par J-C le 30 septembre après l'avoir vu;
 - **en circulaire** (le mot de J-C, 1er octobre, « plus parlant que en solde » — **bâti**) : sous l'aliment, une ligne verte **par magasin**, la moins chère en premier (« **Metro · 4,99 $** (rég. 6,49 $) · jusqu'au 7 oct. », dessous les mots de la circulaire); ce qui n'est que **proposé** paraît avec sa question (« C'est le bon aliment ? » Oui / Non), jamais comme un fait; un groupe **« En circulaire »** **en tête** de la liste reprend, par aliment, ceux qui sont en solde (ils restent dans leur catégorie); rien sur les barres des catégories; « Mis de côté » montre aussi les soldes. Détail : `CLAUDE.md`, « Les spéciaux »;
-- **la poubelle** au bout : l'enlever de la liste (« pas pour l'instant » pour un aliment venu tout seul — il passe dans « Mis de côté »);
+- ~~**la poubelle** au bout : l'enlever de la liste (« pas pour l'instant » pour un aliment venu tout seul — il passe dans « Mis de côté »);~~
+  **Remplacée le 2 octobre (J-C, tour des listes, choix C sur aperçu) : la flèche « mettre de côté »** — celle de « revenir », inversée
+  (« c'est pas une poubelle qui devrait être là ») — **en haut à droite, côte à côte avec la case** (la case quitte la gauche : « le
+  bouton pour dire que c'est dans le panier me dérange »), **l'aliment et la case alignés par le haut**. Un aliment **ajouté à la
+  main** mis de côté va lui aussi dans « Mis de côté » (avant : il disparaissait); le rajouter à la main l'en sort.
+  **Les soldes sous l'aliment, le même jour** (J-C : « trop d'info ») : une ligne courte par magasin, « IGA · Québon · 2 L · 4,99 (6,49) »
+  — le magasin, la marque, le format, le prix et le régulier entre parenthèses; **le meilleur prix en rouge**, les autres en vert (« j'aime
+  les verts du lettrage des soldes »); **sous la ligne de l'aliment, sur toute la largeur**, en **15 px** (choix sur aperçu parmi 17 / 16 /
+  15 / 14) : un solde tient sur une ligne. **« En circulaire » au bas** de la liste = « Il y a aussi ceci » seulement (ses Oui en solde
+  qui ne sont pas sur la liste), la flèche pour l'ajouter; un magasin à Non : ses soldes disparaissent tout de suite.
 - après les catégories : **« Mis de côté »**, une barre brune fermée, sans compteur; ouverte, ce que la poubelle a écarté (la règle des listes), sans case, chacun avec la **flèche « revenir »** au bout;
 - au bas : **Ajouter à la liste** (vert : l'entonnoir et le scan), puis **Retour** (or).
 

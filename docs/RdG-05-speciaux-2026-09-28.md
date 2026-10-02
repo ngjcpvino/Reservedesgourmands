@@ -642,6 +642,9 @@ STOCK col. M — rien à faire côté coffre-fort). **L'idée des prix de J-C** 
 ---
 
 ## 7. PLUS LOIN : LE COMPARATEUR DE PRIX (29 septembre 2026)
+*Note de J-C (2 octobre, en voyant les soldes courts de la Liste d'achats, « IGA · Québon · 2 L · 4,99 (6,49) ») : « le prix régulier
+sera le vrai prix à un moment donné, pour pouvoir comparer les magasins » — le prix entre parenthèses, aujourd'hui celui de la
+circulaire, deviendra le vrai prix du magasin quand le comparateur existera.*
 *Réflexion ouverte, rien n'est bâti. Née d'un article de La Presse sur les
 rabais en circulaire : « avec ce qu'on développe, on pourrait aller plus loin ».*
 

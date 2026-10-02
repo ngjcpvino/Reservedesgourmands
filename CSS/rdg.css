@@ -103,6 +103,7 @@
   /* ---- Tailles de texte (échelle neutre : change la valeur, tout suit) ---- */
   --texte-micro:      12px;
   --texte-petit:      17px;   /* J-C, 2026-09-29, choix D sur aperçu (14 : trop petit) */
+  --texte-solde:      15px;   /* un solde sous un aliment (Liste d'achats) : un peu plus petit, sur une seule ligne (J-C, 2026-10-02) */
   --texte-normal:     17px;   /* J-C, 2026-09-29, choix B sur aperçu (16 / 17 / 18 / 19) : égal au petit texte */
   --texte-moyen:      18px;
   --texte-grand:      22px;
@@ -925,15 +926,21 @@ select.champ {
    TOUT FERMÉ à l'ouverture (J-C, 2026-10-01), une seule ouverte à la fois. Toucher une ligne la coche (dans le panier) : grise et barrée.
 ============================================================ */
 .achats-groupe { margin-bottom: var(--espace-m); }   /* l'espace du haut : la règle des barres (accordéon) */
-.achat { cursor: pointer; }
+.achat { cursor: pointer; align-items: flex-start; }   /* l'aliment et la case alignés par le haut (J-C, 2026-10-02) */
 .achat .case { accent-color: var(--couleur-703); pointer-events: none; }   /* la ligne entière se touche : la case suit */
+/* En haut à droite, côte à côte (J-C, 2026-10-02, choix C sur aperçu) : la flèche « mettre de côté », puis la case « dans le panier ». */
+.achat-boutons { display: flex; align-items: center; gap: var(--espace-xs); }
+.achat-boutons .remettre { height: var(--case-taille); }
+.ecarter::before { transform: scaleX(-1); }   /* « mettre de côté » = la flèche « revenir » de « Mis de côté », inversée (plus de poubelle) */
 .achat-coche .item-nom, .achat-coche .item-detail { color: var(--couleur-205); text-decoration: line-through; }
-/* LES SOLDES (J-C, 2026-10-01, choix C sur aperçu) : sous l'aliment, en vert — le magasin et le prix en gras, (rég.), la fin;
-   dessous, les mots de la circulaire. Seulement ce qui est trié Oui ou Peut-être (Gérer les bases → Circulaires).
-   « En circulaire » en tête de la liste : une barre vert pâle. */
-.solde { margin-top: var(--espace-xs); font-size: var(--texte-petit); color: var(--couleur-703); }
-.solde-prix { font-weight: var(--poids-fort); }
-.solde-texte { display: block; }
+/* LES SOLDES (J-C, 2026-10-02 : « trop d'info ») : sous l'aliment, une ligne courte par magasin — « IGA · Québon · 2 L · 4,99 (6,49) »,
+   en vert (J-C : « j'aime les verts du lettrage des soldes »); LE MEILLEUR PRIX EN ROUGE. Seulement ce qui est trié Oui ou Peut-être
+   (Gérer les bases → Circulaires). « En circulaire » AU BAS de la liste (« Il y a aussi ceci ») : une barre vert pâle. */
+.solde { margin-top: var(--espace-xs); font-size: var(--texte-solde); color: var(--couleur-703); }
+/* Sous la ligne de l'aliment, sur toute la largeur (la case et la flèche ne la rétrécissent plus) : un solde tient sur une ligne. */
+.item:has(> .soldes-ligne) { flex-wrap: wrap; row-gap: 0; }
+.soldes-ligne { flex-basis: 100%; }
+.solde-meilleur { color: var(--couleur-402); }
 .soldes-bandeau { padding: 0 var(--espace-l) var(--espace-s) calc(var(--retrait) + var(--espace-l)); }
 .groupe-solde { --meuble: var(--couleur-701); }
 
