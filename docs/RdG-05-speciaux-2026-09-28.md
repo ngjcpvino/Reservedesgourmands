@@ -329,8 +329,9 @@ bâtie trop vite, sur un aperçu de 3 aliments. J-C : « Faut réfléchir avant 
   chacun (aperçu d'abord). **Sa question pour se rassurer** : le même produit de Metro, dans une prochaine circulaire,
   aura-t-il le code ? Oui **dans le même format** (il arrive déjà trié). ⚠️ Mais le genre (`Cle`) ne tient pas compte du
   format (voulu pour les Jamais : « Purina Dog Chow », tous formats) — tel quel, le 4 L reviendrait trié **avec le code
-  du 2 L**. À corriger : le code ne suit que le même format. En question : un nouveau format d'un produit déjà trié
-  revient-il dans « À trier » (pour faire l'association) ou arrive-t-il trié, sans code ?
+  du 2 L**. À corriger : le code ne suit que le même format. **Un nouveau format d'un produit déjà trié revient dans
+  « À trier »** (J-C : « oui, et je confirme l'info ») : l'entonnoir déjà rempli de ce qu'on sait (aliment, marque,
+  saveur), J-C confirme et fait l'association du code.
 
 **L'IDÉE DES PRIX DE J-C (1er octobre)** — « Fallait régler le code-barres avant » (fait ci-dessus). « Si le code-barres
 se retrouve dans la circulaire de la semaine avec le nom du magasin, le prix payé pourrait être ma première référence, au
