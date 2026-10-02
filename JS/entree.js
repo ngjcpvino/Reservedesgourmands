@@ -2783,7 +2783,7 @@ function finSolde(v) {   // « 7 oct. »
 function htmlSoldes(pid) {
   return soldesDe(pid).map(r => {
     const u = String(r[6] || '').trim(), prix = textePrix(r[4]) + (u ? (u[0] === '/' ? '' : ' ') + u : ''), reg = textePrix(r[5]);
-    const quoi = [r[3], r[7]].map(x => String(x || '').trim()).filter(Boolean).join(', ');
+    const quoi = [adoucir(r[3]), adoucir(r[7], false)].filter(Boolean).join(', ');   // les mots de la circulaire, sans majuscules qui crient
     return '<div class="solde"><span class="solde-prix">' + esc(nomListe(r[1]) + ' · ' + prix) + '</span>' +
       esc((reg ? ' (rég. ' + reg + ')' : '') + (r[9] ? ' · jusqu\'au ' + finSolde(r[9]) : '')) +
       (quoi ? '<span class="solde-texte">' + esc(quoi) + '</span>' : '') + '</div>';
@@ -2845,14 +2845,37 @@ function htmlGroupesTri(items, rid, ligne, tete) {
 }
 /* Une ligne = le nom de l'article, et dessous ce qui aide à décider (ni prix ni magasin). Une réponse dit à quoi elle est reliée. */
 function ligneTri(art, texte, detail) {
-  return '<div class="item tri-article" data-art="' + esc(art) + '"><div class="item-info"><div class="item-nom">' + esc(texte) + '</div>' +
+  return '<div class="item tri-article" data-art="' + esc(art) + '"><div class="item-info"><div class="item-nom">' + esc(adoucir(texte)) + '</div>' +
     (detail ? '<div class="item-detail">' + esc(detail) + '</div>' : '') + '</div></div>';
+}
+/* Un texte de circulaire écrit en MAJUSCULES crie (J-C, 2026-10-02 : « capitale au début seulement, là ça fait agressif »).
+   Un texte surtout en majuscules : ses mots tout en majuscules passent en minuscules (un mot déjà mêlé — mL, Nestlé — reste tel
+   quel); les marques de la liste Marques retrouvent leur nom tel qu'il y est écrit; puis la 1re lettre en majuscule (debut = false :
+   un morceau de ligne, « choix varié », la garde petite). Le Sheet n'est pas touché : seulement l'écran. */
+let marquesCle = null, marquesRe = null, marquesNom = {};
+function marquesEnTexte() {                          // une seule expression pour toutes les marques, refaite si la liste change
+  const noms = LISTES.Marques.map(x => x.nom).filter(n => n && n.length > 1), cle = noms.join('|');
+  if (cle !== marquesCle) {
+    marquesCle = cle; marquesNom = {};
+    noms.forEach(n => { marquesNom[n.toLowerCase()] = n; });
+    const motifs = noms.slice().sort((a, b) => b.length - a.length).map(n => n.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'));
+    marquesRe = motifs.length ? new RegExp('(^|[^\\p{L}\\p{N}])(' + motifs.join('|') + ')(?![\\p{L}\\p{N}])', 'giu') : null;
+  }
+  return marquesRe;
+}
+function adoucir(t, debut) {
+  let s = String(t == null ? '' : t).trim();
+  const maj = (s.match(/\p{Lu}/gu) || []).length, min = (s.match(/\p{Ll}/gu) || []).length;
+  if (maj > min) s = s.replace(/[\p{L}'’.-]+/gu, m => m === m.toUpperCase() ? m.toLowerCase() : m);
+  const re = marquesEnTexte();
+  if (re) s = s.replace(re, (m, avant, mot) => avant + (marquesNom[mot.toLowerCase()] || mot));
+  return debut === false ? s : s.charAt(0).toUpperCase() + s.slice(1);
 }
 /* Ce qui aide à décider (J-C, 2026-10-02 : « la marque, le poids, la saveur » — pas le magasin ni le prix : « on fait juste le tri ») :
    la marque et la saveur reconnues dans l'article, puis le format de la circulaire (description, envoyée par lireTri). */
 function detailATrier(x) {
-  const marque = nomListe(idListe('Marques', x.marque)) || String(x.marqueFlipp || '').trim();
-  return [marque, nomListe(idListe('Saveurs', x.saveur)), String(x.description || '').trim()].filter(Boolean).join(' · ');
+  const marque = nomListe(idListe('Marques', x.marque)) || adoucir(x.marqueFlipp);
+  return [marque, nomListe(idListe('Saveurs', x.saveur)), adoucir(x.description, false)].filter(Boolean).join(' · ');
 }
 function detailTri(r) {
   const p = PRODUITS.find(x => String(x.id) === String(r[3]));
