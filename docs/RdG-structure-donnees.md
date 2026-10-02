@@ -186,8 +186,8 @@ FlippId — remplacé à la 1re lecture nouvelle.)*
 | T | SaveurPropose | une saveur de SAVEURS reconnue dans le texte (« 2% » cherché tel quel) |
 
 ### TRI — les réponses de J-C aux circulaires (2026-10-01)
-*Créé tout seul à la 1re lecture nouvelle; à sa naissance, chaque Oui de l'ancienne CORRESPONDANCES y devient un Oui
-(un Non n'y entre pas : il voulait dire « pas le bon aliment », pas « jamais »). **Une ligne par genre d'article** : une
+*Créé tout seul (le 2026-10-01, à la 1re lecture nouvelle : chaque Oui de l'ancienne CORRESPONDANCES y est devenu un Oui;
+un Non n'y est pas entré — il voulait dire « pas le bon aliment », pas « jamais »). Créé au 1er tri s'il manque. **Une ligne par genre d'article** : une
 nouvelle réponse réécrit la ligne (c'est aussi la correction). Écrit par l'action `trier`.*
 
 | Col | Nom | Sens |
@@ -205,7 +205,7 @@ nouvelle réponse réécrit la ligne (c'est aussi la correction). Écrit par l'a
 | K | Categorie | sa catégorie racine (celle de l'aliment s'il y en a un, sinon celle devinée) |
 
 ### CORRESPONDANCES — les anciennes réponses Oui / Non (2026-09-29, remplacé par TRI le 2026-10-01)
-*Plus écrit. Lu une seule fois, à la naissance de TRI (ses Oui y sont copiés). Peut être effacé du Sheet une fois TRI créé.*
+*Plus écrit ni lu (ses Oui sont passés dans TRI le 2026-10-01; `repondreSpecial` retiré le 2026-10-02). Peut être effacé du Sheet à la main.*
 
 | Col | Nom | Sens |
 |-----|-----|------|

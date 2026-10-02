@@ -479,7 +479,7 @@ de J-C reste dans les Propriétés du script) :**
   besoin d'être parfaite; mais mieux elle vise, moins il touche. Le défaut connu : « Pomme » proposé pour « pommes de
   terre » — un article qui colle à un aliment **plus précis** devrait aller à celui-là **(proposé)**.
 
-### Partie 6 — Ménage et documents — ✅ FAIT pour l'ordi (reste : retirer `repondreSpecial` avec l'app nouvelle)
+### Partie 6 — Ménage et documents — ✅ FAIT (`repondreSpecial` retiré le 2 octobre)
 - Ce qui ne sert plus une fois l'app nouvelle en ligne : le filtre « nos aliments seulement », `repondreSpecial`,
   l'onglet `Correspondances` (après la conversion), l'état « ? » de `Speciaux`. L'onglet `Speciaux` lui-même : le garder
   comme « la semaine en cours » ou le remplacer par l'archive filtrée sur la semaine **(à toi de voir)** — le dire ici.
@@ -524,8 +524,8 @@ avant (les réponses sont rangées par cette clé). Corrigé en passant : « bœ
   Peut-être et M **exigent l'aliment** (M exige aussi la marque) : sinon refus `definitif`. La même réponse renvoyée =
   rien d'écrit; une autre = la ligne réécrite (la correction). Un nouvel aliment créé au tri : l'envoyer **avant** (même
   file : `ajouter` accepte l'ID de l'app). ⚠️ `Coffre.lireTri()` et `Coffre.trier()` sont à ajouter dans `coffre.js`.
-- `repondreSpecial` (l'ancienne question) : un Oui devient un Oui du tri, un Non n'écrit rien. **À retirer** quand l'app
-  nouvelle est en ligne (avec `Coffre.repondreSpecial`, la question sous les lignes et son attente).
+- `repondreSpecial` (l'ancienne question) : **retiré le 2 octobre** (l'app nouvelle ne l'appelle plus), avec la conversion des
+  anciennes réponses (faite le 1er octobre). L'onglet `Correspondances` peut être effacé à la main.
 
 ### Ce qui n'est PAS pour l'ordi (le nuage s'en charge, après toi)
 **✅ La page de tri — BÂTIE côté app le 2 octobre 2026** (le nuage, d'après l'aperçu approuvé le 1er octobre; détail dans
