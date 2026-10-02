@@ -59,7 +59,8 @@ const Coffre = {
   pasAime(charge)           { return this.appel(Object.assign({ action: 'pasAime' }, charge)); },     // retirer un « Pas aimé »
   achats(charge)            { return this.appel(Object.assign({}, charge, { action: 'achats' })); },  // la liste d'achats : des lignes écrites par ID (rejouable)
   lireTri()                 { return this.appel({ action: 'lireTri' }, this.DELAI_LECTURE); },   // la page de tri des circulaires : ce qui est à trier + les réponses déjà données (une lecture)
-  trier(charge)             { return this.appel(Object.assign({}, charge, { action: 'trier' })); },     // Oui / Peut-être / Jamais pour des genres d'articles (onglet Tri, rejouable)
+  trier(charge)             { return this.appel(Object.assign({}, charge, { action: 'trier' })); },     // Oui / Peut-être / Jamais pour des articles (onglet Tri, rejouable)
+  chercherOFF(charge)       { return this.appel(Object.assign({}, charge, { action: 'chercherOFF' }), this.DELAI_LECTURE); },   // le tri : Open Food Facts par le nom et la marque (une lecture)
 
   // Enregistre le mot de passe et vérifie qu'il est bon.
   async connexion(m) {
