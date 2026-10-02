@@ -338,7 +338,11 @@ bâtie trop vite, sur un aperçu de 3 aliments. J-C : « Faut réfléchir avant 
   oignons verts ou menthe », « vin rouge, blanc ou rosé ») — 29 chez Super C, 42 chez IGA, 21 chez Metro. IGA en fait une
   ligne **par code** (le même nom répété : « Couronne de brocoli, carottes ou tomates » ×3, trois codes). **Une telle
   ligne se relie à plusieurs aliments** (choix B de J-C) : épinards **et** germes de haricot, pour voir les deux en solde
-  sous leur aliment. (A, un seul aliment : rejeté.)
+  sous leur aliment. (A, un seul aliment : rejeté.) **Les fruits de Super C et Metro (sans code)** : au tri, après le
+  vert, l'app offre les PLU de la liste officielle d'après le nom, J-C choisit le bon (J-C : « oui ») — le même geste
+  qu'Open Food Facts pour l'emballé. **Chez IGA, un même nom porte parfois plusieurs codes** : 39 noms sur 361, 83 lignes
+  (« Farine Compliments » ×3, « Épices Club House » ×3, « Couronne de brocoli, carottes ou tomates » ×3) — le nom seul ne
+  dit pas lequel est lequel. En question.
 
 **L'IDÉE DES PRIX DE J-C (1er octobre)** — « Fallait régler le code-barres avant » (fait ci-dessus). « Si le code-barres
 se retrouve dans la circulaire de la semaine avec le nom du magasin, le prix payé pourrait être ma première référence, au
