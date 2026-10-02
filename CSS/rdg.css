@@ -531,13 +531,16 @@ select.champ {
 ============================================================ */
 /* pas de fond : la page (photo pâlie) passe au travers — un fond blanc y faisait une tache (J-C, 2026-09-27) */
 .accordeon { margin-bottom: var(--espace-s); }   /* l'arrondi et l'ombre sont sur la tête : le contenu ne la rognerait plus */
-/* Ce qui ouvre le corps d'un accordéon serait collé au titre, car la marge n'existe qu'en dessous.
-   La règle vaut pour le PREMIER élément quel qu'il soit : un accordéon, une ligne, un item.
-   (`accordeon-bloc` fait exception : il porte déjà son propre rembourrage en haut.) */
+/* L'ESPACE SOUS UNE BARRE OUVERTE (règle de J-C) : ce qu'une barre ouvre serait collé à elle, car la marge n'existe qu'en dessous.
+   UNE seule règle, plus bas, pour tout ce qu'une barre ouvre — le 1er élément de son corps quel qu'il soit (un accordéon, une ligne,
+   un item), la liste blanche posée directement sous la barre (Liste d'achats, Circulaires), et la barre restée seule quand ses sœurs
+   se cachent (.une-a-la-fois : elle n'est plus la 1re). (`accordeon-bloc` fait exception : il porte déjà son rembourrage en haut.) */
 .accordeon-corps { padding-left: var(--retrait); }
 /* Une liste ouverte cache ses sœurs (Listes, J-C 2026-10-01 : on ouvre l'Inventaire, les autres listes se cachent; refermé, elles reviennent) */
 .une-a-la-fois:has(> .accordeon > .accordeon-tete.ouvert) > .accordeon:not(:has(> .accordeon-tete.ouvert)) { display: none; }
-.accordeon-corps > :first-child:not(.accordeon-bloc) { margin-top: var(--espace-s); }
+.accordeon-corps > :first-child:not(.accordeon-bloc),
+.accordeon-tete + .liste-blanche,
+.accordeon-corps.une-a-la-fois:has(> .accordeon > .accordeon-tete.ouvert) > .accordeon:has(> .accordeon-tete.ouvert) { margin-top: var(--espace-s); }
 .accordeon-bloc { padding: var(--espace-m) var(--espace-l) 0; }   /* un bloc rentre dans le corps d'un accordeon */
 .accordeon-tete {
   display: flex;
@@ -920,7 +923,7 @@ select.champ {
    LA LISTE D'ACHATS (J-C, 2026-09-30, choix A sur aperçu) — les catégories en barres, chacune à sa couleur,
    TOUT FERMÉ à l'ouverture (J-C, 2026-10-01), une seule ouverte à la fois. Toucher une ligne la coche (dans le panier) : grise et barrée.
 ============================================================ */
-.achats-groupe { margin-top: var(--espace-xs); margin-bottom: var(--espace-m); }
+.achats-groupe { margin-bottom: var(--espace-m); }   /* l'espace du haut : la règle des barres (accordéon) */
 .achat { cursor: pointer; }
 .achat .case { accent-color: var(--couleur-703); pointer-events: none; }   /* la ligne entière se touche : la case suit */
 .achat-coche .item-nom, .achat-coche .item-detail { color: var(--couleur-205); text-decoration: line-through; }
