@@ -185,6 +185,24 @@
   --interrupteur-trait:  1.5px;  /* le contour de la piste */
   --interrupteur-eteint: 0.6;    /* éteint : pâli, la piste vide */
   --fleche-eteinte:    0.15;   /* la 1re ne monte pas, la dernière ne descend pas */
+  /* ---- Les circulaires : le tri (J-C, 2026-10-01, sur aperçu) — les couleurs du feu de circulation, sur les barres et le feu ---- */
+  --tri-oui:           var(--couleur-702);   /* vert */
+  --tri-peutetre:      var(--couleur-606);   /* jaune (pâle : texte brun sur sa barre) */
+  --tri-jamais:        var(--couleur-401);   /* rouge */
+  --feu-boitier:       var(--couleur-902);   /* le boîtier foncé du feu */
+  --feu-rond:          32px;   /* une lumière */
+  --feu-rond-petit:    24px;   /* la lumière seule de « Tout ce qui est ici aujourd'hui » */
+  --feu-ecart:         10px;   /* entre deux lumières */
+  --feu-bord:          7px 11px;   /* le boîtier autour des lumières */
+  --feu-bord-petit:    5px 8px;
+  --feu-arrondi:       30px;
+  --feu-ombre:         0 2px 4px color-mix(in srgb, var(--couleur-903) 30%, transparent);   /* le boîtier se détache */
+  --feu-lueur:         0 0 7px;   /* la lumière allumée rayonne de sa couleur */
+  --feu-creux:         inset 0 -3px 5px color-mix(in srgb, var(--couleur-903) 25%, transparent);   /* et a du relief */
+  --point-taille:      14px;   /* le point rouge « du nouveau à trier », sur le chemin (Outils, Gérer les bases, Circulaires) */
+  --point-marge:       8px;    /* son écart du coin du bouton */
+  --point-bord:        2px;    /* son anneau crème : il se voit même sur le bouton rouge */
+  --point-couleur:     var(--couleur-401);
   --plan-collant:      10;     /* un bouton collé au bas de l'écran passe par-dessus la liste */
   --pastille:          28px;   /* le carré qui montre une couleur (écran Couleurs, ajout d'un meuble) */
   --champ-hex-large:   110px;  /* le champ où l'on tape un code hex : #6b4f3a */
@@ -907,16 +925,57 @@ select.champ {
 .achat .case { accent-color: var(--couleur-703); pointer-events: none; }   /* la ligne entière se touche : la case suit */
 .achat-coche .item-nom, .achat-coche .item-detail { color: var(--couleur-205); text-decoration: line-through; }
 /* LES SOLDES (J-C, 2026-10-01, choix C sur aperçu) : sous l'aliment, en vert — le magasin et le prix en gras, (rég.), la fin;
-   dessous, les mots de la circulaire. Une proposition : la question Oui / Non, en brun (jamais en vert : ce n'est pas un fait).
+   dessous, les mots de la circulaire. Seulement ce qui est trié Oui ou Peut-être (Gérer les bases → Circulaires).
    « En circulaire » en tête de la liste : une barre vert pâle. */
 .solde { margin-top: var(--espace-xs); font-size: var(--texte-petit); color: var(--couleur-703); }
 .solde-prix { font-weight: var(--poids-fort); }
 .solde-texte { display: block; }
-.solde-question { color: var(--couleur-305); }
-.solde-quoi { font-weight: var(--poids-fort); }
-.solde-question .grille { margin-top: var(--espace-s); }
 .soldes-bandeau { padding: 0 var(--espace-l) var(--espace-s) calc(var(--retrait) + var(--espace-l)); }
 .groupe-solde { --meuble: var(--couleur-701); }
+
+/* ============================================================
+   LES CIRCULAIRES : LE TRI (Gérer les bases — J-C, 2026-10-01, sur aperçus). La base = la Liste d'achats : quatre barres fermées,
+   une ouverte cache les autres; À trier (brune) rangé par SES catégories, puis Oui · Peut-être · Jamais aux couleurs du feu.
+   La couleur se pose sur la TÊTE seulement : les catégories dedans gardent la leur, « Autres » reste brune.
+============================================================ */
+.tri-oui > .accordeon-tete      { --c: var(--tri-oui); }
+.tri-peutetre > .accordeon-tete { --c: var(--tri-peutetre); color: var(--couleur-306); }   /* pâle : le texte passe au brun */
+.tri-jamais > .accordeon-tete   { --c: var(--tri-jamais); }
+.tri-article { cursor: pointer; }
+/* Un article touché s'ouvre dessous : le feu, puis l'entonnoir déjà rempli ou les deux « Jamais ». Un seul ouvert à la fois. */
+.tri-panneau { padding: 0 var(--espace-l) var(--espace-m); }
+/* LE FEU DE CIRCULATION (choix C sur aperçu) : un boîtier foncé, trois lumières — vert Oui, jaune Peut-être, rouge Jamais. Sans texte. */
+.feu { display: inline-flex; gap: var(--feu-ecart); padding: var(--feu-bord); background: var(--feu-boitier); border-radius: var(--feu-arrondi); box-shadow: var(--feu-ombre); }
+.feu > button {
+  -webkit-appearance: none;
+  appearance: none;
+  width: var(--feu-rond);
+  height: var(--feu-rond);
+  padding: 0;
+  border: none;
+  border-radius: 50%;
+  background: currentColor;
+  box-shadow: var(--feu-lueur) currentColor, var(--feu-creux);
+  cursor: pointer;
+}
+.feu-oui      { color: var(--tri-oui); }
+.feu-peutetre { color: var(--tri-peutetre); }
+.feu-jamais   { color: var(--tri-jamais); }
+.feu-seul { flex-shrink: 0; padding: var(--feu-bord-petit); }   /* « Tout ce qui est ici aujourd'hui » : la lumière rouge seule */
+.feu-seul > button { width: var(--feu-rond-petit); height: var(--feu-rond-petit); }
+/* LE POINT ROUGE (choix B de J-C) : du nouveau à trier — sur Outils, Gérer les bases et Circulaires, tant qu'« À trier » n'est pas vide.
+   Le JS ne pose que la classe. */
+.a-trier::after {
+  content: '';
+  position: absolute;
+  top: var(--point-marge);
+  right: var(--point-marge);
+  width: var(--point-taille);
+  height: var(--point-taille);
+  border-radius: 50%;
+  background: var(--point-couleur);
+  box-shadow: 0 0 0 var(--point-bord) var(--couleur-105);
+}
 
 /* ============================================================
    TOAST — petit avis flottant (confirmation / à venir / erreur)

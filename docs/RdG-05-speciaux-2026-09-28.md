@@ -528,6 +528,14 @@ avant (les réponses sont rangées par cette clé). Corrigé en passant : « bœ
   nouvelle est en ligne (avec `Coffre.repondreSpecial`, la question sous les lignes et son attente).
 
 ### Ce qui n'est PAS pour l'ordi (le nuage s'en charge, après toi)
+**✅ La page de tri — BÂTIE côté app le 2 octobre 2026** (le nuage, d'après l'aperçu approuvé le 1er octobre; détail dans
+`CLAUDE.md`, « Gérer les bases → Circulaires ») : 4 barres fermées, À trier rangé par ses catégories, le feu, l'entonnoir
+rempli (marque et saveur comprises), « Tout ce genre » / « Cette marque seulement », « Tout ce qui est ici aujourd'hui »
+(avec la question Oui / Non), la correction dans les barres, le point rouge (`nbATrier`), `Coffre.lireTri` et `Coffre.trier`.
+L'ancienne question Oui / Non sous les lignes de la liste d'achats est **retirée** (avec `Coffre.repondreSpecial`).
+**Pas encore** : l'étape Open Food Facts (aperçu d'abord); la liste d'achats (« Il y a aussi ceci » au bas, un magasin
+mis à Non); le juge du vrai rabais. Quatre vérifications demandées à l'ordi : la note ❓ en tête de `CLAUDE.md`.
+
 La page de tri (4 barres, le feu vert-jaune-rouge, l'entonnoir rempli avec marque et saveur, la recherche par nom dans
 Open Food Facts avec les 3 ou 4 plus proches en photo), le point rouge, les sections sous chaque catégorie dans Gérer les
 bases, la liste d'achats (soldes sous l'aliment, « Il y a aussi ceci » au bas, un magasin mis à Non qui disparaît tout de

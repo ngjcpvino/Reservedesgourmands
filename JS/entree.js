@@ -92,8 +92,13 @@ var envoiGestes = false;                            // la file des gestes est en
 var ACHATS = [];                                    // onglet Achats : [ID, ProduitID, Marque, Saveur, Etat, Date, Qui, Actif] — la liste d'achats
 const ATTENTE_ACHATS = 'rdg_achats_attente';        // ce qui a été coché, ajouté, mis de côté, pas encore confirmé
 var envoiAchats = false;                            // la file de la liste d'achats est en route
-var SPECIAUX = [];                                  // onglet Speciaux (lu le jeudi par le coffre-fort) : [ID, Magasin, ProduitID, Texte, Prix,
-                                                    // Regulier, Unite, Description, Debut, Fin, Cle, Etat (? proposé · O confirmé), FlippId]
+var SPECIAUX = [];                                  // les soldes de la semaine dont le genre est trié Oui ou Peut-être (le coffre-fort filtre) :
+                                                    // [ID, Magasin, ProduitID, Texte, Prix, Regulier, Unite, Description, Debut, Fin, Cle, 'O',
+                                                    //  FlippId, Reponse (O / P), Marque, Saveur, CodeBarres, Categorie]
+var NB_A_TRIER = 0;                                 // les genres d'articles de la semaine sans réponse : le point rouge (Outils, Gérer les bases, Circulaires)
+var TRI = null;                                     // la page de tri, lue à l'ouverture (lireTri) : { aTrier: [{ cle, texte, categorie, produitId,
+                                                    //   marque, saveur, code, magasins }], tri: [lignes de l'onglet Tri : ID, Cle, Reponse, ProduitID,
+                                                    //   Marque, Saveur, CodeBarres, Date, Qui, Texte, Categorie] }
 var nomScanne = '';                                 // un code inconnu scanné pour la liste : son nom (Open Food Facts), prêt pour « Nouvel aliment… »
 var couleursModif = { site: {}, meubles: {} };      // changées à l'écran, pas encore envoyées
 var envoiCouleurs = false;                          // un envoi de couleurs est en route
@@ -119,6 +124,7 @@ function toutCacher() {
   $('vue-aliments').hidden = true;
   $('vue-noms').hidden = true;
   $('vue-achats').hidden = true;
+  $('vue-circulaires').hidden = true;
   const vs = $('vue-scan'); if (vs) vs.hidden = true;
   if (window.stopScanner) window.stopScanner();   // coupe la caméra en quittant la vue scan
   $('btn-burger').hidden = true;   // burger caché par défaut ; ré-affiché sur accueil + choix + bases
@@ -278,7 +284,7 @@ function placerTitre() {
   }
   document.documentElement.style.setProperty('--titre-monte', Math.max(0, bas - haut) + 'px');
 }
-/* Le menu a trois grilles, une seule visible : la principale (6), Outils (4), Gérer les bases (8).
+/* Le menu a trois grilles, une seule visible : la principale (8), Outils (4), Gérer les bases (9).
    Chaque Retour remonte d'un cran. */
 window.addEventListener('resize', () => placerTitre());
 const GRILLES_MENU = { principal: 'menu-principal', outils: 'menu-outils-grille', bases: 'menu-bases-grille' };
@@ -386,6 +392,7 @@ function appliquer(d) {
   PAS_AIMES = d.pasAimes || [];
   ACHATS = d.achats || [];
   SPECIAUX = d.speciaux || [];
+  NB_A_TRIER = Number(d.nbATrier) || 0; poserPoints();
   // une couleur pas encore confirmée (attente) ou en cours d'essai (écran) l'emporte sur le Sheet
   const cm = Object.assign({}, lireAttenteCouleurs().meubles, couleursModif.meubles);
   PIECES.concat(MEUBLES).forEach(m => { if (cm[m.id] !== undefined) m.couleur = cm[m.id]; });
@@ -407,8 +414,8 @@ async function chargerReferences() {
     data.stock = data.stock || []; data.pasAimes = data.pasAimes || [];
     lireAttenteGestes().forEach(e => appliquerGeste(e, data));   // idem : un geste en route reste fait
     data.achats = data.achats || []; data.speciaux = data.speciaux || [];
-    lireAttenteAchats().forEach(e => e.reponse ? appliquerReponse(e.reponse, data.speciaux)       // idem pour la liste d'achats
-                                               : poserLignesAchats(e.lignes, data.achats));     // (et les Oui / Non aux soldes)
+    lireAttenteAchats().forEach(e => { if (e.lignes) poserLignesAchats(e.lignes, data.achats); });   // idem pour la liste d'achats
+    data.nbATrier = Math.max(0, (Number(data.nbATrier) || 0) - triesEnRoute());   // idem : un tri en route n'est plus « à trier »
     appliquer(data); ecrireCache(data); remplirListes(); statut('');
     expedierOrdre();                              // le réseau répond : on en profite pour renvoyer l'attente
     expedierCouleurs();                           // idem pour les couleurs (sinon un appareil garde les siennes)
@@ -431,7 +438,7 @@ async function chargerData() {
   for (let i = 0; i < 3; i++) {
     try {
       const r = await Coffre.references();
-      if (r && r.ok && r.categories !== undefined) return { cats: r.categories, emps: r.emplacements, prods: r.produits, stock: r.stock, variantes: r.variantes, codes: r.codes, couleurs: r.couleurs, listes: r.listes, pasAimes: r.pasAimes, achats: r.achats, speciaux: r.speciaux };   // tout ce que l'app lit : un oubli ici = une donnée qui n'arrive jamais
+      if (r && r.ok && r.categories !== undefined) return { cats: r.categories, emps: r.emplacements, prods: r.produits, stock: r.stock, variantes: r.variantes, codes: r.codes, couleurs: r.couleurs, listes: r.listes, pasAimes: r.pasAimes, achats: r.achats, speciaux: r.speciaux, nbATrier: r.nbATrier };   // tout ce que l'app lit : un oubli ici = une donnée qui n'arrive jamais
       if (r && r.erreur === 'non autorisé') throw new Error('non autorisé');   // inutile de réessayer
       err = new Error((r && r.erreur) || 'refus'); err.refus = true;          // le coffre-fort a répondu, mais pas oui
     } catch (e) { if (e.message === 'non autorisé') throw e; err = e; }
@@ -674,14 +681,17 @@ const CHOIX_FICHE = {
 function nomListe(v) { const k = String(v == null ? '' : v).trim(); return NOMS_LISTES[k] || k; }
 /* Deux noms « pareils » : sans accent, sans majuscule, sans espace ni ponctuation (« Super C » = « SuperC »). Même règle que le coffre-fort. */
 function cleNom(n) { return String(n || '').normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase().replace(/[^a-z0-9]/g, ''); }
-/* Les options d'un choix : les ID proposés (par nom), celui qui est choisi, puis « Nouvelle… ». */
-function remplirChoix(champ, ids, choisi) {
+/* Les options d'un choix : les ID proposés (par nom), celui qui est choisi, puis « Nouvelle… ». (La fiche et le tri des circulaires.) */
+function optionsListe(champ, ids, choisi) {
   const C = CHOIX_FICHE[champ], vus = [];
   (ids || []).concat(choisi ? [choisi] : []).forEach(v => { v = String(v || ''); if (v && vus.indexOf(v) === -1) vus.push(v); });
   vus.sort((a, b) => nomListe(a).localeCompare(nomListe(b), 'fr'));
-  $(champ).innerHTML = '<option value="">' + C.vide + '</option>' +
+  return '<option value="">' + C.vide + '</option>' +
     vus.map(v => '<option value="' + esc(v) + '">' + esc(nomListe(v)) + '</option>').join('') +
     '<option value="neuve">' + C.neuve + '</option>';
+}
+function remplirChoix(champ, ids, choisi) {
+  $(champ).innerHTML = optionsListe(champ, ids, choisi);
   $(champ).value = choisi ? String(choisi) : '';
   montrer('bloc-' + champ + '-neuve', false);
 }
@@ -2488,6 +2498,7 @@ function poserGeste(envoi) {
 const TABLES_GESTE = { Emplacements: d => d.emps, Produits: d => d.prods, Categories: d => d.cats,
                        Magasins: d => (d.listes || {}).Magasins, Marques: d => (d.listes || {}).Marques, Saveurs: d => (d.listes || {}).Saveurs };
 function appliquerGeste(e, d) {
+  if (e.action === 'trier') return;                   // le tri des circulaires : rien dans la réserve (la page de tri le pose elle-même, appliquerTri)
   if (e.action === 'creer') {                         // une ligne neuve (un aliment créé instantanément), une seule fois
     const rows = (TABLES_GESTE[e.table] || (() => null))(d);
     if (rows && !rows.some(x => String(x[0]) === String(e.ligne[0]))) rows.push(e.ligne.slice());
@@ -2537,6 +2548,7 @@ async function envoyerGeste(e) {
   if (e.action === 'deplacer') return Coffre.deplacer(e);
   if (e.action === 'consommer') return Coffre.consommer(e);
   if (e.action === 'creer') return Coffre.ajouter(e.table, e.ligne);   // l'ID vient de l'app : déjà créé = dejaFait, rien d'écrit
+  if (e.action === 'trier') return Coffre.trier(e);                    // la même réponse renvoyée = rien d'écrit
   for (const l of e.lignes || []) {
     const r = await Coffre.modifier(e.table || 'Emplacements', l[0], l);
     if (!(r && r.ok) && !(r && r.erreur === 'ID introuvable')) return r;
@@ -2741,25 +2753,24 @@ async function expedierAchats() {
     while (lireAttenteAchats().length) {
       const e = lireAttenteAchats()[0];
       let r = null;
-      try { r = e.reponse ? await Coffre.repondreSpecial(e.reponse) : await Coffre.achats({ lignes: e.lignes }); } catch (x) {}
+      if (!e.lignes) r = { ok: true };                  // une vieille réponse « C'est le bon aliment ? » (retirée le 2026-10-02 : le tri la remplace)
+      else try { r = await Coffre.achats({ lignes: e.lignes }); } catch (x) {}
       if (!(r && (r.ok || r.definitif))) break;         // réseau, ou coffre-fort pas encore à jour : tout reste, ça repartira
       ecrireAttenteAchats(lireAttenteAchats().slice(1));
     }
   } finally { envoiAchats = false; }
 }
 /* ---------- LES SOLDES (J-C, 2026-10-01, sur aperçu; RdG-05) ----------
-   Le coffre-fort lit les circulaires le jeudi et renvoie SPECIAUX. Sous un aliment : une ligne par magasin, la confirmée d'abord,
-   la moins chère en premier (choix C : « Metro · 4,99 $ (rég. 6,49 $) · jusqu'au 7 oct. », dessous les mots de la circulaire).
-   Ce qui n'est que proposé (?) ne s'affiche JAMAIS comme un fait : la question Oui / Non, une par genre d'article (Cle).
-   Seulement ce qui est en cours (Debut ≤ aujourd'hui ≤ Fin) : un cache de la semaine passée ne montre rien de périmé. */
+   Le coffre-fort lit les circulaires le jeudi et renvoie SPECIAUX : seulement ce que J-C a trié Oui ou Peut-être (Gérer les bases
+   → Circulaires). Sous un aliment : une ligne par magasin, la moins chère en premier (choix C : « Metro · 4,99 $ (rég. 6,49 $) ·
+   jusqu'au 7 oct. », dessous les mots de la circulaire). Seulement ce qui est en cours (Debut ≤ aujourd'hui ≤ Fin) : un cache de la
+   semaine passée ne montre rien de périmé. */
 function soldesDe(pid) {
   const auj = dateDuJour(), jour = v => String(dateCourte(v) || '').slice(0, 10);
   const prix = r => { const t = String(r[4] == null ? '' : r[4]).trim(), n = Number(t.replace(',', '.')); return t && isFinite(n) ? n : Infinity; };
-  const vus = {};
-  return SPECIAUX.filter(r => Array.isArray(r) && String(r[2]) === String(pid) && (r[11] === 'O' || r[11] === '?') &&
+  return SPECIAUX.filter(r => Array.isArray(r) && String(r[2]) === String(pid) && r[11] === 'O' &&
       (!r[8] || jour(r[8]) <= auj) && (!r[9] || jour(r[9]) >= auj))
-    .sort((a, b) => a[11] !== b[11] ? (a[11] === 'O' ? -1 : 1) : prix(a) === prix(b) ? 0 : prix(a) < prix(b) ? -1 : 1)
-    .filter(r => r[11] === 'O' || !vus[r[10]] && (vus[r[10]] = true));   // une seule question par genre d'article
+    .sort((a, b) => prix(a) === prix(b) ? 0 : prix(a) < prix(b) ? -1 : 1);
 }
 function textePrix(v) {
   const t = String(v == null ? '' : v).trim(), n = Number(t.replace(',', '.'));
@@ -2772,27 +2783,270 @@ function finSolde(v) {   // « 7 oct. »
 function htmlSoldes(pid) {
   return soldesDe(pid).map(r => {
     const u = String(r[6] || '').trim(), prix = textePrix(r[4]) + (u ? (u[0] === '/' ? '' : ' ') + u : ''), reg = textePrix(r[5]);
-    const quoi = [r[3], r[7]].map(x => String(x || '').trim()).filter(Boolean).join(', '), cle = esc(r[10]) + '|' + esc(pid);
-    if (r[11] === '?') return '<div class="solde solde-question"><span>En circulaire chez ' + esc(nomListe(r[1])) + ' : <span class="solde-quoi">' + esc(quoi) +
-      '</span> — ' + esc(prix) + '. C\'est le bon aliment ?</span><div class="grille">' +
-      '<button class="bouton bouton-petit bouton-vert" type="button" data-solde-oui="' + cle + '">Oui</button>' +
-      '<button class="bouton bouton-petit" type="button" data-solde-non="' + cle + '">Non</button></div></div>';
+    const quoi = [r[3], r[7]].map(x => String(x || '').trim()).filter(Boolean).join(', ');
     return '<div class="solde"><span class="solde-prix">' + esc(nomListe(r[1]) + ' · ' + prix) + '</span>' +
       esc((reg ? ' (rég. ' + reg + ')' : '') + (r[9] ? ' · jusqu\'au ' + finSolde(r[9]) : '')) +
       (quoi ? '<span class="solde-texte">' + esc(quoi) + '</span>' : '') + '</div>';
   }).join('');
 }
-/* Oui / Non : retenu « pour le même genre d'article » (Cle) et cet aliment. Instantané; la réponse part par la file de la liste d'achats. */
-function appliquerReponse(rep, rows) {
-  rows.forEach(r => { if (Array.isArray(r) && String(r[10]) === String(rep.cle) && String(r[2]) === String(rep.produitId)) r[11] = rep.reponse; });
+/* ---------- GÉRER LES BASES → CIRCULAIRES : LE TRI (J-C, 2026-10-01, sur aperçus; RdG-05, 5 quater) ----------
+   Chaque genre d'article des circulaires de la semaine reçoit UNE fois sa réponse — le feu : vert Oui · jaune Peut-être · rouge
+   Jamais, sans texte. Oui et Peut-être : l'entonnoir déjà rempli par la proposition du coffre-fort (Catégorie → Sous-catégorie →
+   Aliment → Marque → Saveur) — « C'est ça », ou on corrige le morceau fautif. Jamais : « Tout ce genre », ou « Cette marque seulement »
+   (pour cet aliment : l'entonnoir, sans la saveur). À l'arrivée, quatre barres fermées — À trier (rangé par SES catégories, « Autres »
+   au bout), Oui, Peut-être, Jamais (pour corriger : toucher l'article le rouvre sur le feu); une barre ouverte cache les autres.
+   En tête d'une catégorie d'« À trier » : « Tout ce qui est ici aujourd'hui » → Jamais pour chaque article qui s'y trouve CE jour-là
+   (jamais la catégorie pour toujours : un article nouveau reviendra à trier). Lu en UN appel à l'ouverture (lireTri); chaque réponse
+   est INSTANTANÉE et part par la file des gestes (action trier, rejouable), après l'aliment, la marque ou la saveur neufs qu'elle porte. */
+const CHEMIN_TRI = '#menu-outils, #menu-bases, [data-base="circulaires"]';   // le point rouge, sur le chemin (choix B de J-C)
+function poserPoints() {
+  document.querySelectorAll(CHEMIN_TRI).forEach(b => b.classList.toggle('a-trier', NB_A_TRIER > 0));
 }
-function repondreSolde(val, reponse) {
-  const k = val.split('|'), rep = { cle: k[0], produitId: k[1], reponse: reponse, qui: localStorage.getItem(QUI) || '' };
-  ecrireAttenteAchats(lireAttenteAchats().concat([{ reponse: rep }]));   // gardé AVANT tout
-  appliquerReponse(rep, SPECIAUX);
-  const c = lireCache(); if (c) { appliquerReponse(rep, c.speciaux = c.speciaux || []); ecrireCache(c); }
-  remplirAchats();
-  expedierAchats();
+/* Les genres que des tris pas encore confirmés retirent d'« À trier » : une relecture du coffre-fort les compte encore. */
+function triesEnRoute() { return lireAttenteGestes().reduce((s, e) => s + (e.action === 'trier' ? Number(e.neufs) || 0 : 0), 0); }
+function noterNbATrier(n) {                            // le point suit, et le cache aussi (une ouverture sur le cache ne le rallume pas)
+  NB_A_TRIER = Math.max(0, n); poserPoints();
+  const c = lireCache(); if (c) { c.nbATrier = NB_A_TRIER; ecrireCache(c); }
+}
+async function montrerCirculaires() {
+  toutCacher(); $('vue-circulaires').hidden = false; $('btn-burger').hidden = false;
+  $('liste-tri').innerHTML = '';                   // une nouvelle visite : tout repart fermé
+  montrerVoile(true);                              // le chariot jusqu'à ce que tout soit là
+  if (!RAYONS.length) await chargerReferences();   // l'entonnoir a besoin des catégories et des aliments
+  let r = null;
+  try { r = await Coffre.lireTri(); } catch (e) {}
+  montrerVoile(false);
+  if ($('vue-circulaires').hidden) return;          // parti ailleurs entre-temps
+  if (r && r.ok) {
+    TRI = { aTrier: r.aTrier || [], tri: r.tri || [] };
+    lireAttenteGestes().forEach(e => { if (e.action === 'trier') appliquerTri(e, TRI); });   // un tri en route reste fait
+    noterNbATrier(TRI.aTrier.length);
+  } else avis('Circulaires pas lues — réessaie dans un instant', 'erreur');
+  remplirTri();                                    // (pas relues : ce qu'on avait, s'il y a lieu)
+}
+/* Une catégorie de la page : une des siennes, sinon « Autres ». */
+const groupeTri = rid => RAYONS.some(r => String(r.id) === String(rid)) ? String(rid) : 'autres';
+/* Une réponse se range sous la catégorie de son aliment (s'il en a un), sinon sous celle que le coffre-fort a devinée. */
+function categorieLigneTri(r) {
+  const p = r[3] && PRODUITS.find(x => String(x.id) === String(r[3]));
+  return (p && rayonDe(p.catId)) || String(r[10] || '');
+}
+/* Les articles rangés par catégorie (leurs couleurs, dans l'ordre de J-C), « Autres » (brune) au bout. tete : la 1re ligne d'une catégorie. */
+function htmlGroupesTri(items, rid, ligne, tete) {
+  const par = {};
+  items.forEach(x => { const k = groupeTri(rid(x)); (par[k] = par[k] || []).push(x); });
+  const groupe = (k, nom) => {
+    if (!par[k]) return '';
+    const t = teinteCategorie(k === 'autres' ? '' : k);
+    return '<div class="accordeon" data-groupe="' + esc(k) + '"' + t.style + '><div class="accordeon-tete' + t.pale + '"><span>' + esc(nom) + '</span></div>' +
+      '<div class="liste-blanche achats-groupe" hidden>' + (tete ? tete(k) : '') + par[k].map(ligne).join('') + '</div></div>';
+  };
+  return RAYONS.map(r => groupe(String(r.id), r.nom)).join('') + groupe('autres', 'Autres');
+}
+/* Une ligne = le nom de l'article (choix A de J-C : ni prix ni magasin). Une réponse dit aussi à quoi elle est reliée. */
+function ligneTri(art, texte, detail) {
+  return '<div class="item tri-article" data-art="' + esc(art) + '"><div class="item-info"><div class="item-nom">' + esc(texte) + '</div>' +
+    (detail ? '<div class="item-detail">' + esc(detail) + '</div>' : '') + '</div></div>';
+}
+function detailTri(r) {
+  const p = PRODUITS.find(x => String(x.id) === String(r[3]));
+  const d = [p ? p.nom : '', nomListe(r[4]), r[2] === 'M' ? '' : nomListe(r[5])].filter(Boolean).join(' · ');
+  return r[2] === 'M' ? (d ? d + ' ' : '') + '(cette marque seulement)' : d;
+}
+function ligneTout(k) {
+  return '<div class="item tri-tout"><div class="item-info"><div class="item-detail">Tout ce qui est ici aujourd\'hui</div></div>' +
+    '<span class="feu feu-seul"><button class="feu-jamais" type="button" data-tout="' + esc(k) + '" aria-label="Jamais pour tout"></button></span></div>';
+}
+/* La page. Ce qui était ouvert (la barre, la catégorie) le reste : on trie l'un après l'autre. */
+function remplirTri() {
+  const cible = $('liste-tri');
+  if (!TRI) { cible.innerHTML = '<div class="texte-petit texte-pale">Circulaires pas lues — réessaie dans un instant.</div>'; return; }
+  const tB = cible.querySelector(':scope > .accordeon > .accordeon-tete.ouvert'), barre = tB ? tB.parentElement.dataset.barre : '';
+  const tG = tB && tB.nextElementSibling.querySelector(':scope > .accordeon > .accordeon-tete.ouvert'), groupe = tG ? tG.parentElement.dataset.groupe : '';
+  const parTexte = (a, b) => String(a).localeCompare(String(b), 'fr');
+  const corps = (items, rid, ligne, tete, vide) => items.length ? htmlGroupesTri(items, rid, ligne, tete)
+    : '<div class="accordeon-item"><span class="texte-petit texte-pale">' + vide + '</span></div>';
+  const reponses = reps => corps(TRI.tri.filter(r => reps.indexOf(String(r[2])) !== -1).sort((a, b) => parTexte(a[9] || a[1], b[9] || b[1])),
+    categorieLigneTri, r => ligneTri('r:' + r[0], r[9] || r[1], detailTri(r)), null, 'Rien pour l\'instant.');
+  const barreTri = (cle, nom, classe, html) => '<div class="accordeon' + classe + '" data-barre="' + cle + '"><div class="accordeon-tete"><span>' + nom + '</span></div>' +
+    '<div class="accordeon-corps une-a-la-fois" hidden>' + html + '</div></div>';
+  cible.innerHTML =
+    barreTri('a', 'À trier', '', corps(TRI.aTrier.slice().sort((a, b) => parTexte(a.texte, b.texte)), x => x.categorie,
+      x => ligneTri('a:' + x.cle, x.texte, ''), ligneTout, 'Rien à trier cette semaine.')) +
+    barreTri('O', 'Oui', ' tri-oui', reponses(['O'])) +
+    barreTri('P', 'Peut-être', ' tri-peutetre', reponses(['P'])) +
+    barreTri('J', 'Jamais', ' tri-jamais', reponses(['J', 'M']));
+  const accB = [...cible.children].find(a => a.dataset.barre === barre);
+  if (!accB) return;
+  toggleAccordeon(accB.firstElementChild);
+  const accG = [...accB.lastElementChild.children].find(a => a.dataset.groupe === groupe);
+  if (accG) toggleAccordeon(accG.firstElementChild);
+}
+/* Un article de la page ('a:' + Cle, à trier · 'r:' + ID, une réponse déjà donnée) → ce qu'on en sait. */
+function articleTri(art) {
+  art = String(art || '');
+  const k = art.slice(2);
+  if (art.slice(0, 2) === 'a:') { const x = TRI.aTrier.find(y => String(y.cle) === k); return x ? Object.assign({}, x, { reponse: '' }) : null; }
+  const r = TRI.tri.find(y => String(y[0]) === k);
+  return r ? { cle: String(r[1]), texte: String(r[9] || r[1]), categorie: String(r[10] || ''), produitId: String(r[3] || ''),
+               marque: String(r[4] || ''), saveur: String(r[5] || ''), code: String(r[6] || ''), reponse: String(r[2]) } : null;
+}
+function articleOuvert() { const p = $('liste-tri').querySelector('.tri-panneau'); return p ? articleTri(p.dataset.art) : null; }
+/* Toucher un article : il s'ouvre sur le feu (un seul ouvert à la fois); le retoucher le referme. */
+function ouvrirArticleTri(el) {
+  const deja = el.classList.contains('ouvert');
+  fermerArticleTri();
+  if (deja) return;
+  el.classList.add('ouvert');
+  el.insertAdjacentHTML('afterend', '<div class="tri-panneau" data-art="' + esc(el.dataset.art) + '"><div class="feu">' +
+    '<button class="feu-oui" type="button" data-reponse="O" aria-label="Oui"></button>' +
+    '<button class="feu-peutetre" type="button" data-reponse="P" aria-label="Peut-être"></button>' +
+    '<button class="feu-jamais" type="button" data-reponse="J" aria-label="Jamais"></button></div></div>');
+}
+function fermerArticleTri() {
+  const p = $('liste-tri').querySelector('.tri-panneau'); if (p) p.remove();
+  $('liste-tri').querySelectorAll('.tri-article.ouvert').forEach(x => x.classList.remove('ouvert'));
+}
+/* Une marque ou une saveur proposée (un ID, ou un nom) → l'ID d'un nom actif de la liste; sinon rien. */
+function idListe(liste, v) {
+  v = String(v || '').trim();
+  if (!v) return '';
+  const x = LISTES[liste].find(y => y.id === v) || LISTES[liste].find(y => cleNom(y.nom) === cleNom(v));
+  return x ? x.id : '';
+}
+/* Le feu touché. Rouge : les deux « Jamais ». Vert, jaune (et « Cette marque seulement ») : l'entonnoir, déjà rempli. */
+function etapeTri(rep) {
+  const p = $('liste-tri').querySelector('.tri-panneau'), x = p && articleTri(p.dataset.art);
+  if (!x) return;
+  p.dataset.reponse = rep;
+  if (rep === 'J') {
+    p.innerHTML = '<div class="grille"><button class="bouton bouton-petit bouton-brun" type="button" data-jamais="J">Tout ce genre</button>' +
+      '<button class="bouton bouton-petit bouton-brun" type="button" data-jamais="M">Cette marque seulement</button></div>';
+    return;
+  }
+  const choix = (champ, nom) => '<div class="bloc"><div class="label">' + nom + '</div><select class="champ" id="tri-' + champ + '"></select>' +
+    '<input class="champ bloc-suite" id="tri-' + champ + '-neuve" autocomplete="off" enterkeyhint="done" placeholder="' + CHOIX_FICHE[champ].neuve + '" hidden></div>';
+  p.innerHTML = '<div class="bloc"><div class="label">Catégorie</div><select class="champ" id="tri-cat"></select></div>' +
+    '<div class="bloc" id="tri-bloc-souscat" hidden><div class="label">Sous-catégorie</div><select class="champ" id="tri-souscat"></select></div>' +
+    '<div class="bloc" id="tri-bloc-aliment" hidden><div class="label">Aliment</div><select class="champ champ-fort" id="tri-aliment"></select>' +
+      '<input class="champ bloc-suite" id="tri-nom" autocomplete="off" enterkeyhint="done" placeholder="Nom du nouvel aliment" hidden></div>' +
+    '<div id="tri-bloc-sorte" hidden>' + choix('marque', 'Marque') + (rep === 'M' ? '' : choix('saveur', 'Saveur')) + '</div>' +
+    '<button class="bouton bouton-petit bouton-vert bouton-pleine" type="button" data-tri-ok>C\'est ça</button>' +
+    '<div class="message message-repli message-erreur" id="tri-msg"></div>';
+  // la proposition du coffre-fort — ou, pour corriger, ce qui avait été choisi
+  const prod = PRODUITS.find(q => String(q.id) === String(x.produitId)), scid = prod ? String(prod.catId) : '';
+  const rid = (scid && rayonDe(scid)) || (groupeTri(x.categorie) !== 'autres' ? String(x.categorie) : '');
+  $('tri-cat').innerHTML = options(RAYONS, '— Catégorie —');
+  $('tri-cat').value = rid;
+  triSurCat(scid, prod ? String(prod.id) : '', idListe('Marques', x.marque), idListe('Saveurs', x.saveur));
+}
+function triSurCat(scid, pid, marque, saveur) {
+  const rid = $('tri-cat').value;
+  $('tri-souscat').innerHTML = options(SOUSCATS[rid] || [], '— Sous-catégorie —');
+  $('tri-souscat').value = scid || '';
+  montrer('tri-bloc-souscat', !!rid);
+  triSurSousCat(pid, marque, saveur);
+}
+function triSurSousCat(pid, marque, saveur) {
+  const scid = $('tri-souscat').value;
+  const ps = PRODUITS.filter(p => String(p.catId) === String(scid)).sort((a, b) => String(a.nom).localeCompare(String(b.nom), 'fr'));
+  $('tri-aliment').innerHTML = options(ps, '— Aliment —') + '<option value="neuf">Nouvel aliment…</option>';
+  $('tri-aliment').value = pid || '';
+  montrer('tri-bloc-aliment', !!scid);
+  triSurAliment(marque, saveur);
+}
+/* L'aliment choisi : ses marques et saveurs déjà vues (comme la fiche), plus celle de la circulaire, et « Nouvelle… ».
+   Changer d'aliment garde la marque et la saveur choisies. */
+function triSurAliment(marque, saveur) {
+  const pid = $('tri-aliment').value, vr = (pid && VARIANTES[pid]) || {};
+  montrer('tri-nom', pid === 'neuf');
+  if (pid === 'neuf' && !$('tri-nom').value) $('tri-nom').focus();
+  montrer('tri-bloc-sorte', !!pid);
+  [['marque', marque], ['saveur', saveur]].forEach(([champ, garde]) => {
+    const el = $('tri-' + champ);
+    if (!el) return;
+    const v = garde !== undefined ? garde : el.value;
+    el.innerHTML = optionsListe(champ, vr[champ + 's'], v === 'neuve' ? '' : v);
+    el.value = v || '';
+    montrer('tri-' + champ + '-neuve', el.value === 'neuve');
+  });
+}
+/* « C'est ça » : tout est vérifié d'abord, puis ce qui est neuf naît (aliment, marque, saveur), puis la réponse. */
+function validerTri() {
+  const p = $('liste-tri').querySelector('.tri-panneau'), x = p && articleTri(p.dataset.art), rep = p && p.dataset.reponse;
+  if (!x || !rep || !$('tri-aliment')) return;
+  const msg = t => { $('tri-msg').textContent = t; };
+  const scid = $('tri-souscat').value, choix = $('tri-aliment').value, nom = $('tri-nom').value.trim();
+  if (!scid || !choix) { msg('Choisis la catégorie, la sous-catégorie et l\'aliment.'); return; }
+  if (choix === 'neuf' && !nom) { msg('Donne un nom au nouvel aliment.'); $('tri-nom').focus(); return; }
+  for (const champ of ['marque', 'saveur']) {
+    const el = $('tri-' + champ);
+    if (el && el.value === 'neuve' && !$('tri-' + champ + '-neuve').value.trim()) { msg('Donne un nom à la ' + (champ === 'marque' ? 'nouvelle marque.' : 'nouvelle saveur.')); $('tri-' + champ + '-neuve').focus(); return; }
+  }
+  if (rep === 'M' && !$('tri-marque').value) { msg('Choisis la marque.'); return; }
+  const deja = choix === 'neuf' && PRODUITS.find(q => cleNom(q.nom) === cleNom(nom));   // un nom qui existe déjà : repris, jamais doublé
+  const pid = choix !== 'neuf' ? choix : deja ? deja.id : creerAlimentInstant(nom, scid);
+  trier([x], rep, { produitId: pid, marque: choixListeTri('marque'), saveur: choixListeTri('saveur'),
+                    code: x.reponse && String(pid) === String(x.produitId) ? x.code : '' });   // corriger garde le code-barres du même aliment
+}
+/* La marque ou la saveur choisie; « Nouvelle… » : retrouvée par son nom, sinon elle naît ici (ID de l'app) et part dans la file. */
+function choixListeTri(champ) {
+  const el = $('tri-' + champ);
+  if (!el) return '';
+  if (el.value !== 'neuve') return el.value;
+  const liste = CHOIX_FICHE[champ].liste, nom = $('tri-' + champ + '-neuve').value.trim();
+  const x = LISTES[liste].find(y => cleNom(y.nom) === cleNom(nom));
+  if (x) return x.id;
+  const id = idLocal();
+  LISTES[liste].push({ id: id, nom: nom }); LISTES[liste].sort((a, b) => a.nom.localeCompare(b.nom, 'fr')); NOMS_LISTES[id] = nom;
+  poserGeste({ action: 'creer', table: liste, opId: 'liste-' + id, ligne: [id, nom, 'O'] });   // Marques, Saveurs : ID · Nom · Actif
+  return id;
+}
+/* La réponse, pour un ou plusieurs genres. INSTANTANÉE : l'article quitte sa barre tout de suite, l'envoi part dans la file. */
+function trier(xs, rep, quoi) {
+  quoi = quoi || {};
+  const avec = rep === 'O' || rep === 'P';
+  const e = { action: 'trier', opId: 'tri-' + idLocal(), cles: xs.map(x => String(x.cle)), reponse: rep,
+              produitId: rep === 'J' ? '' : String(quoi.produitId || ''), marque: rep === 'J' ? '' : String(quoi.marque || ''),
+              saveur: avec ? String(quoi.saveur || '') : '', code: avec ? String(quoi.code || '') : '', qui: localStorage.getItem(QUI) || '',
+              neufs: xs.filter(x => TRI.aTrier.some(y => String(y.cle) === String(x.cle))).length };   // ce qui quitte « À trier » (le point rouge)
+  poserGeste(e);
+  appliquerTri(e, TRI);
+  noterNbATrier(TRI.aTrier.length);
+  remplirTri();
+}
+/* Pose une réponse sur la page (à l'écran, ou sur une relecture tant qu'elle n'est pas confirmée). Une seule réponse par genre :
+   la nouvelle remplace l'ancienne (c'est la correction). */
+function appliquerTri(e, T) {
+  if (!T) return;
+  (e.cles || []).forEach(cle => {
+    cle = String(cle);
+    const a = T.aTrier.find(y => String(y.cle) === cle), vieille = T.tri.find(r => String(r[1]) === cle);
+    if (!a && !vieille) return;                        // un genre qu'on ne connaît plus : rien à montrer
+    const prod = PRODUITS.find(p => String(p.id) === String(e.produitId));
+    const cat = (prod && rayonDe(prod.catId)) || (a ? String(a.categorie || '') : String(vieille[10] || ''));
+    T.aTrier = T.aTrier.filter(y => String(y.cle) !== cle);
+    T.tri = T.tri.filter(r => String(r[1]) !== cle);
+    // Tri : ID · Cle · Reponse · ProduitID · Marque · Saveur · CodeBarres · Date · Qui · Texte · Categorie
+    T.tri.push([vieille ? vieille[0] : e.opId + '-' + cle, cle, e.reponse, e.produitId || '', e.marque || '', e.saveur || '', e.code || '',
+                dateDuJour(), e.qui || '', a ? a.texte : String(vieille[9] || cle), cat]);
+  });
+}
+/* « Tout ce qui est ici aujourd'hui » : la question d'abord, à la place de la ligne (une catégorie entière, ça ne se touche pas par erreur). */
+function demanderToutJamais(k) {
+  fermerArticleTri();
+  const n = TRI.aTrier.filter(x => groupeTri(x.categorie) === k).length, b = $('liste-tri').querySelector('[data-tout="' + esc(k) + '"]');
+  if (!n || !b) return;
+  b.closest('.tri-tout').outerHTML = '<div class="accordeon-item accordeon-item-saisie" data-confirme><span>' +
+    (n === 1 ? 'Jamais pour cet article ?' : 'Jamais pour ces ' + n + ' articles ?') + '</span>' +
+    '<button class="bouton bouton-petit bouton-rouge" type="button" data-tout-oui="' + esc(k) + '">Oui</button>' +
+    '<button class="bouton bouton-petit" type="button" data-tout-non>Non</button></div>';
+}
+function toutJamais(k) {
+  const xs = TRI.aTrier.filter(x => groupeTri(x.categorie) === k);
+  if (!xs.length) { remplirTri(); return; }
+  trier(xs, 'J');                                  // un seul envoi pour toute la catégorie
+  avis('Jamais : ' + xs.length + (xs.length > 1 ? ' articles' : ' article'), 'succes');
 }
 /* ---- « Ajouter à la liste » : l'entonnoir (catégorie → sous-catégorie → aliment, « Nouvel aliment… » au bout) et le scan,
    à la place de la liste. L'aliment seul (sans marque ni saveur). ---- */
@@ -3315,11 +3569,10 @@ function initEntree() {
   $('menu').addEventListener('touchend', surToucheFin);
   $('menu-bases').addEventListener('click', () => montrerGrilleMenu('bases'));
   $('menu-bases-retour').addEventListener('click', () => montrerGrilleMenu('outils'));
-  // les 8 bases : chacune ouvre sa page
+  // les 9 bases : chacune ouvre sa page
   const PAGES_BASES = { pieces: montrerPieces, meubles: montrerMeubles, categories: montrerPageCategories, aliments: montrerPageAliments,
                         magasins: () => montrerPageNoms('magasins'), marques: () => montrerPageNoms('marques'), saveurs: () => montrerPageNoms('saveurs'),
-                        unites: () => montrerPageNoms('unites'),
-                        circulaires: () => avis('Circulaires : la page n\'est pas encore bâtie') };   // le tri des circulaires : en réflexion (RdG-05, 5 quater)
+                        unites: () => montrerPageNoms('unites'), circulaires: montrerCirculaires };
   document.querySelectorAll('[data-base]').forEach(b => b.addEventListener('click', PAGES_BASES[b.dataset.base]));
   $('menu-couleurs').addEventListener('click', montrerCouleurs);
   // le menu mène exactement où mènent les 4 boutons de l'accueil
@@ -3336,9 +3589,6 @@ function initEntree() {
     if (pb) { enleverAchat(pb.dataset.achatRetirer); return; }
     const rv = ev.target.closest('[data-achat-remettre]');
     if (rv) { remettreAchat(rv.dataset.achatRemettre); return; }
-    const so = ev.target.closest('[data-solde-oui], [data-solde-non]');   // « C'est le bon aliment ? » Oui / Non
-    if (so) { repondreSolde(so.dataset.soldeOui || so.dataset.soldeNon, so.dataset.soldeOui ? 'O' : 'N'); return; }
-    if (ev.target.closest('.solde-question')) return;     // toucher la question ne coche pas la ligne
     const tete = ev.target.closest('.accordeon-tete');     // une catégorie, ou « Mis de côté » : une seule ouverte à la fois
     if (tete) { toggleAccordeon(tete); return; }
     const l = ev.target.closest('[data-achat]');
@@ -3364,7 +3614,7 @@ function initEntree() {
   // Gérer les bases → Pièces
   $('btn-piece-ajouter').addEventListener('click', ajouterPiece);
   $('piece-nouvelle').addEventListener('keydown', e => { if (e.key === 'Enter') { e.preventDefault(); ajouterPiece(); } });
-  $('pieces-retour').addEventListener('click', () => { ouvrirMenu(); montrerGrilleMenu('bases'); });   // le menu, sur la grille des 8 bases
+  $('pieces-retour').addEventListener('click', () => { ouvrirMenu(); montrerGrilleMenu('bases'); });   // le menu, sur la grille des bases
   $('liste-pieces').addEventListener('click', function (ev) {
     const cr = ev.target.closest('.crayon');               // avant la tête : le crayon n'ouvre ni ne ferme rien
     if (cr) { ouvrirRenommer(cr); return; }
@@ -3381,7 +3631,7 @@ function initEntree() {
     retourDansApp();   // on revient dans l'app : les entrées de l'autre appareil arrivent toutes seules
   });
   // Gérer les bases → Meubles
-  $('meubles-retour').addEventListener('click', () => { ouvrirMenu(); montrerGrilleMenu('bases'); });   // le menu, sur la grille des 8 bases
+  $('meubles-retour').addEventListener('click', () => { ouvrirMenu(); montrerGrilleMenu('bases'); });   // le menu, sur la grille des bases
   // changer la pièce d'un meuble (menu déroulant généré)
   $('liste-meubles').addEventListener('change', function (ev) {
     const sel = ev.target.closest('.choix-piece');
@@ -3409,7 +3659,7 @@ function initEntree() {
   });
   $('liste-meubles').addEventListener('keydown', entreeAjoute);
   // Gérer les bases → Catégories
-  $('categories-retour').addEventListener('click', () => { ouvrirMenu(); montrerGrilleMenu('bases'); });   // le menu, sur la grille des 8 bases
+  $('categories-retour').addEventListener('click', () => { ouvrirMenu(); montrerGrilleMenu('bases'); });   // le menu, sur la grille des bases
   $('liste-categories').addEventListener('keydown', entreeAjoute);
   $('liste-categories').addEventListener('click', function (ev) {
     const oui = ev.target.closest('[data-retirer-oui]');   // « Retirer … ? » Oui (avec, s'il le faut, où vont ses aliments)
@@ -3429,7 +3679,7 @@ function initEntree() {
     if (tete) toggleAccordeon(tete);
   });
   // Gérer les bases → Aliments
-  $('aliments-retour').addEventListener('click', () => { ouvrirMenu(); montrerGrilleMenu('bases'); });   // le menu, sur la grille des 8 bases
+  $('aliments-retour').addEventListener('click', () => { ouvrirMenu(); montrerGrilleMenu('bases'); });   // le menu, sur la grille des bases
   $('liste-aliments').addEventListener('change', function (ev) {   // une autre sous-catégorie
     const sel = ev.target.closest('.choix-souscat');
     if (sel) assignerSousCat(sel.dataset.aliment, sel.value);
@@ -3453,8 +3703,44 @@ function initEntree() {
     if (tete.classList.contains('aliment-tete')) remplirCorpsAliment(tete);
     toggleAccordeon(tete);
   });
+  // Gérer les bases → Circulaires : le tri
+  $('circulaires-retour').addEventListener('click', () => {   // Retour recule d'un pas : la barre ouverte la plus profonde se referme; sinon, le menu
+    const ouvertes = $('liste-tri').querySelectorAll('.accordeon-tete.ouvert');
+    if (ouvertes.length) { fermerArticleTri(); toggleAccordeon(ouvertes[ouvertes.length - 1]); window.scrollTo(0, 0); }
+    else { ouvrirMenu(); montrerGrilleMenu('bases'); }
+  });
+  $('liste-tri').addEventListener('click', function (ev) {
+    const f = ev.target.closest('[data-reponse]');         // le feu : vert, jaune, rouge
+    if (f) { etapeTri(f.dataset.reponse); return; }
+    const j = ev.target.closest('[data-jamais]');          // après le rouge : tout ce genre, ou cette marque seulement
+    if (j) { const x = articleOuvert(); if (j.dataset.jamais === 'M') etapeTri('M'); else if (x) trier([x], 'J'); return; }
+    if (ev.target.closest('[data-tri-ok]')) { validerTri(); return; }
+    const to = ev.target.closest('[data-tout-oui]');       // « Jamais pour ces 12 articles ? » Oui
+    if (to) { toutJamais(to.dataset.toutOui); return; }
+    if (ev.target.closest('[data-tout-non]')) { remplirTri(); return; }
+    const t = ev.target.closest('[data-tout]');            // « Tout ce qui est ici aujourd'hui » : la question d'abord
+    if (t) { demanderToutJamais(t.dataset.tout); return; }
+    if (ev.target.closest('.tri-panneau, [data-confirme]')) return;   // un menu, un champ, la question : rien ne se referme
+    const a = ev.target.closest('.tri-article');
+    if (a) { ouvrirArticleTri(a); return; }
+    const tete = ev.target.closest('.accordeon-tete');
+    if (tete) { fermerArticleTri(); toggleAccordeon(tete); }
+  });
+  $('liste-tri').addEventListener('change', function (ev) {   // l'entonnoir d'un article ouvert
+    const id = ev.target.id;
+    if (id === 'tri-cat') triSurCat('');
+    else if (id === 'tri-souscat') triSurSousCat('');
+    else if (id === 'tri-aliment') triSurAliment();
+    else if (id === 'tri-marque' || id === 'tri-saveur') {
+      montrer(id + '-neuve', ev.target.value === 'neuve');
+      if (ev.target.value === 'neuve') $(id + '-neuve').focus();
+    }
+  });
+  $('liste-tri').addEventListener('keydown', e => {          // Entrée dans un nom neuf = « C'est ça »
+    if (e.key === 'Enter' && e.target.tagName === 'INPUT' && e.target.closest('.tri-panneau')) { e.preventDefault(); validerTri(); }
+  });
   // Gérer les bases → Magasins, Marques, Saveurs (une seule page)
-  $('noms-retour').addEventListener('click', () => { ouvrirMenu(); montrerGrilleMenu('bases'); });   // le menu, sur la grille des 8 bases
+  $('noms-retour').addEventListener('click', () => { ouvrirMenu(); montrerGrilleMenu('bases'); });   // le menu, sur la grille des bases
   $('btn-nom-ajouter').addEventListener('click', ajouterNom);
   $('nom-nouveau').addEventListener('keydown', e => { if (e.key === 'Enter') { e.preventDefault(); ajouterNom(); } });
   $('liste-noms').addEventListener('click', function (ev) {
