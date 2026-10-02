@@ -283,7 +283,19 @@ bâtie trop vite, sur un aperçu de 3 aliments. J-C : « Faut réfléchir avant 
   **J-C accepte ou corrige** — le même geste qu'au scan. Le code-barres se rattache alors au genre d'article. Un appel
   par Oui (pas 1 500), depuis l'app. Rien trouvé (fréquent au Canada, et jamais pour une pomme) : le tri continue sans
   code-barres, comme avant. (Claude avait proposé « deux pivots qui se tiennent par la main », jugé trop compliqué.)
-  ⚠️ La recherche par nom d'Open Food Facts n'a pas pu être essayée d'ici (réseau refusé) : à essayer en vrai.
+  ✅ **Essayée depuis l'ordi le 2 octobre** sur de vrais articles de la semaine (`world.openfoodfacts.org/cgi/search.pl?
+  search_terms=…&search_simple=1&action=process&json=1&page_size=4&countries_tags_en=canada&fields=code,product_name,
+  product_name_fr,brands,quantity`) : **5 sur 6 trouvés**, ~0,5 s chacun — Crème glacée Coaticook (14 résultats : vanille,
+  pistache, à l'ancienne…), cheddar Black Diamond (11), bacon Maple Leaf (8), Yogourt Yoplait crémeux (3), skyr Irrésistible
+  (3); le 6e (café Café William) refusé par la limite. Plusieurs résultats par article (saveurs, formats) : d'où **les 3 ou
+  4 plus proches, en photo, J-C touche le bon** — confirmé. ⚠️ **La limite d'Open Food Facts : environ 10 recherches par
+  minute**; au-delà, « Page temporarily unavailable » (503), qui a duré plus d'une minute → **une recherche par Oui, jamais en
+  lot**, et un refus = le tri continue sans code-barres (comme « Aucun »). ⚠️ Pas pu vérifier d'ici que la recherche répond à
+  une page web (CORS : la limite bloquait) — la recherche par code-barres, elle, marche déjà depuis l'app (`scan.js`).
+  **IGA donne déjà le code-barres** (colonne `CodeBarres`, `code` dans `aTrier`) : pas de recherche pour ses articles.
+  Et **le Flipp ID n'est PAS un pivot** (vérifié le 2 octobre) : il désigne l'emplacement d'un article dans UNE circulaire
+  (le même skyr a deux Flipp ID dans les deux circulaires de Metro; Coaticook en a un chez IGA, un autre chez Metro; une
+  circulaire neuve = des ID neufs). Le « code du magasin » de Super C et Metro (« E809-51 ») non plus : un code de mise en page.
   **Effet (vu par J-C) : le même produit chez chaque magasin** — Natrel 2 %, 2 L chez Metro et chez IGA porte le même
   code-barres, donc toutes les listes deviennent plus justes (comparer le même produit d'un magasin à l'autre). Chaque
   magasin écrit ses circulaires à sa façon : sa formulation se trie une fois, ensuite elle pointe vers le même code.
