@@ -193,8 +193,8 @@ function preparerFiche(avecCode) {
 function ordonnerFiche() {
   const parent = $('vue-app').querySelector('.contenu');
   const ordre = modeManuel
-    ? ['bloc-code', 'bloc-cat', 'bloc-souscat', 'bloc-produit', 'bloc-nom', 'bloc-details', 'bloc-achat', 'bloc-endroits']
-    : ['bloc-code', 'bloc-nom', 'bloc-details', 'bloc-achat', 'bloc-cat', 'bloc-souscat', 'bloc-produit', 'bloc-endroits'];   // magasin + prix : juste sous le format
+    ? ['bloc-code', 'bloc-cat', 'bloc-souscat', 'bloc-produit', 'bloc-plu', 'bloc-nom', 'bloc-details', 'bloc-achat', 'bloc-endroits']
+    : ['bloc-code', 'bloc-nom', 'bloc-details', 'bloc-achat', 'bloc-cat', 'bloc-souscat', 'bloc-produit', 'bloc-plu', 'bloc-endroits'];   // magasin + prix : juste sous le format
   ordre.forEach(id => parent.insertBefore($(id), $('btn-enregistrer')));
 }
 
@@ -507,6 +507,7 @@ function reinitFiche() {
   montrer('bloc-cat-neuve', false); montrer('bloc-souscat-neuve', false);
   $('cat-neuve').value = ''; $('souscat-neuve').value = '';
   montrer('bloc-endroits', false); montrer('btn-enregistrer', false);
+  montrer('bloc-plu', false); $('plu').innerHTML = ''; $('plu-tape').value = ''; montrer('plu-tape', false); $('plu-nom').textContent = '';
   pasEncoreRange(false);
   montrer('bloc-cat', modeManuel);      // à la main, l'entonnoir part de la catégorie
   montrer('bloc-nom', !modeManuel);     // le nom ne sert qu'au scan, ou à un nouveau produit
@@ -573,6 +574,7 @@ function surCategorie() {
   montrer('bloc-produit', false); montrer('bloc-endroits', false); montrer('btn-enregistrer', false);
   $('endroits').innerHTML = '';
   if (modeManuel) { produitCourant = null; $('nom').value = ''; montrer('bloc-nom', false); montrer('bloc-details', false); }
+  majPlu();
 }
 
 function surSousCategorie() {
@@ -592,9 +594,10 @@ function surSousCategorie() {
     montrer('bloc-endroits', false); montrer('btn-enregistrer', false);
   pasEncoreRange(false);
     $('endroits').innerHTML = '';
-    if (!scid) { montrer('bloc-produit', false); return; }
+    if (!scid) { montrer('bloc-produit', false); majPlu(); return; }
     remplirProduits(scid);
     montrer('bloc-produit', true);
+    majPlu();
     return;
   }
   if (!scid) { montrer('bloc-endroits', false); montrer('btn-enregistrer', false); return; }
@@ -614,12 +617,13 @@ function surProduit() {
   $('endroits').innerHTML = '';
   montrer('bloc-endroits', false); montrer('btn-enregistrer', false);
   pasEncoreRange(false);
-  if (!v) { produitCourant = null; montrer('bloc-nom', false); montrer('bloc-details', false); return; }
+  if (!v) { produitCourant = null; montrer('bloc-nom', false); montrer('bloc-details', false); majPlu(); return; }
   if (v === 'nouveau') {                        // il le nomme; la catégorie, elle, est déjà choisie
     produitCourant = null;
     $('nom').value = '';
     remplirVariantes(null);
     montrer('bloc-nom', true); montrer('bloc-details', true);
+    majPlu();                                   // « Taper le code… » tout de suite; les propositions suivent le nom tapé
     $('nom').focus();
     return;
   }
@@ -631,6 +635,47 @@ function surProduit() {
   montrer('bloc-details', true);
   prefillProduit(prod.id);                      // marque/format + endroits habituels
   montrer('bloc-achat', true); montrer('bloc-endroits', true); montrer('btn-enregistrer', true);
+  majPlu();                                     // un fruit, un légume : son PLU
+}
+/* UN FRUIT, UN LÉGUME, À LA MAIN (J-C, 2026-10-02 : « l'entrée par l'entonnoir, je vais le faire pour les fruits et légumes »; ma
+   proposition, retenue) : le PLU, juste après le produit — la liste officielle propose ceux qui vont avec le produit (le dernier
+   PLU entré pour lui, déjà choisi), « Taper le code… » au bout. Il va dans la MÊME colonne que le code-barres (STOCK col. I), comme
+   IGA le fait : reconnu ensuite partout comme un code. Rien pour les autres catégories. */
+const estFruitLegume = rid => !!rid && cleNom((RAYONS.find(r => String(r.id) === String(rid)) || {}).nom).indexOf('legume') !== -1;
+async function majPlu() {
+  const voir = modeManuel && estFruitLegume($('cat').value) && !$('bloc-produit').hidden && !!$('produit').value;
+  montrer('bloc-plu', voir);
+  if (!voir) { $('plu').innerHTML = ''; $('plu-tape').value = ''; montrer('plu-tape', false); $('plu-nom').textContent = ''; return; }
+  const pid = produitCourant, nom = pid ? (PRODUITS.find(p => String(p.id) === String(pid)) || {}).nom : $('nom').value.trim();
+  await chargerPlu();
+  const avant = $('plu').value, dernier = pid ? dernierPlu(pid) : '';
+  const props = pluCandidats(nom || '').sort((a, b) => b.score - a.score || a.nom.localeCompare(b.nom, 'fr'));
+  if (dernier && !props.some(p => p.code === dernier)) props.unshift({ code: dernier, nom: nomPlu(dernier) });
+  $('plu').innerHTML = '<option value="">— PLU —</option>' +
+    props.map(p => '<option value="' + esc(p.code) + '">' + esc(p.code + (p.nom ? ' · ' + p.nom : '')) + '</option>').join('') +
+    '<option value="tape">Taper le code…</option>';
+  $('plu').value = avant === 'tape' || props.some(p => p.code === avant) ? avant : dernier;
+  surPlu();
+}
+/* Le dernier PLU entré pour ce produit (STOCK col. I) : la prochaine fois, déjà choisi. */
+function dernierPlu(pid) {
+  for (let i = STOCK.length - 1; i >= 0; i--) if (String(STOCK[i][1]) === String(pid) && estPlu(STOCK[i][8])) return String(STOCK[i][8]).trim();
+  return '';
+}
+function surPlu() {
+  const tape = $('plu').value === 'tape';
+  montrer('plu-tape', tape);
+  if (tape && !$('plu-tape').value) $('plu-tape').focus();
+  surPluTape();
+}
+function surPluTape() {                                 // le nom officiel sous les chiffres tapés : on voit tout de suite si c'est le bon
+  const c = $('plu').value === 'tape' ? $('plu-tape').value.trim() : '';
+  $('plu-nom').textContent = !c ? '' : !estPlu(c) ? 'Un PLU a 4 ou 5 chiffres.' : (nomPlu(c) || 'Pas dans la liste officielle des PLU.');
+}
+/* Le PLU de l'entrée ('' : aucun) — le code tapé, ou celui du menu. */
+function pluChoisi() {
+  if ($('bloc-plu').hidden) return '';
+  return $('plu').value === 'tape' ? $('plu-tape').value.trim() : $('plu').value;
 }
 
 /* Les choix de la fiche pour un produit : ses marques et ses saveurs déjà vues, tous les magasins, les unités. */
@@ -968,8 +1013,8 @@ function ajouterEndroit(pref) {
   row.className = 'endroit carte';
   row.innerHTML = htmlChoixEndroit() +
     '<div class="bloc"><div class="label">Quantité</div><input class="champ qte" type="text" inputmode="numeric" pattern="[0-9]*" value="1"></div>' +
-    '<button class="bouton bouton-petit retirer" type="button">Retirer</button>';
-  row.querySelector('.retirer').onclick = () => { if ($('endroits').children.length > 1) row.remove(); };
+    '<button class="bouton bouton-petit endroit-retirer" type="button">Retirer</button>';   // pas « retirer » : c'est la poubelle (vu par J-C, 2026-10-02)
+  row.querySelector('.endroit-retirer').onclick = () => { if ($('endroits').children.length > 1) row.remove(); };
   $('endroits').appendChild(row);
   brancherEndroit(row, pref);
   if (pref && pref.qte !== undefined) row.querySelector('.qte').value = pref.qte;
@@ -1019,7 +1064,9 @@ async function enregistrer() {
 
   Object.keys(CHOIX_FICHE).forEach(ch => { if ($(ch).value === 'neuve' && !ajouterChoix(ch)) $(ch).value = ''; });   // un nom tapé sans toucher Ajouter compte quand même
   let marque = $('marque').value, saveur = $('saveur').value, magasin = $('magasin').value;   // des ID des listes gérées
-  const format = formatSaisi(), code = $('codebarres').value.trim(), prix = $('prix').value.trim();
+  const plu = pluChoisi();
+  if (plu && !estPlu(plu)) { statut('Un PLU a 4 ou 5 chiffres.', 'erreur'); $('plu-tape').focus(); return; }
+  const format = formatSaisi(), code = $('codebarres').value.trim() || plu, prix = $('prix').value.trim();   // un PLU : la même colonne que le code-barres
   const nouveaux = LISTES_NEUVES.filter(x => [marque, saveur, magasin].indexOf(x.id) !== -1);   // les noms neufs que l'entrée porte : créés par le même appel
   const qui = localStorage.getItem(QUI) || '';        // posé une fois dans Outils, gardé sur l'appareil
   if (!opCourant) opCourant = 'op-' + Date.now() + '-' + Math.random().toString(36).slice(2, 8);
@@ -3255,7 +3302,7 @@ async function etapeCode(x, rep, produits) {
   const p = panneauTri();
   if (!p) return;
   const q = produits[0], prod = PRODUITS.find(z => String(z.id) === String(q.produitId)), rid = prod ? rayonDe(prod.catId) : '';
-  const fruit = !!rid && cleNom((RAYONS.find(r => String(r.id) === String(rid)) || {}).nom).indexOf('legume') !== -1;
+  const fruit = estFruitLegume(rid);
   const t = TRI_CODE = { x: x, rep: rep, produits: produits, props: [] };
   p.dataset.etape = 'code';
   p.innerHTML = '<div class="bloc bloc-suite"><div class="item-nom">' + esc([prod ? prod.nom : '', nomListe(q.marque), nomListe(q.saveur)].filter(Boolean).join(' · ')) + '</div></div>' +
@@ -3281,17 +3328,24 @@ function choisirCode(i) {
    le plus petit (4011, la banane ordinaire). « bio » dans l'article : le 9 devant. */
 async function pluProches(x, prod) {
   await chargerPlu();
-  if (!PLU) return [];
-  const mots = motsTri((prod ? prod.nom : '') + ' ' + x.texte + ' ' + (x.description || '')), bio = /\bbio/i.test(x.texte);
-  const res = [];
-  Object.keys(PLU).forEach(code => {
-    const m = motsTri(PLU[code]);
-    if (!m.length || mots.indexOf(m[0]) === -1) return;
-    res.push({ code: bio ? '9' + code : code, nom: PLU[code] + (bio ? ', biologique' : ''), score: m.filter(w => mots.indexOf(w) !== -1).length, n: Number(code) });
-  });
+  const bio = /\bbio/i.test(x.texte);
+  const res = pluCandidats((prod ? prod.nom : '') + ' ' + x.texte + ' ' + (x.description || ''))
+    .map(r => bio ? Object.assign(r, { code: '9' + r.code, nom: r.nom + ', biologique' }) : r);
   const rare = r => r.n < 4000 || r.n > 4999 ? 1 : 0;
   return res.sort((a, b) => b.score - a.score || rare(a) - rare(b) || a.n - b.n).slice(0, 4)
     .map(r => ({ code: r.code, nom: r.nom, detail: 'PLU ' + r.code, sansPhoto: true }));
+}
+/* Les PLU dont le produit (le 1er mot du nom officiel, « pommes ») est dans le texte : { code, nom, score (les mots en commun), n }.
+   Sans les « code du détaillant » : chaque magasin les donne à sa façon, ils ne désignent rien de précis. */
+function pluCandidats(texte) {
+  if (!PLU) return [];
+  const mots = motsTri(texte), res = [];
+  Object.keys(PLU).forEach(code => {
+    if (/code du détaillant/i.test(PLU[code])) return;
+    const m = motsTri(PLU[code]);
+    if (m.length && mots.indexOf(m[0]) !== -1) res.push({ code: code, nom: PLU[code], score: m.filter(w => mots.indexOf(w) !== -1).length, n: Number(code) });
+  });
+  return res;
 }
 /* Open Food Facts, par le coffre-fort : le nom de l'aliment (+ sa saveur) et sa marque; le texte de la circulaire en rechange.
    Le même code deux fois (« 5926301001 » et « 0005926301001 ») : une seule ligne. Le même format que l'article d'abord. */
@@ -4127,6 +4181,9 @@ function initEntree() {
   $('nom').addEventListener('input', surNom);    // réagit pendant la saisie : plus besoin de fermer le clavier
   $('nom').addEventListener('change', surNom);
   $('produit').addEventListener('change', surProduit);
+  $('plu').addEventListener('change', surPlu);           // le PLU d'un fruit, d'un légume (à la main)
+  $('plu-tape').addEventListener('input', surPluTape);
+  $('nom').addEventListener('change', () => { if (modeManuel && $('produit').value === 'nouveau') majPlu(); });   // un nouveau produit : les PLU suivent son nom
 
   // un produit proposé parce qu'il ressemble : on le prend
   $('liste-doublons').addEventListener('click', function (ev) {
