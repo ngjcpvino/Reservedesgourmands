@@ -302,6 +302,19 @@ bâtie trop vite, sur un aperçu de 3 aliments. J-C : « Faut réfléchir avant 
   **Plusieurs produits possibles** (« variétés choisies » : 1 %, 2 %, 3,25 %) : **l'app montre les 3 ou 4 plus proches,
   avec leur photo, et J-C touche le bon** (J-C : « Oui »). Aucun n'est le bon : « Aucun », le tri continue sans
   code-barres — il s'attachera au premier scan de ce produit.
+  **LE BUT DU TRI, redit par J-C le 2 octobre : que chaque produit porte un code** — le code-barres pour ce qui est
+  emballé, **le PLU pour les fruits et légumes** (l'étiquette collée sur le fruit). Un PLU désigne la **sorte** (toute
+  pomme McIntosh = 4152), pas la marque ni le magasin : un pivot, le même partout. **Vérifié dans sa feuille Flipp (1er au 7
+  octobre)** : IGA donne un code pour 411 articles sur 468, dont **19 PLU** (« PLU 4152 », « PLU 94011 », dans la même
+  colonne que ses codes-barres); Super C et Metro ne donnent ni code-barres ni PLU (le nom + la marque, donc le tri).
+  **IGA = le plus certain** pour savoir qu'un produit de l'inventaire est en solde (J-C : « vrai? » — oui), **à condition
+  que le produit ait son code dans l'inventaire** (entré au scan). **La part de J-C** : entrer le plus d'infos possible
+  (« j'ai quand même une job à faire ») — presque tout a un code-barres, presque tous les fruits une étiquette. **À
+  l'entrée d'un fruit** (J-C) : l'étiquette n'a pas toujours un code-barres lisible par la caméra → **il tape les 4
+  chiffres**, et **l'app offre les PLU de la liste officielle** (IFPS), il **choisit le bon**. Où le ranger : la question
+  de J-C (« dans le champ code-barres? ») — proposé par Claude : oui, le même champ (STOCK col. I). ⚠️ À savoir : sur
+  l'essai, deux « PLU » d'IGA ne sont pas des PLU officiels (54553 SweeTango, 20894 mangues : 5 chiffres sans le 9 du
+  bio) — des codes propres à IGA.
 
 **L'IDÉE DES PRIX DE J-C (1er octobre)** — « Fallait régler le code-barres avant » (fait ci-dessus). « Si le code-barres
 se retrouve dans la circulaire de la semaine avec le nom du magasin, le prix payé pourrait être ma première référence, au
