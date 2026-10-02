@@ -352,6 +352,12 @@ bâtie trop vite, sur un aperçu de 3 aliments. J-C : « Faut réfléchir avant 
   pivot code-barres »)** : **ses données d'abord, Open Food Facts ensuite** — au scan, un code appris au tri remplit la
   fiche (aliment, marque, saveur); au tri, avant de chercher dans Open Food Facts, l'app regarde si l'aliment a déjà
   ses codes chez lui (entrés ou triés) et les propose.
+  **Dans la vraie vie (redit par J-C, confirmé)** : le jeudi, il trie IGA (beaucoup de codes), puis Super C et Metro —
+  le tri devient de plus en plus **sa référence**. À l'arrivée de l'épicerie : il scanne (ou tape le PLU), tout se relie
+  en coulisse; pas trouvé chez lui → Open Food Facts; pas trouvé là non plus → il remplit, et le code est retenu dès ce
+  premier scan. **Le travail après IGA = donner des codes à Super C et Metro** (J-C, qui corrige Claude) : leurs
+  circulaires n'en ont pas, c'est son tri qui leur en donne — le code d'IGA (« Serait-ce celui-ci ? », même format), un
+  PLU de la liste officielle, ou Open Food Facts.
 
 **L'IDÉE DES PRIX DE J-C (1er octobre)** — « Fallait régler le code-barres avant » (fait ci-dessus). « Si le code-barres
 se retrouve dans la circulaire de la semaine avec le nom du magasin, le prix payé pourrait être ma première référence, au
