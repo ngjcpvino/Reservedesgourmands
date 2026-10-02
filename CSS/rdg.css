@@ -190,15 +190,14 @@
   --tri-peutetre:      var(--couleur-606);   /* jaune (pâle : texte brun sur sa barre) */
   --tri-jamais:        var(--couleur-401);   /* rouge */
   --feu-boitier:       var(--couleur-902);   /* le boîtier foncé du feu */
-  --feu-rond:          32px;   /* une lumière */
-  --feu-rond-petit:    24px;   /* la lumière seule de « Tout ce qui est ici aujourd'hui » */
-  --feu-ecart:         10px;   /* entre deux lumières */
-  --feu-bord:          7px 11px;   /* le boîtier autour des lumières */
-  --feu-bord-petit:    5px 8px;
+  --feu-rond:          22px;   /* une lumière (J-C, 2026-10-02, choix D sur aperçu : 32 px avant, trop gros) */
+  --feu-rond-petit:    18px;   /* la lumière seule de « Tout ce qui est ici aujourd'hui » */
+  --feu-ecart:         40px;   /* entre deux lumières (choix D : 10 px avant, trop rapprochées) */
+  --feu-bord:          7px 12px;   /* le boîtier autour des lumières */
+  --feu-bord-petit:    5px 7px;
   --feu-arrondi:       30px;
   --feu-ombre:         0 2px 4px color-mix(in srgb, var(--couleur-903) 30%, transparent);   /* le boîtier se détache */
-  --feu-lueur:         0 0 7px;   /* la lumière allumée rayonne de sa couleur */
-  --feu-creux:         inset 0 -3px 5px color-mix(in srgb, var(--couleur-903) 25%, transparent);   /* et a du relief */
+  --feu-relief:        inset 0 -2px 0 color-mix(in srgb, var(--couleur-903) 22%, transparent);   /* un relief net, sans flou (la lueur d'avant rendait les lumières floues) */
   --point-taille:      14px;   /* le point rouge « du nouveau à trier », sur le chemin (Outils, Gérer les bases, Circulaires) */
   --point-marge:       8px;    /* son écart du coin du bouton */
   --point-bord:        2px;    /* son anneau crème : il se voit même sur le bouton rouge */
@@ -958,7 +957,7 @@ select.champ {
   border: none;
   border-radius: 50%;
   background: currentColor;
-  box-shadow: var(--feu-lueur) currentColor, var(--feu-creux);
+  box-shadow: var(--feu-relief);
   cursor: pointer;
 }
 .feu-oui      { color: var(--tri-oui); }
