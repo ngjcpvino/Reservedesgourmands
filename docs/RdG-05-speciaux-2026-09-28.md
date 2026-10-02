@@ -331,7 +331,12 @@ bâtie trop vite, sur un aperçu de 3 aliments. J-C : « Faut réfléchir avant 
   format (voulu pour les Jamais : « Purina Dog Chow », tous formats) — tel quel, le 4 L reviendrait trié **avec le code
   du 2 L**. À corriger : le code ne suit que le même format. **Un nouveau format d'un produit déjà trié revient dans
   « À trier »** (J-C : « oui, et je confirme l'info ») : l'entonnoir déjà rempli de ce qu'on sait (aliment, marque,
-  saveur), J-C confirme et fait l'association du code.
+  saveur), J-C confirme et fait l'association du code. **Un Jamais vaut dans toutes les épiceries** (J-C : « oui ») :
+  il ne porte aucune info à transmettre, et c'est lui qui raccourcit la liste — l'exception à « rien d'automatique ».
+  (Oui et Peut-être, eux, portent l'aliment : d'une épicerie à l'autre, « Serait-ce celui-ci ? ».) **Vu dans sa feuille
+  Flipp** : environ **1 ligne sur 10** annonce plusieurs produits (« germes de haricot ou épinards », « radis en feuilles,
+  oignons verts ou menthe », « vin rouge, blanc ou rosé ») — 29 chez Super C, 42 chez IGA, 21 chez Metro. IGA en fait une
+  ligne **par code** (le même nom répété : « Couronne de brocoli, carottes ou tomates » ×3, trois codes). En question.
 
 **L'IDÉE DES PRIX DE J-C (1er octobre)** — « Fallait régler le code-barres avant » (fait ci-dessus). « Si le code-barres
 se retrouve dans la circulaire de la semaine avec le nom du magasin, le prix payé pourrait être ma première référence, au
