@@ -345,6 +345,13 @@ bâtie trop vite, sur un aperçu de 3 aliments. J-C : « Faut réfléchir avant 
   dit pas lequel est lequel. **Trois codes, trois lignes** (choix A de J-C, « ouin… je dirais 3 codes, 3 lignes ») : en
   touchant l'une, l'app montre le vrai produit derrière son code (photo, nom, format — Open Food Facts, ou la liste des
   PLU). (B, une ligne qui s'ouvre sur ses produits, recommandé par Claude : rejeté.)
+  **Où ça se loge (sa question : « je veux pas refaire ça tout le temps »)** : les noms dans leurs listes (Produits,
+  Marques, Saveurs), la catégorie suit l'aliment, le tri dans l'onglet Tri (une ligne par article, gardée pour
+  toujours). ⚠️ **Trou trouvé** : le scan à l'entrée ne connaît que les codes de STOCK (`codesStock()`), pas ceux appris
+  au tri (Tri col. G). **Décidé (J-C : « c'est une évidence — le travail sur les circulaires est d'aller chercher le
+  pivot code-barres »)** : **ses données d'abord, Open Food Facts ensuite** — au scan, un code appris au tri remplit la
+  fiche (aliment, marque, saveur); au tri, avant de chercher dans Open Food Facts, l'app regarde si l'aliment a déjà
+  ses codes chez lui (entrés ou triés) et les propose.
 
 **L'IDÉE DES PRIX DE J-C (1er octobre)** — « Fallait régler le code-barres avant » (fait ci-dessus). « Si le code-barres
 se retrouve dans la circulaire de la semaine avec le nom du magasin, le prix payé pourrait être ma première référence, au
