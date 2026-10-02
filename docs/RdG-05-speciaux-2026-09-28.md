@@ -325,8 +325,12 @@ bâtie trop vite, sur un aperçu de 3 aliments. J-C : « Faut réfléchir avant 
   l'article prend les infos d'IGA. (B, le chercher lui-même : rejeté.) **Un autre format = tout sauf le code** (J-C :
   « oui ») : Natrel 2 L chez IGA, Natrel 4 L chez Metro → l'aliment, la marque, la saveur, pas le code-barres (il désigne
   un format précis). Une semaine suivante, l'autre format sera peut-être en solde : **J-C fera l'association à ce
-  moment-là**. Proposé par Claude, pas encore répondu : un
-  étage de plus dans « À trier » (IGA, Super C, Metro, puis ses catégories).
+  moment-là**. **Un étage de plus dans « À trier »** (J-C : « oui ») : IGA, Super C, Metro, puis ses catégories dans
+  chacun (aperçu d'abord). **Sa question pour se rassurer** : le même produit de Metro, dans une prochaine circulaire,
+  aura-t-il le code ? Oui **dans le même format** (il arrive déjà trié). ⚠️ Mais le genre (`Cle`) ne tient pas compte du
+  format (voulu pour les Jamais : « Purina Dog Chow », tous formats) — tel quel, le 4 L reviendrait trié **avec le code
+  du 2 L**. À corriger : le code ne suit que le même format. En question : un nouveau format d'un produit déjà trié
+  revient-il dans « À trier » (pour faire l'association) ou arrive-t-il trié, sans code ?
 
 **L'IDÉE DES PRIX DE J-C (1er octobre)** — « Fallait régler le code-barres avant » (fait ci-dessus). « Si le code-barres
 se retrouve dans la circulaire de la semaine avec le nom du magasin, le prix payé pourrait être ma première référence, au
