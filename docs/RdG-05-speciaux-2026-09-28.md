@@ -518,11 +518,13 @@ avant (les réponses sont rangées par cette clé). Corrigé en passant : « bœ
   - Un magasin mis à **Non** : ses soldes et ses articles à trier disparaissent **dès la relecture**; son archive reste.
 - `lireTri` (une action de LECTURE, un appel en ouvrant la page de tri) → `{ ok, aTrier, tri }` :
   - `aTrier` = **une ligne par genre**, même annoncé chez trois magasins : `{ cle, texte, categorie (ID de la catégorie
-    racine, '' = Autres), produitId, marque, saveur (proposés : ils remplissent l'entonnoir), code (IGA), magasins: [ID…] }`.
+    racine, '' = Autres), produitId, marque, saveur (proposés : ils remplissent l'entonnoir), code (IGA), magasins: [ID…],
+    description, marqueFlipp }`. **Depuis le 2 octobre** : `description` = le format, sans prix ni rabais (« 375 g, choix
+    varié »; plusieurs magasins : réunies par « · »), `marqueFlipp` = la marque telle que Flipp la donne.
     Essai : **736 genres la 1re semaine** (rien n'est encore trié), 109 Ko.
   - `tri` = les lignes de l'onglet Tri (positions : voir `RdG-structure-donnees.md`), pour les barres Oui / Peut-être / Jamais.
-- `trier` (écriture, à envoyer par la file des gestes) : `{ cles: [...], reponse: 'O' | 'P' | 'J' | 'M', produitId, marque,
-  saveur, code, qui }` → `{ ok: true }`. Une **liste** de genres (la ligne « Jamais » d'une section = un seul appel). Oui,
+- `trier` (écriture, à envoyer par la file des gestes) : `{ cles: [...], reponse: 'O' | 'P' | 'J', produitId, marque,
+  saveur, code, qui }` → `{ ok: true }` (**M n'est plus accepté depuis le 2 octobre** : le rouge = Jamais, d'un seul toucher). Une **liste** de genres (la ligne « Jamais » d'une section = un seul appel). Oui,
   Peut-être et M **exigent l'aliment** (M exige aussi la marque) : sinon refus `definitif`. La même réponse renvoyée =
   rien d'écrit; une autre = la ligne réécrite (la correction). Un nouvel aliment créé au tri : l'envoyer **avant** (même
   file : `ajouter` accepte l'ID de l'app). ⚠️ `Coffre.lireTri()` et `Coffre.trier()` sont à ajouter dans `coffre.js`.

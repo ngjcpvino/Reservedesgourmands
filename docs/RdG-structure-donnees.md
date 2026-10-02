@@ -169,7 +169,7 @@ FlippId — remplacé à la 1re lecture nouvelle.)*
 | C | FlyerId | la circulaire chez Flipp |
 | D | FlippId | l'article chez Flipp |
 | E | Texte | le nom de l'article, en français (« bacon Maple Leaf ») |
-| F | Description | format et précisions (« 375 g, choix varié ») + l'histoire du rabais (« 50% d'économie ») — vient du détail |
+| F | Description | format et précisions (« 375 g, choix varié ») — vient du détail. (La semaine lue le 2026-10-01 y a aussi l'histoire du rabais, collée au bout) |
 | G | Prix | le prix en circulaire |
 | H | Regulier | le prix régulier s'il est connu (le prix « original », sinon prix + économie, sinon « Rég. » de la description) |
 | I | Unite | ce qui entoure le prix (« 2/ », « le 100 g », « /lb », « +tx ») |
@@ -184,6 +184,7 @@ FlippId — remplacé à la 1re lecture nouvelle.)*
 | R | ProduitPropose | l'aliment proposé (lien vers PRODUITS) : tous ses mots dans l'article, le plus précis l'emporte |
 | S | MarquePropose | une marque de MARQUES reconnue dans le texte |
 | T | SaveurPropose | une saveur de SAVEURS reconnue dans le texte (« 2% » cherché tel quel) |
+| U | Histoire | l'histoire du rabais (« 50% d'économie », « 100 Scène+ PTS à l'achat de 2 ») — vient du détail. Ajoutée le 2026-10-02 : le tri montre le format sans elle |
 
 ### TRI — les réponses de J-C aux circulaires (2026-10-01)
 *Créé tout seul (le 2026-10-01, à la 1re lecture nouvelle : chaque Oui de l'ancienne CORRESPONDANCES y est devenu un Oui;
@@ -194,9 +195,9 @@ nouvelle réponse réécrit la ligne (c'est aussi la correction). Écrit par l'a
 |-----|-----|------|
 | A | ID | date/heure de création |
 | B | Cle | le genre d'article (col. M de SPECIAUX) |
-| C | Reponse | O = Oui · P = Peut-être · J = Jamais ce genre · M = Jamais cette marque, pour cet aliment |
-| D | ProduitID | l'aliment (Oui, Peut-être, M); vide pour J |
-| E | Marque | ID dans MARQUES (Oui, Peut-être; obligatoire pour M) |
+| C | Reponse | O = Oui · P = Peut-être · J = Jamais (ce genre, pour l'instant) · (M = Jamais cette marque : plus envoyé ni accepté depuis le 2026-10-02; une vieille ligne M compte comme trié) |
+| D | ProduitID | l'aliment (Oui, Peut-être); vide pour J |
+| E | Marque | ID dans MARQUES (Oui, Peut-être) |
 | F | Saveur | ID dans SAVEURS (Oui, Peut-être) |
 | G | CodeBarres | le code-barres accepté par J-C (Open Food Facts, cherché par l'app). En texte |
 | H | Date | quand J-C a répondu |
