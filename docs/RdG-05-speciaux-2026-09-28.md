@@ -322,7 +322,10 @@ bâtie trop vite, sur un aperçu de 3 aliments. J-C : « Faut réfléchir avant 
   Metro est le même que IGA, je dois lui dire : prends les infos du IGA ») — donc le genre ne réunit plus les magasins;
   le lien entre un article de Metro et celui d'IGA, c'est J-C qui le fait. **Comment (choix A de J-C)** : l'app montre le
   produit d'IGA qui ressemble à l'article de Metro (« Serait-ce celui-ci ? », comme les doublons à l'entrée); il touche,
-  l'article prend les infos d'IGA. (B, le chercher lui-même : rejeté.) Proposé par Claude, pas encore répondu : un
+  l'article prend les infos d'IGA. (B, le chercher lui-même : rejeté.) **Un autre format = tout sauf le code** (J-C :
+  « oui ») : Natrel 2 L chez IGA, Natrel 4 L chez Metro → l'aliment, la marque, la saveur, pas le code-barres (il désigne
+  un format précis). Une semaine suivante, l'autre format sera peut-être en solde : **J-C fera l'association à ce
+  moment-là**. Proposé par Claude, pas encore répondu : un
   étage de plus dans « À trier » (IGA, Super C, Metro, puis ses catégories).
 
 **L'IDÉE DES PRIX DE J-C (1er octobre)** — « Fallait régler le code-barres avant » (fait ci-dessus). « Si le code-barres
