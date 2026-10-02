@@ -2792,8 +2792,8 @@ function htmlSoldes(pid) {
 /* ---------- GÉRER LES BASES → CIRCULAIRES : LE TRI (J-C, 2026-10-01, sur aperçus; RdG-05, 5 quater) ----------
    Chaque genre d'article des circulaires de la semaine reçoit UNE fois sa réponse — le feu : vert Oui · jaune Peut-être · rouge
    Jamais, sans texte. Oui et Peut-être : l'entonnoir déjà rempli par la proposition du coffre-fort (Catégorie → Sous-catégorie →
-   Aliment → Marque → Saveur) — « C'est ça », ou on corrige le morceau fautif. Jamais : « Tout ce genre », ou « Cette marque seulement »
-   (pour cet aliment : l'entonnoir, sans la saveur). À l'arrivée, quatre barres fermées — À trier (rangé par SES catégories, « Autres »
+   Aliment → Marque → Saveur) — « C'est ça », ou on corrige le morceau fautif. Rouge = Jamais, d'un seul toucher (J-C, 2026-10-02 :
+   « si je dis non, c'est non à ce produit pour l'instant »; avant : « Tout ce genre » / « Cette marque seulement »). À l'arrivée, quatre barres fermées — À trier (rangé par SES catégories, « Autres »
    au bout), Oui, Peut-être, Jamais (pour corriger : toucher l'article le rouvre sur le feu); une barre ouverte cache les autres.
    En tête d'une catégorie d'« À trier » : « Tout ce qui est ici aujourd'hui » → Jamais pour chaque article qui s'y trouve CE jour-là
    (jamais la catégorie pour toujours : un article nouveau reviendra à trier). Lu en UN appel à l'ouverture (lireTri); chaque réponse
@@ -2850,8 +2850,7 @@ function ligneTri(art, texte, detail) {
 }
 function detailTri(r) {
   const p = PRODUITS.find(x => String(x.id) === String(r[3]));
-  const d = [p ? p.nom : '', nomListe(r[4]), r[2] === 'M' ? '' : nomListe(r[5])].filter(Boolean).join(' · ');
-  return r[2] === 'M' ? (d ? d + ' ' : '') + '(cette marque seulement)' : d;
+  return [p ? p.nom : '', nomListe(r[4]), nomListe(r[5])].filter(Boolean).join(' · ');
 }
 function ligneTout(k) {
   return '<div class="item tri-tout"><div class="item-info"><div class="item-detail">Tout ce qui est ici aujourd\'hui</div></div>' +
@@ -2914,23 +2913,18 @@ function idListe(liste, v) {
   const x = LISTES[liste].find(y => y.id === v) || LISTES[liste].find(y => cleNom(y.nom) === cleNom(v));
   return x ? x.id : '';
 }
-/* Le feu touché. Rouge : les deux « Jamais ». Vert, jaune (et « Cette marque seulement ») : l'entonnoir, déjà rempli. */
+/* Vert ou jaune : l'entonnoir, déjà rempli. (Le rouge ne passe pas par ici : un toucher, et c'est Jamais.) */
 function etapeTri(rep) {
   const p = $('liste-tri').querySelector('.tri-panneau'), x = p && articleTri(p.dataset.art);
   if (!x) return;
-  p.dataset.reponse = rep;
-  if (rep === 'J') {
-    p.innerHTML = '<div class="grille"><button class="bouton bouton-petit bouton-brun" type="button" data-jamais="J">Tout ce genre</button>' +
-      '<button class="bouton bouton-petit bouton-brun" type="button" data-jamais="M">Cette marque seulement</button></div>';
-    return;
-  }
+  p.dataset.etape = rep;                           // jamais « data-reponse » sur le panneau : tout toucher dedans le prendrait pour le feu
   const choix = (champ, nom) => '<div class="bloc"><div class="label">' + nom + '</div><select class="champ" id="tri-' + champ + '"></select>' +
     '<input class="champ bloc-suite" id="tri-' + champ + '-neuve" autocomplete="off" enterkeyhint="done" placeholder="' + CHOIX_FICHE[champ].neuve + '" hidden></div>';
   p.innerHTML = '<div class="bloc"><div class="label">Catégorie</div><select class="champ" id="tri-cat"></select></div>' +
     '<div class="bloc" id="tri-bloc-souscat" hidden><div class="label">Sous-catégorie</div><select class="champ" id="tri-souscat"></select></div>' +
     '<div class="bloc" id="tri-bloc-aliment" hidden><div class="label">Aliment</div><select class="champ champ-fort" id="tri-aliment"></select>' +
       '<input class="champ bloc-suite" id="tri-nom" autocomplete="off" enterkeyhint="done" placeholder="Nom du nouvel aliment" hidden></div>' +
-    '<div id="tri-bloc-sorte" hidden>' + choix('marque', 'Marque') + (rep === 'M' ? '' : choix('saveur', 'Saveur')) + '</div>' +
+    '<div id="tri-bloc-sorte" hidden>' + choix('marque', 'Marque') + choix('saveur', 'Saveur') + '</div>' +
     '<button class="bouton bouton-petit bouton-vert bouton-pleine" type="button" data-tri-ok>C\'est ça</button>' +
     '<div class="message message-repli message-erreur" id="tri-msg"></div>';
   // la proposition du coffre-fort — ou, pour corriger, ce qui avait été choisi
@@ -2973,7 +2967,7 @@ function triSurAliment(marque, saveur) {
 }
 /* « C'est ça » : tout est vérifié d'abord, puis ce qui est neuf naît (aliment, marque, saveur), puis la réponse. */
 function validerTri() {
-  const p = $('liste-tri').querySelector('.tri-panneau'), x = p && articleTri(p.dataset.art), rep = p && p.dataset.reponse;
+  const p = $('liste-tri').querySelector('.tri-panneau'), x = p && articleTri(p.dataset.art), rep = p && p.dataset.etape;
   if (!x || !rep || !$('tri-aliment')) return;
   const msg = t => { $('tri-msg').textContent = t; };
   const scid = $('tri-souscat').value, choix = $('tri-aliment').value, nom = $('tri-nom').value.trim();
@@ -2983,7 +2977,6 @@ function validerTri() {
     const el = $('tri-' + champ);
     if (el && el.value === 'neuve' && !$('tri-' + champ + '-neuve').value.trim()) { msg('Donne un nom à la ' + (champ === 'marque' ? 'nouvelle marque.' : 'nouvelle saveur.')); $('tri-' + champ + '-neuve').focus(); return; }
   }
-  if (rep === 'M' && !$('tri-marque').value) { msg('Choisis la marque.'); return; }
   const deja = choix === 'neuf' && PRODUITS.find(q => cleNom(q.nom) === cleNom(nom));   // un nom qui existe déjà : repris, jamais doublé
   const pid = choix !== 'neuf' ? choix : deja ? deja.id : creerAlimentInstant(nom, scid);
   trier([x], rep, { produitId: pid, marque: choixListeTri('marque'), saveur: choixListeTri('saveur'),
@@ -3710,10 +3703,8 @@ function initEntree() {
     else { ouvrirMenu(); montrerGrilleMenu('bases'); }
   });
   $('liste-tri').addEventListener('click', function (ev) {
-    const f = ev.target.closest('[data-reponse]');         // le feu : vert, jaune, rouge
-    if (f) { etapeTri(f.dataset.reponse); return; }
-    const j = ev.target.closest('[data-jamais]');          // après le rouge : tout ce genre, ou cette marque seulement
-    if (j) { const x = articleOuvert(); if (j.dataset.jamais === 'M') etapeTri('M'); else if (x) trier([x], 'J'); return; }
+    const f = ev.target.closest('.feu [data-reponse]');    // le feu : vert ou jaune → l'entonnoir; rouge → Jamais, tout de suite
+    if (f) { const x = articleOuvert(); if (f.dataset.reponse !== 'J') etapeTri(f.dataset.reponse); else if (x) trier([x], 'J'); return; }
     if (ev.target.closest('[data-tri-ok]')) { validerTri(); return; }
     const to = ev.target.closest('[data-tout-oui]');       // « Jamais pour ces 12 articles ? » Oui
     if (to) { toutJamais(to.dataset.toutOui); return; }

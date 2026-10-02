@@ -318,7 +318,9 @@ maintenant.
   Sous-catégorie → Aliment (Produits laitiers → Lait → Lait); on touche **« C'est ça »**, ou on change seulement le
   morceau fautif. L'app n'a aucune idée (une découverte) : l'entonnoir vide, « Nouvel aliment… » au bout. (B, la question
   « C'est du Lait ? » puis l'entonnoir vide sur Non : rejeté.) Confirmé : l'article quitte « À trier » pour sa barre.
-- **Jamais → deux boutons** (choix A de J-C) : **« Tout ce genre »** (tout le Purina Dog Chow) ou **« Cette marque
+- **⚠️ REMPLACÉ le 2 octobre (J-C, après le 1er essai : « si je dis non, c'est que je dis non à ce produit pour l'instant. S'il y a
+  une marque, ça sera ce produit spécifique ») : le rouge = Jamais, d'un seul toucher.** Les deux boutons étaient ambigus.
+  ~~**Jamais → deux boutons** (choix A de J-C) :~~ **« Tout ce genre »** (tout le Purina Dog Chow) ou **« Cette marque
   seulement »** (pas de Natrel pour le lait — l'entonnoir rempli paraît alors aussi, pour savoir de quel aliment).
   (B, quatre boutons dès l'ouverture : rejeté.)
 - **Le tri par paquet : dans la section ouverte, en tête, une ligne « Jamais » pour toute la section** (choix B de J-C :
