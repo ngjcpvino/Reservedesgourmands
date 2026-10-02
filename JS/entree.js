@@ -2843,10 +2843,16 @@ function htmlGroupesTri(items, rid, ligne, tete) {
   };
   return RAYONS.map(r => groupe(String(r.id), r.nom)).join('') + groupe('autres', 'Autres');
 }
-/* Une ligne = le nom de l'article (choix A de J-C : ni prix ni magasin). Une réponse dit aussi à quoi elle est reliée. */
+/* Une ligne = le nom de l'article, et dessous ce qui aide à décider (ni prix ni magasin). Une réponse dit à quoi elle est reliée. */
 function ligneTri(art, texte, detail) {
   return '<div class="item tri-article" data-art="' + esc(art) + '"><div class="item-info"><div class="item-nom">' + esc(texte) + '</div>' +
     (detail ? '<div class="item-detail">' + esc(detail) + '</div>' : '') + '</div></div>';
+}
+/* Ce qui aide à décider (J-C, 2026-10-02 : « la marque, le poids, la saveur » — pas le magasin ni le prix : « on fait juste le tri ») :
+   la marque et la saveur reconnues dans l'article, puis le format de la circulaire (description, envoyée par lireTri). */
+function detailATrier(x) {
+  const marque = nomListe(idListe('Marques', x.marque)) || String(x.marqueFlipp || '').trim();
+  return [marque, nomListe(idListe('Saveurs', x.saveur)), String(x.description || '').trim()].filter(Boolean).join(' · ');
 }
 function detailTri(r) {
   const p = PRODUITS.find(x => String(x.id) === String(r[3]));
@@ -2871,7 +2877,7 @@ function remplirTri() {
     '<div class="accordeon-corps une-a-la-fois" hidden>' + html + '</div></div>';
   cible.innerHTML =
     barreTri('a', 'À trier', '', corps(TRI.aTrier.slice().sort((a, b) => parTexte(a.texte, b.texte)), x => x.categorie,
-      x => ligneTri('a:' + x.cle, x.texte, ''), ligneTout, 'Rien à trier cette semaine.')) +
+      x => ligneTri('a:' + x.cle, x.texte, detailATrier(x)), ligneTout, 'Rien à trier cette semaine.')) +
     barreTri('O', 'Oui', ' tri-oui', reponses(['O'])) +
     barreTri('P', 'Peut-être', ' tri-peutetre', reponses(['P'])) +
     barreTri('J', 'Jamais', ' tri-jamais', reponses(['J', 'M']));
