@@ -11,9 +11,12 @@
   var stream = null, timer = null, scanning = false;
   var video = null, canvas = null, ctx = null;
   var mode = null;   // { lu(code), retour() } : la recherche s'en sert; sans mode, le code va à la fiche d'entrée
+  var continu = null;   // toute l'épicerie : { video, msg, lu(code) } — la caméra reste ouverte entre deux articles (scanContinu, reprendreScan)
+  var dernierLu = '', repriseA = 0;
+  var MEME_CODE_MS = 2500;   // après « OK », le même code encore sous la caméra ne compte pas tout de suite (sinon : +1 de trop)
 
   function el(id) { return document.getElementById(id); }
-  function msg(t) { var m = el('scan-msg'); if (m) m.textContent = t || ''; }
+  function msg(t) { var m = el(continu ? continu.msg : 'scan-msg'); if (m) m.textContent = t || ''; }
 
   /* Charge le moteur WASM à la demande (pas au chargement de la page). */
   async function chargerLib() {
@@ -36,11 +39,28 @@
     el('scan-resultat').hidden = true;
     el('scan-code').textContent = '';
     msg('Démarrage de la caméra…');
-    await demarrer();
+    await demarrer('scan-video');
   }
 
-  async function demarrer() {
-    video = el('scan-video');
+  /* Toute l'épicerie : la caméra dans SA page (video), ouverte jusqu'à ce qu'on la quitte. Un code lu : la lecture s'arrête
+     (la caméra reste), lu(code); reprendreScan(m) la relance pour l'article suivant (m : de quoi la rouvrir si elle s'est fermée). */
+  async function scanContinu(m) {
+    arreter();
+    continu = m; mode = null; dernierLu = ''; repriseA = 0;
+    msg('Démarrage de la caméra…');
+    await demarrer(m.video);
+  }
+  function reprendreScan(m) {
+    if (!continu) { if (m) scanContinu(m); return; }   // la caméra a été fermée entre-temps (l'app en arrière-plan) : on la rouvre
+    if (scanning) return;
+    if (!stream) { scanContinu(continu); return; }   // la caméra s'est fermée (l'app est passée en arrière-plan) : on la rouvre
+    repriseA = Date.now(); msg('Vise un code-barres…');
+    scanning = true;
+    boucle();
+  }
+
+  async function demarrer(idVideo) {
+    video = el(idVideo);
     if (!(navigator.mediaDevices && navigator.mediaDevices.getUserMedia)) {
       msg('La caméra n’est pas disponible sur cet appareil.'); return;
     }
@@ -89,13 +109,20 @@
         ctx.drawImage(video, Math.round((vw - sw) / 2), Math.round((vh - sh) / 2), sw, sh, 0, 0, sw, sh);
         var img = ctx.getImageData(0, 0, canvas.width, canvas.height);
         var res = await readBarcodes(img, { tryHarder: true, maxNumberOfSymbols: 1 });
-        if (res && res.length && res[0].text) { trouve(res[0].text); return; }
+        var lu = res && res.length && res[0].text;
+        if (lu && !(continu && lu === dernierLu && Date.now() - repriseA < MEME_CODE_MS)) { trouve(lu); return; }
       }
     } catch (e) { /* image/wasm ponctuel : on continue */ }
     if (scanning) timer = setTimeout(boucle, 200);
   }
 
   function trouve(code) {
+    if (continu) {                               // toute l'épicerie : la caméra reste ouverte, la lecture attend l'article suivant
+      scanning = false; if (timer) { clearTimeout(timer); timer = null; }
+      dernierLu = code; msg('');
+      continu.lu(code);
+      return;
+    }
     arreter();                                   // on tient un code : on coupe la caméra
     msg('Lu : ' + code);
     if (mode) { mode.lu(code); return; }         // -> la recherche
@@ -129,7 +156,7 @@
   function nettoyerFormat(q) { return String(q || '').replace(/\s*e\s*$/i, '').trim(); }
 
   function arreter() {
-    scanning = false;
+    scanning = false; continu = null;
     if (timer) { clearTimeout(timer); timer = null; }
     if (stream) { stream.getTracks().forEach(function (t) { t.stop(); }); stream = null; }
     if (video) { try { video.pause(); } catch (e) {} video.srcObject = null; }
@@ -137,6 +164,8 @@
 
   window.montrerScanner = montrerScanner;
   window.stopScanner = arreter;
+  window.scanContinu = scanContinu;
+  window.reprendreScan = reprendreScan;
   window.chercherOFF = chercherOFF;   // utilisé aussi par la fiche (champ code corrigé à la main)
 
   function init() {

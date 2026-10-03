@@ -10,7 +10,7 @@
   <!-- Ecran d'accueil iPad : le meme sac, en PNG (iOS n'accepte pas le SVG ici) -->
   <link rel="apple-touch-icon" href="apple-touch-icon.png?v=2">
 
-<link rel="stylesheet" href="CSS/rdg.css?v=121">
+<link rel="stylesheet" href="CSS/rdg.css?v=122">
 </head>
 <body>
 
@@ -193,6 +193,53 @@
       <button class="bouton bouton-vert bouton-pleine bouton-suite" id="scan-encore" type="button">Scanner un autre</button>
     </div>
     <button class="bouton bouton-or bouton-pleine bouton-suite" id="scan-retour" type="button">Retour</button>
+  </div>
+</div>
+
+<!-- ============================================================
+     TOUTE L'ÉPICERIE — Entrer (RdG-01, 3 bis; aperçus du 2026-10-02) : l'épicerie, puis le scan en rafale.
+     Le JS (JS/epicerie.js) bâtit les barres des épiceries, la carte de l'article scanné, « Déjà scanné » et Terminé.
+============================================================ -->
+<div id="vue-epicerie" hidden>
+  <div class="entete"><div class="titre" id="epi-titre">Toute l'épicerie</div></div>
+  <div class="contenu">
+    <div id="epi-choix">
+      <div class="liste-suite" id="epi-magasins"></div>
+      <button class="bouton bouton-or bouton-pleine bouton-detache" id="epi-choix-retour" type="button">Retour</button>
+    </div>
+    <div id="epi-scan" hidden>
+      <div id="epi-camera">
+        <video class="scan-video" id="epi-video" playsinline muted></video>
+        <div class="message message-repli" id="epi-msg"></div>
+        <button class="bouton bouton-brun bouton-pleine bouton-suite" id="epi-sans-code" type="button">Sans code</button>
+      </div>
+      <div id="epi-sans" hidden>
+        <button class="bouton bouton-brun bouton-pleine" id="epi-revenir" type="button">Revenir au scan</button>
+        <div class="bloc bloc-suite">
+          <div class="label">PLU (l'autocollant du fruit ou du légume)</div>
+          <input class="champ" id="epi-plu" type="text" inputmode="numeric" pattern="[0-9]*" autocomplete="off" placeholder="4 ou 5 chiffres">
+          <div class="message message-repli" id="epi-plu-nom"></div>
+        </div>
+        <div class="accordeon">
+          <div class="accordeon-tete" id="epi-habituels-tete">Les habituels sans code</div>
+          <div class="accordeon-corps" id="epi-habituels" hidden></div>
+        </div>
+        <div class="bloc">
+          <div class="label">Ou par l'entonnoir</div>
+          <select class="champ" id="epi-cat"></select>
+          <select class="champ bloc-suite" id="epi-souscat" hidden></select>
+          <select class="champ champ-fort bloc-suite" id="epi-produit" hidden></select>
+          <div class="ligne-couleur bloc-suite" id="epi-neuf" hidden>
+            <input class="champ" id="epi-nom-neuf" autocomplete="off" enterkeyhint="done" placeholder="Nom du nouvel aliment">
+            <button class="bouton bouton-petit" id="epi-neuf-ok" type="button">Ajouter</button>
+          </div>
+        </div>
+      </div>
+      <div id="epi-carte"></div>
+      <div id="epi-liste"></div>
+      <div id="epi-fin"></div>
+      <button class="bouton bouton-or bouton-pleine bouton-suite" id="epi-retour" type="button">Retour</button>
+    </div>
   </div>
 </div>
 
@@ -457,9 +504,10 @@
 
 </div><!-- fin du conteneur -->
 
-<script src="JS/coffre.js?v=12"></script>
-<script src="JS/entree.js?v=144"></script>
+<script src="JS/coffre.js?v=13"></script>
+<script src="JS/entree.js?v=145"></script>
+<script src="JS/epicerie.js?v=1"></script>
 <script src="JS/essai.js?v=1"></script>
-<script src="JS/scan.js?v=11"></script>
+<script src="JS/scan.js?v=12"></script>
 </body>
 </html>
