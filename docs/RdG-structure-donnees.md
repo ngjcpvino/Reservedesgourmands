@@ -76,7 +76,8 @@ endroits en même temps).*
 | J | Saveur | **ID** dans SAVEURS (depuis le 2026-09-29) — la saveur de CE lot. Vide si la saveur ne compte pas |
 | K | QuiEntre | qui a entré l'article. Vient de l'appareil (Outils → Qui entre les articles), pas du mot de passe |
 | L | Magasin | **ID** dans MAGASINS (depuis le 2026-09-29) — où l'article a été acheté |
-| M | Prix | **facultatif** — ce que le lot a coûté, pour comparer les épiceries |
+| M | Prix | **facultatif** — ce que le lot a coûté, pour comparer les épiceries. Toute l'épicerie : rempli tout seul par le prix de la circulaire (« 2/ » = le prix divisé; au poids : vide) |
+| N | Epicerie | toute l'épicerie (2026-10-02) : l'ID de sa liste dans EPICERIES. Vide pour un produit entré seul (la fiche) |
 
 > **La quantité mesurable** se lit dans le **Format** : « 1 L », « 500 g », « 0,54 kg ».
 > L'app additionne (un 4 L + deux 1 L = 6 L) quand les unités s'accordent; sinon elle
@@ -185,6 +186,7 @@ FlippId — remplacé à la 1re lecture nouvelle.)*
 | S | MarquePropose | une marque de MARQUES reconnue dans le texte |
 | T | SaveurPropose | une saveur de SAVEURS reconnue dans le texte (« 2% » cherché tel quel) |
 | U | Histoire | l'histoire du rabais (« 50% d'économie », « 100 Scène+ PTS à l'achat de 2 ») — vient du détail. Ajoutée le 2026-10-02 : le tri montre le format sans elle |
+| V | Photo | l'image de l'article chez Flipp (`cutout_image_url`, en https) — montrée au scan de toute l'épicerie, sous le produit scanné. Ajoutée le 2026-10-02 : vide pour les semaines lues avant |
 
 ### TRI — les réponses de J-C aux circulaires (2026-10-01; repensé le 2026-10-02 : par épicerie)
 *Vidé à la main par J-C le 2026-10-02 (repartir à neuf avec le tri par épicerie). Créé au 1er tri s'il manque; l'en-tête est
@@ -211,6 +213,19 @@ ligne (c'est aussi la correction). Écrit par l'action `trier`.*
 *Pas dans l'onglet, mais lus comme des Oui (2026-10-02) : un article de la semaine dont le code a déjà été **entré** (STOCK col. I)
 est trié Oui tout seul, relié à l'entrée — `lireTri` le renvoie avec les réponses (ID « auto-… », Qui « entré »). Une correction
 écrit la vraie ligne, qui l'emporte.*
+
+### EPICERIES — toute l'épicerie : une liste par épicerie (2026-10-02, RdG-01 section 3 bis)
+*Créé tout seul au premier usage. Une ligne par épicerie scannée; ses articles sont les lignes de STOCK qui portent son ID (col. N).
+Tant qu'elle n'est pas close, ce qui vient de la même épicerie s'y ajoute (le sac oublié, une 2e visite). `references` renvoie celles
+qui ne sont pas closes.*
+
+| Col | Nom | Sens |
+|-----|-----|------|
+| A | ID | date/heure, donné par l'app |
+| B | Magasin | ID dans MAGASINS |
+| C | Date | le jour où elle a commencé |
+| D | Etat | **O** en cours · **T** terminée (Terminé touché : elle attend Compléter) · **C** close (le OK de Compléter, à venir) |
+| E | Qui | qui l'a commencée |
 
 ### CORRESPONDANCES — les anciennes réponses Oui / Non (2026-09-29, remplacé par TRI le 2026-10-01)
 *Plus écrit ni lu (ses Oui sont passés dans TRI le 2026-10-01; `repondreSpecial` retiré le 2026-10-02). Peut être effacé du Sheet à la main.*

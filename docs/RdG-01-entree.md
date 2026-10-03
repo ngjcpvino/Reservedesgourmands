@@ -300,9 +300,52 @@ d'abord (l'écran du scan, la confirmation de Terminé, Compléter).*
 - **Rien trouvé** : « Produit inconnu » et son code; la quantité et OK, rien à taper.
 - **Sans code** touché : la caméra laisse sa place au **PLU** (le nom officiel paraît dessous pour vérifier), aux
   **habituels sans code**, puis à **l'entonnoir**; « Revenir au scan ». Un PLU tapé ou un habituel touché ouvre la carte
-  de l'article, comme au scan (J-C : « oui »).
+  de l'article, comme au scan (J-C : « oui »). **Les habituels : une barre FERMÉE** (J-C : « Non. Fermé. » — proposé : ouverte et
+  limitée à 8), les plus fréquents en haut.
 - À ajouter au CSS en bâtissant : la ligne d'article posée dans une carte (sans trait ni retrait); les boutons Oui / Non
   d'une question qui ne se tassent pas quand la question est longue.
+
+### ✅ ENTRER — BÂTI le 2026-10-02, le soir (J-C : « que tout ça soit codé et testé un peu… avant que j'intervienne pour la phase
+Compléter ») — ⚠️ `api.gs` à coller, puis à essayer en ligne
+- **Le bouton des deux sacs** mène tout droit au **choix de l'épicerie** (une barre par magasin, comme la page Magasins; sous la
+  barre d'une liste pas close : « En cours (12 articles) » ou « À compléter (12 articles) »). Le choix **Entrer / Compléter** viendra
+  avec Compléter : d'ici là, il n'y a qu'Entrer.
+- **L'épicerie touchée** : sa liste pas close (reprise), sinon une neuve (onglet Epiceries, instantanée); **sa circulaire de la
+  semaine est lue une fois** (un appel, le chariot; gardée pour la journée).
+- **L'écran du scan** : tel que les aperçus. La caméra reste ouverte entre deux articles; après OK, le même code encore sous la
+  caméra ne compte pas pendant 2,5 s (sinon un +1 de trop).
+- **Le code** : Stock → Tri (instantané) → un appel au coffre-fort (`identifier` : la semaine d'IGA, puis son archive, puis Open
+  Food Facts) → rien. Un coffre-fort pas encore à jour : Open Food Facts directement.
+- **Chaque article entre tout de suite** dans STOCK (instantané, par la file des gestes : action `entrer`, l'ID donné par l'app,
+  rejouable), à **sa place habituelle** (son endroit 1), **l'Escale** s'il n'en a pas, avec l'épicerie (col. N), qui, le magasin, et
+  **le prix payé** quand la circulaire le donne. Il quitte la liste d'achats. Son code est reconnu tout de suite au scan suivant.
+- **Un produit neuf** (trouvé dans une circulaire d'IGA ou dans Open Food Facts) entre **sous son propre nom, sans catégorie**
+  (« Sucre granulé Redpath »), sa marque créée au besoin : c'est **Compléter** qui le reliera à ton aliment (d'ici là : Gérer les
+  bases → Aliments, le crayon réunit). Un nom identique à un aliment existant = cet aliment. **Inconnu partout** : un aliment
+  « Inconnu 0597… » (le code), à compléter. *Choix de Claude : ne pas deviner l'aliment pendant la rafale (« Pommes de terre »
+  n'est pas « Pomme »).*
+- **La circulaire** : le même code dans la circulaire de cette épicerie (IGA), ou une ligne déjà reliée à cet aliment (même marque,
+  même format : une ligne « choix varié » couvre ses saveurs) → **« En circulaire : 4,99 », OK, pas de question**. Sinon la ligne du
+  même aliment (ou, pour un produit neuf, ses mots), une marque et un format qui ne disent pas autre chose → **la ligne au complet**
+  et « L'associer à ce produit ? » **Oui / Non** (sans OK). Oui : onglet Tri (Oui, l'aliment, le code scanné : les semaines
+  suivantes, l'article est déjà trié, le point rouge baisse) + le prix payé. Non : rien, et elle n'est plus proposée pour ce produit
+  pendant cette épicerie. **Le prix** : « 2/ » = le prix divisé; au poids (« /lb », « le 100 g ») : vide (on attend l'étiquette).
+- **Sans code** : le PLU (le nom officiel dessous; l'aliment à qui ce PLU a déjà servi, sinon celui qui porte le même nom —
+  « Pommes Fuji » → Pomme —, sinon un aliment neuf au nom officiel), **les habituels dans une barre fermée** (12 au plus, le plus
+  fréquent en haut), l'entonnoir (« Nouveau produit… » au bout). Après OK, on **reste** dans Sans code (les fruits viennent
+  ensemble); « Revenir au scan » ramène la caméra.
+- **Un « Annuler »** sous OK (comme la fiche) : un mauvais scan n'entre pas. *Ajouté par Claude : sinon un mauvais scan ne
+  pouvait pas être défait.*
+- **Terminé** (au bas) → « Terminer Super C ? (6 articles) » Oui / Non → la liste passe à **T** et on revient au choix de
+  l'épicerie (une autre épicerie : Terminé, puis Entrer). **Retour** : le choix de l'épicerie, la liste reste ouverte.
+- **`api.gs`** (à coller) : `entrerArticle` (l'ID de l'app, col. N `Epicerie`, le code en texte); l'onglet **Epiceries** créé au
+  premier besoin (`ajouter` / `modifier` créent un onglet connu); `references` renvoie `epiceries`; deux lectures neuves,
+  **`identifier`** et **`circulaireMagasin`**; Speciaux et Circulaires gagnent la col. V **Photo** (Flipp) — vide jusqu'à la prochaine
+  lecture (jeudi), ou plus tôt si J-C relance `lireSpeciaux`.
+- Essais à blanc : l'app dans un faux navigateur (44 vérifications : Super C avec la question, le même produit relié ensuite sans
+  question, un produit neuf d'IGA, un inconnu annulé, Sans code — habituels, PLU, entonnoir —, « 2 pour 9 $ » = 4,50, Terminé, la
+  même liste reprise, IGA sans question); `api.gs` sur un faux Sheet (17 vérifications); les essais d'avant (PLU, liste d'achats,
+  tri) passent encore.
 
 ### Parenthèse notée (pas creusée)
 - Le même copier-coller pourrait servir **au tri** : un article de la circulaire de Super C ou de Metro sans code (on a

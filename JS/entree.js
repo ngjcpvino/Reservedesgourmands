@@ -93,6 +93,7 @@ var envoiGestes = false;                            // la file des gestes est en
 var ACHATS = [];                                    // onglet Achats : [ID, ProduitID, Marque, Saveur, Etat, Date, Qui, Actif] — la liste d'achats
 const ATTENTE_ACHATS = 'rdg_achats_attente';        // ce qui a été coché, ajouté, mis de côté, pas encore confirmé
 var envoiAchats = false;                            // la file de la liste d'achats est en route
+var EPICERIES = [];                                 // toute l'épicerie : les listes pas encore closes [ID, Magasin, Date, Etat (O · T · C), Qui] (JS/epicerie.js)
 var SPECIAUX = [];                                  // les soldes de la semaine dont le genre est trié Oui ou Peut-être (le coffre-fort filtre) :
                                                     // [ID, Magasin, ProduitID, Texte, Prix, Regulier, Unite, Description, Debut, Fin, Cle, 'O',
                                                     //  FlippId, Reponse (O / P), Marque, Saveur, CodeBarres, Categorie]
@@ -128,6 +129,7 @@ function toutCacher() {
   $('vue-achats').hidden = true;
   $('vue-circulaires').hidden = true;
   const vs = $('vue-scan'); if (vs) vs.hidden = true;
+  const ve = $('vue-epicerie'); if (ve) ve.hidden = true;   // toute l'épicerie (JS/epicerie.js)
   if (window.stopScanner) window.stopScanner();   // coupe la caméra en quittant la vue scan
   $('btn-burger').hidden = true;   // burger caché par défaut ; ré-affiché sur accueil + choix + bases
   $('entete-photo').hidden = true; // l'en-tête photo est écrit UNE fois dans le HTML ; on le montre écran par écran
@@ -411,6 +413,7 @@ function appliquer(d) {
   PAS_AIMES = d.pasAimes || [];
   ACHATS = d.achats || [];
   SPECIAUX = d.speciaux || [];
+  EPICERIES = d.epiceries || [];
   NB_A_TRIER = Number(d.nbATrier) || 0; poserPoints();
   // une couleur pas encore confirmée (attente) ou en cours d'essai (écran) l'emporte sur le Sheet
   const cm = Object.assign({}, lireAttenteCouleurs().meubles, couleursModif.meubles);
@@ -430,7 +433,7 @@ async function chargerReferences() {
     reordonnerLignes(data.emps, lireAttente());   // un ordre pas encore confirmé l'emporte sur l'ancien
     poserOrdresAliments(data.prods, lireAttenteAliments());   // idem pour l'ordre des endroits d'un aliment
     poserOrdresCats(data.cats, lireAttenteCats());            // idem pour l'ordre des catégories
-    data.stock = data.stock || []; data.pasAimes = data.pasAimes || [];
+    data.stock = data.stock || []; data.pasAimes = data.pasAimes || []; data.epiceries = data.epiceries || [];
     lireAttenteGestes().forEach(e => appliquerGeste(e, data));   // idem : un geste en route reste fait
     data.achats = data.achats || []; data.speciaux = data.speciaux || [];
     lireAttenteAchats().forEach(e => { if (e.lignes) poserLignesAchats(e.lignes, data.achats); });   // idem pour la liste d'achats
@@ -457,7 +460,7 @@ async function chargerData() {
   for (let i = 0; i < 3; i++) {
     try {
       const r = await Coffre.references();
-      if (r && r.ok && r.categories !== undefined) return { cats: r.categories, emps: r.emplacements, prods: r.produits, stock: r.stock, variantes: r.variantes, codes: r.codes, codesTri: r.codesTri, couleurs: r.couleurs, listes: r.listes, pasAimes: r.pasAimes, achats: r.achats, speciaux: r.speciaux, nbATrier: r.nbATrier };   // tout ce que l'app lit : un oubli ici = une donnée qui n'arrive jamais
+      if (r && r.ok && r.categories !== undefined) return { cats: r.categories, emps: r.emplacements, prods: r.produits, stock: r.stock, variantes: r.variantes, codes: r.codes, codesTri: r.codesTri, couleurs: r.couleurs, listes: r.listes, pasAimes: r.pasAimes, achats: r.achats, speciaux: r.speciaux, nbATrier: r.nbATrier, epiceries: r.epiceries };   // tout ce que l'app lit : un oubli ici = une donnée qui n'arrive jamais
       if (r && r.erreur === 'non autorisé') throw new Error('non autorisé');   // inutile de réessayer
       err = new Error((r && r.erreur) || 'refus'); err.refus = true;          // le coffre-fort a répondu, mais pas oui
     } catch (e) { if (e.message === 'non autorisé') throw e; err = e; }
@@ -2552,9 +2555,9 @@ async function consommerPart(lot, cleP, q, pasAime) {
    vise la ligne que le déplacement a créée, elle doit partir après lui. */
 function poserGeste(envoi) {
   ecrireAttenteGestes(lireAttenteGestes().concat([envoi]));   // gardé AVANT tout : un appareil éteint en route ne perd rien
-  appliquerGeste(envoi, { stock: STOCK, pasAimes: PAS_AIMES });   // la mémoire des lieux et des catégories : changée par qui pose le geste
+  appliquerGeste(envoi, { stock: STOCK, pasAimes: PAS_AIMES, epiceries: EPICERIES });   // la mémoire des lieux et des catégories : changée par qui pose le geste
   const c = lireCache();
-  if (c) { c.stock = c.stock || []; c.pasAimes = c.pasAimes || []; appliquerGeste(envoi, c); ecrireCache(c); }
+  if (c) { c.stock = c.stock || []; c.pasAimes = c.pasAimes || []; c.epiceries = c.epiceries || []; appliquerGeste(envoi, c); ecrireCache(c); }
   expedierGestes();
 }
 /* Pose un geste sur des lignes (d = le cache, ou des données fraîchement relues : stock, pasAimes, emps, prods, cats, listes).
@@ -2562,9 +2565,14 @@ function poserGeste(envoi) {
    (retirer un meuble, une catégorie, un aliment, un magasin; changer la catégorie d'aliments). Sans table : Emplacements
    (les premiers, 2026-09-30). Chaque table : où sont ses lignes dans d. */
 const TABLES_GESTE = { Emplacements: d => d.emps, Produits: d => d.prods, Categories: d => d.cats,
-                       Magasins: d => (d.listes || {}).Magasins, Marques: d => (d.listes || {}).Marques, Saveurs: d => (d.listes || {}).Saveurs };
+                       Magasins: d => (d.listes || {}).Magasins, Marques: d => (d.listes || {}).Marques, Saveurs: d => (d.listes || {}).Saveurs,
+                       Epiceries: d => d.epiceries };
 function appliquerGeste(e, d) {
   if (e.action === 'trier') return;                   // le tri des circulaires : rien dans la réserve (la page de tri le pose elle-même, appliquerTri)
+  if (e.action === 'entrer') {                        // toute l'épicerie : ses lignes de STOCK (ID donnés par l'app), une seule fois
+    (e.stock || []).forEach(a => { if (d.stock && !d.stock.some(x => String(x[0]) === String(a[0]))) d.stock.push(a.slice()); });
+    return;
+  }
   if (e.action === 'creer') {                         // une ligne neuve (un aliment créé instantanément), une seule fois
     const rows = (TABLES_GESTE[e.table] || (() => null))(d);
     if (rows && !rows.some(x => String(x[0]) === String(e.ligne[0]))) rows.push(e.ligne.slice());
@@ -2615,6 +2623,7 @@ async function envoyerGeste(e) {
   if (e.action === 'consommer') return Coffre.consommer(e);
   if (e.action === 'creer') return Coffre.ajouter(e.table, e.ligne);   // l'ID vient de l'app : déjà créé = dejaFait, rien d'écrit
   if (e.action === 'trier') return Coffre.trier(e);                    // la même réponse renvoyée = rien d'écrit
+  if (e.action === 'entrer') return Coffre.entrerArticle(e.charge);    // toute l'épicerie : son jeton déjà vu = rien d'écrit
   for (const l of e.lignes || []) {
     const r = await Coffre.modifier(e.table || 'Emplacements', l[0], l);
     if (!(r && r.ok) && !(r && r.erreur === 'ID introuvable')) return r;
@@ -4171,7 +4180,7 @@ function initEntree() {
     if (ouverte) { toggleAccordeon(ouverte); window.scrollTo(0, 0); } else retourAuMenu();
   });
   $('choix-produit').addEventListener('click', () => montrerFormulaire(false));   // l'entonnoir, et le scan à côté
-  $('choix-epicerie').addEventListener('click', () => avis("Toute l'épicerie — à venir"));
+  $('choix-epicerie').addEventListener('click', montrerEpiceries);      // toute l'épicerie : l'épicerie, puis le scan (JS/epicerie.js)
   $('fiche-scan').addEventListener('click', () => {
     if (typeof montrerScanner === 'function') montrerScanner({ lu: ouvrirFicheScan, retour: () => montrerFormulaire(false) });
   });

@@ -527,6 +527,9 @@ select.champ {
   box-shadow: var(--ombre-carte);
   padding: var(--espace-l);
 }
+/* Toute l'épicerie : la carte de l'article scanné — sa ligne (et celle de la circulaire) posée dans la carte, sans trait ni retrait
+   (aperçu du 2026-10-02) */
+.carte-scan .item { border-top: none; padding-left: 0; padding-right: 0; }
 
 /* ============================================================
    ACCORDÉON — un bloc repliable (tête brune + items)
@@ -576,6 +579,7 @@ select.champ {
   min-height: var(--tactile);
 }
 .accordeon-item-saisie { gap: var(--espace-s); }   /* une ligne ou l'on saisit : un champ + son bouton */
+.accordeon-item-saisie > .bouton { flex-shrink: 0; }   /* une question longue (« Terminer IGA ? ») passe à la ligne; Oui / Non ne se tassent pas */
 /* Un meuble ou une catégorie ouvert : on n'y voit que SON « Nouveau… » (espace, sous-catégorie) — la ligne « Nouveau meuble… »
    ou « Nouvelle catégorie… » de ses frères se cache (J-C, 2026-09-30) */
 .accordeon-corps:has(> .accordeon > .accordeon-tete.ouvert) > .accordeon-item:has(> .meuble-nouveau),
