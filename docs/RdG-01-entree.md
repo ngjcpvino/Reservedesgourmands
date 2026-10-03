@@ -282,6 +282,28 @@ d'abord (l'écran du scan, la confirmation de Terminé, Compléter).*
   ne l'intéresse pas.
 - **À savoir** : chaque article des trois épiceries a une **photo** dans Flipp (colonne « Photo » de sa feuille).
 
+### L'écran du scan — aperçus vus et tranchés (2026-10-02, le soir)
+*Celui qui scanne : l'un ou l'autre (J-C : « pas juste le conjoint qui a la belle tâche »).*
+- **En haut**, le nom de l'épicerie en titre (« IGA »). La caméra, et **« Sans code » juste dessous** (l'autre porte
+  d'entrée, loin du OK).
+- **La carte de l'article scanné** : sa petite photo, son nom, marque · format; la quantité (1, − +); **OK**.
+- **La circulaire — chez Super C et Metro seulement** (chez IGA, le code-barres de la circulaire suffit : **pas de
+  question**, le prix se remplit tout seul) : sous le produit scanné, « Dans la circulaire de Super C » et **la ligne au
+  complet** (sa photo de Flipp, son nom, son format, son prix et le régulier) — J-C : « sinon je peux pas répondre ».
+  La question, dans ses mots : **« L'associer à ce produit ? » Oui / Non, sans OK : répondre accepte l'article**
+  (choix C). Rejetés : A (une case à cocher, puis OK), B (Oui / Non, puis OK), et la première version qui ne montrait
+  que le prix.
+- **Dessous, « Déjà scanné (13) »** : le plus récent en haut, chacun sa quantité.
+- **Terminé au bas** (choix E), après la liste, juste avant Retour; touché, il devient la question « Terminer IGA ?
+  (14 articles) » Oui / Non, à sa place. Rejeté : D (en haut à droite).
+- **Retour** sort sans terminer : la liste reste ouverte.
+- **Rien trouvé** : « Produit inconnu » et son code; la quantité et OK, rien à taper.
+- **Sans code** touché : la caméra laisse sa place au **PLU** (le nom officiel paraît dessous pour vérifier), aux
+  **habituels sans code**, puis à **l'entonnoir**; « Revenir au scan ». Un PLU tapé ou un habituel touché ouvre la carte
+  de l'article, comme au scan (J-C : « oui »).
+- À ajouter au CSS en bâtissant : la ligne d'article posée dans une carte (sans trait ni retrait); les boutons Oui / Non
+  d'une question qui ne se tassent pas quand la question est longue.
+
 ### Parenthèse notée (pas creusée)
 - Le même copier-coller pourrait servir **au tri** : un article de la circulaire de Super C ou de Metro sans code (on a
   le nom, il manque le code — l'inverse de Compléter).
