@@ -64,6 +64,9 @@ Deux personnes, deux rôles, deux moments :
 - **Lui** : scan en rafale à l'arrivée de l'épicerie (quoi, combien)
 - **Jean-Claude** : range physiquement et confirme le placement (où)
 
+**⚠️ Revu par J-C le 2026-10-02 (« ouin, pas vraiment ») : voir la section 3 bis, « TOUTE L'ÉPICERIE », qui remplace
+cette section-ci là où elles diffèrent** (le panel abandonné, le rangement pendant le scan, Entrer / Compléter…).
+
 ### La session d'entrée (côté scan)
 - La rafale ouvre une **session** : tout ce qui est scanné s'accumule dans
   une liste visible (« ai-je scanné le lait? » = un coup d'œil)
@@ -165,6 +168,126 @@ faut, sinon moi, ma mémoire… » — **à reprendre quand on bâtira l'entrée
   JAMAIS de saisie manuelle (tue la rafale). La place est réservée dans la
   structure, saisie à zéro. À revoir au point 12 (spéciaux/circulaires) —
   peut-être alimenté automatiquement.
+
+---
+
+## 3 bis. TOUTE L'ÉPICERIE (LES DEUX SACS) — RÉFLEXION DU 2026-10-02, LE SOIR
+
+*Remplace la section 3 là où elles diffèrent. **Zéro code : rien de bâti.** Tout ce qui se voit passera par un aperçu
+d'abord (l'écran du scan, la confirmation de Terminé, Compléter).*
+
+### Le scénario de la maison
+- **Aujourd'hui**, avec le panel d'achat (Homescan) : on choisit l'épicerie, on scanne en rafale en disant si chaque
+  article est en solde. Le conjoint scanne, le plus souvent. J-C range **pendant** le scan ce qui va près de la cuisine,
+  **les mains pleines** (il ne touche pas à l'app). Le reste (réserve, congélo…) attend sur le comptoir : **une tournée
+  à la fin**.
+- **Le panel est abandonné** (J-C : « on va lâcher le panel ») : un seul scan par article, l'app prend sa place.
+
+### Le bouton des deux sacs : deux choix
+- **Entrer** (le conjoint, qui scanne) · **Compléter** (J-C, sa liste).
+- **Un point rouge** sur le chemin (menu → Ajouter → Compléter) tant qu'une liste attend.
+
+### Entrer (le scan)
+1. **Choisir l'épicerie.** Chaque article scanné retient ce magasin.
+2. **Scanner.** L'app cherche le code dans cet ordre :
+   **Stock** (déjà entré : tout est rempli, la place proposée) → **Tri** (appris au tri : aliment, marque, saveur) →
+   **les circulaires d'IGA** (Speciaux, puis l'archive Circulaires : nom, marque, format, aliment proposé — même produit,
+   même code, donc IGA aide aussi un achat fait ailleurs; **à bâtir** : aujourd'hui l'app ne reçoit que les codes
+   triés, `codesTri`) → **Open Food Facts** → **rien** : la quantité et OK, le reste se fera dans Compléter.
+3. **Quantité 1 d'office, − et +** (ceux de Déplacer et Consommer), **OK à chaque article**. Le même code rescanné =
+   la même ligne, +1.
+4. **« En circulaire ? »** (J-C : oui) — seulement si l'article ressemble à une ligne de la circulaire **de cette
+   épicerie, cette semaine** (nom, marque, format) : « En circulaire : 4,99 ». **Oui** (le « en solde ? » du panel) :
+   - le code se colle à cette ligne de la circulaire, **avec certitude** (la boîte est dans les mains) — c'est ainsi que
+     Super C et Metro, dont les circulaires n'ont aucun code, en reçoivent;
+   - le **prix payé** se remplit (l'idée des prix, section 3);
+   - les semaines suivantes, cet article est déjà trié : « À trier » rapetisse.
+
+   **Non** = rien de relié, le prix reste vide. Une ligne à plusieurs produits (« 1 % ou 2 % ») : chaque code scanné s'y
+   colle. Pas en circulaire : le prix reste vide (juillet : jamais de prix à taper pendant la rafale).
+   - **Les prix à conditions** : « 2 pour 7 $ » = **3,50 chacun** (J-C : oui). **Le prix membre compte** (ils ont
+     Scène+ et moi; la semaine du 1er octobre : 37 prix membres, 15 chez IGA, 21 chez Metro, 1 chez Super C). Les
+     **points** (« 100 Scène+ PTS ») ne changent pas le prix. **La viande au kilo : en attente** — J-C envoie la photo
+     d'une étiquette de viande du magasin (prévu le 2026-10-03). Le code d'un paquet emballé au magasin change d'un
+     paquet à l'autre, et le prix y est souvent caché : le piège (jamais reconnu deux fois), la chance (le prix payé lu
+     dans le code). À vérifier sur la vraie étiquette.
+   - **Noté** : un achat scanné le lendemain du changement de circulaire (acheté mercredi, scanné jeudi) prendrait la
+     mauvaise semaine. Rare.
+5. **Sans code** : taper le **PLU** (l'app montre le nom officiel pour vérifier — existe déjà au scan). **Sans PLU** :
+   une liste, **les habituels sans code en haut** (ce qu'on entre souvent sans code-barres, rempli tout seul par l'app,
+   vide au début) et **l'entonnoir dessous** (J-C : ok). Pas un champ à taper.
+6. **Terminé**, **avec une confirmation** dont le **Oui n'est jamais là où l'on touche pendant le scan** (OK, −, +) —
+   J-C : « un bouton est vite accroché ». Placé sur aperçu. Un Terminé par erreur ne perd rien (on continue, ça s'ajoute
+   à la même liste). **Pour une autre épicerie : Terminé, puis Entrer** → l'autre épicerie.
+
+### Les listes : une par épicerie
+- « IGA », « Super C »… **Tant que J-C ne l'a pas close, tout ce qui vient de la même épicerie s'y ajoute** (le sac
+  oublié dans l'auto, une 2e visite); une fois close, la visite suivante fait une nouvelle liste.
+- Exemple : Entrer → IGA → Terminé · Entrer → Super C → Terminé · un article d'IGA retrouvé : Entrer → IGA → il
+  s'ajoute à la liste d'IGA. Deux listes dans Compléter, le point rouge tant que l'une attend.
+
+### Compléter (J-C)
+- La liste **groupée par meuble**, **chaque article déjà inscrit à sa place habituelle** (son endroit 1), donc compté
+  dans l'Inventaire dès le scan. Un produit nouveau n'a pas de place : à lui en donner une.
+- J-C **corrige** ce qui n'est pas à la bonne place, **répartit** au besoin (6 boîtes : 2 au garde-manger, 4 à la
+  réserve — J-C : « prévoir »), puis **OK**.
+- **Ce qui n'est pas complété demeure dans la liste**, avec le point rouge, jusqu'à ce qu'il revienne le terminer
+  (« quand j'aurai trouvé un espace disponible »).
+- **La séparation de juillet, confirmée** : **les places tout de suite**, en rangeant, les boîtes sous les yeux (J-C n'a
+  « aucune mémoire » pour ça le soir); **l'identité d'un produit inconnu plus tard** — le soir, au lit, sans les boîtes.
+
+### Le produit inconnu : le copier-coller de la page web (l'idée de J-C)
+- **Le coffre-fort ne voit rien** des sites de Super C et de Metro : un gardien anti-robot (Cloudflare) refuse la
+  recherche **et** la page directe à une simple requête (vérifié le 2026-10-02). On ne le contourne pas. **Un humain,
+  dans son navigateur, passe.**
+- **Vérifié le 2026-10-02** : la page d'un produit s'ouvre **directement avec son code** —
+  `superc.ca/allees/x/p/064420010117` → « Lait 2 % Finement Filtré Natrel »;
+  `metro.ca/epicerie-en-ligne/allees/x/p/059749961967` → « Fromage Gouda Selection » — et elle montre « Numéro de
+  produit : … » = **le vrai code-barres** (Open Food Facts le confirme : Lait Natrel). Leur recherche, elle, ne trouve
+  rien avec un code.
+- **Le chemin** : sur la ligne d'un produit inconnu, un bouton **ouvre sa page** — **Super C d'abord, même pour un achat
+  fait ailleurs** (un produit de grande marque a le même code partout, et les rayons de Super C sont ses catégories;
+  sauf les marques maison d'IGA, Compliments); pas de page = une recherche du code sur le web. J-C **sélectionne le
+  texte de la page** (du chemin du rayon jusqu'au numéro de produit), le **copie**, revient dans l'app et le **colle
+  dans un champ** : l'app propose tout, il confirme.
+- **Essayé par J-C** sur deux pages (Tarte à la citrouille Irrésistible 900 g; Sucre granulé spécial fin Redpath 2 kg).
+  Le texte se lit bien : **le chemin du rayon** (« Garde-manger → Ingrédients pour cuisson et préparation → … » = **mot
+  pour mot sa catégorie et sa sous-catégorie**, taillées sur Super C), **la marque** (en majuscules, 1re ligne du bloc),
+  **le nom**, **le format** (« 2 kg »), **le prix** (« Prix régulier 2,99 $ · 2,49 $ · En spécial jusqu'au 7 octobre »),
+  **le numéro de produit** (vérifié avec le code scanné). **Reste à J-C : confirmer l'aliment** (proposé s'il en existe
+  un qui ressemble, sinon l'entonnoir). Une catégorie renommée depuis : pas trouvée → l'entonnoir.
+- **Le prix de la page = le prix payé** (J-C : « je vais faire ça dans la semaine, avant le mercredi »), deux garde-fous :
+  le prix de la circulaire donné au scan reste (la page ne l'écrase pas); **si un jeudi est passé** entre l'achat et le
+  collage, le prix de la page n'est pas pris (vide).
+- Sur un autre site, le collage marche moins bien : la marque et le format oui, le nom pas toujours, la catégorie
+  presque jamais.
+- Écartés en chemin : rescanner la boîte en main (J-C complète le soir, sans les boîtes); une photo prise au scan; une
+  capture d'écran lue par Google (possible, mais une attente et un service à activer — le copier-coller fait mieux).
+- **IGA** : son site renvoie à Voilà (son épicerie en ligne), qui demande une adresse avant de montrer un produit — pas
+  vérifié plus loin. IGA en a moins besoin : ses codes viennent de sa circulaire.
+- **L'horizon** (J-C) : « une fois le code-barres associé, ça va rouler presque tout seul dans X mois » — une maison a
+  quelques centaines de produits, chacun s'apprend une fois. Le travail de J-C : trouver sur le web.
+
+### Les codes de Super C et de Metro — le tour complet (2026-10-02)
+1. **Flipp** : non. Leurs « codes du magasin » (FL873-132) sont des cases de la circulaire (feuille de J-C de la
+   semaine du 1er octobre : IGA 411 codes-barres, Super C et Metro 0).
+2. **Leur site** : fermé au robot, ouvert à J-C (le copier-coller, plus haut).
+3. **IGA** : même produit, même code (« Serait-ce celui-ci ? » au tri).
+4. **Les marques maison** Selection et Irrésistible (Metro et Super C, même compagnie) : un code trouvé une fois vaut
+   dans les deux.
+5. **Open Food Facts par le nom** : marche (déjà dans le tri), environ 10 recherches par minute.
+6. **Leurs propres scans** : le plus sûr — « En circulaire ? » au scan (plus haut).
+7. D'autres bases de codes sur le web : pas vérifiées.
+- **Précisé par J-C** : le code-barres est le pivot; le Oui / Peut-être / Jamais du tri sert à éviter de relier ce qui
+  ne l'intéresse pas.
+- **À savoir** : chaque article des trois épiceries a une **photo** dans Flipp (colonne « Photo » de sa feuille).
+
+### Parenthèse notée (pas creusée)
+- Le même copier-coller pourrait servir **au tri** : un article de la circulaire de Super C ou de Metro sans code (on a
+  le nom, il manque le code — l'inverse de Compléter).
+
+### En attente
+- La photo de l'étiquette de viande (J-C, 2026-10-03).
 
 ---
 
