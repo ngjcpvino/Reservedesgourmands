@@ -369,6 +369,9 @@ Compléter ») — ⚠️ `api.gs` à coller, puis à essayer en ligne
   si un jeudi est passé depuis l'achat. **« C'est ça »** : instantané — un autre aliment choisi = **le produit du scan lui est réuni**
   (geste `reunirProduits`, rejouable); sinon sa catégorie et son nom (geste « lignes » Produits); puis les lignes du lot (marque, saveur,
   format, prix : `deplacer`). Essais : 22 vérifications (dont les deux pages collées par J-C).
+  **Et la place dans le même produit** (J-C, même jour : « pourquoi je ne peux pas le classer dans le meuble en même temps ») : Pièce,
+  Meuble, Espace après le format (la carte d'endroit de la fiche), d'avance sa place ou sa place habituelle (celle de l'aliment choisi,
+  s'il en a une); « C'est ça » y range **tout le lot** — répartir reste aux deux flèches.
 - Essai dans le faux navigateur : 21 vérifications (le point rouge, « Rien à compléter », la page, OK partiel, répartir, la liste
   close); les essais d'avant passent encore.
 

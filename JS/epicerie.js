@@ -628,6 +628,7 @@ function ouvrirProduit(i) {
   $('cp-marque').innerHTML = optionsListe('marque', vr.marques || [], lot.marque); $('cp-marque').value = lot.marque || '';
   $('cp-saveur').innerHTML = optionsListe('saveur', vr.saveurs || [], lot.saveur); $('cp-saveur').value = lot.saveur || '';
   poserFormatPanneau(lot.formats[0] || '');
+  brancherEndroit($('cp-endroit'), resoudreEmp(lot.emp || premierEndroit(lot.pid)));   // sa place, ou sa place habituelle s'il en a une
   const prix = prixDuLot(lot);
   $('cp-prix').value = prix !== '' ? textePrix(prix) : '';
   majCirculairePanneau();
@@ -645,6 +646,7 @@ function htmlPanneau(lot) {
     champ('Marque', '<select class="champ" id="cp-marque"></select><input class="champ bloc-suite" id="cp-marque-neuve" autocomplete="off" placeholder="Nom de la marque" hidden>') +
     champ('Saveur', '<select class="champ" id="cp-saveur"></select><input class="champ bloc-suite" id="cp-saveur-neuve" autocomplete="off" placeholder="Nom de la saveur" hidden>') +
     champ('Format', '<div class="ligne-couleur"><input class="champ champ-nombre" id="cp-nb" inputmode="decimal" autocomplete="off"><select class="champ" id="cp-unite"></select></div>') +
+    '<div id="cp-endroit">' + htmlChoixEndroit() + '</div>' +   // où il est rangé (J-C : « pourquoi je ne peux pas le classer dans le meuble en même temps »)
     '<div id="cp-circ"></div>' +
     champ('Prix payé', '<input class="champ" id="cp-prix" inputmode="decimal" autocomplete="off"><div class="message message-repli" id="cp-prix-msg"></div>') +
     '<div class="message message-repli message-erreur" id="cp-msg"></div>' +
@@ -674,6 +676,8 @@ function surAlimentPanneau() {
   $('cp-nom').hidden = v !== 'nouveau';
   const autre = v && v !== 'nouveau' && v !== PANNEAU.lot.pid && PRODUITS.find(p => String(p.id) === v);
   m.textContent = autre ? 'Il devient du ' + autre.nom + ' (ton aliment) : tout ce qu\'il y en a passe à ' + autre.nom + '.' : '';
+  const ou = $('cp-endroit');                             // pas encore placé : la place habituelle de l'aliment choisi, s'il en a une
+  if (autre && ou && !PANNEAU.lot.emp && !ou.querySelector('.meuble').value) { const e = premierEndroit(autre.id); if (e) brancherEndroit(ou, resoudreEmp(e)); }
   majCirculairePanneau();
 }
 function poserFormatPanneau(f) {
@@ -810,6 +814,8 @@ function validerProduit() {
   const prixTxt = $('cp-prix').value.trim(), prixNb = Number(prixTxt.replace(/\s*\$\s*/, '').replace(',', '.'));
   if (prixTxt && !(isFinite(prixNb) && prixNb >= 0)) { msg.textContent = 'Le prix : un nombre (« 2,49 »).'; return; }
   const marque = choixPanneau('marque'), saveur = choixPanneau('saveur'), format = formatPanneau();
+  const ou = $('cp-endroit'), emp = ou ? (ou.querySelector('.espace').value || ou.querySelector('.meuble').value) : '';
+  const empFinal = emp || lot.emp;                       // un endroit choisi : tout le lot y va (répartir : les deux flèches)
   let cible = lot.pid;
   const c = lireCache(), p = PRODUITS.find(x => String(x.id) === lot.pid);
   if (v !== 'nouveau' && v !== lot.pid) {                // un autre aliment, qui existe : le produit lui est réuni (tout ce qu'il y en a)
@@ -827,12 +833,12 @@ function validerProduit() {
   }
   const modifs = lot.lignes.map(id => STOCK.find(r => String(r[0]) === id)).filter(Boolean).map(r => {
     const l = r.slice(); while (l.length < 14) l.push('');
-    l[1] = cible; l[4] = dateCourte(l[4]); l[5] = marque; l[6] = format; l[9] = saveur; l[12] = prixTxt ? Math.round(prixNb * 100) / 100 : '';
+    l[1] = cible; l[2] = empFinal; l[4] = dateCourte(l[4]); l[5] = marque; l[6] = format; l[9] = saveur; l[12] = prixTxt ? Math.round(prixNb * 100) / 100 : '';
     return { id: String(r[0]), ligne: l };
   });
   if (modifs.length) poserGeste({ action: 'deplacer', opId: 'prodl-' + idLocal(), modifs: modifs, ajouts: [] });
   if (P.ligne && P.assoc === 'O' && !P.auto) relierCirculaire(P.ligne, cible, marque, saveur, codeDuLot(lot));
-  memoriserVariante(cible, marque, format, lot.emp ? [{ emp: lot.emp }] : [], saveur);
+  memoriserVariante(cible, marque, format, empFinal ? [{ emp: empFinal }] : [], saveur);   // sa place devient connue
   const fait = (PRODUITS.find(x => String(x.id) === cible) || {}).nom || '';
   PANNEAU = null;
   remplirCompleter();
