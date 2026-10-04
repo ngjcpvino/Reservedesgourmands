@@ -1646,7 +1646,7 @@ function remplirPageNoms() {
     crayon(t + ':' + x.id) + (circ ? interrupteur(x) : '') + (pageNoms.gere ? poubelle(t, x.id) : '') + '</div>' +
     (circ && sansCirculaire(x) ? '<div class="note-barre">Pas de circulaire trouvée</div>' : '') + '</div>').join('') ||
     '<div class="accordeon-item"><span class="texte-petit texte-pale">' + pageNoms.aucun + '</span></div>';
-  $('noms-colonne').hidden = !(circ && xs.some(x => !sansCirculaire(x)));   // « Circulaire », écrit une fois au-dessus des interrupteurs
+  $('noms-colonne').hidden = !(circ && xs.some(x => !sansCirculaire(x)));   // l'icône des circulaires, posée une fois au-dessus des interrupteurs
 }
 /* L'interrupteur « Circulaire » (Magasins — J-C, 2026-10-01, choix A sur aperçu) : allumé = sa circulaire est lue le jeudi.
    Un magasin à Oui que Flipp ne connaît pas (le coffre-fort l'écrit en col. E après le jeudi) : pas d'interrupteur, rien à

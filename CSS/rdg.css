@@ -180,6 +180,8 @@
   --retrait:           12px;   /* LE retrait du site, un seul partout (J-C, 2026-09-30) : chaque niveau recule d'autant */
   --fleche-deplacer:   18px;   /* la flèche à tige ↑↓ « déplacer », dessinée en CSS */
   --fleche-trait:      0.55;   /* sa présence : discrète, comme le triangle */
+  --poubelle-taille:   24px;   /* la poubelle « retirer », un peu plus grosse que le crayon : elle tient tête à l'interrupteur (J-C, 2026-10-03, choix F sur aperçu parmi 22 / 24 / 26) */
+  --icone-colonne:     28px;   /* Magasins : l'icône des circulaires au-dessus des interrupteurs, à la place du mot (J-C, 2026-10-03, choix A sur aperçu) */
   --interrupteur-large:  40px;   /* l'interrupteur « Circulaire » (Magasins) : sa piste */
   --interrupteur-haut:   22px;
   --interrupteur-rond:   14px;   /* le bouton rond qui glisse */
@@ -722,15 +724,15 @@ select.champ {
   left: calc(50% - var(--interrupteur-large) / 2 + var(--interrupteur-haut) / 2 - var(--interrupteur-rond) / 2);
   background: currentColor;
 }
-/* Le nom d'une colonne d'interrupteurs, écrit UNE fois au-dessus des barres (Magasins : « Circulaire »), son bord droit
-   sur celui des pistes : le rembourrage de la barre + la poubelle (moins son retrait) + la marge de la piste dans sa zone. */
+/* Le nom d'une colonne d'interrupteurs, posé UNE fois au-dessus des barres (Magasins : l'icône des circulaires, brune — J-C,
+   2026-10-03 : son icône à la place du mot « Circulaire »), centré sur les pistes : le rembourrage de la barre + la poubelle
+   (moins son retrait) + la moitié de ce qui reste de la zone de l'interrupteur autour de l'icône. */
 .entete-colonne {
   display: flex;
   justify-content: flex-end;
-  padding: 0 calc(var(--espace-l) + var(--tactile) - var(--espace-s) + (var(--tactile) - var(--interrupteur-large)) / 2) var(--espace-xs) 0;
-  font-size: var(--texte-petit);
-  color: var(--couleur-305);
+  padding: 0 calc(var(--espace-l) + var(--tactile) - var(--espace-s) + (var(--tactile) - var(--icone-colonne)) / 2) var(--espace-xs) 0;
 }
+.entete-colonne .icone { width: var(--icone-colonne); height: var(--icone-colonne); background-color: var(--couleur-305); }
 /* Une petite ligne sous une barre, sur la page (Magasins : « Pas de circulaire trouvée »). */
 .note-barre { padding: var(--espace-micro) var(--espace-l) 0; font-size: var(--texte-petit); color: var(--couleur-305); }
 /* LA POUBELLE « retirer » (un meuble, un espace — J-C, 2026-09-30) : le jumeau du crayon, au bout de la ligne.
@@ -759,6 +761,8 @@ select.champ {
   opacity: var(--fleche-trait);
 }
 .retirer::before {
+  width: var(--poubelle-taille);
+  height: var(--poubelle-taille);
   -webkit-mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='1.8' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M4 6.5h16M9.5 6.5V4h5v2.5M6.5 6.5l1 13.5h9l1-13.5M10 10.5v6M14 10.5v6'/%3E%3C/svg%3E") center / contain no-repeat;
           mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='1.8' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M4 6.5h16M9.5 6.5V4h5v2.5M6.5 6.5l1 13.5h9l1-13.5M10 10.5v6M14 10.5v6'/%3E%3C/svg%3E") center / contain no-repeat;
 }
