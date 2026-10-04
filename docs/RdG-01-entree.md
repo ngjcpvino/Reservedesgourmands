@@ -358,8 +358,17 @@ Compléter ») — ⚠️ `api.gs` à coller, puis à essayer en ligne
   partie : le reste reste où il est). Instantané (`deplacerLot`). La place choisie devient connue : la prochaine fois, il y va tout seul.
 - **OK** : ce qui est **placé et a sa catégorie** quitte la liste (STOCK col. O = le jour); le reste attend, avec le point rouge.
   Plus rien : la liste est **close** (C), retour au +.
-- **Pas encore** : donner l'identité d'un produit neuf ici (la catégorie, le copier-coller de la page Super C) — **aperçu d'abord**.
-  D'ici là : Gérer les bases → Aliments → « Aliments sans catégorie ».
+- ✅ **Le produit et son prix, dans Compléter — BÂTI le même jour** (J-C : « quand je complète, je complète pour vrai »; « le prix doit
+  suivre aussi quand c'est en circulaire »; aperçu : « ça semble intéressant ») : le prix payé paraît dans le détail d'une ligne; **toucher
+  le nom** ouvre le produit dessous — « Voir chez Super C » (sa page par son code), **le texte de la page collé** (tout se remplit : le
+  rayon → catégorie et sous-catégorie, la marque en majuscules, le nom, le format, le prix — « Prix régulier » à part, le prix au 100 g
+  écarté; le numéro de produit vérifié), puis catégorie, sous-catégorie, **aliment** (le sien dont tous les mots sont dans le nom —
+  « Sucre » —, sinon « Nouvel aliment… », son nom d'avance), marque, saveur (le reste du nom : « Granulé spécial fin »), format, prix
+  payé. **Sans prix et en circulaire chez cette épicerie, la semaine de l'achat** : sa ligne et « L'associer ? » — Oui remplit le prix
+  (« 2 pour 9,00 » = 4,50) et colle le code à la circulaire (le Tri : l'article **quitte « À trier »**). Le prix de la page n'est pas pris
+  si un jeudi est passé depuis l'achat. **« C'est ça »** : instantané — un autre aliment choisi = **le produit du scan lui est réuni**
+  (geste `reunirProduits`, rejouable); sinon sa catégorie et son nom (geste « lignes » Produits); puis les lignes du lot (marque, saveur,
+  format, prix : `deplacer`). Essais : 22 vérifications (dont les deux pages collées par J-C).
 - Essai dans le faux navigateur : 21 vérifications (le point rouge, « Rien à compléter », la page, OK partiel, répartir, la liste
   close); les essais d'avant passent encore.
 

@@ -486,6 +486,9 @@ function ouvrirCompleter(row, plusieurs) {
   COMPLETER_OUVERT = 'escale';                           // « À placer » ouvert d'abord : c'est là qu'il y a quelque chose à faire
   remplirCompleter();
   window.scrollTo(0, 0);
+  const m = LISTES.Magasins.find(x => String(x.id) === EPI_COMPLETER.magasin) || { id: EPI_COMPLETER.magasin, circ: true };
+  EPI_CIRC = [];
+  if (!jeudiPasse(row[2], dateDuJour())) chargerCirculaire(m);   // le prix de la circulaire suit (J-C) — la semaine de l'achat seulement
 }
 function remplirCompleter() {
   const par = {};
@@ -502,8 +505,9 @@ function remplirCompleter() {
   });
   const nom = lot => (PRODUITS.find(p => String(p.id) === lot.pid) || {}).nom || '';
   const ligne = lot => {
-    const i = LOTS_COMPLETER.indexOf(lot), det = [detailLot(lot), aCategorie(lot.pid) ? '' : '(sans catégorie)'].filter(Boolean).join(' ');
-    return '<div class="item"><div class="item-info"><div class="item-nom">' + esc(nom(lot)) + '</div>' + (det ? '<div class="item-detail">' + esc(det) + '</div>' : '') + '</div>' +
+    const i = LOTS_COMPLETER.indexOf(lot), prix = prixDuLot(lot);
+    const det = [[detailLot(lot), prix ? textePrix(prix) : ''].filter(Boolean).join(' · '), aCategorie(lot.pid) ? '' : '(sans catégorie)'].filter(Boolean).join(' ');
+    return '<div class="item" data-completer-item="' + i + '"><div class="item-info"><div class="item-nom">' + esc(nom(lot)) + '</div>' + (det ? '<div class="item-detail">' + esc(det) + '</div>' : '') + '</div>' +
       '<button class="ranger" type="button" data-completer-lot="' + i + '" aria-label="Placer"></button><span class="item-quantite">' + esc(lot.qte) + '</span></div>';
   };
   const parNom = (a, b) => nom(a).localeCompare(nom(b), 'fr');
@@ -589,6 +593,265 @@ function validerCompleter() {
   remplirCompleter();
 }
 
+/* ---------- 6. Compléter pour vrai : le produit et son prix (J-C, 2026-10-04 : « quand je complète, je complète pour vrai »;
+   « le prix doit suivre aussi quand c'est en circulaire »; aperçu « ça semble intéressant ») ----------
+   Toucher le nom d'un article ouvre son produit dessous : « Voir chez Super C » (sa page, par son code), le texte de la page collé
+   (tout se remplit : le rayon → la catégorie et la sous-catégorie, la marque, le nom, le format, le prix — RdG-01, 3 bis), puis la
+   catégorie, la sous-catégorie, l'aliment (le sien qui ressemble, sinon « Nouvel aliment… »), la marque, la saveur, le format, le prix
+   payé. Sans prix et en circulaire chez cette épicerie (la semaine de l'achat) : la ligne de la circulaire et « L'associer ? » — Oui
+   remplit le prix et colle le code à la circulaire (le Tri : l'article quitte « À trier »). « C'est ça » : instantané, par la file des
+   gestes — l'aliment (sa catégorie, son nom; ou réuni à un aliment qui existe), les lignes de STOCK du lot (marque, saveur, format, prix). */
+var PANNEAU = null;          // le produit ouvert : { i, lot, ligne (de la circulaire), assoc ('O' · 'N' · ''), auto }
+const prixDuLot = lot => { for (const id of lot.lignes) { const r = STOCK.find(x => String(x[0]) === id); if (r && String(r[12] == null ? '' : r[12]).trim() !== '') return r[12]; } return ''; };
+const dateDuLot = lot => { const r = STOCK.find(x => String(x[0]) === lot.lignes[0]); return r ? r[4] : ''; };
+const codeDuLot = lot => { for (const id of lot.lignes) { const r = STOCK.find(x => String(x[0]) === id); if (r && String(r[8] || '').trim()) return String(r[8]).trim(); } return ''; };
+/* Un jeudi entre le jour de l'achat (exclu) et aujourd'hui (inclus) : la circulaire a changé — son prix ne vaut plus pour cet achat. */
+function jeudiPasse(achat, auj) {
+  const d = new Date(String(dateCourte(achat) || '').slice(0, 10) + 'T12:00:00'), t = new Date(String(auj).slice(0, 10) + 'T12:00:00');
+  if (isNaN(d) || isNaN(t)) return false;
+  for (let x = new Date(d.getTime() + 864e5); x <= t; x = new Date(x.getTime() + 864e5)) if (x.getDay() === 4) return true;
+  return false;
+}
+function ouvrirProduit(i) {
+  PANNEAU = null;
+  remplirCompleter();                                    // un seul produit (ou une seule carte) ouvert à la fois
+  const lot = LOTS_COMPLETER[i], item = $('completer-liste').querySelector('[data-completer-item="' + i + '"]');
+  if (!lot || !item) return;
+  PANNEAU = { i: i, lot: lot, ligne: null, assoc: '', auto: false };
+  item.insertAdjacentHTML('afterend', htmlPanneau(lot));
+  const p = PRODUITS.find(x => String(x.id) === lot.pid) || { nom: '', catId: '' };
+  const rid = p.catId ? rayonDe(p.catId) : '';
+  $('cp-cat').innerHTML = options(RAYONS, '— Catégorie —'); $('cp-cat').value = rid;
+  remplirSousCatPanneau(p.catId);
+  remplirAlimentsPanneau(p.catId ? lot.pid : 'nouveau', p.nom);
+  const vr = VARIANTES[lot.pid] || {};
+  $('cp-marque').innerHTML = optionsListe('marque', vr.marques || [], lot.marque); $('cp-marque').value = lot.marque || '';
+  $('cp-saveur').innerHTML = optionsListe('saveur', vr.saveurs || [], lot.saveur); $('cp-saveur').value = lot.saveur || '';
+  poserFormatPanneau(lot.formats[0] || '');
+  const prix = prixDuLot(lot);
+  $('cp-prix').value = prix !== '' ? textePrix(prix) : '';
+  majCirculairePanneau();
+}
+function htmlPanneau(lot) {
+  const code = formeCode(codeDuLot(lot));
+  const champ = (label, html) => '<div class="bloc"><div class="label">' + label + '</div>' + html + '</div>';
+  return '<div class="carte" data-panneau>' +
+    (code.length >= 8 ? '<button class="bouton bouton-brun bouton-pleine" type="button" data-cp-voir>Voir chez Super C</button>' : '') +
+    champ('Colle le texte de la page', '<textarea class="champ" id="cp-texte" placeholder="Du chemin du rayon jusqu\'au numéro de produit"></textarea><div class="message message-repli" id="cp-lu"></div>') +
+    champ('Catégorie', '<select class="champ" id="cp-cat"></select>') +
+    '<div class="bloc" id="cp-bloc-souscat"><div class="label">Sous-catégorie</div><select class="champ" id="cp-souscat"></select></div>' +
+    '<div class="bloc" id="cp-bloc-aliment"><div class="label">Aliment</div><select class="champ champ-fort" id="cp-aliment"></select>' +
+    '<input class="champ bloc-suite" id="cp-nom" autocomplete="off" enterkeyhint="done" placeholder="Nom du nouvel aliment"><div class="message message-repli" id="cp-aliment-msg"></div></div>' +
+    champ('Marque', '<select class="champ" id="cp-marque"></select><input class="champ bloc-suite" id="cp-marque-neuve" autocomplete="off" placeholder="Nom de la marque" hidden>') +
+    champ('Saveur', '<select class="champ" id="cp-saveur"></select><input class="champ bloc-suite" id="cp-saveur-neuve" autocomplete="off" placeholder="Nom de la saveur" hidden>') +
+    champ('Format', '<div class="ligne-couleur"><input class="champ champ-nombre" id="cp-nb" inputmode="decimal" autocomplete="off"><select class="champ" id="cp-unite"></select></div>') +
+    '<div id="cp-circ"></div>' +
+    champ('Prix payé', '<input class="champ" id="cp-prix" inputmode="decimal" autocomplete="off"><div class="message message-repli" id="cp-prix-msg"></div>') +
+    '<div class="message message-repli message-erreur" id="cp-msg"></div>' +
+    '<div class="grille bloc-suite"><button class="bouton bouton-petit bouton-vert" type="button" data-cp-ok>C\'est ça</button>' +
+    '<button class="bouton bouton-petit" type="button" data-cp-annuler>Annuler</button></div></div>';
+}
+function remplirSousCatPanneau(scid) {
+  const rid = $('cp-cat').value;
+  $('cp-souscat').innerHTML = options(SOUSCATS[rid] || [], '— Sous-catégorie —');
+  $('cp-souscat').value = scid && rayonDe(scid) === rid ? String(scid) : '';
+  montrer('cp-bloc-souscat', !!rid);
+}
+/* Les aliments de la sous-catégorie, « Nouvel aliment… » au bout (son nom dessous, celui du produit d'avance). */
+function remplirAlimentsPanneau(choisi, nom) {
+  const scid = $('cp-souscat').value;
+  const ps = PRODUITS.filter(p => String(p.catId) === String(scid)).sort((a, b) => a.nom.localeCompare(b.nom, 'fr'));
+  $('cp-aliment').innerHTML = options(ps, '— Aliment —') + '<option value="nouveau">Nouvel aliment…</option>';
+  const v = choisi === 'nouveau' || ps.some(p => String(p.id) === String(choisi)) ? String(choisi) : (scid ? 'nouveau' : '');
+  $('cp-aliment').value = v;
+  if (nom !== undefined) $('cp-nom').value = nom;
+  else if (!$('cp-nom').value) $('cp-nom').value = (PRODUITS.find(p => String(p.id) === PANNEAU.lot.pid) || {}).nom || '';
+  montrer('cp-bloc-aliment', !!scid);
+  surAlimentPanneau();
+}
+function surAlimentPanneau() {
+  const v = $('cp-aliment').value, m = $('cp-aliment-msg');
+  $('cp-nom').hidden = v !== 'nouveau';
+  const autre = v && v !== 'nouveau' && v !== PANNEAU.lot.pid && PRODUITS.find(p => String(p.id) === v);
+  m.textContent = autre ? 'Il devient du ' + autre.nom + ' (ton aliment) : tout ce qu\'il y en a passe à ' + autre.nom + '.' : '';
+  majCirculairePanneau();
+}
+function poserFormatPanneau(f) {
+  const m = String(f || '').trim().match(/^([0-9]+(?:[.,][0-9]+)?)?\s*(.*)$/), u = m && m[2] ? m[2].trim() : '';
+  const us = unitesConnues(); if (u && us.indexOf(u) === -1) us.push(u);
+  $('cp-unite').innerHTML = '<option value="">— Unité —</option>' + us.map(x => '<option value="' + esc(x) + '">' + esc(x) + '</option>').join('');
+  $('cp-unite').value = u;
+  $('cp-nb').value = m && m[1] ? m[1].replace('.', ',') : '';
+}
+const formatPanneau = () => { const nb = $('cp-nb').value.trim().replace('.', ','), u = $('cp-unite').value; return nb || u ? ((nb ? nb + ' ' : '') + u).trim() : ''; };
+/* Le choix d'une liste (marque, saveur) : un ID, ou un nom neuf — retrouvé dans la liste (sans accent ni majuscule), sinon créé. */
+function choixPanneau(champ) {
+  const v = $('cp-' + champ).value;
+  return v === 'neuve' ? idListe(CHOIX_FICHE[champ].liste, $('cp-' + champ + '-neuve').value) : v;
+}
+function idListe(liste, nom) {
+  nom = String(nom || '').trim();
+  if (!nom) return '';
+  const x = LISTES[liste].find(y => cleNom(y.nom) === cleNom(nom));
+  if (x) return x.id;
+  const id = idLocal();
+  LISTES[liste].push({ id: id, nom: nom }); LISTES[liste].sort((a, b) => a.nom.localeCompare(b.nom, 'fr')); NOMS_LISTES[id] = nom;
+  poserGeste({ action: 'creer', table: liste, opId: 'liste-' + id, ligne: [id, nom, 'O'] });   // Marques, Saveurs : ID · Nom · Actif
+  return id;
+}
+/* Mettre un nom dans un menu de liste : retrouvé (choisi), sinon « Nouvelle… » avec le nom écrit dessous. */
+function choisirNomPanneau(champ, nom) {
+  nom = String(nom || '').trim();
+  if (!nom) return;
+  const sel = $('cp-' + champ), x = LISTES[CHOIX_FICHE[champ].liste].find(y => cleNom(y.nom) === cleNom(nom)), neuve = $('cp-' + champ + '-neuve');
+  if (x) {
+    if (![...sel.options].some(o => o.value === x.id)) sel.insertAdjacentHTML('afterbegin', '<option value="' + esc(x.id) + '">' + esc(x.nom) + '</option>');
+    sel.value = x.id; neuve.hidden = true;
+  } else { sel.value = 'neuve'; neuve.value = nom; neuve.hidden = false; }
+}
+/* La circulaire de l'épicerie (la semaine de l'achat) : ce produit y est-il ? Sans prix seulement — un prix déjà là (le scan) gagne. */
+function majCirculairePanneau() {
+  const P = PANNEAU, boite = $('cp-circ');
+  if (!P || !boite) return;
+  const v = $('cp-aliment').value, pid = v && v !== 'nouveau' ? v : P.lot.pid;
+  const a = { code: codeDuLot(P.lot), pid: pid, marque: $('cp-marque').value === 'neuve' ? '' : $('cp-marque').value, format: formatPanneau() };
+  const dejaPrix = prixDuLot(P.lot) !== '';
+  const m = !dejaPrix && EPI_CIRC.length ? trouverCirculaire(a) : null;
+  if ((m ? m.ligne.cle : '') !== (P.ligne ? P.ligne.cle : '')) P.assoc = '';   // une autre ligne (l'aliment a changé) : la question revient
+  P.ligne = m ? m.ligne : null; P.auto = !!(m && m.auto); P.pidCirc = pid;
+  if (P.auto) { P.assoc = 'O'; $('cp-prix').value = textePrix(prixUnitaire(P.ligne)); }
+  boite.innerHTML = !P.ligne ? '' : P.auto
+    ? '<div class="message message-succes">En circulaire chez ' + esc(EPI_COMPLETER.nom) + ' : ' + esc(textePrixLigne(P.ligne)) + '</div>'
+    : '<div class="bloc"><div class="label">Dans la circulaire de ' + esc(EPI_COMPLETER.nom) + '</div>' + htmlLigneCirc(P.ligne) +
+      (P.assoc ? '<div class="message">' + (P.assoc === 'O' ? 'Associé : le prix de la circulaire.' : 'Pas associé.') + '</div>'
+               : '<div class="label-fort bloc-suite">L\'associer à ce produit ?</div><div class="grille bloc-suite">' +
+                 '<button class="bouton bouton-vert" type="button" data-cp-assoc="O">Oui</button><button class="bouton bouton-brun" type="button" data-cp-assoc="N">Non</button></div>') + '</div>';
+}
+function associerPanneau(rep) {
+  const P = PANNEAU;
+  if (!P || !P.ligne) return;
+  P.assoc = rep;
+  if (rep === 'O') { const p = prixUnitaire(P.ligne); $('cp-prix').value = p !== '' ? textePrix(p) : ''; $('cp-prix-msg').textContent = p !== '' ? 'Le prix de la circulaire.' : 'Au poids : le prix reste à écrire.'; }
+  else EPI_REFUS[P.ligne.cle + '|' + String(P.pidCirc)] = true;   // la même clé que trouverCirculaire
+  majCirculairePanneau();
+}
+/* « Voir chez Super C » : la page du produit s'ouvre directement avec son code (vérifié le 2026-10-02 : superc.ca/…/p/<code>). */
+function voirChezSuperC() {
+  const code = PANNEAU && formeCode(codeDuLot(PANNEAU.lot));
+  if (code) window.open('https://www.superc.ca/allees/produit/p/' + encodeURIComponent(code), '_blank');
+}
+/* Le texte d'une page de Super C (ou de Metro), collé : ce qu'on y lit. Essayé sur les deux pages collées par J-C le 2026-10-03
+   (Tarte à la citrouille Irrésistible; Sucre granulé spécial fin Redpath). */
+function lirePage(texte) {
+  const t = String(texte || ''), lignes = t.split(/\r?\n/).map(s => s.replace(/\s+/g, ' ').trim()).filter(Boolean), r = {};
+  const code = (t.match(/Num[ée]ro de produit\s*:?\s*(\d{6,14})/i) || [])[1];
+  if (code) r.code = code;
+  for (let i = 0; i < Math.min(lignes.length, 8) && !r.rid; i++) {       // le chemin du rayon : SES catégories (taillées sur Super C)
+    const rr = RAYONS.find(x => cleNom(x.nom) === cleNom(lignes[i]));
+    if (!rr) continue;
+    r.rid = String(rr.id);
+    const sc = (SOUSCATS[rr.id] || []).find(x => cleNom(x.nom) === cleNom(lignes[i + 1] || ''));
+    if (sc) r.scid = String(sc.id);
+  }
+  const k = lignes.findIndex(l => /\p{L}{2}/u.test(l) && l === l.toUpperCase() && !/[$\d]/.test(l));   // la marque, en majuscules (« REDPATH »)
+  if (k !== -1) {
+    r.marque = adoucir(lignes[k]);
+    if (lignes[k + 1] && !/[$]/.test(lignes[k + 1])) r.nom = lignes[k + 1];
+    if (lignes[k + 2] && formatCle(lignes[k + 2])) r.format = formatStock(lignes[k + 2]);
+  }
+  if (!r.format) { const f = lignes.find(l => /^\d+(?:[.,]\d+)?\s*(?:kg|g|ml|l)\b/i.test(l)); if (f) r.format = formatStock(f); }
+  const reg = (t.match(/Prix r[ée]gulier\s*(\d+[.,]\d{2})/i) || [])[1];
+  if (reg) r.regulier = reg;
+  const p = lignes.find(l => /^\d+[.,]\d{2}\s*\$/.test(l) && !/\//.test(l) && !/r[ée]gulier/i.test(l));   // le prix payé, pas celui au 100 g
+  if (p) r.prix = p.match(/^(\d+[.,]\d{2})/)[1];
+  const fin = (t.match(/En sp[ée]cial jusqu.au ([^\n]+)/i) || [])[1];
+  if (fin) r.special = fin.trim();
+  return r;
+}
+function collerPage(texte) {
+  const P = PANNEAU;
+  if (!P) return;
+  const r = lirePage(texte), lu = [], m = $('cp-lu');
+  if (!Object.keys(r).length) { m.textContent = texte.trim() ? 'Rien de lisible : as-tu copié le texte de la page ?' : ''; return; }
+  if (r.rid) { $('cp-cat').value = r.rid; remplirSousCatPanneau(r.scid || ''); lu.push('le rayon'); }
+  const scid = $('cp-souscat').value;
+  if (r.nom) {                                           // l'aliment : le sien dont tous les mots sont dans le nom (le plus précis), sinon un nouveau
+    const mots = motsTri(r.nom);
+    const ps = PRODUITS.filter(p => (!scid || String(p.catId) === String(scid)) && motsTri(p.nom).length && motsTri(p.nom).every(w => mots.indexOf(w) !== -1))
+      .sort((a, b) => motsTri(b.nom).length - motsTri(a.nom).length);
+    if (scid) remplirAlimentsPanneau(ps[0] ? String(ps[0].id) : 'nouveau', ps[0] ? undefined : r.nom);
+    if (ps[0]) {                                         // ce qui reste du nom devient la saveur (« Sucre granulé spécial fin » → « Granulé spécial fin »)
+      const aMots = motsTri(ps[0].nom), reste = r.nom.split(' ').filter(w => !motsTri(w).length || aMots.indexOf(motsTri(w)[0]) === -1).join(' ').trim();
+      if (reste && motsTri(reste).length) choisirNomPanneau('saveur', reste.charAt(0).toUpperCase() + reste.slice(1));
+    }
+    lu.push('le nom');
+  }
+  if (r.marque) { choisirNomPanneau('marque', r.marque); lu.push('la marque'); }
+  if (r.format) { poserFormatPanneau(r.format); lu.push('le format'); }
+  const pm = $('cp-prix-msg');
+  if (r.prix) {
+    if (P.ligne && P.assoc === 'O') pm.textContent = 'Le prix de la circulaire reste (associé).';
+    else if (jeudiPasse(dateDuLot(P.lot), dateDuJour())) pm.textContent = 'Prix de la page pas pris : un jeudi est passé depuis l\'achat.';
+    else { $('cp-prix').value = textePrix(r.prix); pm.textContent = 'Le prix de la page' + (r.special ? ' : en spécial jusqu\'au ' + r.special : '') + (r.regulier ? ' (rég. ' + textePrix(r.regulier) + ')' : '') + '.'; }
+    lu.push('le prix');
+  }
+  const bon = !r.code || codeNu(r.code) === codeNu(codeDuLot(P.lot));
+  m.className = 'message message-repli' + (bon ? '' : ' message-erreur');
+  m.textContent = 'Lu : ' + lu.join(', ') + '.' + (r.code ? (bon ? ' Numéro de produit : le bon.' : ' Attention : le numéro de produit n\'est pas celui scanné.') : '');
+  majCirculairePanneau();
+}
+/* « C'est ça » : l'aliment (catégorie, nom — ou réuni à l'aliment choisi), puis les lignes du lot (marque, saveur, format, prix). */
+function validerProduit() {
+  const P = PANNEAU, msg = $('cp-msg');
+  if (!P) return;
+  const lot = P.lot, scid = $('cp-souscat').value, v = $('cp-aliment').value, nom = $('cp-nom').value.trim();
+  if (!scid) { msg.textContent = 'Choisis une catégorie et une sous-catégorie.'; return; }
+  if (!v || (v === 'nouveau' && !nom)) { msg.textContent = 'Choisis l\'aliment, ou nomme le nouveau.'; return; }
+  const prixTxt = $('cp-prix').value.trim(), prixNb = Number(prixTxt.replace(/\s*\$\s*/, '').replace(',', '.'));
+  if (prixTxt && !(isFinite(prixNb) && prixNb >= 0)) { msg.textContent = 'Le prix : un nombre (« 2,49 »).'; return; }
+  const marque = choixPanneau('marque'), saveur = choixPanneau('saveur'), format = formatPanneau();
+  let cible = lot.pid;
+  const c = lireCache(), p = PRODUITS.find(x => String(x.id) === lot.pid);
+  if (v !== 'nouveau' && v !== lot.pid) {                // un autre aliment, qui existe : le produit lui est réuni (tout ce qu'il y en a)
+    cible = v;
+    reunirProduitsInstant(cible, lot.pid);
+  } else if (p) {                                        // lui-même : sa catégorie, son nom
+    const row = c && (c.prods || []).find(r => String(r[0]) === lot.pid);
+    const nouveauNom = v === 'nouveau' ? nom : p.nom;
+    if (row && (String(row[2] || '') !== String(scid) || String(row[1]) !== nouveauNom)) {
+      const l = row.slice(); l[1] = nouveauNom; l[2] = scid;
+      poserGeste({ action: 'lignes', table: 'Produits', opId: 'prodc-' + idLocal(), lignes: [l] });
+    }
+    p.nom = nouveauNom; p.catId = scid;
+    remplirProduitsDatalist();
+  }
+  const modifs = lot.lignes.map(id => STOCK.find(r => String(r[0]) === id)).filter(Boolean).map(r => {
+    const l = r.slice(); while (l.length < 14) l.push('');
+    l[1] = cible; l[4] = dateCourte(l[4]); l[5] = marque; l[6] = format; l[9] = saveur; l[12] = prixTxt ? Math.round(prixNb * 100) / 100 : '';
+    return { id: String(r[0]), ligne: l };
+  });
+  if (modifs.length) poserGeste({ action: 'deplacer', opId: 'prodl-' + idLocal(), modifs: modifs, ajouts: [] });
+  if (P.ligne && P.assoc === 'O' && !P.auto) relierCirculaire(P.ligne, cible, marque, saveur, codeDuLot(lot));
+  memoriserVariante(cible, marque, format, lot.emp ? [{ emp: lot.emp }] : [], saveur);
+  const fait = (PRODUITS.find(x => String(x.id) === cible) || {}).nom || '';
+  PANNEAU = null;
+  remplirCompleter();
+  poserPoints();
+  avis('Complété : ' + fait, 'succes');
+}
+/* Réunir le produit du scan (perdu) à un aliment qui existe (garde) — instantané : la mémoire tout de suite, puis l'action
+   reunirProduits d'api.gs par la file des gestes (ses lots, ses sorties, ses « Pas aimé »; rejouable). */
+function reunirProduitsInstant(garde, perdu) {
+  poserGeste({ action: 'reunirProduits', opId: 'reun-' + idLocal(), garde: String(garde), perdu: String(perdu) });   // STOCK et le cache suivent (appliquerGeste)
+  PRODUITS = PRODUITS.filter(x => String(x.id) !== String(perdu));
+  Object.keys(CODES).forEach(k => { if (String(CODES[k]) === String(perdu)) CODES[k] = String(garde); });
+  const vp = VARIANTES[perdu];
+  if (vp) memoriserVariante(String(garde), '', '', (vp.emplacements || []).map(e => ({ emp: e })), '');
+  const c = lireCache();
+  if (c) { Object.keys(c.codes || {}).forEach(k => { if (String(c.codes[k]) === String(perdu)) c.codes[k] = String(garde); }); ecrireCache(c); }
+  remplirProduitsDatalist();
+}
+
 function initEpicerie() {
   $('choix-completer').addEventListener('click', montrerCompleter);
   $('completer-listes').addEventListener('click', ev => {
@@ -599,7 +862,14 @@ function initEpicerie() {
   $('completer-liste').addEventListener('click', ev => {
     const r = ev.target.closest('.ranger[data-completer-lot]');
     if (r) { ouvrirLotCompleter(r); return; }
-    if (ev.target.closest('.endroit')) return;           // toucher la carte ouverte ne plie rien
+    if (ev.target.closest('[data-cp-voir]')) { voirChezSuperC(); return; }
+    const ass = ev.target.closest('[data-cp-assoc]');
+    if (ass) { associerPanneau(ass.dataset.cpAssoc); return; }
+    if (ev.target.closest('[data-cp-ok]')) { validerProduit(); return; }
+    if (ev.target.closest('[data-cp-annuler]')) { PANNEAU = null; remplirCompleter(); return; }
+    if (ev.target.closest('.endroit, [data-panneau]')) return;   // toucher la carte ou le produit ouvert ne plie rien
+    const it = ev.target.closest('[data-completer-item]');
+    if (it) { ouvrirProduit(Number(it.dataset.completerItem)); return; }
     const tete = ev.target.closest('.accordeon-tete');
     if (!tete) return;
     const g = tete.closest('[data-groupe]');
@@ -607,6 +877,14 @@ function initEpicerie() {
     toggleAccordeon(tete);
   });
   $('completer-ok').addEventListener('click', validerCompleter);
+  $('completer-liste').addEventListener('change', ev => {
+    const id = ev.target.id;
+    if (id === 'cp-cat') { remplirSousCatPanneau(''); remplirAlimentsPanneau(''); }
+    else if (id === 'cp-souscat') remplirAlimentsPanneau('');
+    else if (id === 'cp-aliment') surAlimentPanneau();
+    else if (id === 'cp-marque' || id === 'cp-saveur') { const n = $(id + '-neuve'); n.hidden = ev.target.value !== 'neuve'; if (!n.hidden) n.focus(); }
+  });
+  $('completer-liste').addEventListener('input', ev => { if (ev.target.id === 'cp-texte') collerPage(ev.target.value); });
   $('completer-retour').addEventListener('click', () => { if (EPI_COMPLETER && EPI_COMPLETER.plusieurs) montrerCompleter(); else montrerChoixQuoi(); });
   $('epi-magasins').addEventListener('click', ev => { const b = ev.target.closest('[data-epi-magasin]'); if (b) choisirEpicerie(b.dataset.epiMagasin); });
   $('epi-choix-retour').addEventListener('click', montrerChoixQuoi);            // Retour recule d'un pas : les deux sacs
