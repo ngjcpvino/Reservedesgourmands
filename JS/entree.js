@@ -437,7 +437,7 @@ async function chargerReferences() {
     data.stock = data.stock || []; data.pasAimes = data.pasAimes || []; data.epiceries = data.epiceries || [];
     if (data.menage && data.menage !== localStorage.getItem(MENAGE)) {   // le grand ménage (api.gs viderReserve) : ce qui attendait d'avant ne repart pas
       ecrireAttenteGestes([]); ecrireAttenteAchats([]);
-      try { localStorage.setItem(MENAGE, data.menage); } catch (e) {}
+      try { localStorage.setItem(MENAGE, data.menage); localStorage.removeItem('rdg_circ_epicerie'); } catch (e) {}   // + la circulaire du jour gardée par Entrer (ses tris sont effacés)
     }
     lireAttenteGestes().forEach(e => appliquerGeste(e, data));   // idem : un geste en route reste fait
     data.achats = data.achats || []; data.speciaux = data.speciaux || [];
