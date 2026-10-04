@@ -371,7 +371,10 @@ Compléter ») — ⚠️ `api.gs` à coller, puis à essayer en ligne
   format, prix : `deplacer`). Essais : 22 vérifications (dont les deux pages collées par J-C).
   **Et la place dans le même produit** (J-C, même jour : « pourquoi je ne peux pas le classer dans le meuble en même temps ») : Pièce,
   Meuble, Espace après le format (la carte d'endroit de la fiche), d'avance sa place ou sa place habituelle (celle de l'aliment choisi,
-  s'il en a une); « C'est ça » y range **tout le lot** — répartir reste aux deux flèches.
+  s'il en a une); « C'est ça » y range **tout le lot** — répartir reste aux deux flèches. **Répartir aussi, dans le même produit** (J-C : « la
+  répartition doit pouvoir se faire là aussi ») : les endroits sont les cartes de la fiche (pièce, meuble, espace, **quantité**,
+  « + un autre endroit », « Retirer »); la 1re a toute la quantité d'avance; plus que la quantité = « Il y en a 2. »; ce qui n'est donné
+  à aucun endroit reste où il est; une ligne coupée garde le reste, la part qui part devient une ligne neuve (ID d'ici, même date).
 - Essai dans le faux navigateur : 21 vérifications (le point rouge, « Rien à compléter », la page, OK partiel, répartir, la liste
   close); les essais d'avant passent encore.
 

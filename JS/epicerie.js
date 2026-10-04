@@ -628,7 +628,7 @@ function ouvrirProduit(i) {
   $('cp-marque').innerHTML = optionsListe('marque', vr.marques || [], lot.marque); $('cp-marque').value = lot.marque || '';
   $('cp-saveur').innerHTML = optionsListe('saveur', vr.saveurs || [], lot.saveur); $('cp-saveur').value = lot.saveur || '';
   poserFormatPanneau(lot.formats[0] || '');
-  brancherEndroit($('cp-endroit'), resoudreEmp(lot.emp || premierEndroit(lot.pid)));   // sa place, ou sa place habituelle s'il en a une
+  ajouterEndroitPanneau(resoudreEmp(lot.emp || premierEndroit(lot.pid)), lot.qte);   // sa place (ou sa place habituelle) et toute la quantité
   const prix = prixDuLot(lot);
   $('cp-prix').value = prix !== '' ? textePrix(prix) : '';
   majCirculairePanneau();
@@ -646,12 +646,22 @@ function htmlPanneau(lot) {
     champ('Marque', '<select class="champ" id="cp-marque"></select><input class="champ bloc-suite" id="cp-marque-neuve" autocomplete="off" placeholder="Nom de la marque" hidden>') +
     champ('Saveur', '<select class="champ" id="cp-saveur"></select><input class="champ bloc-suite" id="cp-saveur-neuve" autocomplete="off" placeholder="Nom de la saveur" hidden>') +
     champ('Format', '<div class="ligne-couleur"><input class="champ champ-nombre" id="cp-nb" inputmode="decimal" autocomplete="off"><select class="champ" id="cp-unite"></select></div>') +
-    '<div id="cp-endroit">' + htmlChoixEndroit() + '</div>' +   // où il est rangé (J-C : « pourquoi je ne peux pas le classer dans le meuble en même temps »)
+    '<div id="cp-endroits"></div><button class="bouton bouton-petit bouton-suite" type="button" data-cp-endroit>+ un autre endroit</button>' +   // où il est rangé — un ou plusieurs endroits, comme la fiche (J-C : « la répartition doit pouvoir se faire là aussi »)
     '<div id="cp-circ"></div>' +
     champ('Prix payé', '<input class="champ" id="cp-prix" inputmode="decimal" autocomplete="off"><div class="message message-repli" id="cp-prix-msg"></div>') +
     '<div class="message message-repli message-erreur" id="cp-msg"></div>' +
     '<div class="grille bloc-suite"><button class="bouton bouton-petit bouton-vert" type="button" data-cp-ok>C\'est ça</button>' +
     '<button class="bouton bouton-petit" type="button" data-cp-annuler>Annuler</button></div></div>';
+}
+/* Un endroit du produit ouvert : la carte de la fiche (pièce, meuble, espace, quantité, « Retirer » s'il y en a plus d'un). */
+function ajouterEndroitPanneau(pref, qte) {
+  const row = document.createElement('div');
+  row.className = 'endroit carte';
+  row.innerHTML = htmlChoixEndroit() +
+    '<div class="bloc"><div class="label">Quantité</div><input class="champ qte" type="text" inputmode="numeric" pattern="[0-9]*" value="' + esc(qte) + '"></div>' +
+    '<button class="bouton bouton-petit endroit-retirer" type="button">Retirer</button>';
+  $('cp-endroits').appendChild(row);
+  brancherEndroit(row, pref);
 }
 function remplirSousCatPanneau(scid) {
   const rid = $('cp-cat').value;
@@ -676,7 +686,7 @@ function surAlimentPanneau() {
   $('cp-nom').hidden = v !== 'nouveau';
   const autre = v && v !== 'nouveau' && v !== PANNEAU.lot.pid && PRODUITS.find(p => String(p.id) === v);
   m.textContent = autre ? 'Il devient du ' + autre.nom + ' (ton aliment) : tout ce qu\'il y en a passe à ' + autre.nom + '.' : '';
-  const ou = $('cp-endroit');                             // pas encore placé : la place habituelle de l'aliment choisi, s'il en a une
+  const ou = document.querySelector('#cp-endroits .endroit');   // pas encore placé : la place habituelle de l'aliment choisi, s'il en a une
   if (autre && ou && !PANNEAU.lot.emp && !ou.querySelector('.meuble').value) { const e = premierEndroit(autre.id); if (e) brancherEndroit(ou, resoudreEmp(e)); }
   majCirculairePanneau();
 }
@@ -814,8 +824,12 @@ function validerProduit() {
   const prixTxt = $('cp-prix').value.trim(), prixNb = Number(prixTxt.replace(/\s*\$\s*/, '').replace(',', '.'));
   if (prixTxt && !(isFinite(prixNb) && prixNb >= 0)) { msg.textContent = 'Le prix : un nombre (« 2,49 »).'; return; }
   const marque = choixPanneau('marque'), saveur = choixPanneau('saveur'), format = formatPanneau();
-  const ou = $('cp-endroit'), emp = ou ? (ou.querySelector('.espace').value || ou.querySelector('.meuble').value) : '';
-  const empFinal = emp || lot.emp;                       // un endroit choisi : tout le lot y va (répartir : les deux flèches)
+  const endroits = [...document.querySelectorAll('#cp-endroits .endroit')].map(c => ({ emp: c.querySelector('.espace').value || c.querySelector('.meuble').value,
+    q: parseInt(c.querySelector('.qte').value, 10) || 0 })).filter(e => e.q > 0);
+  const total = endroits.reduce((s, e) => s + e.q, 0);
+  if (total > lot.qte) { msg.textContent = 'Il y en a ' + lot.qte + '.'; return; }
+  if (endroits.length > 1 && endroits.some(e => !e.emp)) { msg.textContent = 'Choisis où va chaque quantité.'; return; }
+  const ventes = endroits.filter(e => e.emp && e.emp !== lot.emp);   // ce qui change de place; le reste reste où il est
   let cible = lot.pid;
   const c = lireCache(), p = PRODUITS.find(x => String(x.id) === lot.pid);
   if (v !== 'nouveau' && v !== lot.pid) {                // un autre aliment, qui existe : le produit lui est réuni (tout ce qu'il y en a)
@@ -831,14 +845,25 @@ function validerProduit() {
     p.nom = nouveauNom; p.catId = scid;
     remplirProduitsDatalist();
   }
-  const modifs = lot.lignes.map(id => STOCK.find(r => String(r[0]) === id)).filter(Boolean).map(r => {
+  const op = 'prodl-' + idLocal();
+  const lignes = lot.lignes.map(id => STOCK.find(r => String(r[0]) === id)).filter(Boolean).map(r => {
     const l = r.slice(); while (l.length < 14) l.push('');
-    l[1] = cible; l[2] = empFinal; l[4] = dateCourte(l[4]); l[5] = marque; l[6] = format; l[9] = saveur; l[12] = prixTxt ? Math.round(prixNb * 100) / 100 : '';
-    return { id: String(r[0]), ligne: l };
+    l[1] = cible; l[4] = dateCourte(l[4]); l[5] = marque; l[6] = format; l[9] = saveur; l[12] = prixTxt ? Math.round(prixNb * 100) / 100 : '';
+    return l;
   });
-  if (modifs.length) poserGeste({ action: 'deplacer', opId: 'prodl-' + idLocal(), modifs: modifs, ajouts: [] });
+  const ajouts = [];                                     // répartir : chaque endroit prend sa quantité, ligne par ligne; une ligne coupée en deux
+  let k = 0;                                             //   garde le reste (et sa place), la part qui part devient une ligne neuve (ID d'ici, la même date)
+  ventes.forEach(e => {
+    let reste = e.q;
+    while (reste > 0 && k < lignes.length) {
+      const l = lignes[k], q = Number(l[3]) || 0;
+      if (q <= reste) { l[2] = e.emp; reste -= q; k++; }
+      else { const a = l.slice(); a[0] = idLocal(); a[2] = e.emp; a[3] = reste; a[7] = op; ajouts.push(a); l[3] = q - reste; reste = 0; }
+    }
+  });
+  if (lignes.length) poserGeste({ action: 'deplacer', opId: op, modifs: lignes.map(l => ({ id: String(l[0]), ligne: l })), ajouts: ajouts });
   if (P.ligne && P.assoc === 'O' && !P.auto) relierCirculaire(P.ligne, cible, marque, saveur, codeDuLot(lot));
-  memoriserVariante(cible, marque, format, empFinal ? [{ emp: empFinal }] : [], saveur);   // sa place devient connue
+  memoriserVariante(cible, marque, format, ventes.length ? ventes.map(e => ({ emp: e.emp })) : (lot.emp ? [{ emp: lot.emp }] : []), saveur);   // ses places deviennent connues
   const fait = (PRODUITS.find(x => String(x.id) === cible) || {}).nom || '';
   PANNEAU = null;
   remplirCompleter();
@@ -869,6 +894,9 @@ function initEpicerie() {
     const r = ev.target.closest('.ranger[data-completer-lot]');
     if (r) { ouvrirLotCompleter(r); return; }
     if (ev.target.closest('[data-cp-voir]')) { voirChezSuperC(); return; }
+    if (ev.target.closest('[data-cp-endroit]')) { ajouterEndroitPanneau(null, ''); return; }
+    const re = ev.target.closest('#cp-endroits .endroit-retirer');
+    if (re) { if ($('cp-endroits').children.length > 1) re.closest('.endroit').remove(); return; }
     const ass = ev.target.closest('[data-cp-assoc]');
     if (ass) { associerPanneau(ass.dataset.cpAssoc); return; }
     if (ev.target.closest('[data-cp-ok]')) { validerProduit(); return; }
