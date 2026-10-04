@@ -3877,6 +3877,10 @@ function endroitsHabituels(pid) {
   const p = PRODUITS.find(x => String(x.id) === String(pid));
   const choisis = p && p.ordre ? p.ordre.split(',').filter(Boolean) : [];
   const vus = ((VARIANTES[pid] || {}).emplacements || []).map(String);
+  STOCK.forEach(r => {                                   // ce qui vient d'être placé (Compléter, l'Escale, Déplacer), avant même que le coffre-fort
+    const e = String(r[2] || '');                        //   relise la réserve (J-C, 2026-10-04 : le lait de la tablette ne proposait pas la porte)
+    if (e && String(r[1]) === String(pid) && vus.indexOf(e) === -1) vus.push(e);
+  });
   return choisis.concat(vus.filter(e => choisis.indexOf(e) === -1));
 }
 /* Sous le nom de l'aliment : 1. 2. 3., chacun avec ses flèches. Un endroit disparu ne paraît pas. */
