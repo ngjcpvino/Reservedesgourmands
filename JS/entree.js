@@ -2258,11 +2258,14 @@ function surRecherche() {
   const alpha = (a, b) => String(a.p.nom).localeCompare(String(b.p.nom), 'fr');
   const trouves = parNom.sort(alpha).concat(parVariante.sort(alpha));
   if (!trouves.length) { cible.innerHTML = htmlVide('', 'Aucun aliment ne correspond', modeRecherche ? '' : 'data-ajouter-nom'); return; }
-  cible.innerHTML = '<div class="liste-blanche">' + trouves.map(x => htmlLigneAliment(x.p, totalLots(par[x.p.id]), x.detail.join(' · '),
-    (par[x.p.id] || []).length ? ouSontLots(x.p.id, par[x.p.id]) : '')).join('') + '</div>';   // où il est (J-C, 2026-10-04 : « pour choisir lequel je consomme »)
+  cible.innerHTML = '<div class="liste-blanche">' + trouves.map(x => {
+    const lots = par[x.p.id] || [];                     // ses sortes (marque, saveur : « Lactantia 1 % ») puis où il est — J-C, 2026-10-04 : « pour choisir
+    const sortes = [...new Set(lots.map(l => [nomListe(l.marque), nomListe(l.saveur)].filter(Boolean).join(' ')).filter(Boolean))];   //   lequel je consomme »
+    return htmlLigneAliment(x.p, totalLots(lots), lots.length ? sortes.join(' · ') : x.detail.join(' · '), lots.length ? ouSontLots(x.p.id, lots) : '');
+  }).join('') + '</div>';
 }
-/* Une ligne à toucher : le nom, en petit ce qui l'a fait trouver (ou « (plus en réserve) »), dessous où il est (« Frigo, Porte (1) ·
-   Réserve, Tablette 1 (2) », comme l'Inventaire par catégorie), la quantité. Une précision s'écrit entre parenthèses, jamais en italique. */
+/* Une ligne à toucher : le nom, en petit ses sortes (marque, saveur) ou ce qui l'a fait trouver (ou « (plus en réserve) »), dessous où il
+   est (« Frigo, Porte (1) · Réserve, Tablette 1 (2) », comme l'Inventaire par catégorie), la quantité. Une précision s'écrit entre parenthèses. */
 function htmlLigneAliment(p, total, detail, ou) {
   const d = [detail, total ? '' : '(plus en réserve)'].filter(Boolean).join(' ');
   return '<div class="item' + (total ? '' : ' item-eteint') + '" data-pid="' + esc(p.id) + '"><div class="item-info"><div class="item-nom">' + esc(p.nom) + '</div>' +
