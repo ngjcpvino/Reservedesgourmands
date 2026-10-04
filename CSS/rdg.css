@@ -493,6 +493,8 @@ body:has(.sur-photo:not([hidden]))::before { display: none; }
   min-height: var(--tactile);
 }
 .champ:focus { border-color: var(--champ-focus); box-shadow: 0 0 0 var(--halo) var(--champ-focus-halo); }
+/* Le champ où l'on colle le texte d'une page (Compléter) : deux lignes d'avance, il ne se redimensionne pas au doigt */
+textarea.champ { min-height: calc(var(--tactile) * 2); resize: none; }
 .champ::placeholder { color: var(--placeholder); opacity: 0.6; }
 .champ-fort { font-weight: var(--poids-fort); }   /* le nom du produit, dans la fiche */
 .champ-fort::placeholder { font-weight: var(--poids-normal); }

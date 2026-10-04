@@ -2575,6 +2575,12 @@ const TABLES_GESTE = { Emplacements: d => d.emps, Produits: d => d.prods, Catego
                        Epiceries: d => d.epiceries };
 function appliquerGeste(e, d) {
   if (e.action === 'trier') return;                   // le tri des circulaires : rien dans la réserve (la page de tri le pose elle-même, appliquerTri)
+  if (e.action === 'reunirProduits') {                // Compléter : le produit du scan réuni à un aliment qui existe (ses lots, ses « Pas aimé »)
+    (d.stock || []).forEach(r => { if (String(r[1]) === String(e.perdu)) r[1] = e.garde; });
+    (d.pasAimes || []).forEach(r => { if (String(r[1]) === String(e.perdu)) r[1] = e.garde; });
+    (d.prods || []).forEach(r => { if (String(r[0]) === String(e.perdu)) r[4] = 'N'; });   // Actif = N, comme le coffre-fort
+    return;
+  }
   if (e.action === 'entrer') {                        // toute l'épicerie : ses lignes de STOCK (ID donnés par l'app), une seule fois
     (e.stock || []).forEach(a => { if (d.stock && !d.stock.some(x => String(x[0]) === String(a[0]))) d.stock.push(a.slice()); });
     return;
@@ -2630,6 +2636,7 @@ async function envoyerGeste(e) {
   if (e.action === 'creer') return Coffre.ajouter(e.table, e.ligne);   // l'ID vient de l'app : déjà créé = dejaFait, rien d'écrit
   if (e.action === 'trier') return Coffre.trier(e);                    // la même réponse renvoyée = rien d'écrit
   if (e.action === 'entrer') return Coffre.entrerArticle(e.charge);    // toute l'épicerie : son jeton déjà vu = rien d'écrit
+  if (e.action === 'reunirProduits') return Coffre.reunirProduits({ garde: e.garde, perdu: e.perdu });   // rejouable : renvoyé, il ne trouve plus rien à déplacer
   for (const l of e.lignes || []) {
     const r = await Coffre.modifier(e.table || 'Emplacements', l[0], l);
     if (!(r && r.ok) && !(r && r.erreur === 'ID introuvable')) return r;
