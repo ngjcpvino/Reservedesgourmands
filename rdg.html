@@ -10,7 +10,7 @@
   <!-- Ecran d'accueil iPad : le meme sac, en PNG (iOS n'accepte pas le SVG ici) -->
   <link rel="apple-touch-icon" href="apple-touch-icon.png?v=2">
 
-<link rel="stylesheet" href="CSS/rdg.css?v=123">
+<link rel="stylesheet" href="CSS/rdg.css?v=124">
 </head>
 <body>
 
@@ -173,6 +173,7 @@
     <div class="grille">
       <button class="bouton bouton-grand" id="choix-produit" type="button"><span class="icone icone-produit"></span></button>
       <button class="bouton bouton-grand" id="choix-epicerie" type="button"><span class="icone icone-epicerie"></span></button>
+      <button class="bouton bouton-grand" id="choix-completer" type="button" aria-label="Compléter"><span class="icone icone-completer"></span></button>
     </div>
     <button class="bouton bouton-or bouton-pleine bouton-suite" id="btn-retour-quoi" type="button">Retour</button>
   </div>
@@ -237,6 +238,13 @@
       <div id="epi-liste"></div>
       <div id="epi-fin"></div>
       <button class="bouton bouton-or bouton-pleine bouton-suite" id="epi-retour" type="button">Retour</button>
+    </div>
+    <!-- Compléter (le + : la feuille cochée) : l'épicerie groupée par meuble, « À placer » d'abord; OK retire ce qui est placé et a sa catégorie -->
+    <div id="epi-completer" hidden>
+      <div class="liste-suite" id="completer-listes"></div>
+      <div id="completer-liste"></div>
+      <button class="bouton bouton-vert bouton-pleine bouton-detache" id="completer-ok" type="button">OK</button>
+      <button class="bouton bouton-or bouton-pleine bouton-suite" id="completer-retour" type="button">Retour</button>
     </div>
   </div>
 </div>
@@ -503,8 +511,8 @@
 </div><!-- fin du conteneur -->
 
 <script src="JS/coffre.js?v=13"></script>
-<script src="JS/entree.js?v=148"></script>
-<script src="JS/epicerie.js?v=1"></script>
+<script src="JS/entree.js?v=149"></script>
+<script src="JS/epicerie.js?v=2"></script>
 <script src="JS/scan.js?v=12"></script>
 </body>
 </html>

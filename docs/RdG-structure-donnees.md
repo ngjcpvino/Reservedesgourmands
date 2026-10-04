@@ -78,6 +78,7 @@ endroits en même temps).*
 | L | Magasin | **ID** dans MAGASINS (depuis le 2026-09-29) — où l'article a été acheté |
 | M | Prix | **facultatif** — ce que le lot a coûté, pour comparer les épiceries. Toute l'épicerie : rempli tout seul par le prix de la circulaire (« 2/ » = le prix divisé; au poids : vide) |
 | N | Epicerie | toute l'épicerie (2026-10-02) : l'ID de sa liste dans EPICERIES. Vide pour un produit entré seul (la fiche) |
+| O | Complete | Compléter (2026-10-04) : le jour du OK — la ligne quitte la liste de son épicerie (placée et sa catégorie donnée). Vide = encore à compléter. Écrit par l'app (action `deplacer`, la ligne entière) |
 
 > **La quantité mesurable** se lit dans le **Format** : « 1 L », « 500 g », « 0,54 kg ».
 > L'app additionne (un 4 L + deux 1 L = 6 L) quand les unités s'accordent; sinon elle

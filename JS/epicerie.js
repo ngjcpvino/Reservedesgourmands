@@ -283,6 +283,7 @@ function validerCarte(rep) {
   nettoyerAchats(pid, marque, saveur);                   // entré : il quitte la liste d'achats
   fermerCarte();
   remplirListeEpicerie();
+  poserPoints();                                         // le point rouge de Compléter : il y a du nouveau à placer
   if (a.sansCode) reinitSansCode(); else reprendreCamera();
 }
 function annulerCarte() {
@@ -444,7 +445,169 @@ function terminerEpicerie() {
   montrerEpiceries();
 }
 
+/* ---------- 5. Compléter (le + : la feuille cochée — J-C, 2026-10-04, sur aperçu) ----------
+   L'épicerie, groupée par meuble comme l'Inventaire par meuble : « À placer » d'abord (ce qui n'a pas de place : l'Escale), puis
+   les meubles, chacun avec ses espaces en bandeaux. Les deux flèches d'un article ouvrent la carte de l'Escale (placer, corriger,
+   répartir : une partie seulement). OK : ce qui est placé et a sa catégorie quitte la liste (STOCK col. O = le jour, par la file
+   des gestes); le reste attend, avec le point rouge. Plus rien : la liste est close (Epiceries col. D = C). Plusieurs épiceries à
+   compléter : on choisit laquelle. Donner une catégorie à un produit neuf : pas encore ici (Gérer les bases → Aliments). */
+var EPI_COMPLETER = null;    // la liste ouverte : { id, magasin, nom, plusieurs }
+var LOTS_COMPLETER = [];     // ses lots, comme l'Escale : { pid, emp, marque, saveur, formats, qte, lignes }
+var COMPLETER_OUVERT = '';   // le groupe ouvert ('escale' ou l'ID d'un meuble) : il le reste après un geste
+const lignesACompleter = id => STOCK.filter(r => String(r[13] || '') === String(id) && !String(r[14] || '') && Number(r[3]) > 0);
+const aCategorie = pid => { const p = PRODUITS.find(x => String(x.id) === String(pid)); return !!(p && p.catId); };
+function montrerCompleter() {
+  const xs = aCompleter();
+  if (!xs.length) { avis('Rien à compléter'); return; }
+  if (xs.length === 1) { ouvrirCompleter(xs[0], false); return; }
+  toutCacher(); $('vue-epicerie').hidden = false; $('btn-burger').hidden = false;
+  EPI_COMPLETER = null;
+  $('epi-titre').textContent = 'Compléter';
+  montrer('epi-choix', false); montrer('epi-scan', false); montrer('epi-completer', true); montrer('completer-ok', false);
+  $('completer-liste').innerHTML = '';
+  $('completer-listes').innerHTML = xs.map(r => {
+    const n = lignesACompleter(r[0]).reduce((s, l) => s + (Number(l[3]) || 0), 0);
+    return '<div class="accordeon" data-completer="' + esc(r[0]) + '"><div class="accordeon-tete"><span>' + esc(nomListe(r[1])) + '</span></div>' +
+      '<div class="note-barre">' + esc(jourLisible(r[2]) + ' (' + articles(n) + ')') + '</div></div>';
+  }).join('');
+  window.scrollTo(0, 0);
+}
+/* « 4 octobre » (une date AAAA-MM-JJ du Sheet). */
+function jourLisible(v) {
+  const t = String(dateCourte(v) || '').slice(0, 10);
+  return /^\d{4}-\d{2}-\d{2}$/.test(t) ? new Date(t + 'T12:00:00').toLocaleDateString('fr-CA', { day: 'numeric', month: 'long' }) : t;
+}
+function ouvrirCompleter(row, plusieurs) {
+  EPI_COMPLETER = { id: String(row[0]), magasin: String(row[1]), nom: nomListe(row[1]), plusieurs: !!plusieurs };
+  toutCacher(); $('vue-epicerie').hidden = false; $('btn-burger').hidden = false;
+  $('epi-titre').textContent = EPI_COMPLETER.nom;
+  montrer('epi-choix', false); montrer('epi-scan', false); montrer('epi-completer', true); montrer('completer-ok', true);
+  $('completer-listes').innerHTML = '';
+  COMPLETER_OUVERT = 'escale';                           // « À placer » ouvert d'abord : c'est là qu'il y a quelque chose à faire
+  remplirCompleter();
+  window.scrollTo(0, 0);
+}
+function remplirCompleter() {
+  const par = {};
+  LOTS_COMPLETER = [];
+  lignesACompleter(EPI_COMPLETER.id).forEach(r => {
+    const emp = String(r[2] || '') && resoudreEmp(r[2]) ? String(r[2]) : '';   // un endroit disparu : à placer
+    const marque = String(r[5] || '').trim(), saveur = String(r[9] || '').trim(), format = String(r[6] || '').trim();
+    const k = [r[1], emp, marque, saveur].join('|');
+    let lot = par[k];
+    if (!lot) { lot = par[k] = { pid: String(r[1]), emp: emp, marque: marque, saveur: saveur, formats: [], qte: 0, lignes: [] }; LOTS_COMPLETER.push(lot); }
+    lot.qte += Number(r[3]) || 0;
+    if (format && lot.formats.indexOf(format) === -1) lot.formats.push(format);
+    lot.lignes.push(String(r[0]));
+  });
+  const nom = lot => (PRODUITS.find(p => String(p.id) === lot.pid) || {}).nom || '';
+  const ligne = lot => {
+    const i = LOTS_COMPLETER.indexOf(lot), det = [detailLot(lot), aCategorie(lot.pid) ? '' : '(sans catégorie)'].filter(Boolean).join(' ');
+    return '<div class="item"><div class="item-info"><div class="item-nom">' + esc(nom(lot)) + '</div>' + (det ? '<div class="item-detail">' + esc(det) + '</div>' : '') + '</div>' +
+      '<button class="ranger" type="button" data-completer-lot="' + i + '" aria-label="Placer"></button><span class="item-quantite">' + esc(lot.qte) + '</span></div>';
+  };
+  const parNom = (a, b) => nom(a).localeCompare(nom(b), 'fr');
+  const groupe = (cle, titre, attrs, pale, corps) => '<div class="accordeon" data-groupe="' + esc(cle) + '"' + attrs + '><div class="accordeon-tete' + pale + (COMPLETER_OUVERT === cle ? ' ouvert' : '') + '">' +
+    esc(titre) + '</div><div class="accordeon-corps"' + (COMPLETER_OUVERT === cle ? '' : ' hidden') + '>' + corps + '</div></div>';
+  let h = '';
+  const aPlacer = LOTS_COMPLETER.filter(l => !l.emp).sort(parNom);
+  if (aPlacer.length) h += groupe('escale', 'À placer', '', '', aPlacer.map(ligne).join(''));
+  MEUBLES.forEach(m => {                                 // les meubles dans leur ordre (celui de Gérer les bases)
+    const ici = LOTS_COMPLETER.filter(l => l.emp && resoudreEmp(l.emp).meubleId === String(m.id));
+    if (!ici.length) return;
+    let corps = ici.filter(l => l.emp === String(m.id)).sort(parNom).map(ligne).join('');   // posé sur le meuble, sans espace
+    (ESPACES[m.id] || []).forEach(e => {
+      const la = ici.filter(l => l.emp === String(e.id)).sort(parNom);
+      if (la.length) corps += '<div class="espace-bandeau">' + esc(e.nom) + '</div>' + la.map(ligne).join('');
+    });
+    const teinte = couleurDe(m.couleur);
+    h += groupe(String(m.id), m.nom, teinte ? ' style="--meuble:' + esc(teinte) + '"' : '', teinte && couleurPale(teinte) ? ' tete-pale' : '', corps);   // la couleur du meuble est une DONNÉE
+  });
+  $('completer-liste').innerHTML = h || '<div class="vide"><div class="vide-titre">Tout est complété</div></div>';
+  montrer('completer-ok', !!h);
+}
+/* Les deux flèches d'un article : la carte de l'Escale (la pièce, le meuble, l'espace, la quantité — le total d'avance). Une partie
+   seulement = répartir : le reste reste où il est. Oui fait le geste (instantané, deplacerLot); Non laisse tout tel quel. */
+function ouvrirLotCompleter(btn) {
+  const i = Number(btn.dataset.completerLot);
+  remplirCompleter();                                    // une seule carte à la fois (les lots refaits dans le même ordre)
+  const lot = LOTS_COMPLETER[i], item = $('completer-liste').querySelector('[data-completer-lot="' + i + '"]');
+  if (!lot || !item) return;
+  const carte = document.createElement('div');
+  carte.className = 'endroit carte';
+  carte.innerHTML = htmlChoixEndroit() +
+    '<div class="bloc"><div class="label">Quantité</div><input class="champ qte" type="text" inputmode="numeric" pattern="[0-9]*" value="' + esc(lot.qte) + '"></div>' +
+    '<div class="message"></div>' +
+    '<div class="grille"><button class="bouton bouton-petit bouton-vert lot-oui" type="button" hidden>Oui</button>' +
+    '<button class="bouton bouton-petit lot-non" type="button">Non</button></div>';
+  item.closest('.item').replaceWith(carte);
+  brancherEndroit(carte);
+  const cible = () => carte.querySelector('.espace').value || carte.querySelector('.meuble').value;
+  const combien = () => parseInt(carte.querySelector('.qte').value, 10) || 0;
+  const question = () => {
+    const emp = cible(), q = combien(), m = carte.querySelector('.message'), oui = carte.querySelector('.lot-oui');
+    const ok = !!emp && emp !== lot.emp && q > 0 && q <= lot.qte;
+    m.className = 'message';
+    if (q > lot.qte) { m.className = 'message message-erreur'; m.textContent = 'Il y en a ' + lot.qte + '.'; }
+    else if (!ok) m.textContent = emp && emp === lot.emp ? 'Il y est déjà.' : '';
+    else m.textContent = 'Ranger ' + (q > 1 ? 'les ' + q : 'le ' + q) + ' à ' + libelleEndroit(emp) + ' ?' + (q < lot.qte ? ' (' + (lot.qte - q) + (lot.qte - q > 1 ? ' restent où ils sont)' : ' reste où il est)') : '');
+    oui.hidden = !ok;
+  };
+  carte.addEventListener('change', question);
+  carte.addEventListener('input', question);
+  carte.querySelector('.lot-non').onclick = () => remplirCompleter();
+  carte.querySelector('.lot-oui').onclick = () => {
+    const emp = cible();
+    deplacerLot(lot, emp, combien(), fait => {
+      if (fait) memoriserVariante(lot.pid, '', '', [{ emp: emp }], '');   // sa place devient connue : la prochaine fois, il y ira tout seul
+      remplirCompleter();
+    });
+  };
+  question();
+}
+/* OK : ce qui est placé et a sa catégorie quitte la liste (col. O = le jour); le reste attend. Plus rien : la liste est close. */
+function validerCompleter() {
+  const E = EPI_COMPLETER;
+  if (!E) return;
+  const rows = STOCK.filter(r => String(r[13] || '') === E.id && !String(r[14] || ''));
+  const complet = r => Number(r[3]) <= 0 || (!!String(r[2] || '') && !!resoudreEmp(r[2]) && aCategorie(r[1]));
+  const faits = rows.filter(complet), reste = rows.filter(r => !complet(r));
+  const jour = dateDuJour();
+  if (faits.length) poserGeste({ action: 'deplacer', opId: 'compl-' + idLocal(), ajouts: [],
+    modifs: faits.map(r => { const l = r.slice(); while (l.length < 15) l.push(''); l[4] = dateCourte(l[4]); l[14] = jour; return { id: String(r[0]), ligne: l }; }) });
+  const nFaits = faits.reduce((s, r) => s + (Number(r[3]) || 0), 0), nReste = reste.reduce((s, r) => s + (Number(r[3]) || 0), 0);
+  if (!reste.length) {
+    const row = EPICERIES.find(r => String(r[0]) === E.id);
+    if (row) { const l = row.slice(); while (l.length < 5) l.push(''); l[3] = 'C'; poserGeste({ action: 'lignes', table: 'Epiceries', opId: 'epic-' + idLocal(), lignes: [l] }); }
+    poserPoints();
+    avis(E.nom + ' : complété', 'succes');
+    montrerChoixQuoi();
+    return;
+  }
+  poserPoints();
+  avis((nFaits ? articles(nFaits) + ' rangé' + (nFaits > 1 ? 's' : '') + ' · ' : '') + nReste + ' attend' + (nReste > 1 ? 'ent' : '') + ' (à placer ou sans catégorie)', nFaits ? 'succes' : 'avis');
+  remplirCompleter();
+}
+
 function initEpicerie() {
+  $('choix-completer').addEventListener('click', montrerCompleter);
+  $('completer-listes').addEventListener('click', ev => {
+    const b = ev.target.closest('[data-completer]');
+    const row = b && EPICERIES.find(r => String(r[0]) === b.dataset.completer);
+    if (row) ouvrirCompleter(row, true);
+  });
+  $('completer-liste').addEventListener('click', ev => {
+    const r = ev.target.closest('.ranger[data-completer-lot]');
+    if (r) { ouvrirLotCompleter(r); return; }
+    if (ev.target.closest('.endroit')) return;           // toucher la carte ouverte ne plie rien
+    const tete = ev.target.closest('.accordeon-tete');
+    if (!tete) return;
+    const g = tete.closest('[data-groupe]');
+    COMPLETER_OUVERT = tete.classList.contains('ouvert') ? '' : (g ? g.dataset.groupe : '');
+    toggleAccordeon(tete);
+  });
+  $('completer-ok').addEventListener('click', validerCompleter);
+  $('completer-retour').addEventListener('click', () => { if (EPI_COMPLETER && EPI_COMPLETER.plusieurs) montrerCompleter(); else montrerChoixQuoi(); });
   $('epi-magasins').addEventListener('click', ev => { const b = ev.target.closest('[data-epi-magasin]'); if (b) choisirEpicerie(b.dataset.epiMagasin); });
   $('epi-choix-retour').addEventListener('click', montrerChoixQuoi);            // Retour recule d'un pas : les deux sacs
   $('epi-retour').addEventListener('click', montrerEpiceries);                   // sort sans terminer : la liste reste ouverte

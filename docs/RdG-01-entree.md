@@ -347,6 +347,22 @@ Compléter ») — ⚠️ `api.gs` à coller, puis à essayer en ligne
   même liste reprise, IGA sans question); `api.gs` sur un faux Sheet (17 vérifications); les essais d'avant (PLU, liste d'achats,
   tri) passent encore.
 
+### ✅ COMPLÉTER — BÂTI le 2026-10-04 (J-C : « Je mettrais ce bouton dans le bouton + »; aperçu : icône D, la feuille cochée; la page :
+« je vais voir à l'usage »)
+- **Son bouton est dans le +** (le 3e, à côté des deux sacs) — remplace « le bouton des deux sacs a deux choix, Entrer / Compléter » :
+  les deux sacs mènent tout droit à Entrer. **Le point rouge** sur le + et sur Compléter tant qu'une épicerie a un article à compléter.
+- Une seule épicerie à compléter : elle s'ouvre tout de suite; plusieurs : une barre par épicerie (« 4 octobre (12 articles) »).
+- **La page** : groupée par meuble, comme l'Inventaire par meuble — **« À placer »** d'abord (ouvert : ce qui n'a pas de place),
+  puis les meubles dans leur ordre, fermés, leurs espaces en bandeaux. Un produit sans catégorie dit « (sans catégorie) ».
+- **Les deux flèches** d'un article : la carte de l'Escale (pièce, meuble, espace, quantité) — placer, corriger, **répartir** (une
+  partie : le reste reste où il est). Instantané (`deplacerLot`). La place choisie devient connue : la prochaine fois, il y va tout seul.
+- **OK** : ce qui est **placé et a sa catégorie** quitte la liste (STOCK col. O = le jour); le reste attend, avec le point rouge.
+  Plus rien : la liste est **close** (C), retour au +.
+- **Pas encore** : donner l'identité d'un produit neuf ici (la catégorie, le copier-coller de la page Super C) — **aperçu d'abord**.
+  D'ici là : Gérer les bases → Aliments → « Aliments sans catégorie ».
+- Essai dans le faux navigateur : 21 vérifications (le point rouge, « Rien à compléter », la page, OK partiel, répartir, la liste
+  close); les essais d'avant passent encore.
+
 ### Parenthèse notée (pas creusée)
 - Le même copier-coller pourrait servir **au tri** : un article de la circulaire de Super C ou de Metro sans code (on a
   le nom, il manque le code — l'inverse de Compléter).

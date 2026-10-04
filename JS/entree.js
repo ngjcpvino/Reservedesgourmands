@@ -2008,7 +2008,8 @@ async function deplacerLot(lot, emp, q, fin) {
     if (qte <= reste) { ligne[2] = emp; reste -= qte; }   // toute la ligne va à l'endroit
     else {                                             // la ligne se coupe : « reste » part, le reste attend
       ligne[3] = qte - reste;
-      ajouts.push([idLocal(), row[1], emp, reste, ligne[4], row[5], row[6], op, row[8], row[9], row[10], row[11], row[12]]);
+      const a = row.slice(); a[0] = idLocal(); a[2] = emp; a[3] = reste; a[4] = ligne[4]; a[7] = op;   // toutes ses colonnes : sa liste d'épicerie (N) la suit
+      ajouts.push(a);
       reste = 0;
     }
     modifs.push({ id: id, ligne: ligne });
@@ -2892,8 +2893,16 @@ function htmlSoldes(pid, rep) {
    Lu en UN appel à l'ouverture (lireTri); chaque réponse est INSTANTANÉE et part par la file des gestes (action trier, rejouable),
    après l'aliment, la marque ou la saveur neufs qu'elle porte. */
 const CHEMIN_TRI = '#menu-outils, #menu-bases, [data-base="circulaires"]';   // le point rouge, sur le chemin (choix B de J-C)
+const CHEMIN_COMPLETER = '#menu-ajouter, #choix-completer';   // le point rouge d'une épicerie à compléter : le +, puis Compléter
 function poserPoints() {
-  document.querySelectorAll(CHEMIN_TRI).forEach(b => b.classList.toggle('a-trier', NB_A_TRIER > 0));
+  document.querySelectorAll(CHEMIN_TRI).forEach(b => b.classList.toggle('point-rouge', NB_A_TRIER > 0));
+  const attend = aCompleter().length > 0;
+  document.querySelectorAll(CHEMIN_COMPLETER).forEach(b => b.classList.toggle('point-rouge', attend));
+}
+/* Toute l'épicerie : les listes pas closes qui ont encore un article à compléter (une ligne de STOCK de cette liste, col. N, pas encore
+   confirmée par le OK de Compléter, col. O, et dont il reste quelque chose). */
+function aCompleter() {
+  return EPICERIES.filter(r => String(r[3]) !== 'C' && STOCK.some(l => String(l[13] || '') === String(r[0]) && !String(l[14] || '') && Number(l[3]) > 0));
 }
 /* Ce que des tris pas encore confirmés retirent d'« À trier » : une relecture du coffre-fort les compte encore. */
 function triesEnRoute() { return lireAttenteGestes().reduce((s, e) => s + (e.action === 'trier' ? Number(e.neufs) || 0 : 0), 0); }
