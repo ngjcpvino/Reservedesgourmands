@@ -2258,14 +2258,15 @@ function surRecherche() {
   const alpha = (a, b) => String(a.p.nom).localeCompare(String(b.p.nom), 'fr');
   const trouves = parNom.sort(alpha).concat(parVariante.sort(alpha));
   if (!trouves.length) { cible.innerHTML = htmlVide('', 'Aucun aliment ne correspond', modeRecherche ? '' : 'data-ajouter-nom'); return; }
-  cible.innerHTML = '<div class="liste-blanche">' + trouves.map(x => htmlLigneAliment(x.p, totalLots(par[x.p.id]), x.detail.join(' · '))).join('') + '</div>';
+  cible.innerHTML = '<div class="liste-blanche">' + trouves.map(x => htmlLigneAliment(x.p, totalLots(par[x.p.id]), x.detail.join(' · '),
+    (par[x.p.id] || []).length ? ouSontLots(x.p.id, par[x.p.id]) : '')).join('') + '</div>';   // où il est (J-C, 2026-10-04 : « pour choisir lequel je consomme »)
 }
-/* Une ligne à toucher : le nom, en petit ce qui l'a fait trouver (ou « (plus en réserve) »), la quantité.
-   Une précision s'écrit entre parenthèses, jamais en italique (la règle des listes). */
-function htmlLigneAliment(p, total, detail) {
+/* Une ligne à toucher : le nom, en petit ce qui l'a fait trouver (ou « (plus en réserve) »), dessous où il est (« Frigo, Porte (1) ·
+   Réserve, Tablette 1 (2) », comme l'Inventaire par catégorie), la quantité. Une précision s'écrit entre parenthèses, jamais en italique. */
+function htmlLigneAliment(p, total, detail, ou) {
   const d = [detail, total ? '' : '(plus en réserve)'].filter(Boolean).join(' ');
   return '<div class="item' + (total ? '' : ' item-eteint') + '" data-pid="' + esc(p.id) + '"><div class="item-info"><div class="item-nom">' + esc(p.nom) + '</div>' +
-    (d ? '<div class="item-detail">' + esc(d) + '</div>' : '') + '</div>' +
+    (d ? '<div class="item-detail">' + esc(d) + '</div>' : '') + (ou ? '<div class="item-detail">' + esc(ou) + '</div>' : '') + '</div>' +
     (total ? '<span class="item-quantite">' + esc(total) + '</span>' : '') + '</div>';
 }
 /* Le nom d'une catégorie ou sous-catégorie, d'après son id. */
