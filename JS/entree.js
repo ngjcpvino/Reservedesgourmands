@@ -100,7 +100,8 @@ var SPECIAUX = [];                                  // les soldes de la semaine 
                                                     //  FlippId, Reponse (O / P), Marque, Saveur, CodeBarres, Categorie]
 var NB_A_TRIER = 0;                                 // les genres d'articles de la semaine sans réponse : le point rouge (Outils, Gérer les bases, Circulaires)
 var TRI = null;                                     // la page de tri, lue à l'ouverture (lireTri) : { aTrier: [{ cle, magasin, texte, categorie,
-                                                    //   produitId, marque, saveur, produits, code, genre, format, description, marqueFlipp }],
+                                                    //   produitId, marque, saveur, produits, code, genre, format, description, marqueFlipp,
+                                                    //   cles, codes (les doublons d'IGA réunis : chaque clé et son code) }],
                                                     //   tri: [lignes de l'onglet Tri : ID, Cle, Reponse, ProduitID, Marque, Saveur, CodeBarres, Date,
                                                     //   Qui, Texte, Categorie, Genre, Format, Magasin — D, E, F : un ou plusieurs aliments] }
 var nomScanne = '';                                 // un code inconnu scanné pour la liste : son nom (Open Food Facts), prêt pour « Nouvel aliment… »
@@ -3127,7 +3128,8 @@ function remplirTri() {
   const parTexte = (a, b) => String(a).localeCompare(String(b), 'fr');
   const vide = t => '<div class="accordeon-item"><span class="texte-petit texte-pale">' + t + '</span></div>';
   const reponses = reps => {
-    const rs = TRI.tri.filter(r => reps.indexOf(String(r[2])) !== -1).sort((a, b) => parTexte(a[9] || a[1], b[9] || b[1]));
+    const vus = {}, rs = TRI.tri.filter(r => reps.indexOf(String(r[2])) !== -1 && !vus[cleDoublon(r)] && (vus[cleDoublon(r)] = 1))
+      .sort((a, b) => parTexte(a[9] || a[1], b[9] || b[1]));
     return rs.length ? htmlGroupesTri(rs, categorieLigneTri, r => ligneTri('r:' + r[0], r[9] || r[1], detailTri(r))) : vide('Rien pour l\'instant.');
   };
   const aTrier = TRI.aTrier.slice().sort((a, b) => parTexte(a.texte, b.texte));
@@ -3152,6 +3154,9 @@ function remplirTri() {
   const accG = [...corps.children].find(a => a.dataset.groupe === groupe);
   if (accG) toggleAccordeon(accG.firstElementChild);
 }
+/* LES DOUBLONS D'IGA (J-C, 2026-10-04 : « beaucoup de doublons ») : le même nom, le même format, deux codes (la soupe Knorr) = une
+   seule ligne à trier (le coffre-fort les réunit : cles, codes) et, répondus pareil, une seule ligne dans leur barre. */
+const cleDoublon = r => String(r[1]).indexOf(' ~ #') === -1 ? 'r' + r[0] : [r[13], cleNom(r[9]), r[12], r[2], r[3], r[4], r[5]].join('|');
 /* Un article de la page ('a:' + Cle, à trier · 'r:' + ID, une réponse déjà donnée) → ce qu'on en sait. */
 function articleTri(art) {
   art = String(art || '');
@@ -3159,8 +3164,8 @@ function articleTri(art) {
   if (art.slice(0, 2) === 'a:') { const x = TRI.aTrier.find(y => String(y.cle) === k); return x ? Object.assign({}, x, { reponse: '' }) : null; }
   const r = TRI.tri.find(y => String(y[0]) === k);
   if (!r) return null;
-  const pids = morceaux(r[3]), mqs = morceaux(r[4]), svs = morceaux(r[5]);
-  return { cle: String(r[1]), texte: String(r[9] || r[1]), categorie: String(r[10] || ''), produitId: pids[0] || '', marque: mqs[0] || '',
+  const pids = morceaux(r[3]), mqs = morceaux(r[4]), svs = morceaux(r[5]), grp = TRI.tri.filter(y => cleDoublon(y) === cleDoublon(r));
+  return { cle: String(r[1]), cles: grp.map(y => String(y[1])), codes: grp.map(y => String(y[6] || '').trim()), texte: String(r[9] || r[1]), categorie: String(r[10] || ''), produitId: pids[0] || '', marque: mqs[0] || '',
            saveur: svs[0] || '', produits: pids.length > 1 ? pids.map((p, i) => [p, mqs[i] || '', svs[i] || '']) : null,
            code: String(r[6] || '').trim(), reponse: String(r[2]), genre: String(r[11] || ''), format: String(r[12] || ''),
            magasin: String(r[13] || ''), description: '', marqueFlipp: '' };
@@ -3172,17 +3177,17 @@ const htmlFeu = () => '<div class="feu">' +
   '<button class="feu-peutetre" type="button" data-reponse="P" aria-label="Peut-être"></button>' +
   '<button class="feu-jamais" type="button" data-reponse="J" aria-label="Jamais"></button></div>';
 const photoTri = src => src ? '<img class="tri-photo" src="' + esc(src) + '" alt="">' : '<span class="tri-photo tri-photo-vide"></span>';
-/* Toucher un article : il s'ouvre — le vrai produit derrière son code, s'il en a un, puis le feu (un seul ouvert à la fois);
-   le retoucher le referme. */
+/* Toucher un article : il s'ouvre — le vrai produit derrière son code (derrière chacun, pour des doublons), s'il en a un, puis le
+   feu (un seul ouvert à la fois); le retoucher le referme. */
 function ouvrirArticleTri(el) {
   const deja = el.classList.contains('ouvert');
   fermerArticleTri();
   if (deja) return;
   el.classList.add('ouvert');
-  const x = articleTri(el.dataset.art), code = x ? x.code : '';
-  el.insertAdjacentHTML('afterend', '<div class="tri-panneau" data-art="' + esc(el.dataset.art) + '">' + (code ? '<div class="item" data-code-produit="' + esc(code) + '">' +
-    photoTri('') + '<div class="item-info"><div class="code-barres">' + esc(estPlu(code) ? 'PLU ' + code : code) + '</div></div></div>' : '') + htmlFeu() + '</div>');
-  if (code) montrerProduitCode(code);
+  const x = articleTri(el.dataset.art), codes = x ? ((x.codes || []).filter(Boolean).length ? x.codes.filter(Boolean) : [x.code].filter(Boolean)) : [];
+  el.insertAdjacentHTML('afterend', '<div class="tri-panneau" data-art="' + esc(el.dataset.art) + '">' + codes.map(code => '<div class="item" data-code-produit="' + esc(code) + '">' +
+    photoTri('') + '<div class="item-info"><div class="code-barres">' + esc(estPlu(code) ? 'PLU ' + code : code) + '</div></div></div>').join('') + htmlFeu() + '</div>');
+  codes.forEach(montrerProduitCode);
 }
 function fermerArticleTri() {
   const p = panneauTri(); if (p) p.remove();
@@ -3479,7 +3484,7 @@ function trier(xs, rep, quoi) {
   quoi = quoi || {};
   const avec = rep === 'O' || rep === 'P';
   const produits = avec ? (quoi.produits || []).map(q => ({ produitId: String(q.produitId || ''), marque: String(q.marque || ''), saveur: String(q.saveur || '') })) : [];
-  const e = { action: 'trier', opId: 'tri-' + idLocal(), cles: xs.map(x => String(x.cle)), reponse: rep, produits: produits,
+  const e = { action: 'trier', opId: 'tri-' + idLocal(), cles: xs.flatMap(x => (x.cles && x.cles.length ? x.cles : [x.cle]).map(String)), reponse: rep, produits: produits,
               code: avec ? String(quoi.code || '') : '', qui: localStorage.getItem(QUI) || '' };
   const avant = TRI.aTrier.length;
   appliquerTri(e, TRI);
@@ -3489,23 +3494,26 @@ function trier(xs, rep, quoi) {
   remplirTri();
 }
 /* Pose une réponse sur la page (à l'écran, ou sur une relecture tant qu'elle n'est pas confirmée). Une seule réponse par article :
-   la nouvelle remplace l'ancienne (c'est la correction). Un Jamais retire aussi le même genre des autres épiceries. */
+   la nouvelle remplace l'ancienne (c'est la correction). Un Jamais retire aussi le même genre des autres épiceries. Une clé d'IGA
+   (« … ~ #code ») porte son code : des doublons répondus ensemble gardent chacun le sien (comme le coffre-fort). */
 function appliquerTri(e, T) {
   if (!T) return;
   const prods = e.produits && e.produits.length ? e.produits : (e.produitId ? [{ produitId: e.produitId, marque: e.marque, saveur: e.saveur }] : []);
   const pids = prods.map(q => q.produitId).join(','), mqs = prods.map(q => q.marque || '').join(','), svs = prods.map(q => q.saveur || '').join(',');
-  const prod = prods[0] && PRODUITS.find(p => String(p.id) === String(prods[0].produitId)), jamais = [];
+  const prod = prods[0] && PRODUITS.find(p => String(p.id) === String(prods[0].produitId)), jamais = [], articleDe = {};
+  T.aTrier.forEach(y => (y.cles && y.cles.length ? y.cles : [y.cle]).forEach(c => { articleDe[String(c)] = y; }));
   (e.cles || []).forEach(cle => {
     cle = String(cle);
-    const a = T.aTrier.find(y => String(y.cle) === cle), vieille = T.tri.find(r => String(r[1]) === cle);
+    const a = articleDe[cle], vieille = T.tri.find(r => String(r[1]) === cle);
     if (!a && !vieille) return;                        // un article qu'on ne connaît plus : rien à montrer
     const de = (k, col) => a ? String(a[k] || '') : String(vieille[col] || '');
     const cat = (prod && rayonDe(prod.catId)) || de('categorie', 10), genre = de('genre', 11);
     if (e.reponse === 'J' && genre) jamais.push(genre);
-    T.aTrier = T.aTrier.filter(y => String(y.cle) !== cle);
+    T.aTrier = T.aTrier.filter(y => y !== a);
     T.tri = T.tri.filter(r => String(r[1]) !== cle);
     // Tri : ID · Cle · Reponse · ProduitID · Marque · Saveur · CodeBarres · Date · Qui · Texte · Categorie · Genre · Format · Magasin
-    T.tri.push([vieille ? vieille[0] : e.opId + '-' + cle, cle, e.reponse, pids, mqs, svs, e.code || '', dateDuJour(), e.qui || '',
+    const code = e.reponse === 'J' ? '' : ((/#(\d+)$/.exec(cle) || [])[1] || e.code || '');
+    T.tri.push([vieille ? vieille[0] : e.opId + '-' + cle, cle, e.reponse, pids, mqs, svs, code, dateDuJour(), e.qui || '',
                 a ? a.texte : String(vieille[9] || cle), cat, genre, de('format', 12), de('magasin', 13)]);
   });
   if (jamais.length) T.aTrier = T.aTrier.filter(y => jamais.indexOf(String(y.genre || '')) === -1);   // un Jamais vaut dans toutes les épiceries

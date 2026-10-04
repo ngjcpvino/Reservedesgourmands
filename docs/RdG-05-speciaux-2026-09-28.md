@@ -345,6 +345,13 @@ bâtie trop vite, sur un aperçu de 3 aliments. J-C : « Faut réfléchir avant 
   dit pas lequel est lequel. **Trois codes, trois lignes** (choix A de J-C, « ouin… je dirais 3 codes, 3 lignes ») : en
   touchant l'une, l'app montre le vrai produit derrière son code (photo, nom, format — Open Food Facts, ou la liste des
   PLU). (B, une ligne qui s'ouvre sur ses produits, recommandé par Claude : rejeté.)
+  **REVU LE 4 OCTOBRE, à l'usage** (J-C, devant sa page : « il y a beaucoup de doublons ») : **le même nom ET le même
+  format = UNE ligne** (J-C : « ouin ») — la soupe Knorr 2 × 130 g, poulet (068400004462) et bœuf (068400004448). Une
+  réponse vaut pour chaque code, chacun garde le sien dans Tri; en touchant la ligne, le vrai produit derrière **chaque**
+  code. Un autre format reste une autre ligne. Sur sa feuille Flipp : 30 lignes réunies. Répondus pareil, ils ne font
+  qu'une ligne dans Oui, Peut-être ou Jamais aussi. **Et un Jamais n'est pas pour toujours** (J-C : « si je le scanne à
+  un moment donné ? ») : **acheter, c'est changer d'idée** — un produit dit Jamais dont le code est entré **un autre jour**
+  passe à Oui tout seul (le « déjà entré » d'IGA), revient dans les soldes, et se remet à Jamais dans la page de tri.
   **Où ça se loge (sa question : « je veux pas refaire ça tout le temps »)** : les noms dans leurs listes (Produits,
   Marques, Saveurs), la catégorie suit l'aliment, le tri dans l'onglet Tri (une ligne par article, gardée pour
   toujours). ⚠️ **Trou trouvé** : le scan à l'entrée ne connaît que les codes de STOCK (`codesStock()`), pas ceux appris
