@@ -1911,7 +1911,8 @@ function libelleEndroit(emp) {
 function detailLot(l) { return [nomListe(l.marque), nomListe(l.saveur), l.formats.join(' + ')].filter(Boolean).join(' · '); }
 function htmlLot(pid, i, l, titre, sorte) {
   const detail = detailLot(l);
-  const ranger = '<button class="ranger" type="button" data-lot="' + esc(pid) + '|' + i + '" aria-label="Ranger"></button>';   // AVANT la quantité (J-C) : les nombres restent au bout, sous le total
+  const ranger = '<button class="consommer" type="button" data-inv="c" data-lots="' + esc([pid, '', l.marque, l.saveur].join('|')) + '" aria-label="Consommer"></button>' +
+    '<button class="ranger" type="button" data-lot="' + esc(pid) + '|' + i + '" aria-label="Ranger"></button>';   // AVANT la quantité (J-C) : les nombres restent au bout, sous le total
   if (sorte) return '<div class="item sorte"><div class="item-info"><div class="item-detail">' + esc(detail || titre) + '</div></div>' +
     ranger + '<span class="sorte-quantite">' + esc(l.qte) + '</span></div>';
   return '<div class="item"><div class="item-info"><div class="item-nom">' + esc(titre) + '</div>' +
@@ -2058,14 +2059,14 @@ function htmlLignesEndroit(par, empId) {
         const x = sortes[0], detail = detailDe(x);
         return '<div class="item"><div class="item-info"><div class="item-nom">' + esc(x.nom) + '</div>' +
           (detail ? '<div class="item-detail">' + esc(detail) + '</div>' : '') + '</div>' +
-          '<span class="item-quantite">' + esc(x.qte) + '</span></div>';
+          outilsInventaire(x.pid, empId, x.marque, x.saveur) + '<span class="item-quantite">' + esc(x.qte) + '</span></div>';
       }
       sortes.sort((a, b) => detailDe(a).localeCompare(detailDe(b), 'fr'));
       const total = sortes.reduce((s, x) => s + (Number(x.qte) || 0), 0);
-      return '<div class="accordeon aliment"><div class="item aliment-tete"><div class="item-info"><div class="item-nom">' + esc(sortes[0].nom) + '</div>' +
+      return '<div class="accordeon aliment" data-cle="' + esc('a:' + sortes[0].pid + '|' + empId) + '"><div class="item aliment-tete"><div class="item-info"><div class="item-nom">' + esc(sortes[0].nom) + '</div>' +
         '</div><span class="item-quantite">' + total + '</span></div>' +
         '<div class="aliment-sortes" hidden>' + sortes.map(x => '<div class="item sorte"><div class="item-info"><div class="item-detail">' +
-          esc(detailDe(x) || x.nom) + '</div></div><span class="sorte-quantite">' + esc(x.qte) + '</span></div>').join('') + '</div></div>';
+          esc(detailDe(x) || x.nom) + '</div></div>' + outilsInventaire(x.pid, empId, x.marque, x.saveur) + '<span class="sorte-quantite">' + esc(x.qte) + '</span></div>').join('') + '</div></div>';
     }).join('');
 }
 /* Un meuble : ce qui est posé dessus directement, puis chaque espace qui contient quelque chose.
@@ -2080,7 +2081,7 @@ function htmlMeubleInventaire(m, par) {
   const teinte = couleurDe(m.couleur);
   const style = teinte ? ' style="--meuble:' + esc(teinte) + '"' : '';   // la couleur est une DONNÉE ; la tête et les bandeaux des espaces la suivent
   const pale = (teinte && couleurPale(teinte)) ? ' tete-pale' : '';
-  return '<div class="accordeon"' + style + '><div class="accordeon-tete' + pale + '">' + esc(m.nom) + '</div>' +
+  return '<div class="accordeon" data-cle="' + esc('m:' + m.id) + '"' + style + '><div class="accordeon-tete' + pale + '">' + esc(m.nom) + '</div>' +
     '<div class="accordeon-corps" hidden>' + corps + '</div></div>';
 }
 /* L'Inventaire : UNE liste, deux vues (J-C, 2026-09-30, piste 2 sur aperçu : « l'inventaire mélange l'inventaire et les meubles »).
@@ -2092,6 +2093,7 @@ function remplirInventaire() {
   if (!cible) return;
   const transitOuvert = !!cible.querySelector('[data-transit] > .ouvert');   // on range l'un après l'autre : il reste ouvert
   const a = cible.querySelector('[data-transit] .aliment-tete.ouvert'), alimentOuvert = a ? a.parentElement.dataset.aliment : '';   // ses sortes aussi
+  const ouverts = [...cible.querySelectorAll('[data-cle] > .ouvert')].map(t => t.parentElement.dataset.cle);   // ce qui était ouvert le reste (un geste redessine tout)
   LOTS = lotsParProduit();
   const html = vueInventaire === 'meuble' ? htmlInventaireMeubles() : vueInventaire === 'categorie' ? htmlInventaireCategories() : '';
   const choix = '<div class="grille choix-vue">' + [['categorie', 'Par catégorie'], ['meuble', 'Par meuble']].map(v =>
@@ -2103,6 +2105,80 @@ function remplirInventaire() {
   if (transitOuvert && transit) toggleAccordeon(transit);
   const aliment = [...cible.querySelectorAll('[data-transit] [data-aliment] > .aliment-tete')].find(t => alimentOuvert && t.parentElement.dataset.aliment === alimentOuvert);
   if (aliment) toggleAccordeon(aliment);
+  ouverts.forEach(k => { const t = [...cible.querySelectorAll('[data-cle]')].find(x => x.dataset.cle === k); if (t && !t.firstElementChild.classList.contains('ouvert')) toggleAccordeon(t.firstElementChild); });
+}
+/* ---------- L'Inventaire : consommer et déplacer sur chaque ligne (J-C, 2026-10-04 : « je ne peux rien faire avec »; aperçu « oui ») ----------
+   La fourchette et le couteau = Consommer, les deux flèches = Déplacer, avant la quantité. La carte s'ouvre sous la ligne, comme dans
+   Consommer et Déplacer : la quantité (1, − +); Consommer : le format s'il y en a plusieurs (le pot, le pack), « Ne pas racheter »;
+   Déplacer : où (d'avance son autre endroit habituel). Par catégorie, un aliment à plusieurs endroits : « De » d'abord.
+   Une ligne vise ses lots par « produit|endroit|marque|saveur » (endroit '*' = tous : Par catégorie; '' = l'Escale). */
+function outilsInventaire(pid, emp, marque, saveur) {
+  const k = esc([pid, emp, marque, saveur].join('|'));
+  return '<button class="consommer" type="button" data-inv="c" data-lots="' + k + '" aria-label="Consommer"></button>' +
+    '<button class="ranger" type="button" data-inv="d" data-lots="' + k + '" aria-label="Déplacer"></button>';
+}
+function lotsDeCle(cle) {
+  const k = String(cle).split('|');
+  return (LOTS[k[0]] || []).filter(l => (k[1] === '*' || l.emp === k[1]) && l.marque === (k[2] || '') && l.saveur === (k[3] || '') && l.qte > 0);
+}
+function ouvrirActionInventaire(btn) {
+  const conso = btn.dataset.inv === 'c', lots = lotsDeCle(btn.dataset.lots), item = btn.closest('.item');
+  $('liste-inventaire').querySelectorAll('.carte-inv').forEach(c => c.remove());   // une seule carte ouverte à la fois
+  if (!lots.length || !item) return;
+  const carte = document.createElement('div');
+  carte.className = 'endroit carte carte-inv';
+  carte.innerHTML = (lots.length > 1 ? '<div class="bloc"><div class="label">De</div><select class="champ inv-de">' +
+      lots.map((l, i) => '<option value="' + i + '">' + esc(endroitMeuble(l.emp) + ' (' + l.qte + ')') + '</option>').join('') + '</select></div>' : '') +
+    (conso ? '<div class="bloc inv-bloc-format" hidden><div class="label">Format</div><select class="champ inv-format"></select></div>' : htmlChoixEndroit()) +
+    htmlQuantite() +
+    (conso ? '<label class="case-ligne inv-pas-aime"><input class="case" type="checkbox"><span>Ne pas racheter</span></label>' : '') +
+    '<div class="message"></div>' +
+    '<div class="grille bloc-suite"><button class="bouton bouton-petit bouton-vert inv-oui" type="button">' + (conso ? 'Consommer' : 'Déplacer') + '</button>' +
+    '<button class="bouton bouton-petit inv-non" type="button">Annuler</button></div>';
+  item.after(carte);                                     // la ligne reste visible : on voit combien il y en a
+  const lot = () => lots[carte.querySelector('.inv-de') ? Number(carte.querySelector('.inv-de').value) : 0];
+  const parts = () => partsDuLot(lot());
+  const part = () => { const ps = parts(), f = carte.querySelector('.inv-format'); return ps[f && f.value !== '' ? Number(f.value) : 0]; };
+  const combien = () => parseInt(carte.querySelector('.qte').value, 10) || 0;
+  const maxi = () => conso ? (part() || { qte: 0 }).qte : lot().qte;
+  const cible = () => conso ? '' : (carte.querySelector('.espace').value || carte.querySelector('.meuble').value);
+  const preparer = () => {                               // un autre endroit choisi (« De ») : son format, sa quantité, sa destination
+    const l = lot();
+    if (conso) {
+      const ps = parts(), f = carte.querySelector('.inv-format');
+      f.innerHTML = ps.map((p, i) => '<option value="' + i + '">' + esc(libellePart(p) + ' (' + p.qte + ')') + '</option>').join('');
+      carte.querySelector('.inv-bloc-format').hidden = ps.length < 2;
+      carte.querySelector('.inv-pas-aime').hidden = estPasAime(l.pid, l.marque, l.saveur);
+    } else {
+      const hab = endroitsHabituels(l.pid), vers = hab.find(e => e !== l.emp && resoudreEmp(e));
+      brancherEndroit(carte, vers ? resoudreEmp(vers) : null);
+    }
+    carte.querySelector('.qte').value = 1;
+    brancherPlusMoins(carte, maxi());
+    verifier();
+  };
+  const verifier = () => {
+    const q = combien(), m = carte.querySelector('.message'), emp = cible();
+    const ok = q > 0 && q <= maxi() && (conso || (!!emp && emp !== lot().emp));
+    m.className = q > maxi() ? 'message message-erreur' : 'message';
+    m.textContent = q > maxi() ? 'Il y en a ' + maxi() + '.' : (!conso && emp && emp === lot().emp ? 'Il y est déjà.' : '');
+    carte.querySelector('.inv-oui').hidden = !ok;
+  };
+  carte.addEventListener('input', verifier);
+  carte.addEventListener('change', ev => {
+    if (ev.target.classList.contains('inv-de')) preparer();
+    else if (ev.target.classList.contains('inv-format')) { carte.querySelector('.qte').value = 1; brancherPlusMoins(carte, maxi()); verifier(); }
+    else verifier();
+  });
+  carte.querySelector('.inv-non').onclick = () => carte.remove();
+  carte.querySelector('.inv-oui').onclick = () => {
+    const l = lot(), q = combien();
+    if (conso) {
+      const c = carte.querySelector('.inv-pas-aime input');
+      consommerPart(l, part().cle, q, !!(c && c.checked && !c.closest('[hidden]')), () => remplirInventaire());
+    } else deplacerLot(l, cible(), q, fait => { if (fait) avis('Déplacé', 'succes'); remplirInventaire(); });
+  };
+  preparer();
 }
 /* Par meuble : pièce -> meuble -> espace -> produits, « Pas encore rangé » à la fin des meubles (J-C, 2026-10-01).
    Les endroits vides ne paraissent pas. */
@@ -2111,7 +2187,7 @@ function htmlInventaireMeubles() {
   let html = '';
   const groupe = (titre, meubles, piece) => {
     const dedans = meubles.map(m => htmlMeubleInventaire(m, par)).join(''), t = teinteBarre(piece);
-    return dedans ? '<div class="accordeon"><div class="accordeon-tete' + t.pale + '"' + t.style + '>' + esc(titre) + '</div>' +
+    return dedans ? '<div class="accordeon" data-cle="' + esc('p:' + (piece ? piece.id : '')) + '"><div class="accordeon-tete' + t.pale + '"' + t.style + '>' + esc(titre) + '</div>' +
       '<div class="accordeon-corps" hidden>' + dedans + '</div></div>' : '';
   };
   PIECES.forEach(p => { html += groupe(p.nom, MEUBLES.filter(m => String(m.pieceId) === String(p.id)), p); });
@@ -2137,20 +2213,20 @@ function htmlInventaireCategories() {
       const d = detail(sortes[0]);
       return '<div class="item"><div class="item-info"><div class="item-nom">' + esc(p.nom) + '</div>' +
         (d ? '<div class="item-detail">' + esc(d) + '</div>' : '') + '<div class="item-detail">' + esc(ou) + '</div></div>' +
-        '<span class="item-quantite">' + total + '</span></div>';
+        outilsInventaire(p.id, '*', sortes[0].marque, sortes[0].saveur) + '<span class="item-quantite">' + total + '</span></div>';
     }
     const plusieursEndroits = new Set(lots.map(l => endroitMeuble(l.emp))).size > 1;   // les sortes disent où, seulement s'il y a à choisir
     sortes.sort((a, b) => detail(a).localeCompare(detail(b), 'fr'));
-    return '<div class="accordeon aliment"><div class="item aliment-tete"><div class="item-info"><div class="item-nom">' + esc(p.nom) + '</div>' +
+    return '<div class="accordeon aliment" data-cle="' + esc('a:' + p.id) + '"><div class="item aliment-tete"><div class="item-info"><div class="item-nom">' + esc(p.nom) + '</div>' +
       '<div class="item-detail">' + esc(ou) + '</div></div><span class="item-quantite">' + total + '</span></div>' +
       '<div class="aliment-sortes" hidden>' + sortes.map(x => '<div class="item sorte"><div class="item-info"><div class="item-detail">' + esc(detail(x) || p.nom) + '</div>' +
         (plusieursEndroits ? '<div class="item-detail">' + esc(ouSontLots(p.id, x.lots)) + '</div>' : '') + '</div>' +
-        '<span class="sorte-quantite">' + x.qte + '</span></div>').join('') + '</div></div>';
+        outilsInventaire(p.id, '*', x.marque, x.saveur) + '<span class="sorte-quantite">' + x.qte + '</span></div>').join('') + '</div></div>';
   };
   const alpha = (a, b) => String(a.nom).localeCompare(String(b.nom), 'fr');
   const groupe = (nom, prods, rid) => {
     const dedans = prods.map(ligne).join(''), t = teinteCategorie(rid);
-    return dedans ? '<div class="accordeon"' + t.style + '><div class="accordeon-tete' + t.pale + '">' + esc(nom) + '</div>' +
+    return dedans ? '<div class="accordeon" data-cle="' + esc('c:' + rid) + '"' + t.style + '><div class="accordeon-tete' + t.pale + '">' + esc(nom) + '</div>' +
       '<div class="accordeon-corps" hidden><div class="liste-blanche">' + dedans + '</div></div></div>' : '';
   };
   const places = {};
@@ -2532,7 +2608,7 @@ function ouvrirConsommation(cle) {
    Un envoi = les lignes de STOCK réécrites (+ un reste de pack), la trace dans Sorties, et « Pas aimé » s'il est coché.
    Le jeton (opId) voyage avec l'envoi : renvoyé après une coupure, le coffre-fort le trouve dans Sorties et n'écrit rien deux fois.
    Le reste d'un pack reçoit son ID ICI (idLocal) : une 2e sortie du même pack le vise sans attendre le coffre-fort. */
-async function consommerPart(lot, cleP, q, pasAime) {
+async function consommerPart(lot, cleP, q, pasAime, fin) {   // fin : qui reprend la main après (l'Inventaire); sans : l'écran Consommer
   let p = partsDuLot(lot).find(x => x.cle === cleP);
   if (p && p.rows.some(r => !r[0])) {                  // filet : une ligne sans ID (ne devrait plus arriver) -> on relit d'abord
     montrerVoile(true);
@@ -2541,7 +2617,7 @@ async function consommerPart(lot, cleP, q, pasAime) {
     p = lu ? partsDuLot(lot).find(x => x.cle === cleP) : null;
     if (p && p.rows.some(r => !r[0])) p = null;
   }
-  if (!p || !(q > 0) || q > p.qte) { avis('Pas consommé — réessaie', 'erreur'); montrerRayon(lot.pid, true); return; }
+  if (!p || !(q > 0) || q > p.qte) { avis('Pas consommé — réessaie', 'erreur'); if (fin) fin(false); else montrerRayon(lot.pid, true); return; }
   const op = 'conso-' + Date.now() + '-' + Math.random().toString(36).slice(2, 8);
   const plan = planSortie(p, q);
   const qui = localStorage.getItem(QUI) || '', date = dateDuJour();
@@ -2555,6 +2631,7 @@ async function consommerPart(lot, cleP, q, pasAime) {
     pasAime: pasAime && !estPasAime(lot.pid, lot.marque, lot.saveur) ? ['', lot.pid, lot.marque, lot.saveur, date, qui] : null
   });
   avis('Consommé', 'succes');
+  if (fin) { fin(true); return; }
   $('recherche-texte').value = '';
   montrerRecherche(false);                             // le champ vide : on enchaîne avec le suivant
   $('recherche-texte').focus();
@@ -4192,6 +4269,8 @@ function initEntree() {
   $('liste-inventaire').addEventListener('click', function (ev) {   // pièces et meubles de l'inventaire
     const vue = ev.target.closest('[data-vue]');           // « Par catégorie » / « Par meuble »
     if (vue) { if (vue.dataset.vue !== vueInventaire) { vueInventaire = vue.dataset.vue; remplirInventaire(); } return; }
+    const inv = ev.target.closest('[data-inv]');           // la fourchette (consommer) ou les deux flèches (déplacer) d'une ligne
+    if (inv) { ouvrirActionInventaire(inv); return; }
     const lot = ev.target.closest('.ranger[data-lot]');    // l'Escale : les deux flèches rangent
     if (lot) { ouvrirLot(lot); return; }
     if (ev.target.closest('.endroit')) return;             // toucher la carte ouverte ne plie pas l'accordéon
