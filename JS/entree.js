@@ -91,6 +91,7 @@ var PAS_AIMES = [];                                 // onglet PasAimes : [ID, Pr
 const ATTENTE_GESTES = 'rdg_consos_attente';        // consommations et déplacements pas encore confirmés, dans l'ordre (le nom date de Consommer seul)
 var envoiGestes = false;                            // la file des gestes est en route
 var ACHATS = [];                                    // onglet Achats : [ID, ProduitID, Marque, Saveur, Etat, Date, Qui, Actif] — la liste d'achats
+const MENAGE = 'rdg_menage';                        // l'heure du dernier grand ménage vu par CET appareil (references.menage)
 const ATTENTE_ACHATS = 'rdg_achats_attente';        // ce qui a été coché, ajouté, mis de côté, pas encore confirmé
 var envoiAchats = false;                            // la file de la liste d'achats est en route
 var EPICERIES = [];                                 // toute l'épicerie : les listes pas encore closes [ID, Magasin, Date, Etat (O · T · C), Qui] (JS/epicerie.js)
@@ -434,6 +435,10 @@ async function chargerReferences() {
     poserOrdresAliments(data.prods, lireAttenteAliments());   // idem pour l'ordre des endroits d'un aliment
     poserOrdresCats(data.cats, lireAttenteCats());            // idem pour l'ordre des catégories
     data.stock = data.stock || []; data.pasAimes = data.pasAimes || []; data.epiceries = data.epiceries || [];
+    if (data.menage && data.menage !== localStorage.getItem(MENAGE)) {   // le grand ménage (api.gs viderReserve) : ce qui attendait d'avant ne repart pas
+      ecrireAttenteGestes([]); ecrireAttenteAchats([]);
+      try { localStorage.setItem(MENAGE, data.menage); } catch (e) {}
+    }
     lireAttenteGestes().forEach(e => appliquerGeste(e, data));   // idem : un geste en route reste fait
     data.achats = data.achats || []; data.speciaux = data.speciaux || [];
     lireAttenteAchats().forEach(e => { if (e.lignes) poserLignesAchats(e.lignes, data.achats); });   // idem pour la liste d'achats
@@ -460,7 +465,7 @@ async function chargerData() {
   for (let i = 0; i < 3; i++) {
     try {
       const r = await Coffre.references();
-      if (r && r.ok && r.categories !== undefined) return { cats: r.categories, emps: r.emplacements, prods: r.produits, stock: r.stock, variantes: r.variantes, codes: r.codes, codesTri: r.codesTri, couleurs: r.couleurs, listes: r.listes, pasAimes: r.pasAimes, achats: r.achats, speciaux: r.speciaux, nbATrier: r.nbATrier, epiceries: r.epiceries };   // tout ce que l'app lit : un oubli ici = une donnée qui n'arrive jamais
+      if (r && r.ok && r.categories !== undefined) return { cats: r.categories, emps: r.emplacements, prods: r.produits, stock: r.stock, variantes: r.variantes, codes: r.codes, codesTri: r.codesTri, couleurs: r.couleurs, listes: r.listes, pasAimes: r.pasAimes, achats: r.achats, speciaux: r.speciaux, nbATrier: r.nbATrier, epiceries: r.epiceries, menage: r.menage };   // tout ce que l'app lit : un oubli ici = une donnée qui n'arrive jamais
       if (r && r.erreur === 'non autorisé') throw new Error('non autorisé');   // inutile de réessayer
       err = new Error((r && r.erreur) || 'refus'); err.refus = true;          // le coffre-fort a répondu, mais pas oui
     } catch (e) { if (e.message === 'non autorisé') throw e; err = e; }
