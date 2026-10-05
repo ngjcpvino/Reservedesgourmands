@@ -366,7 +366,7 @@ bâtie trop vite, sur un aperçu de 3 aliments. J-C : « Faut réfléchir avant 
   circulaires n'en ont pas, c'est son tri qui leur en donne — le code d'IGA (« Serait-ce celui-ci ? », même format), un
   PLU de la liste officielle, ou Open Food Facts.
   **✅ BÂTI le 2 octobre (après deux aperçus approuvés, puis un 3e fait du vrai code : J-C, « fais attention aux styles, du CSS
-  déjà là seulement » — les propositions étaient écrites plus gros que l'aliment)** : `api.gs` (à coller) — la clé par épicerie
+  déjà là seulement » — les propositions étaient écrites plus gros que l'aliment)** : `api.gs` (collé) — la clé par épicerie
   (`cleArticle`), le format (`formatCle`), le Jamais par le genre (Tri col. L), plusieurs aliments (D, E, F séparés par des
   virgules), `codesTri` dans `references`, la recherche **`chercherOFF`** (le nouveau service d'Open Food Facts,
   search.openfoodfacts.org, ne répond pas à une page web — pas d'en-tête CORS, vérifié — et l'ancien refuse souvent : le

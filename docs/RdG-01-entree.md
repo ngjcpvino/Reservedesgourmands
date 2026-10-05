@@ -306,7 +306,7 @@ d'abord (l'écran du scan, la confirmation de Terminé, Compléter).*
   d'une question qui ne se tassent pas quand la question est longue.
 
 ### ✅ ENTRER — BÂTI le 2026-10-02, le soir (J-C : « que tout ça soit codé et testé un peu… avant que j'intervienne pour la phase
-Compléter ») — ⚠️ `api.gs` à coller, puis à essayer en ligne
+Compléter ») — `api.gs` collé (le 2026-10-04 au soir), à essayer en ligne
 - **Le bouton des deux sacs** mène tout droit au **choix de l'épicerie** (une barre par magasin, comme la page Magasins; sous la
   barre d'une liste pas close : « En cours (12 articles) » ou « À compléter (12 articles) »). Le choix **Entrer / Compléter** viendra
   avec Compléter : d'ici là, il n'y a qu'Entrer.
@@ -338,7 +338,7 @@ Compléter ») — ⚠️ `api.gs` à coller, puis à essayer en ligne
   pouvait pas être défait.*
 - **Terminé** (au bas) → « Terminer Super C ? (6 articles) » Oui / Non → la liste passe à **T** et on revient au choix de
   l'épicerie (une autre épicerie : Terminé, puis Entrer). **Retour** : le choix de l'épicerie, la liste reste ouverte.
-- **`api.gs`** (à coller) : `entrerArticle` (l'ID de l'app, col. N `Epicerie`, le code en texte); l'onglet **Epiceries** créé au
+- **`api.gs`** (collé) : `entrerArticle` (l'ID de l'app, col. N `Epicerie`, le code en texte); l'onglet **Epiceries** créé au
   premier besoin (`ajouter` / `modifier` créent un onglet connu); `references` renvoie `epiceries`; deux lectures neuves,
   **`identifier`** et **`circulaireMagasin`**; Speciaux et Circulaires gagnent la col. V **Photo** (Flipp) — vide jusqu'à la prochaine
   lecture (jeudi), ou plus tôt si J-C relance `lireSpeciaux`.
