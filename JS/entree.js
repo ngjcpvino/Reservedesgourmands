@@ -398,11 +398,11 @@ function appliquer(d) {
     .map(r => ({ id: r[0], nom: r[1], catId: r[2], ordre: String(r[9] || '') }));   // ordre = ses endroits, le 1er d'abord (J-C, flèches)
   LISTES = { Magasins: [], Marques: [], Saveurs: [] }; NOMS_LISTES = {};
   const L = d.listes || {};
-  Object.keys(LISTES).forEach(n => (L[n] || []).forEach(r => {   // [ID, Nom, Actif] — Magasins : + Circulaire (D), Trouvee (E)
+  Object.keys(LISTES).forEach(n => (L[n] || []).forEach(r => {   // [ID, Nom, Actif] — Magasins : + Circulaire (D), Trouvee (E), Couleur (F)
     NOMS_LISTES[String(r[0])] = String(r[1] || '');          // même réuni (désactivé) : une vieille ligne garde son nom
     if (String(r[2]) === 'N') return;
     const x = { id: String(r[0]), nom: String(r[1] || '') };
-    if (n === 'Magasins') { x.circ = String(r[3] || '').trim() !== 'N'; x.introuvable = String(r[4] || '').trim() === 'N'; }   // vide = Oui (un magasin neuf)
+    if (n === 'Magasins') { x.circ = String(r[3] || '').trim() !== 'N'; x.introuvable = String(r[4] || '').trim() === 'N'; x.couleur = String(r[5] || '').trim(); }   // vide = Oui (un magasin neuf); F : sa couleur
     LISTES[n].push(x);
   }));
   LISTES_NEUVES.forEach(x => { if (!NOMS_LISTES[x.id]) { NOMS_LISTES[x.id] = x.nom; LISTES[x.liste].push({ id: x.id, nom: x.nom }); } });   // pas encore envoyés : gardés
@@ -1225,6 +1225,22 @@ function teinteCategorie(rid) {
   const r = RAYONS.find(x => String(x.id) === String(rid)), t = r ? couleurDe(r.couleur) : '';
   return { style: t ? ' style="--meuble:' + esc(t) + '"' : '', pale: (t && couleurPale(t)) ? ' tete-pale' : '' };
 }
+/* La couleur d'une épicerie (J-C, 2026-10-05 : chacune la sienne, la MÊME partout, comme les catégories — avant, la suite par position
+   lui en donnait une autre d'une page à l'autre, et À trier les laissait brunes). Magasins col. F, un numéro de la palette, choisi dans
+   Gérer les bases → Magasins. Posée sur la TÊTE seulement (teinteBarre) : les catégories qu'elle contient (À trier) gardent la leur,
+   « Autres » reste brune. Sans couleur : brune. */
+const teinteMagasin = id => teinteBarre(LISTES.Magasins.find(x => String(x.id) === String(id)));
+/* Une pastille touchée (Gérer les bases → Magasins) : la couleur de l'épicerie, partout tout de suite; envoyée en arrière-plan
+   (geste « lignes » : la ligne de Magasins réécrite, col. F). */
+function choisirCouleurMagasin(id, num) {
+  const x = LISTES.Magasins.find(y => String(y.id) === String(id)), c = lireCache();
+  const row = c && c.listes && (c.listes.Magasins || []).find(r => String(r[0]) === String(id));
+  if (!x || !row) { avis('Couleur pas enregistrée — réessaie', 'erreur'); return; }
+  const l = row.slice(); while (l.length < 6) l.push(''); l[5] = num;
+  poserGeste({ action: 'lignes', table: 'Magasins', opId: 'coulg-' + Date.now() + '-' + Math.random().toString(36).slice(2, 8), lignes: [l] });
+  x.couleur = num;
+  remplirPageNoms();
+}
 /* Une pastille touchée (Gérer les bases → Catégories) = la couleur de la catégorie, partout tout de suite;
    envoyée en arrière-plan (geste « lignes » : la ligne de Categories réécrite, col. H). */
 function choisirCouleurCategorie(id, num) {
@@ -1627,11 +1643,12 @@ function retirerAliment(pid) {
 /* ---------- Gérer les bases → Magasins, Marques, Saveurs : UNE page pour les trois listes gérées ----------
    Décisions de J-C, 2026-09-30, sur aperçu (look A). Une barre par nom (la suite), en ordre alphabétique comme dans la fiche;
    rien à ouvrir : un nom, c'est tout. Le crayon corrige le nom (un nom qui existe déjà : les réunir ?).
+   Magasins (couleur) : chacun SA couleur (J-C, 2026-10-05), pas la suite — la barre touchée ouvre sa palette, comme une pièce.
    Magasins seulement (gere) : la poubelle (Actif = N : plus proposé à l'entrée, les anciennes entrées gardent son nom) et
    « Nouveau magasin… » au bas, pour suivre les spéciaux d'une épicerie où l'on n'a encore rien acheté.
    Marques et saveurs naissent à l'entrée et restent collées aux lots : le crayon seulement (J-C). */
 const PAGES_NOMS = {
-  magasins: { titre: 'Magasins', choix: 'magasin', aucun: 'Aucun magasin.', gere: true, circulaire: true },   // choix -> CHOIX_FICHE (la liste, « Nouveau… »)
+  magasins: { titre: 'Magasins', choix: 'magasin', aucun: 'Aucun magasin.', gere: true, circulaire: true, couleur: true },   // choix -> CHOIX_FICHE (la liste, « Nouveau… »)
   marques:  { titre: 'Marques',  choix: 'marque',  aucun: 'Aucune marque.' },
   saveurs:  { titre: 'Saveurs',  choix: 'saveur',  aucun: 'Aucune saveur.' },
   unites:   { titre: 'Unités',   unites: true }                             // pas une liste du Sheet : le texte des formats
@@ -1641,12 +1658,18 @@ const listeNoms = () => CHOIX_FICHE[pageNoms.choix].liste;                      
 const typeNoms = () => Object.keys(TABLES_NOM).find(k => TABLES_NOM[k][0] === listeNoms());   // la lettre du crayon : g, q, v
 function remplirPageNoms() {
   $('noms-colonne').hidden = true;
+  $('liste-noms').classList.toggle('liste-suite', !pageNoms.couleur);   // les magasins : chacun sa couleur; marques, saveurs, unités : la suite
   if (pageNoms.unites) { remplirPageUnites(); return; }
-  const xs = LISTES[listeNoms()].slice().sort((a, b) => a.nom.localeCompare(b.nom, 'fr')), t = typeNoms(), circ = pageNoms.circulaire;
-  $('liste-noms').innerHTML = xs.map(x => '<div class="accordeon" data-id="' + esc(x.id) + '"><div class="accordeon-tete"><span>' + esc(x.nom) + '</span>' +
-    crayon(t + ':' + x.id) + (circ ? interrupteur(x) : '') + (pageNoms.gere ? poubelle(t, x.id) : '') + '</div>' +
-    (circ && sansCirculaire(x) ? '<div class="note-barre">Pas de circulaire trouvée</div>' : '') + '</div>').join('') ||
-    '<div class="accordeon-item"><span class="texte-petit texte-pale">' + pageNoms.aucun + '</span></div>';
+  const xs = LISTES[listeNoms()].slice().sort((a, b) => a.nom.localeCompare(b.nom, 'fr')), t = typeNoms(), circ = pageNoms.circulaire, coul = pageNoms.couleur;
+  const ouverte = coul ? $('liste-noms').querySelector('.accordeon-tete.ouvert') : null, idOuvert = ouverte ? ouverte.parentElement.dataset.id : '';
+  // la palette juste sous la barre (toggleAccordeon ouvre l'élément qui suit la tête), « Pas de circulaire trouvée » après elle
+  $('liste-noms').innerHTML = xs.map(x => {
+    const tb = coul ? teinteBarre(x) : { style: '', pale: '' }, ouvert = coul && String(x.id) === idOuvert;
+    return '<div class="accordeon" data-id="' + esc(x.id) + '"><div class="accordeon-tete' + tb.pale + (ouvert ? ' ouvert' : '') + '"' + tb.style + '><span>' + esc(x.nom) + '</span>' +
+      crayon(t + ':' + x.id) + (circ ? interrupteur(x) : '') + (pageNoms.gere ? poubelle(t, x.id) : '') + '</div>' +
+      (coul ? '<div class="accordeon-corps"' + (ouvert ? '' : ' hidden') + '><div class="palette">' + htmlPalette(numeroCouleur(x.couleur)) + '</div></div>' : '') +
+      (circ && sansCirculaire(x) ? '<div class="note-barre">Pas de circulaire trouvée</div>' : '') + '</div>';
+  }).join('') || '<div class="accordeon-item"><span class="texte-petit texte-pale">' + pageNoms.aucun + '</span></div>';
   $('noms-colonne').hidden = !(circ && xs.some(x => !sansCirculaire(x)));   // l'icône des circulaires, posée une fois au-dessus des interrupteurs
 }
 /* L'interrupteur « Circulaire » (Magasins — J-C, 2026-10-01, choix A sur aperçu) : allumé = sa circulaire est lue le jeudi.
@@ -1672,6 +1695,7 @@ function basculerCirculaire(id) {
 async function montrerPageNoms(cle) {
   pageNoms = PAGES_NOMS[cle];
   toutCacher(); $('vue-noms').hidden = false; $('btn-burger').hidden = false;
+  $('liste-noms').innerHTML = '';                  // on arrive : tout fermé
   $('noms-titre').textContent = pageNoms.titre;
   $('noms-ajout').hidden = !pageNoms.gere;
   $('nom-nouveau').value = ''; if (pageNoms.gere) $('nom-nouveau').placeholder = CHOIX_FICHE[pageNoms.choix].neuve;
@@ -1696,13 +1720,13 @@ async function ajouterNom() {
   const ancien = rows && rows.find(r => String(r[2]) === 'N' && cleNom(r[1]) === cleNom(nom));
   btn.disabled = true; montrerVoile(true);
   try {
-    // Magasins : ID · Nom · Actif · Circulaire · Trouvee — il part à Oui (J-C), même un magasin retiré qui revient
-    const ligne = [ancien ? ancien[0] : '', nom, 'O', 'O', ''];
+    // Magasins : ID · Nom · Actif · Circulaire · Trouvee (· Couleur) — il part à Oui (J-C), même un magasin retiré qui revient (avec sa couleur)
+    const ligne = [ancien ? ancien[0] : '', nom, 'O', 'O', ''].concat(ancien && ancien[5] ? [ancien[5]] : []);
     const r = ancien ? await Coffre.modifier(L, ancien[0], ligne) : await Coffre.ajouter(L, ligne);
     if (!r || !r.ok) throw new Error((r && r.erreur) || 'refus');
     const id = ancien ? String(ancien[0]) : String(r.id);
     ligne[0] = id;
-    LISTES[L].push({ id: id, nom: nom, circ: true, introuvable: false }); NOMS_LISTES[id] = nom;
+    LISTES[L].push({ id: id, nom: nom, circ: true, introuvable: false, couleur: String(ligne[5] || '') }); NOMS_LISTES[id] = nom;
     if (c) {
       c.listes = c.listes || {}; c.listes[L] = (c.listes[L] || []).filter(x => String(x[0]) !== id).concat([ligne]);
       ecrireCache(c);
@@ -3133,10 +3157,12 @@ function remplirTri() {
     return rs.length ? htmlGroupesTri(rs, categorieLigneTri, r => ligneTri('r:' + r[0], r[9] || r[1], detailTri(r))) : vide('Rien pour l\'instant.');
   };
   const aTrier = TRI.aTrier.slice().sort((a, b) => parTexte(a.texte, b.texte));
-  const parMagasin = aTrier.length ? ordreMagasins(aTrier).map(m =>
-    '<div class="accordeon" data-mag="' + esc(m) + '"><div class="accordeon-tete"><span>' + esc(nomListe(m)) + '</span></div>' +
-    '<div class="accordeon-corps une-a-la-fois" hidden>' + htmlGroupesTri(aTrier.filter(x => x.magasin === m), x => x.categorie,
-      x => ligneTri('a:' + x.cle, x.texte, detailATrier(x)), k => ligneTout(m + '¦' + k)) + '</div></div>').join('') : vide('Rien à trier cette semaine.');
+  const parMagasin = aTrier.length ? ordreMagasins(aTrier).map(m => {
+    const t = teinteMagasin(m);                    // chaque épicerie à SA couleur (J-C, 2026-10-05), sur la tête seulement
+    return '<div class="accordeon" data-mag="' + esc(m) + '"><div class="accordeon-tete' + t.pale + '"' + t.style + '><span>' + esc(nomListe(m)) + '</span></div>' +
+      '<div class="accordeon-corps une-a-la-fois" hidden>' + htmlGroupesTri(aTrier.filter(x => x.magasin === m), x => x.categorie,
+        x => ligneTri('a:' + x.cle, x.texte, detailATrier(x)), k => ligneTout(m + '¦' + k)) + '</div></div>';
+  }).join('') : vide('Rien à trier cette semaine.');
   const barreTri = (cle, nom, classe, html) => '<div class="accordeon' + classe + '" data-barre="' + cle + '"><div class="accordeon-tete"><span>' + nom + '</span></div>' +
     '<div class="accordeon-corps une-a-la-fois" hidden>' + html + '</div></div>';
   cible.innerHTML = barreTri('a', 'À trier', '', parMagasin) + barreTri('O', 'Oui', ' tri-oui', reponses(['O'])) +
@@ -3945,9 +3971,9 @@ function htmlLigneCouleur(attr, id, nom, usage, valeur) {
     '<input class="champ champ-hex" ' + attr + '="' + esc(id) + '" value="' + esc(valeur) + '" maxlength="7" autocomplete="off" autocapitalize="off" spellcheck="false" placeholder="#rrggbb">' +
   '</div>';
 }
-/* Où sert une couleur : son usage dans le site, puis les pièces et meubles qui l'ont choisie. */
+/* Où sert une couleur : son usage dans le site, puis les pièces, meubles, catégories et épiceries qui l'ont choisie. */
 function usageCouleur(num, usage) {
-  const qui = PIECES.concat(MEUBLES).filter(x => numeroCouleur(x.couleur) === num).map(x => x.nom);
+  const qui = PIECES.concat(MEUBLES, RAYONS, LISTES.Magasins || []).filter(x => numeroCouleur(x.couleur) === num).map(x => x.nom);
   return [usage].concat(qui).filter(Boolean).join(' · ') || 'pas encore utilisée';
 }
 /* Les pastilles de la palette, à toucher. La choisie est cerclée. */
@@ -4260,7 +4286,11 @@ function initEntree() {
     const it = ev.target.closest('[data-circulaire]');     // l'interrupteur « Circulaire » (Magasins)
     if (it) { basculerCirculaire(it.dataset.circulaire); return; }
     const cr = ev.target.closest('.crayon');
-    if (cr) ouvrirRenommer(cr);                            // la barre elle-même n'ouvre rien : un nom, c'est tout
+    if (cr) { ouvrirRenommer(cr); return; }
+    const pa = ev.target.closest('.pastille-choix');       // la couleur d'une épicerie
+    if (pa) { choisirCouleurMagasin(pa.closest('.accordeon').dataset.id, pa.dataset.num); return; }
+    const tete = ev.target.closest('.accordeon-tete');      // Magasins : la barre ouvre sa palette; marques, saveurs, unités : un nom, c'est tout
+    if (tete && pageNoms.couleur) toggleAccordeon(tete);
   });
   document.querySelectorAll('.accordeon-tete[data-toggle]').forEach(tete =>
     tete.addEventListener('click', () => toggleAccordeon(tete)));

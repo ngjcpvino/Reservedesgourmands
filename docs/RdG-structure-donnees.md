@@ -251,6 +251,7 @@ On choisit dans la fiche, « Nouveau… » au bout; on corrige au crayon dans G�
 | C | Actif | O / N — N = réuni dans un autre (« Libertee » dans « Liberté ») ou retiré : ses liens ont été repointés, la ligne reste |
 | D | Circulaire | **MAGASINS seulement** (2026-10-01) : O / N — sa circulaire est-elle lue le jeudi ? Vide = Oui (un magasin neuf part à Oui) |
 | E | Trouvee | **MAGASINS seulement**, écrit par le coffre-fort après chaque lecture, pour les magasins à Oui : O = sa circulaire a été trouvée chez Flipp · N = non (l'app écrit « Pas de circulaire trouvée ») |
+| F | Couleur | **MAGASINS seulement** (2026-10-05) : un numéro de la palette (« 401 »), choisi dans Gérer les bases → Magasins — l'épicerie a cette couleur partout (Magasins, le choix de l'épicerie, Compléter, À trier). Vide = brune |
 
 ### CODES-BARRES — PAS de table séparée (décision 2026-09-20)
 

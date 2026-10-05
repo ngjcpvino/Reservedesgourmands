@@ -33,13 +33,13 @@ const listeOuverte = mag => EPICERIES.find(r => String(r[1]) === String(mag) && 
 const lignesEpicerie = id => STOCK.filter(r => String(r[13] || '') === String(id));
 const nbArticles = id => lignesEpicerie(id).reduce((s, r) => s + (Number(r[3]) || 0), 0);
 const articles = n => n + ' article' + (n > 1 ? 's' : '');
-/* Une barre par magasin (comme la page Magasins). Une liste pas encore close : « En cours » ou « À compléter » (Terminé touché). */
+/* Une barre par magasin, à SA couleur (comme la page Magasins). Une liste pas encore close : « En cours » ou « À compléter » (Terminé touché). */
 function remplirEpiceries() {
   const xs = LISTES.Magasins.slice().sort((a, b) => a.nom.localeCompare(b.nom, 'fr'));
   $('epi-magasins').innerHTML = xs.map(x => {
-    const l = listeOuverte(x.id);
+    const l = listeOuverte(x.id), t = teinteMagasin(x.id);
     const note = l ? (String(l[3]) === 'T' ? 'À compléter' : 'En cours') + ' (' + articles(nbArticles(l[0])) + ')' : '';
-    return '<div class="accordeon" data-epi-magasin="' + esc(x.id) + '"><div class="accordeon-tete"><span>' + esc(x.nom) + '</span></div>' +
+    return '<div class="accordeon" data-epi-magasin="' + esc(x.id) + '"><div class="accordeon-tete' + t.pale + '"' + t.style + '><span>' + esc(x.nom) + '</span></div>' +
       (note ? '<div class="note-barre">' + esc(note) + '</div>' : '') + '</div>';
   }).join('') || '<div class="accordeon-item"><span class="texte-petit texte-pale">Aucun magasin : ajoute-les dans Gérer les bases → Magasins</span></div>';
 }
@@ -466,8 +466,8 @@ function montrerCompleter() {
   montrer('epi-choix', false); montrer('epi-scan', false); montrer('epi-completer', true); montrer('completer-ok', false);
   $('completer-liste').innerHTML = '';
   $('completer-listes').innerHTML = xs.map(r => {
-    const n = lignesACompleter(r[0]).reduce((s, l) => s + (Number(l[3]) || 0), 0);
-    return '<div class="accordeon" data-completer="' + esc(r[0]) + '"><div class="accordeon-tete"><span>' + esc(nomListe(r[1])) + '</span></div>' +
+    const n = lignesACompleter(r[0]).reduce((s, l) => s + (Number(l[3]) || 0), 0), t = teinteMagasin(r[1]);
+    return '<div class="accordeon" data-completer="' + esc(r[0]) + '"><div class="accordeon-tete' + t.pale + '"' + t.style + '><span>' + esc(nomListe(r[1])) + '</span></div>' +
       '<div class="note-barre">' + esc(jourLisible(r[2]) + ' (' + articles(n) + ')') + '</div></div>';
   }).join('');
   window.scrollTo(0, 0);
