@@ -194,13 +194,14 @@
   --tri-jamais:        var(--couleur-401);   /* rouge */
   --feu-boitier:       var(--couleur-902);   /* le boîtier foncé du feu */
   --feu-rond:          22px;   /* une lumière (J-C, 2026-10-02, choix D sur aperçu : 32 px avant, trop gros) */
-  --feu-rond-petit:    18px;   /* la lumière seule de « Tout ce qui est ici aujourd'hui » */
   --feu-ecart:         40px;   /* entre deux lumières (choix D : 10 px avant, trop rapprochées) */
   --feu-bord:          7px 12px;   /* le boîtier autour des lumières */
-  --feu-bord-petit:    5px 7px;
   --feu-arrondi:       30px;
   --feu-ombre:         0 2px 4px color-mix(in srgb, var(--couleur-903) 30%, transparent);   /* le boîtier se détache */
   --feu-relief:        inset 0 -2px 0 color-mix(in srgb, var(--couleur-903) 22%, transparent);   /* un relief net, sans flou (la lueur d'avant rendait les lumières floues) */
+  --rond-tri:          48px;   /* les 3 boutons ronds de la page Circulaires : Oui, Peut-être, Jamais (J-C, 2026-10-05, sur aperçu : 48 parmi 32 / 40 / 48; 64 avant) */
+  --ronds-ecart:       calc(var(--espace-xl) * 1.5);   /* entre deux ronds */
+  --banniere-haut:     calc(var(--tactile) * 2);       /* une épicerie ouverte : son logo en bannière, aussi haute que deux barres */
   --photo-tri:         56px;   /* au tri : la petite photo d'un produit (derrière un code, une proposition) — J-C, 2026-10-02, sur aperçu */
   --photo-vide:        color-mix(in srgb, var(--couleur-201) 60%, var(--couleur-101));   /* pas de photo : une case pâle */
   --point-taille:      14px;   /* le point rouge « du nouveau à trier », sur le chemin (Outils, Gérer les bases, Circulaires) */
@@ -998,8 +999,20 @@ select.champ {
 .feu-oui      { color: var(--tri-oui); }
 .feu-peutetre { color: var(--tri-peutetre); }
 .feu-jamais   { color: var(--tri-jamais); }
-.feu-seul { flex-shrink: 0; padding: var(--feu-bord-petit); }   /* « Tout ce qui est ici aujourd'hui » : la lumière rouge seule */
-.feu-seul > button { width: var(--feu-rond-petit); height: var(--feu-rond-petit); }
+/* LA PAGE VISUELLE (J-C, 2026-10-05, sur aperçu : A) : les épiceries en 2 colonnes — leur logo sur une tuile blanche (une DONNÉE : le
+   lien, Magasins col. G, posé par le JS en --logo), sinon leur nom sur leur couleur —, puis 3 boutons ronds sur une ligne (Oui, Peut-être,
+   Jamais), le relief des boutons. Ouverte, l'épicerie passe en bannière. Plus fort que la suite des grilles : .grille > .bouton-grand.… */
+.grille > .bouton-grand.tuile-logo { --c: var(--couleur-101); padding: var(--espace-m); }
+.grille > .bouton-grand.tuile-nom  { --c: var(--couleur-305); color: var(--couleur-105); font-size: var(--texte-moyen); }   /* sans logo : brune, sauf sa couleur (posée par le JS) */
+.grille > .bouton-grand.tuile-pale { color: var(--couleur-306); }
+.logo { display: block; flex: 1; width: 100%; min-height: 0; background: var(--logo) center / contain no-repeat; }
+.accordeon-tete.banniere { --c: var(--couleur-101); height: var(--banniere-haut); padding: var(--espace-s); }
+.banniere .logo { height: 100%; }
+.ronds { display: flex; justify-content: center; gap: var(--ronds-ecart); margin-top: var(--espace-l); }
+.rond { width: var(--rond-tri); height: var(--rond-tri); min-height: 0; padding: 0; border-radius: 50%; }
+.rond-oui      { --c: var(--tri-oui); }
+.rond-peutetre { --c: var(--tri-peutetre); }
+.rond-jamais   { --c: var(--tri-jamais); }
 /* LE TRI PAR ÉPICERIE (J-C, 2026-10-02) : tout le reste réutilise ce qui existe (J-C : « du CSS déjà là seulement ») — les lignes
    (.item), la liste blanche, les petits textes. Seule nouveauté : la petite photo d'un produit (Open Food Facts), carrée, sur blanc. */
 .tri-photo { display: block; flex-shrink: 0; width: var(--photo-tri); height: var(--photo-tri); padding: var(--espace-micro); object-fit: contain; background: var(--couleur-101); border-radius: var(--rayon); box-shadow: var(--ombre-carte); }

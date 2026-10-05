@@ -402,7 +402,7 @@ function appliquer(d) {
     NOMS_LISTES[String(r[0])] = String(r[1] || '');          // même réuni (désactivé) : une vieille ligne garde son nom
     if (String(r[2]) === 'N') return;
     const x = { id: String(r[0]), nom: String(r[1] || '') };
-    if (n === 'Magasins') { x.circ = String(r[3] || '').trim() !== 'N'; x.introuvable = String(r[4] || '').trim() === 'N'; x.couleur = String(r[5] || '').trim(); }   // vide = Oui (un magasin neuf); F : sa couleur
+    if (n === 'Magasins') { x.circ = String(r[3] || '').trim() !== 'N'; x.introuvable = String(r[4] || '').trim() === 'N'; x.couleur = String(r[5] || '').trim(); x.logo = String(r[6] || '').trim(); }   // vide = Oui (un magasin neuf); F : sa couleur; G : son logo
     LISTES[n].push(x);
   }));
   LISTES_NEUVES.forEach(x => { if (!NOMS_LISTES[x.id]) { NOMS_LISTES[x.id] = x.nom; LISTES[x.liste].push({ id: x.id, nom: x.nom }); } });   // pas encore envoyés : gardés
@@ -445,6 +445,7 @@ async function chargerReferences() {
     lireAttenteAchats().forEach(e => { if (e.lignes) poserLignesAchats(e.lignes, data.achats); });   // idem pour la liste d'achats
     data.nbATrier = Math.max(0, (Number(data.nbATrier) || 0) - triesEnRoute());   // idem : un tri en route n'est plus « à trier »
     appliquer(data); ecrireCache(data); remplirListes(); statut('');
+    poserLogosDepart();                           // TEMPORAIRE : les 5 logos de J-C, une fois
     expedierOrdre();                              // le réseau répond : on en profite pour renvoyer l'attente
     expedierCouleurs();                           // idem pour les couleurs (sinon un appareil garde les siennes)
     expedierGestes();                             // idem pour les consommations
@@ -1241,6 +1242,41 @@ function choisirCouleurMagasin(id, num) {
   x.couleur = num;
   remplirPageNoms();
 }
+/* Le logo d'une épicerie (J-C, 2026-10-05 : « faut que je puisse modifier le logo ») : le lien collé dans son champ, enregistré en quittant
+   le champ (ou Entrée), en arrière-plan (geste « lignes », Magasins col. G). Vide = pas de logo : son nom, sur sa couleur. Un lien qui
+   n'est pas une image en https : rien d'enregistré, le champ rougit. */
+function choisirLogoMagasin(id, champ) {
+  const v = String(champ.value || '').trim(), x = LISTES.Magasins.find(y => String(y.id) === String(id)), c = lireCache();
+  const row = c && c.listes && (c.listes.Magasins || []).find(r => String(r[0]) === String(id));
+  if (!x || !row) { avis('Logo pas enregistré — réessaie', 'erreur'); return; }
+  if (v === (x.logo || '')) return;
+  if (v && !urlLogo(v)) { champ.classList.add('champ-erreur'); avis('Ce lien ne marche pas : il doit commencer par https://', 'erreur'); return; }
+  champ.classList.remove('champ-erreur');
+  const l = row.slice(); while (l.length < 7) l.push(''); l[6] = v;
+  poserGeste({ action: 'lignes', table: 'Magasins', opId: 'logo-' + Date.now() + '-' + Math.random().toString(36).slice(2, 8), lignes: [l] });
+  x.logo = v;
+  avis(v ? 'Logo enregistré' : 'Logo retiré', 'succes');
+}
+/* TEMPORAIRE (2026-10-05) : les 5 logos envoyés par J-C, posés une fois sur ses épiceries (par leur nom), si elles n'en ont pas.
+   À RETIRER quand J-C les voit sur ses deux appareils (ils seront dans le Sheet). */
+const LOGOS_DEPART = {
+  iga: 'https://res.cloudinary.com/dym93w23h/image/upload/v1791238838/IMG_iga.jpg',
+  superc: 'https://res.cloudinary.com/dym93w23h/image/upload/v1791238838/IMG_superc.png',
+  jeancoutu: 'https://res.cloudinary.com/dym93w23h/image/upload/v1791238838/IMG_jc.jpg',
+  metro: 'https://res.cloudinary.com/dym93w23h/image/upload/v1791238838/IMG_m.png',
+  dollarama: 'https://res.cloudinary.com/dym93w23h/image/upload/v1791238837/IMG_dolla.png'
+};
+function poserLogosDepart() {
+  const c = lireCache(), rows = c && c.listes && c.listes.Magasins;
+  if (!rows) return;
+  const cleLogo = n => Object.keys(LOGOS_DEPART).find(k => cleNom(n).indexOf(k) === 0);   // « IGA », « IGA extra » → iga
+  const lignes = rows.filter(r => String(r[2]) !== 'N' && !String(r[6] || '').trim() && cleLogo(r[1])).map(r => {
+    const l = r.slice(); while (l.length < 7) l.push(''); l[6] = LOGOS_DEPART[cleLogo(r[1])]; return l;
+  });
+  if (!lignes.length) return;
+  poserGeste({ action: 'lignes', table: 'Magasins', opId: 'logos-depart-' + Date.now(), lignes: lignes });
+  lignes.forEach(l => { const x = LISTES.Magasins.find(y => String(y.id) === String(l[0])); if (x) x.logo = l[6]; });
+}
 /* Une pastille touchée (Gérer les bases → Catégories) = la couleur de la catégorie, partout tout de suite;
    envoyée en arrière-plan (geste « lignes » : la ligne de Categories réécrite, col. H). */
 function choisirCouleurCategorie(id, num) {
@@ -1667,7 +1703,10 @@ function remplirPageNoms() {
     const tb = coul ? teinteBarre(x) : { style: '', pale: '' }, ouvert = coul && String(x.id) === idOuvert;
     return '<div class="accordeon" data-id="' + esc(x.id) + '"><div class="accordeon-tete' + tb.pale + (ouvert ? ' ouvert' : '') + '"' + tb.style + '><span>' + esc(x.nom) + '</span>' +
       crayon(t + ':' + x.id) + (circ ? interrupteur(x) : '') + (pageNoms.gere ? poubelle(t, x.id) : '') + '</div>' +
-      (coul ? '<div class="accordeon-corps"' + (ouvert ? '' : ' hidden') + '><div class="palette">' + htmlPalette(numeroCouleur(x.couleur)) + '</div></div>' : '') +
+      (coul ? '<div class="accordeon-corps"' + (ouvert ? '' : ' hidden') + '>' +   // comme un meuble : la couleur, puis le logo (un lien à coller)
+        '<div class="bloc accordeon-bloc"><div class="label">Couleur</div><div class="palette">' + htmlPalette(numeroCouleur(x.couleur)) + '</div></div>' +
+        '<div class="bloc accordeon-bloc"><div class="label">Logo</div><input class="champ champ-logo" data-logo="' + esc(x.id) + '" value="' + esc(x.logo || '') + '"' +
+          ' type="url" inputmode="url" autocomplete="off" autocapitalize="off" spellcheck="false" enterkeyhint="done" placeholder="Le lien de son image"></div></div>' : '') +
       (circ && sansCirculaire(x) ? '<div class="note-barre">Pas de circulaire trouvée</div>' : '') + '</div>';
   }).join('') || '<div class="accordeon-item"><span class="texte-petit texte-pale">' + pageNoms.aucun + '</span></div>';
   $('noms-colonne').hidden = !(circ && xs.some(x => !sansCirculaire(x)));   // l'icône des circulaires, posée une fois au-dessus des interrupteurs
@@ -1720,13 +1759,13 @@ async function ajouterNom() {
   const ancien = rows && rows.find(r => String(r[2]) === 'N' && cleNom(r[1]) === cleNom(nom));
   btn.disabled = true; montrerVoile(true);
   try {
-    // Magasins : ID · Nom · Actif · Circulaire · Trouvee (· Couleur) — il part à Oui (J-C), même un magasin retiré qui revient (avec sa couleur)
-    const ligne = [ancien ? ancien[0] : '', nom, 'O', 'O', ''].concat(ancien && ancien[5] ? [ancien[5]] : []);
+    // Magasins : ID · Nom · Actif · Circulaire · Trouvee (· Couleur · Logo) — il part à Oui (J-C), même un magasin retiré qui revient (avec sa couleur et son logo)
+    const ligne = [ancien ? ancien[0] : '', nom, 'O', 'O', ''].concat(ancien ? [ancien[5] || '', ancien[6] || ''] : []);
     const r = ancien ? await Coffre.modifier(L, ancien[0], ligne) : await Coffre.ajouter(L, ligne);
     if (!r || !r.ok) throw new Error((r && r.erreur) || 'refus');
     const id = ancien ? String(ancien[0]) : String(r.id);
     ligne[0] = id;
-    LISTES[L].push({ id: id, nom: nom, circ: true, introuvable: false, couleur: String(ligne[5] || '') }); NOMS_LISTES[id] = nom;
+    LISTES[L].push({ id: id, nom: nom, circ: true, introuvable: false, couleur: String(ligne[5] || ''), logo: String(ligne[6] || '') }); NOMS_LISTES[id] = nom;
     if (c) {
       c.listes = c.listes || {}; c.listes[L] = (c.listes[L] || []).filter(x => String(x[0]) !== id).concat([ligne]);
       ecrireCache(c);
@@ -3025,7 +3064,7 @@ function noterNbATrier(n) {                            // le point suit, et le c
 }
 async function montrerCirculaires() {
   toutCacher(); $('vue-circulaires').hidden = false; $('btn-burger').hidden = false;
-  $('liste-tri').innerHTML = '';                   // une nouvelle visite : tout repart fermé
+  $('liste-tri').innerHTML = ''; TRI_VUE = '';     // une nouvelle visite : les épiceries et les ronds, tout fermé
   montrerVoile(true);                              // le chariot jusqu'à ce que tout soit là
   if (!RAYONS.length) await chargerReferences();   // l'entonnoir a besoin des catégories et des aliments
   let r = null;
@@ -3085,15 +3124,15 @@ function ordreMagasins(items) {
   items.forEach(x => { const s = st[x.magasin] = st[x.magasin] || { n: 0, c: 0 }; s.n++; if (x.code) s.c++; });
   return Object.keys(st).sort((a, b) => (st[b].c / st[b].n) - (st[a].c / st[a].n) || nomListe(a).localeCompare(nomListe(b), 'fr'));
 }
-/* Les articles rangés par catégorie (leurs couleurs, dans l'ordre de J-C), « Autres » (brune) au bout. tete : la 1re ligne d'une catégorie. */
-function htmlGroupesTri(items, rid, ligne, tete) {
+/* Les articles rangés par catégorie (leurs couleurs, dans l'ordre de J-C), « Autres » (brune) au bout. */
+function htmlGroupesTri(items, rid, ligne) {
   const par = {};
   items.forEach(x => { const k = groupeTri(rid(x)); (par[k] = par[k] || []).push(x); });
   const groupe = (k, nom) => {
     if (!par[k]) return '';
     const t = teinteCategorie(k === 'autres' ? '' : k);
     return '<div class="accordeon" data-groupe="' + esc(k) + '"' + t.style + '><div class="accordeon-tete' + t.pale + '"><span>' + esc(nom) + '</span></div>' +
-      '<div class="liste-blanche achats-groupe" hidden>' + (tete ? tete(k) : '') + par[k].map(ligne).join('') + '</div></div>';
+      '<div class="liste-blanche achats-groupe" hidden>' + par[k].map(ligne).join('') + '</div></div>';
   };
   return RAYONS.map(r => groupe(String(r.id), r.nom)).join('') + groupe('autres', 'Autres');
 }
@@ -3137,48 +3176,64 @@ function detailTri(r) {
   return [noms.join(' + '), noms.length > 1 ? '' : nomListe(r[4]), noms.length > 1 ? '' : nomListe(r[5]), nomListe(r[13])].filter(Boolean).join(' · ');
 }
 const selVal = v => String(v).replace(/["\\]/g, '\\$&');   // une valeur dans un sélecteur [data-…="…"]
-function ligneTout(k) {
-  return '<div class="item tri-tout"><div class="item-info"><div class="item-detail">Tout ce qui est ici aujourd\'hui</div></div>' +
-    '<span class="feu feu-seul"><button class="feu-jamais" type="button" data-tout="' + esc(k) + '" aria-label="Jamais pour tout"></button></span></div>';
+/* Le logo d'une épicerie (Magasins col. G : un lien collé par J-C), prêt pour le CSS (--logo). Seulement un lien https sans guillemet
+   ni parenthèse (il va dans un style). Cloudinary : réduit à 400 px, au format que l'appareil lit le mieux — un logo léger, vite là. */
+function urlLogo(u) {
+  u = String(u || '').trim();
+  if (!/^https:\/\/[^\s"'()\\<>]+$/.test(u)) return '';
+  return u.replace(/^(https:\/\/res\.cloudinary\.com\/[^/]+\/image\/upload\/)(?![a-z]{1,2}_[^/]*\/)/, '$1w_400,f_auto,q_auto/');
 }
-/* La page. Ce qui était ouvert (la barre, l'épicerie, la catégorie) le reste : on trie l'un après l'autre. */
+const styleLogo = m => { const x = LISTES.Magasins.find(y => String(y.id) === String(m)), u = urlLogo(x && x.logo); return u ? ' style="--logo:url(&quot;' + esc(u) + '&quot;)"' : ''; };
+/* LA PAGE VISUELLE (J-C, 2026-10-05, sur aperçu : A, les ronds en 48) : en arrivant, les épiceries en 2 colonnes — leur logo, sinon leur
+   nom sur leur couleur; le point rouge = il y a quelque chose à trier chez elle —, puis 3 boutons ronds sur une ligne : Oui, Peut-être,
+   Jamais (ce qui est déjà trié). Une épicerie touchée : les autres et les ronds se cachent; elle en bannière, ses catégories dessous,
+   chaque article trié un à un avec le feu (plus de « Tout ce qui est ici aujourd'hui » : J-C). Un rond touché : sa barre, par catégorie.
+   TRI_VUE : '' (les épiceries et les ronds) · 'm:<magasin>' · 'b:O' | 'b:P' | 'b:J'. */
+var TRI_VUE = '';
+const RONDS_TRI = [['O', 'Oui', 'rond-oui'], ['P', 'Peut-être', 'rond-peutetre'], ['J', 'Jamais', 'rond-jamais']];
+/* La page. Ce qui était ouvert (l'épicerie ou le rond, la catégorie) le reste : on trie l'un après l'autre. */
 function remplirTri() {
   const cible = $('liste-tri');
   if (!TRI) { cible.innerHTML = '<div class="texte-petit texte-pale">Circulaires pas lues — réessaie dans un instant.</div>'; return; }
-  const ouverte = el => el ? el.querySelector(':scope > .accordeon > .accordeon-tete.ouvert') : null;
-  const tB = ouverte(cible), barre = tB ? tB.parentElement.dataset.barre : '';
-  const tM = barre === 'a' ? ouverte(tB.nextElementSibling) : null, mag = tM ? tM.parentElement.dataset.mag : '';
-  const tG = ouverte(tM ? tM.nextElementSibling : tB ? tB.nextElementSibling : null), groupe = tG ? tG.parentElement.dataset.groupe : '';
+  const tG = cible.querySelector('[data-groupe] > .accordeon-tete.ouvert'), groupe = tG ? tG.parentElement.dataset.groupe : '';
   const parTexte = (a, b) => String(a).localeCompare(String(b), 'fr');
   const vide = t => '<div class="accordeon-item"><span class="texte-petit texte-pale">' + t + '</span></div>';
-  const reponses = reps => {
-    const vus = {}, rs = TRI.tri.filter(r => reps.indexOf(String(r[2])) !== -1 && !vus[cleDoublon(r)] && (vus[cleDoublon(r)] = 1))
-      .sort((a, b) => parTexte(a[9] || a[1], b[9] || b[1]));
-    return rs.length ? htmlGroupesTri(rs, categorieLigneTri, r => ligneTri('r:' + r[0], r[9] || r[1], detailTri(r))) : vide('Rien pour l\'instant.');
-  };
   const aTrier = TRI.aTrier.slice().sort((a, b) => parTexte(a.texte, b.texte));
-  const parMagasin = aTrier.length ? ordreMagasins(aTrier).map(m => {
-    const t = teinteMagasin(m);                    // chaque épicerie à SA couleur (J-C, 2026-10-05), sur la tête seulement
-    return '<div class="accordeon" data-mag="' + esc(m) + '"><div class="accordeon-tete' + t.pale + '"' + t.style + '><span>' + esc(nomListe(m)) + '</span></div>' +
-      '<div class="accordeon-corps une-a-la-fois" hidden>' + htmlGroupesTri(aTrier.filter(x => x.magasin === m), x => x.categorie,
-        x => ligneTri('a:' + x.cle, x.texte, detailATrier(x)), k => ligneTout(m + '¦' + k)) + '</div></div>';
-  }).join('') : vide('Rien à trier cette semaine.');
-  const barreTri = (cle, nom, classe, html) => '<div class="accordeon' + classe + '" data-barre="' + cle + '"><div class="accordeon-tete"><span>' + nom + '</span></div>' +
-    '<div class="accordeon-corps une-a-la-fois" hidden>' + html + '</div></div>';
-  cible.innerHTML = barreTri('a', 'À trier', '', parMagasin) + barreTri('O', 'Oui', ' tri-oui', reponses(['O'])) +
-    barreTri('P', 'Peut-être', ' tri-peutetre', reponses(['P'])) + barreTri('J', 'Jamais', ' tri-jamais', reponses(['J', 'M']));
-  const accB = [...cible.children].find(a => a.dataset.barre === barre);
-  if (!accB) return;
-  toggleAccordeon(accB.firstElementChild);
-  let corps = accB.lastElementChild;
-  if (barre === 'a') {
-    const accM = [...corps.children].find(a => a.dataset.mag === mag);
-    if (!accM) return;
-    toggleAccordeon(accM.firstElementChild);
-    corps = accM.lastElementChild;
+  // la barre ouverte (l'épicerie en bannière, ou Oui / Peut-être / Jamais) : la toucher ramène aux épiceries
+  const ouverte = (classe, tete, corps) => '<div class="accordeon' + classe + '" data-vue="' + esc(TRI_VUE) + '">' + tete +
+    '<div class="accordeon-corps une-a-la-fois">' + corps + '</div></div>';
+  if (TRI_VUE.slice(0, 2) === 'm:') {
+    const m = TRI_VUE.slice(2), ici = aTrier.filter(x => x.magasin === m), logo = styleLogo(m), t = teinteMagasin(m);
+    const tete = logo ? '<div class="accordeon-tete ouvert banniere"><span class="logo"' + logo + ' aria-label="' + esc(nomListe(m)) + '"></span></div>'
+                      : '<div class="accordeon-tete ouvert' + t.pale + '"' + t.style + '><span>' + esc(nomListe(m)) + '</span></div>';
+    cible.innerHTML = ouverte('', tete, ici.length ? htmlGroupesTri(ici, x => x.categorie, x => ligneTri('a:' + x.cle, x.texte, detailATrier(x))) : vide('Rien à trier cette semaine.'));
+  } else if (TRI_VUE.slice(0, 2) === 'b:') {
+    const b = TRI_VUE.slice(2), rond = RONDS_TRI.find(r => r[0] === b) || RONDS_TRI[0], reps = b === 'J' ? ['J', 'M'] : [b];
+    const vus = {}, rs = TRI.tri.filter(r => reps.indexOf(String(r[2])) !== -1 && !vus[cleDoublon(r)] && (vus[cleDoublon(r)] = 1))
+      .sort((x, y) => parTexte(x[9] || x[1], y[9] || y[1]));
+    cible.innerHTML = ouverte(' tri-' + { O: 'oui', P: 'peutetre', J: 'jamais' }[b], '<div class="accordeon-tete ouvert"><span>' + rond[1] + '</span></div>',
+      rs.length ? htmlGroupesTri(rs, categorieLigneTri, r => ligneTri('r:' + r[0], r[9] || r[1], detailTri(r))) : vide('Rien pour l\'instant.'));
+  } else {
+    // les épiceries dont la circulaire est lue : celles qui ont quelque chose à trier d'abord (IGA, qui donne ses codes, en tête), puis les autres
+    const avec = ordreMagasins(aTrier), sans = LISTES.Magasins.filter(x => x.circ !== false && !x.introuvable && avec.indexOf(String(x.id)) === -1).map(x => String(x.id));
+    cible.innerHTML = '<div class="grille">' + avec.concat(sans).map(m => {
+      const logo = styleLogo(m), t = teinteMagasin(m), point = avec.indexOf(m) !== -1 ? ' point-rouge' : '';
+      return logo ? '<button class="bouton bouton-grand tuile-logo' + point + '" type="button" data-ouvrir="m:' + esc(m) + '" aria-label="' + esc(nomListe(m)) + '"><span class="logo"' + logo + '></span></button>'
+                  : '<button class="bouton bouton-grand tuile-nom' + point + (t.pale ? ' tuile-pale' : '') + '" type="button" data-ouvrir="m:' + esc(m) + '"' + t.style + '>' + esc(nomListe(m)) + '</button>';
+    }).join('') + '</div>' +
+      '<div class="ronds">' + RONDS_TRI.map(r => '<button class="bouton rond ' + r[2] + '" type="button" data-ouvrir="b:' + r[0] + '" aria-label="' + r[1] + '"></button>').join('') + '</div>';
+    return;
   }
-  const accG = [...corps.children].find(a => a.dataset.groupe === groupe);
+  const accG = [...cible.querySelectorAll('[data-groupe]')].find(a => a.dataset.groupe === groupe);
   if (accG) toggleAccordeon(accG.firstElementChild);
+}
+/* Ouvrir une épicerie ou un rond (''= revenir aux épiceries) : on change de vue, en haut de la page. */
+function vueTri(v) {
+  fermerArticleTri();
+  TRI_VUE = v || '';
+  $('liste-tri').innerHTML = '';                   // une autre vue : ses catégories repartent fermées
+  remplirTri();
+  window.scrollTo(0, 0);
 }
 /* LES DOUBLONS D'IGA (J-C, 2026-10-04 : « beaucoup de doublons ») : le même nom, le même format, deux codes (la soupe Knorr) = une
    seule ligne à trier (le coffre-fort les réunit : cles, codes) et, répondus pareil, une seule ligne dans leur barre. */
@@ -3543,24 +3598,6 @@ function appliquerTri(e, T) {
                 a ? a.texte : String(vieille[9] || cle), cat, genre, de('format', 12), de('magasin', 13)]);
   });
   if (jamais.length) T.aTrier = T.aTrier.filter(y => jamais.indexOf(String(y.genre || '')) === -1);   // un Jamais vaut dans toutes les épiceries
-}
-/* « Tout ce qui est ici aujourd'hui » (une épicerie, une catégorie : « IGA¦<catégorie> ») : la question d'abord, à la place de la
-   ligne (une catégorie entière, ça ne se touche pas par erreur). */
-const dansGroupeTri = (x, k) => x.magasin + '¦' + groupeTri(x.categorie) === k;
-function demanderToutJamais(k) {
-  fermerArticleTri();
-  const n = TRI.aTrier.filter(x => dansGroupeTri(x, k)).length, b = $('liste-tri').querySelector('[data-tout="' + selVal(k) + '"]');
-  if (!n || !b) return;
-  b.closest('.tri-tout').outerHTML = '<div class="accordeon-item accordeon-item-saisie" data-confirme><span>' +
-    (n === 1 ? 'Jamais pour cet article ?' : 'Jamais pour ces ' + n + ' articles ?') + '</span>' +
-    '<button class="bouton bouton-petit bouton-rouge" type="button" data-tout-oui="' + esc(k) + '">Oui</button>' +
-    '<button class="bouton bouton-petit" type="button" data-tout-non>Non</button></div>';
-}
-function toutJamais(k) {
-  const xs = TRI.aTrier.filter(x => dansGroupeTri(x, k));
-  if (!xs.length) { remplirTri(); return; }
-  trier(xs, 'J');                                  // un seul envoi pour toute la catégorie
-  avis('Jamais : ' + xs.length + (xs.length > 1 ? ' articles' : ' article'), 'succes');
 }
 /* ---- « Ajouter à la liste » : l'entonnoir (catégorie → sous-catégorie → aliment, « Nouvel aliment… » au bout) et le scan,
    à la place de la liste. L'aliment seul (sans marque ni saveur). ---- */
@@ -4230,9 +4267,10 @@ function initEntree() {
     toggleAccordeon(tete);
   });
   // Gérer les bases → Circulaires : le tri
-  $('circulaires-retour').addEventListener('click', () => {   // Retour recule d'un pas : la barre ouverte la plus profonde se referme; sinon, le menu
-    const ouvertes = $('liste-tri').querySelectorAll('.accordeon-tete.ouvert');
+  $('circulaires-retour').addEventListener('click', () => {   // Retour recule d'un pas : la catégorie ouverte se referme, puis l'épicerie (ou le rond); sinon, le menu
+    const ouvertes = $('liste-tri').querySelectorAll('[data-groupe] > .accordeon-tete.ouvert');
     if (ouvertes.length) { fermerArticleTri(); toggleAccordeon(ouvertes[ouvertes.length - 1]); window.scrollTo(0, 0); }
+    else if (TRI_VUE) vueTri('');
     else { ouvrirMenu(); montrerGrilleMenu('bases'); }
   });
   $('liste-tri').addEventListener('click', function (ev) {
@@ -4244,15 +4282,13 @@ function initEntree() {
     const ci = ev.target.closest('[data-code-i]');         // le code : une proposition d'Open Food Facts, un PLU, ou « Aucun »
     if (ci) { choisirCode(Number(ci.dataset.codeI)); return; }
     if (ev.target.closest('[data-tri-autre]')) { ajouterEntonnoir(); return; }   // une ligne à plusieurs produits
-    const to = ev.target.closest('[data-tout-oui]');       // « Jamais pour ces 12 articles ? » Oui
-    if (to) { toutJamais(to.dataset.toutOui); return; }
-    if (ev.target.closest('[data-tout-non]')) { remplirTri(); return; }
-    const t = ev.target.closest('[data-tout]');            // « Tout ce qui est ici aujourd'hui » : la question d'abord
-    if (t) { demanderToutJamais(t.dataset.tout); return; }
-    if (ev.target.closest('.tri-panneau, [data-confirme]')) return;   // un menu, un champ, la question : rien ne se referme
+    const o = ev.target.closest('[data-ouvrir]');          // une épicerie (son logo), ou un rond : Oui, Peut-être, Jamais
+    if (o) { vueTri(o.dataset.ouvrir); return; }
+    if (ev.target.closest('.tri-panneau')) return;         // un menu, un champ : rien ne se referme
     const a = ev.target.closest('.tri-article');
     if (a) { ouvrirArticleTri(a); return; }
     const tete = ev.target.closest('.accordeon-tete');
+    if (tete && tete.parentElement.hasAttribute('data-vue')) { vueTri(''); return; }   // la bannière, la barre du rond : retour aux épiceries
     if (tete) { fermerArticleTri(); toggleAccordeon(tete); }
   });
   $('liste-tri').addEventListener('change', function (ev) {   // un entonnoir d'un article ouvert (data-i : lequel)
@@ -4289,9 +4325,11 @@ function initEntree() {
     if (cr) { ouvrirRenommer(cr); return; }
     const pa = ev.target.closest('.pastille-choix');       // la couleur d'une épicerie
     if (pa) { choisirCouleurMagasin(pa.closest('.accordeon').dataset.id, pa.dataset.num); return; }
-    const tete = ev.target.closest('.accordeon-tete');      // Magasins : la barre ouvre sa palette; marques, saveurs, unités : un nom, c'est tout
+    const tete = ev.target.closest('.accordeon-tete');      // Magasins : la barre ouvre sa couleur et son logo; marques, saveurs, unités : un nom, c'est tout
     if (tete && pageNoms.couleur) toggleAccordeon(tete);
   });
+  $('liste-noms').addEventListener('change', ev => { if (ev.target.dataset.logo) choisirLogoMagasin(ev.target.dataset.logo, ev.target); });   // le logo collé, en quittant le champ
+  $('liste-noms').addEventListener('keydown', ev => { if (ev.key === 'Enter' && ev.target.dataset.logo) { ev.preventDefault(); ev.target.blur(); } });
   document.querySelectorAll('.accordeon-tete[data-toggle]').forEach(tete =>
     tete.addEventListener('click', () => toggleAccordeon(tete)));
   $('liste-inventaire').previousElementSibling.addEventListener('click', function () {   // l'Inventaire s'ouvre toujours sur ses deux boutons, rien de choisi
@@ -4390,7 +4428,7 @@ async function retourDansApp() {
   if (!$('vue-categories').hidden && !Object.keys(ordreModifie).length && !saisieCats) remplirPageCategories(true);
   const saisieAliments = $('liste-aliments').querySelector('.champ-renommer, [data-confirme]');
   if (!$('vue-aliments').hidden && !Object.keys(ordreModifie).length && !saisieAliments) remplirPageAliments(true);   // pas pendant un nom ni une question
-  const saisieNoms = $('nom-nouveau').value || $('liste-noms').querySelector('.champ-renommer, [data-confirme]');
+  const saisieNoms = $('nom-nouveau').value || $('liste-noms').querySelector('.champ-renommer, [data-confirme]') || (document.activeElement && document.activeElement.classList.contains('champ-logo'));   // (un logo qu'on colle)
   if (!$('vue-noms').hidden && !saisieNoms) remplirPageNoms();
   if (!$('vue-achats').hidden && $('achats-ajout').hidden) remplirAchats();   // pas pendant « Ajouter à la liste »
 }

@@ -156,6 +156,15 @@ J-C : « faut que je sache si un aliment est en solde ». À l'écran, **« en c
 
 ## 5 quater. EN RÉFLEXION : LE VRAI RABAIS (1er octobre 2026, zéro code)
 
+> **⭐ LA PAGE REFAITE, VISUELLE (J-C, 2026-10-05 : « mon but est d'avoir une app visuelle »; aperçus vus et tranchés : A, les ronds
+> en 48) — remplace, pour l'écran, les « quatre barres » décrites plus bas.** En arrivant : **les épiceries en 2 colonnes**, chacune sa
+> **tuile à son logo** (le lien collé dans Gérer les bases → Magasins, col. G; sans logo : son nom sur sa couleur), **le point rouge**
+> sur celles qui ont quelque chose à trier; dessous, **3 boutons ronds sur une ligne : vert Oui, jaune Peut-être, rouge Jamais** (ce
+> qui est déjà trié). Une épicerie touchée : elle seule, **en bannière** (son logo), ses catégories dessous, chaque article trié un à un
+> avec le feu. **« Tout ce qui est ici aujourd'hui » (la lumière rouge en tête d'une catégorie) est RETIRÉ** (J-C). Un rond touché : sa
+> barre, par catégorie. La bannière ou la barre touchée, ou Retour : les épiceries. Le reste (le feu, l'entonnoir, « Serait-ce
+> celui-ci ? », le code) ne change pas.
+
 **Le déclencheur.** La version bâtie (5 ter), vue en vrai : « Oh boy, c'est pas fait pour les humains » — une question
 Oui / Non sous presque chaque ligne, et des rapprochements faux (Pomme ← pommes de terre, purée de pommes). Elle a été
 bâtie trop vite, sur un aperçu de 3 aliments. J-C : « Faut réfléchir avant de coder à tout vent. »
