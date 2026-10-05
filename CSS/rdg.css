@@ -12,7 +12,6 @@
      Une nouvelle couleur prend le prochain numéro libre de sa famille. ---- */
   /* Blancs et crèmes */
   --couleur-101: #ffffff;
-  --couleur-102: #ffffff;
   --couleur-103: #fff9ec;
   --couleur-104: #fff2d6;
   --couleur-105: #f5efe6;
@@ -265,7 +264,7 @@ body {
   font-size: var(--texte-normal);
   font-weight: var(--poids-normal);
   color: var(--couleur-306);
-  background: var(--couleur-102);
+  background: var(--couleur-101);   /* autour du cadre, sur un grand écran (la 102, un double de la 101, retirée le 2026-10-05) */
   min-height: var(--plein-ecran);
   overflow-x: hidden;
 }
