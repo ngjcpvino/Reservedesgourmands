@@ -1001,11 +1001,14 @@ select.champ {
 /* LA PAGE VISUELLE (J-C, 2026-10-05, sur aperçu : A) : les épiceries en 2 colonnes — leur logo sur une tuile blanche (une DONNÉE : le
    lien, Magasins col. G, posé par le JS en --logo), sinon leur nom sur leur couleur —, puis 3 boutons ronds sur une ligne (Oui, Peut-être,
    Jamais), le relief des boutons. Ouverte, l'épicerie passe en bannière. Plus fort que la suite des grilles : .grille > .bouton-grand.… */
-.grille > .bouton-grand.tuile-logo { --c: var(--couleur-101); padding: var(--espace-m); }
+/* Une tuile à logo, et sa bannière : une carte blanche PLATE (J-C, 2026-10-05, choix A sur aperçu : le relief des boutons grisait le bas,
+   « c'est laid ») — ni dégradé ni reflet, l'ombre seulement. */
+.grille > .bouton-grand.tuile-logo { background: var(--couleur-101); padding: var(--espace-m); }
+.tuile-logo::before, .banniere::before { display: none; }
 .grille > .bouton-grand.tuile-nom  { --c: var(--couleur-305); color: var(--couleur-105); font-size: var(--texte-moyen); }   /* sans logo : brune, sauf sa couleur (posée par le JS) */
 .grille > .bouton-grand.tuile-pale { color: var(--couleur-306); }
 .logo { display: block; flex: 1; width: 100%; min-height: 0; background: var(--logo) center / contain no-repeat; }
-.accordeon-tete.banniere { --c: var(--couleur-101); height: var(--banniere-haut); padding: var(--espace-s); }
+.accordeon-tete.banniere { background: var(--couleur-101); height: var(--banniere-haut); padding: var(--espace-s); }
 .banniere .logo { height: 100%; }
 .ronds { display: flex; justify-content: center; gap: var(--ronds-ecart); margin-top: var(--espace-l); }
 .rond { width: var(--rond-tri); height: var(--rond-tri); min-height: 0; padding: 0; border-radius: 50%; }
