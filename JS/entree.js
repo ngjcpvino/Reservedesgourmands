@@ -3012,7 +3012,7 @@ async function montrerCirculaires() {
     TRI = { aTrier: r.aTrier || [], tri: r.tri || [] };
     lireAttenteGestes().forEach(e => { if (e.action === 'trier') appliquerTri(e, TRI); });   // un tri en route reste fait
     noterNbATrier(TRI.aTrier.length);
-  } else avis('Circulaires pas lues — réessaie dans un instant', 'erreur');
+  } else avis('Circulaires pas lues' + (r && r.erreur ? ' (' + r.erreur + ')' : '') + ' — réessaie dans un instant', 'erreur');   // la raison du coffre-fort, s'il a répondu
   remplirTri();                                    // (pas relues : ce qu'on avait, s'il y a lieu)
 }
 /* D, E, F d'une ligne de Tri : un ou plusieurs aliments (une ligne à plusieurs produits), séparés par des virgules. */
