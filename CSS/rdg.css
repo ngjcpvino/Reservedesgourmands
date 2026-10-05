@@ -208,6 +208,16 @@
   --point-bord:        2px;    /* son anneau crème : il se voit même sur le bouton rouge */
   --point-couleur:     var(--couleur-401);
   --plan-collant:      10;     /* un bouton collé au bas de l'écran passe par-dessus la liste */
+  --plan-fond:         -1;     /* la photo pâlie des pages de travail : sous tout le reste */
+  --plan-menu:         220;    /* le menu : par-dessus la page, sous le X */
+  --plan-coin:         230;    /* le burger (le X) : par-dessus le menu */
+  --plan-toast:        240;    /* un message : par-dessus le menu et le X, sous le voile */
+  --plan-voile:        300;    /* le voile du chariot : par-dessus tout */
+  --interligne-titre:  1.2;    /* le titre du site, sur la photo */
+  --interligne-texte:  1.4;    /* un paragraphe (.texte) */
+  --placeholder-opacite: 0.6;  /* l'invite d'un champ vide, pâlie */
+  --pli-opacite:       0.55;   /* le petit triangle d'un aliment à plusieurs sortes */
+  --chevron-place:     calc(var(--espace-m) * 2.5);   /* la place du chevron, à droite d'un menu déroulant */
   --pastille:          28px;   /* le carré qui montre une couleur (écran Couleurs, ajout d'un meuble) */
   --champ-hex-large:   110px;  /* le champ où l'on tape un code hex : #6b4f3a */
   --champ-nombre-large: 100px; /* le champ où l'on tape un nombre : 2 (L), 0,54 (kg) */
@@ -288,7 +298,7 @@ body::before {
   left: 50%;
   width: min(100%, var(--largeur-max));   /* pas plus large que le cadre des pages */
   transform: translateX(-50%);
-  z-index: -1;
+  z-index: var(--plan-fond);
   background: linear-gradient(var(--voile-page), var(--voile-page)), var(--photo) center top / cover no-repeat;
 }
 .conteneur:has(> .sur-photo:not([hidden])) { background: var(--couleur-101); }
@@ -338,7 +348,7 @@ body:has(.sur-photo:not([hidden]))::before { display: none; }
   letter-spacing: var(--lettrage-titre);
   text-transform: uppercase;
   text-shadow: var(--ombre-titre);
-  line-height: 1.2;
+  line-height: var(--interligne-titre);
   transition: transform var(--transition-menu) ease-in-out;
 }
 .entete-titre { transform: translateY(calc(-1 * var(--titre-monte))); }   /* il monte au-dessus de ce qui se pose sur la photo, jamais caché dessous */
@@ -346,7 +356,7 @@ body:has(.sur-photo:not([hidden]))::before { display: none; }
 /* ============================================================
    TEXTE — base + variantes de taille / ton / poids
 ============================================================ */
-.texte { font-size: var(--texte-normal); font-weight: var(--poids-normal); color: var(--couleur-306); line-height: 1.4; }
+.texte { font-size: var(--texte-normal); font-weight: var(--poids-normal); color: var(--couleur-306); line-height: var(--interligne-texte); }
 .texte-petit  { font-size: var(--texte-petit); }
 .texte-pale   { color: var(--couleur-302); }
 
@@ -495,14 +505,14 @@ body:has(.sur-photo:not([hidden]))::before { display: none; }
 .champ:focus { border-color: var(--champ-focus); box-shadow: 0 0 0 var(--halo) var(--champ-focus-halo); }
 /* Le champ où l'on colle le texte d'une page (Compléter) : deux lignes d'avance, il ne se redimensionne pas au doigt */
 textarea.champ { min-height: calc(var(--tactile) * 2); resize: none; }
-.champ::placeholder { color: var(--placeholder); opacity: 0.6; }
+.champ::placeholder { color: var(--placeholder); opacity: var(--placeholder-opacite); }
 .champ-fort { font-weight: var(--poids-fort); }   /* le nom du produit, dans la fiche */
 .champ-fort::placeholder { font-weight: var(--poids-normal); }
 .champ-code { font-weight: var(--poids-fort); letter-spacing: var(--lettrage-large); }   /* le code lu apres un scan */
 select.champ {
   appearance: none;
   cursor: pointer;
-  padding-right: calc(var(--espace-m) * 2.5);
+  padding-right: var(--chevron-place);
   background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath d='M1 1l5 5 5-5' stroke='%236b4f3a' stroke-width='1.5' fill='none'/%3E%3C/svg%3E");
   background-repeat: no-repeat;
   background-position: right var(--espace-m) center;
@@ -626,7 +636,7 @@ select.champ {
   border-left: var(--fleche-taille) solid transparent;
   border-right: var(--fleche-taille) solid transparent;
   border-top: var(--fleche-taille) solid currentColor;
-  opacity: 0.55;
+  opacity: var(--pli-opacite);
   transition: transform var(--transition-pli) ease;
 }
 .aliment-tete.ouvert .item-nom::after { transform: rotate(180deg); }
@@ -1026,7 +1036,7 @@ select.champ {
   color: var(--couleur-101);
   box-shadow: var(--ombre-forte);
   font-size: var(--texte-petit);
-  z-index: 240;                          /* par-dessus le menu et le X (un message touché depuis la grille), sous le voile */
+  z-index: var(--plan-toast);                          /* par-dessus le menu et le X (un message touché depuis la grille), sous le voile */
   opacity: 0;
   pointer-events: none;
 }
@@ -1042,7 +1052,7 @@ select.champ {
 .coin {
   position: fixed;
   top: calc(var(--haut-ecran) + var(--espace-xl));   /* aligné avec le haut de la photo — suit --haut-ecran tout seul */
-  z-index: 230;
+  z-index: var(--plan-coin);
   width: var(--coin-taille);
   height: var(--coin-taille);
   display: flex;
@@ -1062,7 +1072,7 @@ select.champ {
 .menu {
   position: fixed;
   inset: 0;
-  z-index: 220;                          /* par-dessus la page, sous le X */
+  z-index: var(--plan-menu);                          /* par-dessus la page, sous le X */
   display: flex;
   flex-direction: column;
   justify-content: flex-end;             /* les icônes se posent au bas de l'écran */
@@ -1099,7 +1109,7 @@ body.menu-ouvert .conteneur > [id^="vue-"] { opacity: 0; pointer-events: none; }
 .voile {
   position: fixed;
   inset: 0;
-  z-index: 300;
+  z-index: var(--plan-voile);
   background: var(--spinner-voile);
   overflow: hidden;
 }
