@@ -36,8 +36,7 @@ var minuterieOrdre = null;
    Les teintes dérivées (menu, ombres…) en découlent dans le CSS : elles suivent toutes seules.
    Les pièces et meubles qui l'utilisent s'ajoutent à l'usage, à l'écran. */
 const COULEURS_SITE = [
-  ['couleur-101', 'Couleur 101', 'fond du cadre, champs, texte des boutons de couleur'],
-  ['couleur-102', 'Couleur 102', 'autour du cadre, sur les grands écrans'],
+  ['couleur-101', 'Couleur 101', 'fond du cadre et autour, champs, texte des boutons de couleur'],   // (la 102, son double exact, retirée le 2026-10-05 : J-C)
   ['couleur-103', 'Couleur 103', ''],
   ['couleur-104', 'Couleur 104', ''],
   ['couleur-105', 'Couleur 105', 'icônes, texte des boutons bruns et du menu, bouteilles'],
@@ -446,6 +445,7 @@ async function chargerReferences() {
     data.nbATrier = Math.max(0, (Number(data.nbATrier) || 0) - triesEnRoute());   // idem : un tri en route n'est plus « à trier »
     appliquer(data); ecrireCache(data); remplirListes(); statut('');
     poserLogosDepart();                           // TEMPORAIRE : les 5 logos de J-C, une fois
+    sans102();                                    // TEMPORAIRE : la couleur 102 (retirée) devient la 101
     expedierOrdre();                              // le réseau répond : on en profite pour renvoyer l'attente
     expedierCouleurs();                           // idem pour les couleurs (sinon un appareil garde les siennes)
     expedierGestes();                             // idem pour les consommations
@@ -1276,6 +1276,22 @@ function poserLogosDepart() {
   if (!lignes.length) return;
   poserGeste({ action: 'lignes', table: 'Magasins', opId: 'logos-depart-' + Date.now(), lignes: lignes });
   lignes.forEach(l => { const x = LISTES.Magasins.find(y => String(y.id) === String(l[0])); if (x) x.logo = l[6]; });
+}
+/* TEMPORAIRE (2026-10-05) : la couleur 102 est retirée (J-C : « une couleur est une couleur et a son hex » — c'était le double exact de
+   la 101, #ffffff). Une pièce, un meuble, une catégorie ou une épicerie qui l'avait choisie passe à la 101 (le même blanc), une fois.
+   À RETIRER avec LOGOS_DEPART. */
+function sans102() {
+  const c = lireCache();
+  if (!c) return;
+  const lieux = PIECES.concat(MEUBLES).filter(x => numeroCouleur(x.couleur) === '102');
+  lieux.forEach(x => { x.couleur = '101'; couleursModif.meubles[x.id] = '101'; });
+  if (lieux.length) envoyerCouleurs();
+  const cats = (c.cats || []).filter(r => String(r[7] || '').trim() === '102').map(r => { const l = r.slice(); l[7] = '101'; return l; });
+  if (cats.length) poserGeste({ action: 'lignes', table: 'Categories', opId: 'sans102-c-' + Date.now(), lignes: cats });
+  RAYONS.forEach(r => { if (numeroCouleur(r.couleur) === '102') r.couleur = '101'; });
+  const mags = ((c.listes || {}).Magasins || []).filter(r => String(r[5] || '').trim() === '102').map(r => { const l = r.slice(); l[5] = '101'; return l; });
+  if (mags.length) poserGeste({ action: 'lignes', table: 'Magasins', opId: 'sans102-g-' + Date.now(), lignes: mags });
+  LISTES.Magasins.forEach(x => { if (x.couleur === '102') x.couleur = '101'; });
 }
 /* Une pastille touchée (Gérer les bases → Catégories) = la couleur de la catégorie, partout tout de suite;
    envoyée en arrière-plan (geste « lignes » : la ligne de Categories réécrite, col. H). */
