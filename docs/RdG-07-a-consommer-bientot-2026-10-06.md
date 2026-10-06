@@ -34,10 +34,16 @@
    la durée de sa sous-catégorie. Une sous-catégorie sans durée (l'eau, l'entretien ménager) : jamais
    dans la liste. Rejeté : A (la sous-catégorie seulement : approximatif).
 
+4. **« Bientôt » = le dernier quart de sa durée (choix B)** — J-C : « B ». Les framboises (3 jours) paraissent
+   le dernier jour, le yogourt (3 semaines) la dernière semaine, la viande au congélo (4 mois) le dernier
+   mois — le temps de la planifier. Rejeté : A (un nombre de jours fixe : les framboises dès l'épicerie,
+   la viande du congélo 3 jours avant seulement).
+
 ## 3. Questions ouvertes (dans l'ordre, une à la fois)
 
-1. **« Bientôt » = combien de jours avant ?**
-2. Ce qui a passé la date : dans la même liste ? autrement ?
+1. **Ce qui a passé la date : dans la même liste ? autrement ?**
+2. Jeter un aliment passé : Consommer n'a qu'une raison (« consommé », 2026-09-29); un aliment jeté
+   compté comme mangé fausserait la prévision du rachat (Sorties). Une 2e raison, « jeté » ?
 3. Un aliment qui sort du congélo (décongelé) : l'horloge repart ?
 4. Où corriger la durée d'une sous-catégorie (Gérer les bases → Catégories ?).
 5. L'allure de la liste (aperçu d'abord) et où elle paraît ailleurs (Inventaire, écran de rayon ?).
