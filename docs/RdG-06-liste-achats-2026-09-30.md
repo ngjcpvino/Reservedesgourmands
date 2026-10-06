@@ -4,6 +4,12 @@
 du menu, le calcul, cocher, la poubelle, ajouter à la main et au scan). **Le coffre-fort est écrit le 30 septembre aussi** (conversation sur l'ordi, section 4) — **collé par J-C et vérifié le 1er octobre** : un aliment ajouté sur l'iPad
 paraît sur l'iPhone (la liste est partagée entre les deux appareils).*
 
+> **⭐ CHANGÉ LE 5 OCTOBRE — LA LISTE COMPTE PAR ALIMENT** (J-C : « c'est inscrit du lait mais il m'en reste 1, mais d'une autre
+> marque »; choix A) : un aliment paraît quand il n'en reste **plus du tout, toutes marques et saveurs confondues** (avant : chaque
+> sorte comptait à part); « pour réserve » quand **tout** ce qui reste de l'aliment est à son emplacement 1. Une ligne par aliment, ses
+> sortes écrites en petit (« Natrel 2 % · Lactantia ») pour choisir au magasin. Une saveur précise qui manque : on l'ajoute à la main.
+> Ce qui suit reste vrai pour le reste (cocher, mettre de côté, ajouter, l'entrée qui nettoie).
+
 ---
 
 ## 1. DÉJÀ DÉCIDÉ AVANT (rappel, d'autres documents)

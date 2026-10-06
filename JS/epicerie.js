@@ -280,7 +280,7 @@ function validerCarte(rep) {
     const c = lireCache(); if (c) { (c.codes = c.codes || {})[code] = pid; ecrireCache(c); }
   }
   memoriserVariante(pid, marque, format, [{ emp: emp, qte: qte }], saveur);
-  nettoyerAchats(pid, marque, saveur);                   // entré : il quitte la liste d'achats
+  nettoyerAchats(pid);                                   // entré : il quitte la liste d'achats
   fermerCarte();
   remplirListeEpicerie();
   poserPoints();                                         // le point rouge de Compléter : il y a du nouveau à placer

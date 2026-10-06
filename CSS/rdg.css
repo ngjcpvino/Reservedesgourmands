@@ -618,10 +618,6 @@ select.champ {
   color: var(--couleur-306);
 }
 .espace-bandeau + .item { border-top: none; }   /* le bandeau sépare déjà : pas de trait dessous */
-/* LA RÈGLE DES LISTES (J-C, 2026-09-30, choix B1 sur aperçu) : un aliment à plusieurs sortes = son nom UNE fois, en bandeau pâle
-   en retrait; ses sortes dessous, au même retrait. Une seule sorte : une ligne complète, comme avant. */
-.bandeau-aliment { margin-left: var(--retrait); }
-.item.item-sorte { padding-left: calc(var(--espace-l) + var(--retrait)); }   /* .item.… : la ligne de base (.item, plus bas) ne l'efface plus */
 
 /* Un aliment à plusieurs sortes (Inventaire, choix C de J-C) : une ligne — le nom et le total —
    qu'on touche pour voir ses sortes dessous, en retrait. La flèche est celle des accordéons. */
@@ -973,7 +969,6 @@ select.champ {
 .item:has(> .soldes-ligne) { flex-wrap: wrap; row-gap: 0; }
 .soldes-ligne { flex-basis: 100%; }
 .solde-meilleur { color: var(--couleur-402); }
-.soldes-bandeau { padding: 0 var(--espace-l) var(--espace-s) calc(var(--retrait) + var(--espace-l)); }
 .groupe-solde { --meuble: var(--couleur-701); }
 
 /* ============================================================

@@ -1081,7 +1081,7 @@ async function enregistrer() {
       CODES[String(code)] = produitId;
       const c3 = lireCache(); if (c3) { (c3.codes = c3.codes || {})[String(code)] = produitId; ecrireCache(c3); }
     }
-    nettoyerAchats(produitId, marque, saveur);           // entré : il quitte la liste d'achats
+    nettoyerAchats(produitId);                           // entré : il quitte la liste d'achats
     opCourant = null;                                      // succès : le prochain article aura un nouveau jeton
     preparerFiche(false);                                  // le même écran qu'au départ, prêt pour le suivant (J-C : « 2 pages pour entrer un produit »)
     window.scrollTo(0, 0);
@@ -2833,56 +2833,50 @@ function idLocal() {
     String(Date.now() % 1000).padStart(3, '0') + '-' + Math.random().toString(36).slice(2, 7);
 }
 /* ---------- LA LISTE D'ACHATS (point 5) — décisions de J-C, 2026-09-30 (docs/RdG-06) ----------
-   Ce qui MANQUE se calcule tout seul depuis STOCK, par aliment + marque + saveur :
-   · il n'en reste plus (zéro partout, rangé ou pas);
+   Ce qui MANQUE se calcule tout seul depuis STOCK, PAR ALIMENT (toutes sortes confondues, depuis le 2026-10-05; avant : par sorte) :
+   · il n'en reste plus (zéro partout, rangé ou pas, toutes marques et saveurs);
    · « pour réserve » : l'aliment a au moins 2 endroits habituels, et tout ce qui reste est à l'emplacement 1 (la réserve est vide).
-   Un « Pas aimé » à zéro : la ligne dit seulement l'aliment — s'il n'en reste plus du tout, et si aucune autre sorte n'y est déjà.
+   Une saveur précise qui manque (la fraise, quand il reste de la vanille) : on l'ajoute à la main.
    Ce qui S'ÉCRIT (onglet Achats, ID donné ici, jamais effacé : Actif = N) : « coche » (dans le panier), « main » (ajouté à la main,
    l'aliment seul), « plustard » (la flèche « mettre de côté » — la poubelle avant le 2026-10-02 : il attend dans « Mis de côté »).
+   Tout se lit par aliment (col. B); marque et saveur (C, D) s'écrivent vides — une vieille ligne par sorte compte pour son aliment.
    Une ENTRÉE nettoie tout ça (nettoyerAchats) : l'aliment quitte la liste quand on l'entre, jamais quand on le coche. */
-const cleAchat = (pid, m, s) => [pid, m, s].map(v => String(v == null ? '' : v).trim()).join('|');
+const cleAchat = pid => String(pid == null ? '' : pid).trim() + '||';   // la clé d'une ligne : son aliment (la forme d'avant, marque et saveur vides)
 const achatActif = r => String(r[7]) !== 'N';
-const ligneAchat = (pid, m, s, etat) => [idLocal(), String(pid), m || '', s || '', etat, dateDuJour(), localStorage.getItem(QUI) || '', 'O'];
-/* Ce qui est sur la liste : [{ cle, pid, marque, saveur, auto: '' | 'zero' | 'pas', main, coche }].
+const ligneAchat = (pid, etat) => [idLocal(), String(pid), '', '', etat, dateDuJour(), localStorage.getItem(QUI) || '', 'O'];
+const lignesDeAliment = (pid, etat) => ACHATS.filter(r => achatActif(r) && r[4] === etat && String(r[1]) === String(pid));
+/* Ce qui est sur la liste : [{ cle, pid, sortes, auto: '' | 'zero' | 'pas', main, coche }].
    cote : ce que la flèche a mis de côté (« plustard ») — le groupe « Mis de côté » (J-C, 2026-10-01, choix C). */
 function lignesAchats(cote) {
   const actifs = ACHATS.filter(achatActif);
-  const a = (k, etat) => actifs.some(r => r[4] === etat && cleAchat(r[1], r[2], r[3]) === k);
+  const a = (pid, etat) => actifs.some(r => r[4] === etat && String(r[1]) === String(pid));   // par aliment (une vieille ligne par sorte compte pour son aliment)
   const existe = pid => PRODUITS.some(p => String(p.id) === String(pid));   // un aliment retiré : plus rien à racheter
-  const combos = {}, totalAliment = {};
+  // PAR ALIMENT (J-C, 2026-10-05 : « c'est inscrit du lait mais il m'en reste 1, d'une autre marque » — choix A) : il manque quand il
+  // n'en reste plus du tout, toutes sortes confondues; « pour réserve » : tout ce qui reste est à son emplacement 1. Ses sortes (marque,
+  // saveur — pas un « Pas aimé ») sont écrites en petit, pour choisir au magasin.
+  const parAliment = {};
   STOCK.forEach(l => {
-    const pid = String(l[1]), m = String(l[5] || '').trim(), sv = String(l[9] || '').trim(), k = cleAchat(pid, m, sv);
-    const x = combos[k] = combos[k] || { pid: pid, marque: m, saveur: sv, total: 0, emps: {} };
-    const q = Number(l[3]) || 0;
+    const pid = String(l[1]), q = Number(l[3]) || 0, m = String(l[5] || '').trim(), sv = String(l[9] || '').trim();
+    const x = parAliment[pid] = parAliment[pid] || { total: 0, emps: {}, sortes: [] };
     if (q > 0) { x.total += q; x.emps[String(l[2] || '')] = true; }
-    totalAliment[pid] = (totalAliment[pid] || 0) + Math.max(q, 0);
+    const s = estPasAime(pid, m, sv) ? '' : [nomListe(m), nomListe(sv)].filter(Boolean).join(' ');
+    if (s && x.sortes.indexOf(s) === -1) x.sortes.push(s);
   });
-  const items = {}, ecartes = {}, pasAimes = {};
-  const mettre = (pid, m, sv, quoi) => {
-    const k = cleAchat(pid, m, sv), ou = a(k, 'plustard') ? ecartes : items;   // mis de côté (venu tout seul ou ajouté à la main)
-    const it = ou[k] = ou[k] || { cle: k, pid: String(pid), marque: m, saveur: sv, auto: '', main: false };
+  const items = {}, ecartes = {};
+  const mettre = (pid, quoi) => {
+    const k = cleAchat(pid), ou = a(pid, 'plustard') ? ecartes : items;   // mis de côté (venu tout seul ou ajouté à la main)
+    const it = ou[k] = ou[k] || { cle: k, pid: String(pid), auto: '', main: false, sortes: (parAliment[pid] || {}).sortes || [] };
     if (quoi === 'main') it.main = true; else it.auto = quoi;
   };
-  Object.values(combos).forEach(x => {
-    if (!existe(x.pid)) return;
-    if (estPasAime(x.pid, x.marque, x.saveur)) { pasAimes[x.pid] = true; return; }   // vu après les autres sortes
-
-    let quoi = '';
-    if (!x.total) quoi = 'zero';
-    else {
-      const hab = endroitsHabituels(x.pid).filter(e => resoudreEmp(e));
-      if (hab.length >= 2 && Object.keys(x.emps).every(e => e === String(hab[0]))) quoi = 'pas';
-    }
-    if (quoi) mettre(x.pid, x.marque, x.saveur, quoi);
+  Object.keys(parAliment).forEach(pid => {
+    if (!existe(pid)) return;
+    const x = parAliment[pid], hab = endroitsHabituels(pid).filter(e => resoudreEmp(e));
+    if (!x.total) mettre(pid, 'zero');
+    else if (hab.length >= 2 && Object.keys(x.emps).every(e => e === String(hab[0]))) mettre(pid, 'pas');
   });
-  // un « Pas aimé » : « il manque du yogourt », sans la marque ni la saveur — s'il n'en reste plus du tout,
-  // et si aucune autre sorte de cet aliment n'est déjà sur la liste (elle le dit déjà)
-  Object.keys(pasAimes).forEach(pid => {
-    if (!totalAliment[pid] && !Object.values(items).some(it => it.pid === pid)) mettre(pid, '', '', 'zero');
-  });
-  actifs.forEach(r => { if (r[4] === 'main' && existe(r[1])) mettre(r[1], '', '', 'main'); });
+  actifs.forEach(r => { if (r[4] === 'main' && existe(r[1])) mettre(String(r[1]), 'main'); });
   if (cote) return Object.values(ecartes).filter(it => !items[it.cle]);   // rajouté à la main entre-temps : il est déjà sur la liste
-  return Object.values(items).map(it => Object.assign(it, { coche: a(it.cle, 'coche') }));
+  return Object.values(items).map(it => Object.assign(it, { coche: a(it.pid, 'coche') }));
 }
 /* La page : dans l'ordre des catégories (comme J-C les a classées), puis des sous-catégories; les aliments par nom.
    « Sans catégorie » au bout (brune). Puis « Mis de côté » (sans compteur : J-C) : ce que la poubelle a écarté, chacun avec
@@ -2899,48 +2893,27 @@ function remplirAchats(ouvrir) {
   ouvrir = ouvrir || (ouverte ? ouverte.parentElement.dataset.groupe : '');
   const items = lignesAchats(), cote = lignesAchats(true);
   const nomDe = pid => (PRODUITS.find(p => String(p.id) === String(pid)) || {}).nom || '';
-  const detail = it => [nomListe(it.marque), nomListe(it.saveur)].filter(Boolean).join(' ');
-  const tri = (x, y) => nomDe(x.pid).localeCompare(nomDe(y.pid), 'fr') || detail(x).localeCompare(detail(y), 'fr');
-  // sorte : la ligne d'une sorte sous le nom de son aliment (la règle des listes) — marque et saveur en guise de nom
-  const ligne = (it, sorte) => {
-    const nom = sorte ? (detail(it) || nomDe(it.pid)) : nomDe(it.pid);
-    const d = [!sorte ? detail(it) : '', it.auto === 'pas' && !it.main ? '(pour réserve)' : ''].filter(Boolean).join(' ');
+  const tri = (x, y) => nomDe(x.pid).localeCompare(nomDe(y.pid), 'fr');
+  // UNE ligne par aliment (J-C, 2026-10-05) : son nom; en petit, ses sortes (« Natrel 2 % · Lactantia » : pour choisir au magasin) et
+  // « (pour réserve) »; ses soldes dessous
+  const detail = it => [it.sortes.join(' · '), it.auto === 'pas' && !it.main ? '(pour réserve)' : ''].filter(Boolean).join(' ');
+  const ligne = it =>
     // en haut à droite, côte à côte (J-C, 2026-10-02, choix C sur aperçu) : la flèche « mettre de côté » (celle de « revenir »,
     // inversée — plus de poubelle), puis la case « dans le panier »; l'aliment et la case alignés par le haut
-    return '<div class="item achat' + (sorte ? ' item-sorte' : '') + (it.coche ? ' achat-coche' : '') + '" data-achat="' + esc(it.cle) + '">' +
-      '<div class="item-info"><div class="item-nom">' + esc(nom) + '</div>' + (d ? '<div class="item-detail">' + esc(d) + '</div>' : '') + '</div>' +
+    '<div class="item achat' + (it.coche ? ' achat-coche' : '') + '" data-achat="' + esc(it.cle) + '">' +
+      '<div class="item-info"><div class="item-nom">' + esc(nomDe(it.pid)) + '</div>' + (detail(it) ? '<div class="item-detail">' + esc(detail(it)) + '</div>' : '') + '</div>' +
       '<div class="achat-boutons"><button class="remettre ecarter" type="button" data-achat-cote="' + esc(it.cle) + '" aria-label="Mettre de côté"></button>' +
-      '<input class="case" type="checkbox" tabindex="-1"' + (it.coche ? ' checked' : '') + '></div>' + (sorte ? '' : soldesSous(it.pid)) + '</div>';
-  };
+      '<input class="case" type="checkbox" tabindex="-1"' + (it.coche ? ' checked' : '') + '></div>' + soldesSous(it.pid) + '</div>';
   // les soldes d'un aliment : SOUS sa ligne, sur toute la largeur (J-C, 2026-10-02 : « sur une même ligne si possible »)
   const soldesSous = (pid, rep) => { const h = htmlSoldes(pid, rep); return h ? '<div class="soldes-ligne">' + h + '</div>' : ''; };
   // une ligne de « Mis de côté » : pas de case (on ne coche pas ce qui est écarté), la flèche « revenir » au bout
-  const ligneCote = (it, sorte) => {
-    const nom = sorte ? (detail(it) || nomDe(it.pid)) : nomDe(it.pid);
-    const d = [!sorte ? detail(it) : '', it.auto === 'pas' ? '(pour réserve)' : ''].filter(Boolean).join(' ');
-    return '<div class="item' + (sorte ? ' item-sorte' : '') + '"><div class="item-info"><div class="item-nom">' + esc(nom) + '</div>' +
-      (d ? '<div class="item-detail">' + esc(d) + '</div>' : '') + '</div>' +
-      '<button class="remettre" type="button" data-achat-remettre="' + esc(it.cle) + '" aria-label="Remettre sur la liste"></button>' + (sorte ? '' : soldesSous(it.pid)) + '</div>';
-  };
-  // LA RÈGLE DES LISTES (J-C, 2026-09-30, choix B1) : un aliment à plusieurs sortes = son nom UNE fois, en bandeau pâle en retrait,
-  // ses sortes dessous au même retrait; une seule sorte = une ligne complète. Les lignes arrivent triées par aliment.
-  const lignesHtml = (lignes, fait) => {
-    fait = fait || ligne;
-    let html = '';
-    for (let i = 0; i < lignes.length; ) {
-      let j = i; while (j < lignes.length && lignes[j].pid === lignes[i].pid) j++;
-      const memes = lignes.slice(i, j);
-      const soldes = memes.length > 1 ? htmlSoldes(memes[0].pid) : '';   // plusieurs sortes : le solde vise l'aliment, sous son nom
-      html += memes.length > 1 ? '<div class="espace-bandeau bandeau-aliment">' + esc(nomDe(memes[0].pid)) + '</div>' +
-                                 (soldes ? '<div class="soldes-bandeau">' + soldes + '</div>' : '') + memes.map(it => fait(it, true)).join('')
-                               : fait(memes[0], false);
-      i = j;
-    }
-    return html;
-  };
+  const ligneCote = it =>
+    '<div class="item"><div class="item-info"><div class="item-nom">' + esc(nomDe(it.pid)) + '</div>' +
+      (detail(it) ? '<div class="item-detail">' + esc(detail(it)) + '</div>' : '') + '</div>' +
+      '<button class="remettre" type="button" data-achat-remettre="' + esc(it.cle) + '" aria-label="Remettre sur la liste"></button>' + soldesSous(it.pid) + '</div>';
   const groupe = (nom, lignes, rid) => { const t = teinteCategorie(rid); return lignes.length ? '<div class="accordeon" data-groupe="' + esc(rid || 'sans') + '"' + t.style + '>' +
     '<div class="accordeon-tete' + t.pale + '"><span>' + esc(nom) + '</span></div>' +
-    '<div class="liste-blanche achats-groupe" hidden>' + lignesHtml(lignes) + '</div></div>' : ''; };
+    '<div class="liste-blanche achats-groupe" hidden>' + lignes.map(ligne).join('') + '</div></div>' : ''; };
   const places = {};
   let html = RAYONS.map(r => {
     const lignes = [];
@@ -2953,7 +2926,7 @@ function remplirAchats(ouvrir) {
   html += groupe('Sans catégorie', items.filter(it => !places[it.cle]).sort(tri), '');
   html = html || '<div class="accordeon-item"><span class="texte-petit texte-pale">Rien à acheter.</span></div>';
   if (cote.length) html += '<div class="accordeon" data-groupe="cote"><div class="accordeon-tete">Mis de côté</div>' +
-    '<div class="liste-blanche achats-groupe" hidden>' + lignesHtml(cote.sort(tri), ligneCote) + '</div></div>';
+    '<div class="liste-blanche achats-groupe" hidden>' + cote.sort(tri).map(ligneCote).join('') + '</div></div>';
   // « Il y a aussi ceci » : un aliment par ligne, ses soldes triés Oui dessous, la flèche pour l'ajouter
   const surListe = {};
   items.concat(cote).forEach(it => { surListe[it.pid] = true; });
@@ -2981,8 +2954,8 @@ async function montrerAchats() {
 function cocherAchat(k) {
   const it = lignesAchats().find(x => x.cle === k);
   if (!it) return;
-  const coches = ACHATS.filter(r => achatActif(r) && r[4] === 'coche' && cleAchat(r[1], r[2], r[3]) === k);
-  poserAchats(coches.length ? coches.map(r => { const l = r.slice(); l[7] = 'N'; return l; }) : [ligneAchat(it.pid, it.marque, it.saveur, 'coche')]);
+  const coches = lignesDeAliment(it.pid, 'coche');
+  poserAchats(coches.length ? coches.map(r => { const l = r.slice(); l[7] = 'N'; return l; }) : [ligneAchat(it.pid, 'coche')]);
   remplirAchats();
 }
 /* La flèche « mettre de côté » (la poubelle avant le 2026-10-02) : « pas pour l'instant » — il passe dans « Mis de côté », d'où la
@@ -2991,25 +2964,21 @@ function cocherAchat(k) {
 function mettreDeCote(k) {
   const it = lignesAchats().find(x => x.cle === k);
   if (!it) return;
-  const lignes = ACHATS.filter(r => achatActif(r) && r[4] === 'coche' && cleAchat(r[1], r[2], r[3]) === k)
-    .map(r => { const l = r.slice(); l[7] = 'N'; return l; });
-  lignes.push(ligneAchat(it.pid, it.marque, it.saveur, 'plustard'));
+  const lignes = lignesDeAliment(it.pid, 'coche').map(r => { const l = r.slice(); l[7] = 'N'; return l; });
+  lignes.push(ligneAchat(it.pid, 'plustard'));
   poserAchats(lignes);
   remplirAchats();
 }
 /* La flèche « revenir » (Mis de côté) : il revient sur la liste. Instantané; un 2e toucher ne trouve plus rien à défaire. */
 function remettreAchat(k) {
-  poserAchats(ACHATS.filter(r => achatActif(r) && r[4] === 'plustard' && cleAchat(r[1], r[2], r[3]) === k)
-    .map(r => { const l = r.slice(); l[7] = 'N'; return l; }));
+  const pid = String(k).split('|')[0];
+  poserAchats(lignesDeAliment(pid, 'plustard').map(r => { const l = r.slice(); l[7] = 'N'; return l; }));
   remplirAchats();
 }
-/* Une entrée réussie : l'aliment quitte la liste — son ajout à la main, et la coche ou le « pas pour l'instant »
-   de ce qui a été entré (et de l'aliment seul, sans marque ni saveur). Le prochain passage à zéro repart de rien. */
-function nettoyerAchats(pid, marque, saveur) {
-  const k = cleAchat(pid, marque, saveur);
-  poserAchats(ACHATS.filter(r => achatActif(r) && String(r[1]) === String(pid) &&
-      (r[4] === 'main' || cleAchat(r[1], r[2], r[3]) === k || (!String(r[2] || '').trim() && !String(r[3] || '').trim())))
-    .map(r => { const l = r.slice(); l[7] = 'N'; return l; }));
+/* Une entrée réussie : l'aliment quitte la liste — son ajout à la main, sa coche, son « pas pour l'instant » (par aliment, depuis
+   le 2026-10-05 : une sorte entrée suffit). Le prochain passage à zéro repart de rien. */
+function nettoyerAchats(pid) {
+  poserAchats(ACHATS.filter(r => achatActif(r) && String(r[1]) === String(pid)).map(r => { const l = r.slice(); l[7] = 'N'; return l; }));
 }
 /* ---- Ce qui s'écrit : SA PROPRE FILE, à part de Consommer/Déplacer (rien n'y dépend de STOCK, et un coffre-fort pas encore
    à jour — « action inconnue » — ne doit pas bloquer les consommations). La mémoire change tout de suite; l'envoi, un à la fois;
@@ -3701,10 +3670,9 @@ function mettreSurListe(pid) {
   fermerAjoutAchat();
   if (lignesAchats().some(it => it.pid === String(pid))) avis('Déjà sur la liste : ' + nom);
   else {                                           // un ajout mis de côté plus tôt revient (son « plus tard » s'en va), sinon il naît
-    const k = cleAchat(pid, '', ''), cote = ACHATS.filter(r => achatActif(r) && r[4] === 'plustard' && cleAchat(r[1], r[2], r[3]) === k)
-      .map(r => { const l = r.slice(); l[7] = 'N'; return l; });
-    const main = ACHATS.some(r => achatActif(r) && r[4] === 'main' && cleAchat(r[1], r[2], r[3]) === k);
-    poserAchats(cote.concat(main ? [] : [ligneAchat(pid, '', '', 'main')]));
+    const cote = lignesDeAliment(pid, 'plustard').map(r => { const l = r.slice(); l[7] = 'N'; return l; });
+    const main = lignesDeAliment(pid, 'main').length > 0;
+    poserAchats(cote.concat(main ? [] : [ligneAchat(pid, 'main')]));
     avis('Sur la liste : ' + nom, 'succes');
   }
   const r = RAYONS.find(x => (SOUSCATS[x.id] || []).some(sc => String(sc.id) === String(p.catId)));
