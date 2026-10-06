@@ -32,57 +32,14 @@ var envoiOrdre = false;                // un envoi d'ordre est en route
 const DELAI_ORDRE = 2000;              // l'ordre part tout seul 2 s après la dernière flèche (J-C, 2026-09-30 : « comme les couleurs »)
 var minuterieOrdre = null;
 
-/* LA PALETTE du root, numérotée par famille, modifiable dans Outils → Couleurs : [variable, nom, à quoi elle sert].
-   Les teintes dérivées (menu, ombres…) en découlent dans le CSS : elles suivent toutes seules.
-   Les pièces et meubles qui l'utilisent s'ajoutent à l'usage, à l'écran. */
-const COULEURS_SITE = [
-  ['couleur-101', 'Couleur 101', 'fond du cadre et autour, champs, texte des boutons de couleur'],   // (la 102, son double exact, retirée le 2026-10-05 : J-C)
-  ['couleur-103', 'Couleur 103', ''],
-  ['couleur-104', 'Couleur 104', ''],
-  ['couleur-105', 'Couleur 105', 'icônes, texte des boutons bruns et du menu, bouteilles'],
-  ['couleur-106', 'Couleur 106', ''],
-  ['couleur-201', 'Couleur 201', 'étiquettes de quantité'],
-  ['couleur-202', 'Couleur 202', ''],
-  ['couleur-203', 'Couleur 203', ''],
-  ['couleur-204', 'Couleur 204', ''],
-  ['couleur-205', 'Couleur 205', 'bord des champs, trait sous les titres'],
-  ['couleur-206', 'Couleur 206', ''],
-  ['couleur-301', 'Couleur 301', ''],
-  ['couleur-302', 'Couleur 302', 'petits intitulés, texte pâle'],
-  ['couleur-303', 'Couleur 303', 'suite n° 7'],
-  ['couleur-304', 'Couleur 304', 'suite n° 5'],
-  ['couleur-305', 'Couleur 305', "boutons bruns, têtes d'accordéon, burger, loupe"],
-  ['couleur-306', 'Couleur 306', 'texte, menu, ombres'],
-  ['couleur-401', 'Couleur 401', 'suite n° 4'],
-  ['couleur-402', 'Couleur 402', 'erreurs'],
-  ['couleur-403', 'Couleur 403', 'suite n° 9'],
-  ['couleur-404', 'Couleur 404', ''],
-  ['couleur-501', 'Couleur 501', ''],
-  ['couleur-502', 'Couleur 502', ''],
-  ['couleur-503', 'Couleur 503', ''],
-  ['couleur-504', 'Couleur 504', ''],
-  ['couleur-505', 'Couleur 505', 'suite n° 1 (grilles, Listes)'],
-  ['couleur-506', 'Couleur 506', ''],
-  ['couleur-507', 'Couleur 507', ''],
-  ['couleur-601', 'Couleur 601', ''],
-  ['couleur-602', 'Couleur 602', ''],
-  ['couleur-603', 'Couleur 603', ''],
-  ['couleur-604', 'Couleur 604', 'boutons Retour'],
-  ['couleur-605', 'Couleur 605', ''],
-  ['couleur-606', 'Couleur 606', ''],
-  ['couleur-607', 'Couleur 607', ''],
-  ['couleur-701', 'Couleur 701', ''],
-  ['couleur-702', 'Couleur 702', 'suite n° 3'],
-  ['couleur-703', 'Couleur 703', 'boutons verts, succès, suite n° 8'],
-  ['couleur-704', 'Couleur 704', 'suite n° 10'],
-  ['couleur-801', 'Couleur 801', ''],
-  ['couleur-802', 'Couleur 802', 'suite n° 6'],
-  ['couleur-803', 'Couleur 803', 'suite n° 2'],
-  ['couleur-901', 'Couleur 901', ''],
-  ['couleur-902', 'Couleur 902', ''],
-  ['couleur-903', 'Couleur 903', 'bas foncé des boutons, fond du scan']
-];
-const FAMILLES = [['1', 'Blancs et crèmes'], ['2', 'Beiges et sables'], ['3', 'Bruns'], ['4', 'Rouges'], ['5', 'Oranges'], ['6', 'Jaunes et ors'], ['7', 'Verts'], ['8', 'Bleus'], ['9', 'Gris et noirs']];   // le chiffre des centaines
+/* LA PALETTE du root, numérotée par famille, modifiable dans Outils → Couleurs : les numéros de base (une --couleur-NNN du root chacun).
+   Les teintes dérivées (menu, ombres…) en découlent dans le CSS : elles suivent toutes seules. Une couleur AJOUTÉE dans l'app (J-C,
+   2026-10-05) n'est pas ici : elle vit dans l'onglet Couleurs (numerosPalette). « Où elle sert » est retiré (J-C : « pas utile »). */
+const COULEURS_SITE = ['101', '103', '104', '105', '106', '201', '202', '203', '204', '205', '206', '301', '302', '303', '304', '305', '306', '401', '402', '403', '404', '501', '502', '503', '504', '505', '506', '507', '601', '602', '603', '604', '605', '606', '607', '701', '702', '703', '704', '801', '802', '803', '901', '902', '903'];   // (la 102, double exact de la 101, retirée le 2026-10-05 : J-C)
+const COULEURS_RETIREES = ['102'];          // un numéro retiré ne revient jamais, même s'il traîne dans l'onglet Couleurs
+/* Les familles (le chiffre des centaines), et la couleur qui REPRÉSENTE chacune : sa barre en est peinte (J-C, 2026-10-05, sur aperçu). */
+const FAMILLES = [['1', 'Blancs et crèmes', '105'], ['2', 'Beiges et sables', '204'], ['3', 'Bruns', '305'], ['4', 'Rouges', '401'], ['5', 'Oranges', '505'],
+                  ['6', 'Jaunes et ors', '604'], ['7', 'Verts', '702'], ['8', 'Bleus', '803'], ['9', 'Gris et noirs', '902']];
 const ATTENTE_COULEURS = 'rdg_couleurs_attente';   // couleurs pas encore confirmées par le coffre-fort
 var STOCK = [];                                     // lignes de STOCK : ce qu'on possède, pour la liste « Inventaire »
 var COULEURS = [];                                  // lignes de l'onglet Couleurs : [ID, SecteurID, Nom, Valeur]
@@ -138,6 +95,7 @@ function toutCacher() {
 }
 async function montrerCouleurs() {
   toutCacher(); $('vue-couleurs').hidden = false; $('btn-burger').hidden = false;
+  $('liste-couleurs').innerHTML = '';                // on arrive : les familles fermées
   if (!MEUBLES.length) {                       // pas encore chargé → on charge (même patron que les bases)
     $('liste-couleurs').innerHTML = '<div class="texte-petit texte-pale">Chargement…</div>';
     await chargerReferences();
@@ -4003,12 +3961,19 @@ function paletteSite() {
   COULEURS.forEach(r => { if (!SECTEUR_ID || String(r[1]) === SECTEUR_ID) p[String(r[2])] = String(r[3] || ''); });
   return Object.assign(p, lireAttenteCouleurs().site, couleursModif.site);
 }
-/* Pose la palette sur le root. Une valeur vide ou illisible = la couleur d'origine du CSS. */
+/* Les numéros de la palette, dans l'ordre : ceux du root, puis ceux ajoutés dans l'app (l'onglet Couleurs : « couleur-405 » avec un hex
+   lisible), jamais un numéro retiré. */
+function numerosPalette() {
+  const p = paletteSite(), ajoutes = Object.keys(p).map(nom => (/^couleur-(\d{3})$/.exec(nom) || [])[1])
+    .filter(n => n && COULEURS_SITE.indexOf(n) === -1 && COULEURS_RETIREES.indexOf(n) === -1 && hexValide(p['couleur-' + n]));
+  return COULEURS_SITE.concat(ajoutes).sort();
+}
+/* Pose la palette sur le root. Une valeur vide ou illisible = la couleur d'origine du CSS (une couleur ajoutée n'en a pas : elle disparaît). */
 function appliquerCouleursSite() {
   const p = paletteSite(), root = document.documentElement.style;
-  COULEURS_SITE.forEach(([nom]) => {
-    const v = hexValide(p[nom]);
-    if (v) root.setProperty('--' + nom, v); else root.removeProperty('--' + nom);
+  numerosPalette().forEach(n => {
+    const v = hexValide(p['couleur-' + n]);
+    if (v) root.setProperty('--couleur-' + n, v); else root.removeProperty('--couleur-' + n);
   });
 }
 /* La couleur affichée en ce moment pour une variable du root (d'origine ou changée). */
@@ -4016,46 +3981,59 @@ function couleurActuelle(nom) {
   return hexValide(getComputedStyle(document.documentElement).getPropertyValue('--' + nom)) || '';
 }
 
-/* Une ligne de la palette : pastille + « Couleur 305 » (+ où elle sert) + champ hex. La couleur de la pastille est une DONNÉE. */
-function htmlLigneCouleur(attr, id, nom, usage, valeur) {
-  return '<div class="accordeon-item accordeon-item-saisie">' +
-    '<span class="pastille"' + (valeur ? ' style="background:' + esc(valeur) + '"' : '') + '></span>' +
-    '<span class="couleur-nom">' + esc(nom) + (usage ? '<span class="couleur-usage">' + esc(usage) + '</span>' : '') + '</span>' +
-    '<input class="champ champ-hex" ' + attr + '="' + esc(id) + '" value="' + esc(valeur) + '" maxlength="7" autocomplete="off" autocapitalize="off" spellcheck="false" placeholder="#rrggbb">' +
-  '</div>';
-}
-/* Où sert une couleur : son usage dans le site, puis les pièces, meubles, catégories et épiceries qui l'ont choisie. */
-function usageCouleur(num, usage) {
-  const qui = PIECES.concat(MEUBLES, RAYONS, LISTES.Magasins || []).filter(x => numeroCouleur(x.couleur) === num).map(x => x.nom);
-  return [usage].concat(qui).filter(Boolean).join(' · ') || 'pas encore utilisée';
-}
-/* Les pastilles de la palette, à toucher. La choisie est cerclée. */
+/* Les pastilles de la palette, à toucher (pièces, meubles, catégories, épiceries). La choisie est cerclée. */
 function htmlPalette(choisi) {
-  return COULEURS_SITE.map(([nom, libelle]) => {
-    const n = nom.slice(8);
-    return '<button class="pastille pastille-choix' + (n === choisi ? ' pastille-choisie' : '') + '" type="button" data-num="' + n +
-      '" style="background:var(--' + nom + ')" aria-label="' + esc(libelle) + '"></button>';
+  return numerosPalette().map(n => '<button class="pastille pastille-choix' + (n === choisi ? ' pastille-choisie' : '') + '" type="button" data-num="' + n +
+    '" style="background:var(--couleur-' + n + ')" aria-label="Couleur ' + n + '"></button>').join('');
+}
+/* La couleur qui a déjà ce hex (« une couleur est une couleur et a son hex » : J-C, 2026-10-05), sauf sauf; '' = aucune. */
+const numeroDuHex = (v, sauf) => numerosPalette().find(n => n !== sauf && couleurActuelle('couleur-' + n) === v) || '';
+/* LE NUANCIER (J-C, 2026-10-05, choix B sur aperçu) : une puce de peinture — le numéro écrit sur la couleur, son hex dessous. */
+function htmlPuce(n) {
+  const v = couleurActuelle('couleur-' + n);
+  return '<div class="puce"><div class="puce-couleur' + (couleurPale(v) ? ' puce-pale' : '') + '" style="background:var(--couleur-' + n + ')">' + n + '</div>' +
+    '<input class="champ champ-hex" data-site="couleur-' + n + '" value="' + esc(v) + '" maxlength="7" autocomplete="off" autocapitalize="off" spellcheck="false" placeholder="#rrggbb"></div>';
+}
+/* L'écran Couleurs : les familles, chacune peinte de la couleur qui la représente (FAMILLES); ouverte, ses puces puis « Nouvelle couleur… ».
+   Ce qui était ouvert le reste (une couleur ajoutée). */
+function remplirCouleurs() {
+  const tO = $('liste-couleurs').querySelector('.accordeon-tete.ouvert'), ouverte = tO ? tO.parentElement.dataset.famille : '', nums = numerosPalette();
+  $('liste-couleurs').innerHTML = FAMILLES.map(([f, titre, rep]) => {
+    const t = couleurActuelle('couleur-' + rep), ouvert = f === ouverte;
+    return '<div class="accordeon" data-famille="' + f + '" style="--meuble:var(--couleur-' + rep + ')"><div class="accordeon-tete' + (couleurPale(t) ? ' tete-pale' : '') + (ouvert ? ' ouvert' : '') + '">' + esc(titre) + '</div>' +
+      '<div class="accordeon-corps"' + (ouvert ? '' : ' hidden') + '><div class="puces">' + nums.filter(n => n[0] === f).map(htmlPuce).join('') + '</div>' +
+      htmlAjout('couleur-nouvelle', 'Nouvelle couleur… (#rrggbb)', 'ajout-couleur', 'data-famille', f) + '</div></div>';
   }).join('');
 }
-/* L'écran Couleurs : la palette du site, famille par famille (les pièces et les meubles choisissent la leur sur leur page). */
-function remplirCouleurs() {
-  const accordeon = (titre, corps) => '<div class="accordeon"><div class="accordeon-tete">' + esc(titre) + '</div><div class="accordeon-corps" hidden>' + corps + '</div></div>';
-  $('liste-couleurs').innerHTML = FAMILLES.map(([f, titre]) => accordeon(titre,
-    COULEURS_SITE.filter(([nom]) => nom.charAt(8) === f)
-      .map(([nom, libelle, usage]) => htmlLigneCouleur('data-site', nom, libelle, usageCouleur(nom.slice(8), usage), couleurActuelle(nom))).join(''))).join('');
-}
-
-/* On tape un code : complet et bon -> tout change en direct; sinon le champ se marque en rouge et rien ne bouge. */
+/* On tape un code : complet et bon -> tout change en direct; sinon le champ se marque en rouge et rien ne bouge. Le hex d'une AUTRE couleur :
+   refusé (le champ rougit, « existe déjà : 101 »). */
 function surHex(ev) {
   const inp = ev.target.closest('.champ-hex');
   if (!inp) return;
-  const v = hexValide(inp.value);
-  inp.classList.toggle('champ-erreur', !v);
-  if (!v) return;
-  inp.parentElement.querySelector('.pastille').style.background = v;
+  const v = hexValide(inp.value), n = inp.dataset.site.slice(8), autre = v ? numeroDuHex(v, n) : '';
+  inp.classList.toggle('champ-erreur', !v || !!autre);
+  if (autre) avis('Existe déjà : ' + autre, 'erreur');
+  if (!v || autre) return;
+  inp.closest('.puce').querySelector('.puce-couleur').classList.toggle('puce-pale', couleurPale(v));
   couleursModif.site[inp.dataset.site] = v;
-  document.documentElement.style.setProperty('--' + inp.dataset.site, v);   // les pièces et meubles de ce numéro suivent
+  document.documentElement.style.setProperty('--' + inp.dataset.site, v);   // la puce, et les pièces, meubles… de ce numéro suivent
   montrer('btn-couleurs', true);
+}
+/* « Nouvelle couleur… » (J-C, 2026-10-05 : « faudrait pouvoir en ajouter ») : un hex, Ajouter (ou Entrée). Elle prend le numéro suivant de
+   sa famille (après le plus grand : un numéro retiré ne revient pas) et part tout de suite dans l'onglet Couleurs. Un hex qui existe déjà :
+   refusé. */
+function ajouterCouleur(f, btn) {
+  const champ = btn.parentElement.querySelector('.couleur-nouvelle'), v = hexValide(champ.value);
+  if (!v) { champ.classList.add('champ-erreur'); avis('Un code de couleur : #rrggbb', 'erreur'); return; }
+  const autre = numeroDuHex(v);
+  if (autre) { champ.classList.add('champ-erreur'); avis('Existe déjà : ' + autre, 'erreur'); return; }
+  const deFamille = numerosPalette().concat(COULEURS_RETIREES).filter(n => n[0] === f).map(Number), n = String(Math.max(Number(f) * 100, ...deFamille) + 1);
+  if (n[0] !== f) { avis('Cette famille est pleine', 'erreur'); return; }
+  couleursModif.site['couleur-' + n] = v;
+  document.documentElement.style.setProperty('--couleur-' + n, v);
+  envoyerCouleurs();                               // tout de suite : le cache la connaît (numerosPalette), l'onglet Couleurs la recevra
+  remplirCouleurs();
+  avis('Couleur ' + n + ' ajoutée', 'succes');
 }
 
 /* « Enregistrer les couleurs » (ou on quitte l'écran) : gardées ici, puis envoyées sans rien bloquer. */
@@ -4183,10 +4161,15 @@ function initEntree() {
   $('achat-nom').addEventListener('keydown', e => { if (e.key === 'Enter') { e.preventDefault(); validerAjoutAchat(); } });
   $('achat-scan').addEventListener('click', scannerPourAchat);
   // Outils → Couleurs
-  $('liste-couleurs').addEventListener('input', surHex);
+  $('liste-couleurs').addEventListener('input', ev => { if (ev.target.classList.contains('couleur-nouvelle')) ev.target.classList.remove('champ-erreur'); else surHex(ev); });
   $('liste-couleurs').addEventListener('click', function (ev) {
+    const b = ev.target.closest('.ajout-couleur');         // « Nouvelle couleur… » : Ajouter
+    if (b) { ajouterCouleur(b.dataset.famille, b); return; }
     const tete = ev.target.closest('.accordeon-tete');
     if (tete) toggleAccordeon(tete);
+  });
+  $('liste-couleurs').addEventListener('keydown', ev => {   // Entrée dans « Nouvelle couleur… » = Ajouter
+    if (ev.key === 'Enter' && ev.target.classList.contains('couleur-nouvelle')) { ev.preventDefault(); const b = ev.target.parentElement.querySelector('.ajout-couleur'); ajouterCouleur(b.dataset.famille, b); }
   });
   $('btn-couleurs').addEventListener('click', envoyerCouleurs);
   $('menu-deco').addEventListener('click', deconnexion);

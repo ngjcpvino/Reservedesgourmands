@@ -100,7 +100,6 @@
   --placeholder:      var(--couleur-302);
 
   /* ---- Tailles de texte (échelle neutre : change la valeur, tout suit) ---- */
-  --texte-micro:      12px;
   --texte-petit:      17px;   /* J-C, 2026-09-29, choix D sur aperçu (14 : trop petit) */
   --texte-solde:      15px;   /* un solde sous un aliment (Liste d'achats) : un peu plus petit, sur une seule ligne (J-C, 2026-10-02) */
   --texte-normal:     17px;   /* J-C, 2026-09-29, choix B sur aperçu (16 / 17 / 18 / 19) : égal au petit texte */
@@ -218,7 +217,9 @@
   --placeholder-opacite: 0.6;  /* l'invite d'un champ vide, pâlie */
   --pli-opacite:       0.55;   /* le petit triangle d'un aliment à plusieurs sortes */
   --chevron-place:     calc(var(--espace-m) * 2.5);   /* la place du chevron, à droite d'un menu déroulant */
-  --pastille:          28px;   /* le carré qui montre une couleur (écran Couleurs, ajout d'un meuble) */
+  --pastille:          28px;   /* le carré à toucher pour choisir une couleur (pièces, meubles, catégories, épiceries) */
+  --puce-haut:         76px;   /* LE NUANCIER (Outils → Couleurs) : la couleur d'une puce de peinture, au-dessus de son hex */
+  --puces-colonnes:    3;      /* des puces par rangée */
   --champ-hex-large:   110px;  /* le champ où l'on tape un code hex : #6b4f3a */
   --champ-nombre-large: 100px; /* le champ où l'on tape un nombre : 2 (L), 0,54 (kg) */
   --bouton-scanner:    56px;   /* Rechercher : le bouton du scan, collé au champ */
@@ -800,15 +801,20 @@ select.champ {
 .fleche-eteinte::before { opacity: var(--fleche-eteinte); }
 
 /* ------------------------------------------------------------
-   COULEURS (Outils → Couleurs, ajout d'un meuble) — pastille + nom + code hex.
-   La couleur de la pastille est une DONNÉE : le script la pose.
+   COULEURS — la pastille (choisir une couleur : pièces, meubles, catégories, épiceries) et le nuancier (Outils → Couleurs).
+   La couleur est une DONNÉE : le script la pose.
 ------------------------------------------------------------ */
 .ligne-couleur { display: flex; align-items: center; gap: var(--espace-s); }
 .ligne-couleur > .champ { flex: 1; min-width: 0; }   /* une liste aux longs noms ne pousse pas le bouton scanner hors du cadre */
 .pastille { flex-shrink: 0; width: var(--pastille); height: var(--pastille); border-radius: var(--rayon); border: var(--filet) solid var(--champ-bord); }
-.couleur-nom { flex: 1; min-width: 0; }
-.couleur-usage { display: block; font-size: var(--texte-micro); color: var(--couleur-302); }
-/* Choisir une couleur de la palette (pièces, meubles) : une grille de pastilles à toucher. */
+/* LE NUANCIER (J-C, 2026-10-05, choix B sur aperçu) : chaque couleur, une puce de peinture — le numéro écrit sur la couleur (crème, brun
+   foncé sur une couleur pâle), son hex dessous, à changer; « où elle sert » retiré (J-C : « pas utile »). */
+.puces { display: grid; grid-template-columns: repeat(var(--puces-colonnes), minmax(0, 1fr)); gap: var(--espace-m); padding: var(--espace-s) var(--espace-l) var(--espace-m) 0; }
+.puce { border-radius: var(--rayon); overflow: hidden; background: var(--couleur-101); box-shadow: var(--ombre-carte); }
+.puce-couleur { display: flex; align-items: flex-end; height: var(--puce-haut); padding: var(--espace-s); font-size: var(--texte-moyen); font-weight: var(--poids-fort); color: var(--couleur-105); }
+.puce-couleur.puce-pale { color: var(--couleur-306); }
+.puce .champ-hex { width: 100%; min-height: 0; padding: var(--espace-s); border: none; border-top: var(--filet) solid var(--champ-bord); border-radius: 0; font-size: var(--texte-petit); text-align: center; }
+/* Choisir une couleur de la palette (pièces, meubles, catégories, épiceries) : une grille de pastilles à toucher. */
 .palette { display: flex; flex-wrap: wrap; gap: var(--espace-s); }
 .accordeon-corps > .palette { padding: var(--espace-s) var(--espace-l); }
 .pastille-choix { -webkit-appearance: none; appearance: none; padding: 0; cursor: pointer; }
