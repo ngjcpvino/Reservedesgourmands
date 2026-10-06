@@ -19,11 +19,15 @@
    Au frais (frigo, garde-manger…) : la durée de la sous-catégorie.
    Rejeté : A (au congélo, le temps s'arrête : le steak oublié depuis un an ne paraîtrait jamais).
 
+2. **Un meuble est un congélateur par un interrupteur (choix B)** — « Congélateur » sur chaque meuble,
+   dans Gérer les bases → Meubles, comme l'interrupteur « Circulaire » des magasins; J-C l'allume une fois
+   par congélo. Rejeté : A (deviner par le nom : un « Coffre du sous-sol » ne serait pas reconnu).
+   Il faudra une colonne de plus à Emplacements (G).
+
 ## 3. Questions ouvertes (dans l'ordre, une à la fois)
 
-1. **Comment l'app sait qu'un meuble est un congélateur ?** (Emplacements n'a pas de colonne pour ça.)
-2. Les durées au frais des 48 sous-catégories : qui les remplit (Claude propose, J-C corrige ?), où on les corrige.
-3. « Bientôt » = combien de jours avant ?
-4. Ce qui a passé la date : dans la même liste ? autrement ?
-5. Un aliment qui sort du congélo (décongelé) : l'horloge repart ?
-6. L'allure de la liste (aperçu d'abord) et où elle paraît ailleurs (Inventaire, écran de rayon ?).
+1. **Les durées au frais des 48 sous-catégories : qui les remplit (Claude propose, J-C corrige ?), où on les corrige.**
+2. « Bientôt » = combien de jours avant ?
+3. Ce qui a passé la date : dans la même liste ? autrement ?
+4. Un aliment qui sort du congélo (décongelé) : l'horloge repart ?
+5. L'allure de la liste (aperçu d'abord) et où elle paraît ailleurs (Inventaire, écran de rayon ?).
