@@ -43,10 +43,14 @@
    Jusqu'à ce qu'il sorte de la réserve; la date est une estimation, J-C juge (le manger ou le jeter).
    Rejeté : B (il quitte la liste comme s'il n'existait plus).
 
+6. **Jeter : un choix « Jeté » sur la carte de Consommer (choix B)** — J-C : « B ». À côté de « Ne pas
+   racheter »; l'aliment sort pareil, mais la trace dit la vérité (un yogourt jeté compté comme mangé
+   fausserait la prévision du rachat). Revient sur « une seule raison : consommé » du 2026-09-29.
+   Il faudra une colonne de plus à Sorties (K, la raison) — `api.gs`, à l'ordi.
+   Rejeté : A (jeter = consommer : la trace faussée).
+
 ## 3. Questions ouvertes (dans l'ordre, une à la fois)
 
-1. **Jeter un aliment passé** : Consommer n'a qu'une raison (« consommé », 2026-09-29); un aliment jeté
-   compté comme mangé fausserait la prévision du rachat (Sorties). Une 2e raison, « jeté » ?
-2. Un aliment qui sort du congélo (décongelé) : l'horloge repart ?
-3. Où corriger la durée d'une sous-catégorie (Gérer les bases → Catégories ?).
-4. L'allure de la liste (aperçu d'abord) et où elle paraît ailleurs (Inventaire, écran de rayon ?).
+1. **Un aliment qui passe du congélo au frais (décongelé), ou l'inverse : l'horloge repart ?**
+2. Où corriger la durée d'une sous-catégorie (Gérer les bases → Catégories ?).
+3. L'allure de la liste (aperçu d'abord) et où elle paraît ailleurs (Inventaire, écran de rayon ?).
