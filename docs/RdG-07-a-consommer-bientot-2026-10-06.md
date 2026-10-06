@@ -68,8 +68,10 @@
    Rejetés : A (une seule liste, la plus pressée en tête — la reco de Claude), B (par meuble).
    L'aperçu : `scratchpad/apercu-bientot.html` (des aliments d'exemple).
 
+10. **Pas de point rouge** — J-C : « la liste, c'est ce que je dois consommer bientôt, point »; « je regarde ».
+    L'app ne fait pas signe (ni sur l'icône Listes, ni sur la barre, ni sur la catégorie) : J-C va voir la liste
+    de lui-même.
+
 ## 3. Questions ouvertes (dans l'ordre, une à la fois)
 
-1. **Une date passée cachée dans une catégorie fermée : un point rouge sur le chemin** (l'icône Listes
-   du menu, la barre « À consommer bientôt », la catégorie), comme pour les circulaires ?
-2. Où la date paraît ailleurs (Inventaire, écran de rayon ?).
+1. **Où le temps qui reste paraît ailleurs (Inventaire, écran de rayon ?)** — ou seulement dans la liste.
