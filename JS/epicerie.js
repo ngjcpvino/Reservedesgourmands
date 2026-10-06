@@ -414,7 +414,7 @@ function surEpiProduit() {
 function ajouterEpiNeuf() {
   const nom = $('epi-nom-neuf').value.trim(), scid = $('epi-souscat').value;
   if (!nom || !scid) { $('epi-nom-neuf').focus(); return; }
-  const deja = PRODUITS.find(p => String(p.catId) === String(scid) && cleNom(p.nom) === cleNom(nom));   // déjà là : lui, jamais un double
+  const deja = alimentDuNom(nom, scid);                  // déjà là (ici, ou ailleurs : né sans catégorie d'une épicerie) : lui, jamais un double
   const pid = deja ? String(deja.id) : creerAlimentInstant(nom, scid);
   montrer('epi-neuf', false);
   montrerCarte({ code: '', pid: pid, marque: '', saveur: '', format: '', sansCode: true });
@@ -832,8 +832,9 @@ function validerProduit() {
   const ventes = endroits.filter(e => e.emp && e.emp !== lot.emp);   // ce qui change de place; le reste reste où il est
   let cible = lot.pid;
   const c = lireCache(), p = PRODUITS.find(x => String(x.id) === lot.pid);
-  if (v !== 'nouveau' && v !== lot.pid) {                // un autre aliment, qui existe : le produit lui est réuni (tout ce qu'il y en a)
-    cible = v;
+  const deja = v === 'nouveau' ? alimentDuNom(nom, scid, lot.pid) : null;   // « nouveau », mais ce nom est déjà un aliment : lui, jamais un double
+  if ((v !== 'nouveau' && v !== lot.pid) || deja) {      // un autre aliment, qui existe : le produit lui est réuni (tout ce qu'il y en a)
+    cible = deja ? String(deja.id) : v;
     reunirProduitsInstant(cible, lot.pid);
   } else if (p) {                                        // lui-même : sa catégorie, son nom
     const row = c && (c.prods || []).find(r => String(r[0]) === lot.pid);

@@ -458,9 +458,9 @@ function remplirProduitsDatalist() {
 function remplirListes() { remplirCategories(); remplirProduitsDatalist(); }
 
 function trouverProduitParNom(nom) {
-  const n = String(nom || '').trim().toLowerCase();
+  const n = cleNom(nom);                               // sans accent, majuscule ni espace : « Lait 2 % » = « lait 2% » (jamais un double)
   if (!n) return null;
-  return PRODUITS.find(p => String(p.nom).trim().toLowerCase() === n) || null;
+  return PRODUITS.find(p => cleNom(p.nom) === n) || null;
 }
 
 /* Remet la fiche à l'état de départ (champs vides, blocs cachés). */
@@ -1622,14 +1622,28 @@ async function montrerPageAliments() {
   remplirPageAliments();
   expedierOrdre();                                 // un ordre d'endroits resté en attente repart
 }
-/* Une autre sous-catégorie choisie : instantané (la file des gestes, Produits col. C). La catégorie qui le reçoit s'ouvre : on le suit. */
-function assignerSousCat(pid, scid) {
+/* Un aliment reçoit une sous-catégorie : instantané (la file des gestes, Produits col. C). false = rien à faire. */
+function classerAliment(pid, scid) {
   const p = PRODUITS.find(x => String(x.id) === String(pid)), c = lireCache();
   const row = c && (c.prods || []).find(r => String(r[0]) === String(pid));
-  if (!p || !row || !scid || String(p.catId) === String(scid)) { remplirPageAliments(true); return; }
+  if (!p || !row || !scid || String(p.catId) === String(scid)) return false;
   const l = row.slice(); l[2] = scid;
   poserGeste({ action: 'lignes', table: 'Produits', opId: 'scat-' + Date.now() + '-' + Math.random().toString(36).slice(2, 8), lignes: [l] });
   p.catId = scid;
+  return true;
+}
+/* Un nom déjà pris par un aliment (sans accent ni majuscule) : CET aliment, jamais un double (J-C, 2026-10-05 : « Lait sans lactose »
+   deux fois). Dans la sous-catégorie choisie d'abord, sinon ailleurs; un aliment encore sans catégorie (né d'une épicerie) reçoit
+   celle-ci. sauf : l'aliment qu'on est en train de nommer. null = le nom est libre. */
+function alimentDuNom(nom, scid, sauf) {
+  const memes = PRODUITS.filter(p => String(p.id) !== String(sauf || '') && cleNom(p.nom) === cleNom(nom));
+  const p = memes.find(x => String(x.catId) === String(scid)) || memes[0];
+  if (p && !p.catId && scid) classerAliment(p.id, scid);
+  return p || null;
+}
+/* Une autre sous-catégorie choisie (Gérer les bases → Aliments). La catégorie qui le reçoit s'ouvre : on le suit. */
+function assignerSousCat(pid, scid) {
+  if (!classerAliment(pid, scid)) { remplirPageAliments(true); return; }
   remplirPageAliments(false, { cat: rayonDe(scid), pid: pid });
 }
 /* La poubelle (un aliment dont il ne reste rien) : la question à la place de sa ligne. Rien ne bouge avant Oui. */
@@ -1931,10 +1945,12 @@ async function renommer(cle, nom) {
   nom = String(nom || '').trim();
   const c = lireCache();
   const rows = c && T[1](c), row = rows && rows.find(r => String(r[0]) === String(id));
-  if (!nom || !row || String(row[1]) === nom) { rafraichirBases(); return; }   // vide ou inchangé : rien à faire
+  if (!nom || !row) { rafraichirBases(); return; }    // vide : rien à faire
   const liste = LISTES[T[0]];
   const autre = (type === 'a' ? PRODUITS : liste || []).find(y => String(y.id) !== String(id) && cleNom(y.nom) === cleNom(nom));
-  if (autre) { demanderReunion(cle, autre); return; }   // ce nom existe déjà (liste gérée ou aliment) : les réunir ?
+  if (autre) { demanderReunion(cle, autre); return; }   // ce nom existe déjà (liste gérée ou aliment) : les réunir ? — même INCHANGÉ : deux
+                                                        // aliments du même nom (« Lait sans lactose » deux fois, J-C 2026-10-05) se réunissent ainsi
+  if (String(row[1]) === nom) { rafraichirBases(); return; }   // inchangé : rien à faire
   const ligne = row.slice(); ligne[1] = nom;
   montrerVoile(true);
   try {
@@ -2431,7 +2447,12 @@ function surRecherche() {
     if (v.length) parVariante.push({ p: p, detail: v });
   });
   const alpha = (a, b) => String(a.p.nom).localeCompare(String(b.p.nom), 'fr');
-  const trouves = parNom.sort(alpha).concat(parVariante.sort(alpha));
+  let trouves = parNom.sort(alpha).concat(parVariante.sort(alpha));
+  // Consommer, Déplacer : seulement ce qu'on a (J-C, 2026-10-05 : « plus en réserve », « pas utile » — on ne consomme pas ce qu'on n'a
+  // pas). Rechercher les garde : savoir qu'on n'en a plus, au magasin, ça sert.
+  const tousVides = modeRecherche && trouves.length && trouves.every(x => !totalLots(par[x.p.id]));
+  if (modeRecherche) trouves = trouves.filter(x => totalLots(par[x.p.id]));
+  if (tousVides) { cible.innerHTML = htmlVide('Tu n\'en as plus', '', ''); return; }   // le même message que l'écran de rayon
   if (!trouves.length) { cible.innerHTML = htmlVide('', 'Aucun aliment ne correspond', modeRecherche ? '' : 'data-ajouter-nom'); return; }
   cible.innerHTML = '<div class="liste-blanche">' + trouves.map(x => {
     const lots = par[x.p.id] || [];                     // ses sortes (marque, saveur : « Lactantia 1 % ») puis où il est — J-C, 2026-10-04 : « pour choisir
