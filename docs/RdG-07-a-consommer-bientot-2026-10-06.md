@@ -49,8 +49,15 @@
    Il faudra une colonne de plus à Sorties (K, la raison) — `api.gs`, à l'ordi.
    Rejeté : A (jeter = consommer : la trace faussée).
 
+7. **L'horloge repart à chaque passage congélo ↔ frais (choix A)** — J-C : « A ». Le steak acheté il y a
+   un mois, congelé, sorti aujourd'hui pour dégeler : ses 3 jours au frais partent d'aujourd'hui (sinon il
+   paraîtrait « date passée » en arrivant au frigo); congelé aujourd'hui : ses 4 mois partent d'aujourd'hui.
+   La date d'entrée (STOCK col. E) ne change pas (elle suit un lot déplacé depuis le 2026-09-29) : il faudra
+   une date de plus à STOCK (P, le départ de l'horloge, vide = la date d'entrée), posée par Déplacer quand
+   un lot passe d'un meuble « Congélateur » à un autre, ou l'inverse. Rejeté : B (toujours la date d'achat).
+
 ## 3. Questions ouvertes (dans l'ordre, une à la fois)
 
-1. **Un aliment qui passe du congélo au frais (décongelé), ou l'inverse : l'horloge repart ?**
-2. Où corriger la durée d'une sous-catégorie (Gérer les bases → Catégories ?).
-3. L'allure de la liste (aperçu d'abord) et où elle paraît ailleurs (Inventaire, écran de rayon ?).
+1. **Comment choisir une durée (sous-catégorie : Gérer les bases → Catégories; aliment : → Aliments) —
+   un menu ou un nombre à taper ?**
+2. L'allure de la liste (aperçu d'abord) et où elle paraît ailleurs (Inventaire, écran de rayon ?).
