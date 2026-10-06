@@ -56,8 +56,10 @@
    une date de plus à STOCK (P, le départ de l'horloge, vide = la date d'entrée), posée par Déplacer quand
    un lot passe d'un meuble « Congélateur » à un autre, ou l'inverse. Rejeté : B (toujours la date d'achat).
 
-## 3. Questions ouvertes (dans l'ordre, une à la fois)
+8. **Une durée se choisit dans un menu (choix A)** — J-C : « A ». 1 jour · 2 jours · 3 jours · 5 jours ·
+   1 semaine · 2 semaines · 3 semaines · 1 mois · 2 mois · 3 mois · 6 mois · 1 an · 2 ans · Aucune
+   (« Aucune » = jamais dans la liste). La sous-catégorie : Gérer les bases → Catégories; l'aliment :
+   Gérer les bases → Aliments. Rejeté : B (taper un nombre de jours).
 
-1. **Comment choisir une durée (sous-catégorie : Gérer les bases → Catégories; aliment : → Aliments) —
-   un menu ou un nombre à taper ?**
-2. L'allure de la liste (aperçu d'abord) et où elle paraît ailleurs (Inventaire, écran de rayon ?).
+## 3. Questions ouvertes (dans l'ordre, une à la fois)
+1. **L'allure de la liste** (aperçu d'abord) et où elle paraît ailleurs (Inventaire, écran de rayon ?).
