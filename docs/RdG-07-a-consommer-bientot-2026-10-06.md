@@ -24,10 +24,20 @@
    par congélo. Rejeté : A (deviner par le nom : un « Coffre du sous-sol » ne serait pas reconnu).
    Il faudra une colonne de plus à Emplacements (G).
 
+3. **La durée au frais : la sous-catégorie, et l'aliment quand ça ne colle pas (choix B, avec les
+   propositions de Claude)** — J-C : « Oui ». Certaines sous-catégories mélangent (Fruits : framboises
+   3 jours, pommes 1 mois; Légumes : laitue, patates; Fromages fins). La sous-catégorie donne la durée
+   de départ (Categories col. E, déjà là); un aliment peut avoir **la sienne**, qui l'emporte (Produits :
+   une colonne de plus, K). **J-C ne tape rien** : Claude propose une durée pour chaque sous-catégorie
+   et pour chaque aliment des sous-catégories mélangées; J-C corrige seulement ce qui ne colle pas
+   (l'aliment : Gérer les bases → Aliments, là où sont ses endroits). Un aliment ajouté plus tard prend
+   la durée de sa sous-catégorie. Une sous-catégorie sans durée (l'eau, l'entretien ménager) : jamais
+   dans la liste. Rejeté : A (la sous-catégorie seulement : approximatif).
+
 ## 3. Questions ouvertes (dans l'ordre, une à la fois)
 
-1. **Les durées au frais des 48 sous-catégories : qui les remplit (Claude propose, J-C corrige ?), où on les corrige.**
-2. « Bientôt » = combien de jours avant ?
-3. Ce qui a passé la date : dans la même liste ? autrement ?
-4. Un aliment qui sort du congélo (décongelé) : l'horloge repart ?
+1. **« Bientôt » = combien de jours avant ?**
+2. Ce qui a passé la date : dans la même liste ? autrement ?
+3. Un aliment qui sort du congélo (décongelé) : l'horloge repart ?
+4. Où corriger la durée d'une sous-catégorie (Gérer les bases → Catégories ?).
 5. L'allure de la liste (aperçu d'abord) et où elle paraît ailleurs (Inventaire, écran de rayon ?).
