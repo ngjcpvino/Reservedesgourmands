@@ -61,5 +61,15 @@
    (« Aucune » = jamais dans la liste). La sous-catégorie : Gérer les bases → Catégories; l'aliment :
    Gérer les bases → Aliments. Rejeté : B (taper un nombre de jours).
 
+9. **La liste par catégorie (choix C, sur aperçu)** — J-C : « C ». Comme l'Inventaire par catégorie : les
+   catégories en barres à leur couleur, une liste blanche dessous, la plus pressée en tête; chaque ligne :
+   le nom, marque · saveur, où il est (« Frigo, Porte »), le temps qui reste (« Encore 3 jours », « Date
+   passée » en rouge), la fourchette (Consommer, Jeté) et les deux flèches (Déplacer), la quantité.
+   Rejetés : A (une seule liste, la plus pressée en tête — la reco de Claude), B (par meuble).
+   L'aperçu : `scratchpad/apercu-bientot.html` (des aliments d'exemple).
+
 ## 3. Questions ouvertes (dans l'ordre, une à la fois)
-1. **L'allure de la liste** (aperçu d'abord) et où elle paraît ailleurs (Inventaire, écran de rayon ?).
+
+1. **Une date passée cachée dans une catégorie fermée : un point rouge sur le chemin** (l'icône Listes
+   du menu, la barre « À consommer bientôt », la catégorie), comme pour les circulaires ?
+2. Où la date paraît ailleurs (Inventaire, écran de rayon ?).
