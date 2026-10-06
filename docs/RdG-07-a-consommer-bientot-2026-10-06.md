@@ -1,7 +1,7 @@
 # RdG-07 — À consommer bientôt (2026-10-06)
 
 > La 2e liste de la page Listes (l'accordéon « À consommer bientôt », vide jusqu'ici).
-> **EN RÉFLEXION — ZÉRO CODE.** Une question à la fois; c'est J-C qui décide.
+> **Réflexion finie le 2026-10-06** (onze décisions, section 2). À bâtir : section 3; le coffre-fort : section 4.
 
 ## 1. Ce qui était déjà décidé (juillet, redit le 23 septembre — `RdG-01`, `RdG-04`)
 
@@ -72,6 +72,31 @@
     L'app ne fait pas signe (ni sur l'icône Listes, ni sur la barre, ni sur la catégorie) : J-C va voir la liste
     de lui-même.
 
-## 3. Questions ouvertes (dans l'ordre, une à la fois)
+11. **Le temps qui reste : seulement dans « À consommer bientôt » (choix A)** — J-C : « A ». Ni dans
+    l'Inventaire, ni sur l'écran de rayon. Rejeté : B (aussi dans l'Inventaire).
 
-1. **Où le temps qui reste paraît ailleurs (Inventaire, écran de rayon ?)** — ou seulement dans la liste.
+**✅ RÉFLEXION FINIE le 2026-10-06.**
+
+## 3. Ce qu'il y a à bâtir (les actions, pour J-C)
+
+1. **Gérer les bases → Meubles** : l'interrupteur « Congélateur » sur chaque meuble.
+2. **Gérer les bases → Catégories** : sous chaque sous-catégorie, sa durée (le menu), déjà remplie par
+   les propositions de Claude.
+3. **Gérer les bases → Aliments** : la durée de l'aliment (le menu, « comme sa sous-catégorie » d'office);
+   les fruits, légumes, fines herbes et fromages fins déjà remplis quand Claude les connaît.
+4. **Listes → À consommer bientôt** : par catégorie, le dernier quart de la durée, « Date passée » en
+   rouge en tête, la fourchette et les deux flèches.
+5. **Consommer** (partout où sa carte s'ouvre) : « Jeté » à côté de « Ne pas racheter ».
+6. **Déplacer** entre un congélateur et le frais : l'horloge repart.
+
+## 4. Pour le coffre-fort (`api.gs`, à l'ordi — un seul collage)
+
+Des colonnes au bout, rien ne bouge; l'app les envoie dans les lignes qu'elle écrit déjà :
+- **Emplacements G `Congelateur`** (O / vide) — `modifier` réécrit la ligne de 7 colonnes.
+- **Produits K `DureeVieJours`** (vide = celle de la sous-catégorie; 0 = Aucune) — `modifier` / `ajouter` : 11 colonnes.
+- **Categories E `DureeVieJours`** : déjà là (vide = hérite; 0 = Aucune) — rien à faire.
+- **STOCK P `Horloge`** (AAAA-MM-JJ, vide = la date d'entrée) — `deplacer` réécrit la ligne au complet,
+  P comprise; à relire en date comme E (`texteDates`).
+- **Sorties K `Raison`** (vide = consommé, `J` = jeté) — `consommer` écrit la 11e colonne de `sortie`.
+Vérifier que chaque action écrit bien la ligne telle que l'app l'envoie (sans la couper), poser les
+en-têtes, essayer à blanc, l'inscrire ici.
