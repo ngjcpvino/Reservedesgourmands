@@ -229,7 +229,7 @@ async function chargerAvecChariot() {
 }
 
 function deconnexion() {
-  Coffre.oublier();
+  Coffre.oublier(); marquerPasAJour(false);   // plus connecté : plus rien à relire
   $('mdp').value = ''; $('msg-connexion').textContent = '';
   revenirConnexion();
 }
@@ -266,7 +266,7 @@ function placerTitre() {
 }
 /* Le menu a trois grilles, une seule visible : la principale (8), Outils (4), Gérer les bases (9).
    Chaque Retour remonte d'un cran. */
-window.addEventListener('resize', () => placerTitre());
+window.addEventListener('resize', () => caleBandeau());   // le bandeau (sa hauteur), puis le titre
 const GRILLES_MENU = { principal: 'menu-principal', outils: 'menu-outils-grille', bases: 'menu-bases-grille' };
 function montrerGrilleMenu(nom) {
   Object.keys(GRILLES_MENU).forEach(k => { $(GRILLES_MENU[k]).hidden = k !== nom; });
@@ -281,7 +281,7 @@ function surToucheFin(ev) {
   if (ev.changedTouches[0].clientY - glisserDepart > GLISSER) fermerMenu();
   glisserDepart = null;
 }
-function montrerVoile(on){ $('voile').hidden = !on; }   // voile bloquant + les trois bouteilles de lait
+function montrerVoile(on){ $('voile').hidden = !on; $('voile-texte').textContent = ''; }   // voile bloquant + le chariot (et sa ligne : « 2e essai… »)
 
 /* Ouvre/ferme un accordéon — UN SEUL ouvert à la fois dans son groupe (ses frères). Partout. */
 function toggleAccordeon(tete) {
@@ -388,8 +388,9 @@ async function chargerReferences() {
   if (cache) { appliquer(cache); remplirListes(); statut(''); }   // instantané si déjà vu
   else statut('Chargement…');
   dernierChargement = Date.now();
+  const suivi = i => { if (!$('voile').hidden) $('voile-texte').textContent = i ? (i + 1) + 'e essai…' : 'Lecture de la réserve…'; };   // sous le chariot seulement
   try {
-    const data = await chargerData();
+    const data = await chargerData(suivi);
     if (Object.keys(ordreModifie).length) envoyerOrdre();   // des flèches touchées pendant le chargement : on les garde
     reordonnerLignes(data.emps, lireAttente());   // un ordre pas encore confirmé l'emporte sur l'ancien
     poserOrdresAliments(data.prods, lireAttenteAliments());   // idem pour l'ordre des endroits d'un aliment
@@ -404,34 +405,54 @@ async function chargerReferences() {
     lireAttenteAchats().forEach(e => { if (e.lignes) poserLignesAchats(e.lignes, data.achats); });   // idem pour la liste d'achats
     data.nbATrier = Math.max(0, (Number(data.nbATrier) || 0) - triesEnRoute());   // idem : un tri en route n'est plus « à trier »
     appliquer(data); ecrireCache(data); remplirListes(); statut('');
-    poserLogosDepart();                           // TEMPORAIRE : les 5 logos de J-C, une fois
-    sans102();                                    // TEMPORAIRE : la couleur 102 (retirée) devient la 101
+    marquerPasAJour(false);                       // relue : le bandeau rouge part
+    try { poserLogosDepart(); sans102(); } catch (e) {}   // TEMPORAIRE (les 5 logos de J-C; la 102 devient la 101) : un raté ici ne dit pas « pas à jour »
     expedierOrdre();                              // le réseau répond : on en profite pour renvoyer l'attente
     expedierCouleurs();                           // idem pour les couleurs (sinon un appareil garde les siennes)
     expedierGestes();                             // idem pour les consommations
     expedierAchats();                             // idem pour la liste d'achats
     return true;
   } catch (e) {
-    if (e.message === 'non autorisé') { Coffre.oublier(); revenirConnexion('Mot de passe refusé.'); return false; }
+    if (e.message === 'non autorisé') { marquerPasAJour(false); Coffre.oublier(); revenirConnexion('Mot de passe refusé.'); return false; }
     if (!cache) statut('Réseau lent — patiente un instant ou recharge la page.', 'erreur');
-    avis('Réserve pas relue' + (e.refus ? ' (' + e.message + ')' : '') + ' — recharge dans un instant', 'erreur');
+    marquerPasAJour(true, e.refus ? e.message : '');   // reste en haut tant que la réserve n'est pas relue
     return null;
-  }
+  } finally { $('voile-texte').textContent = ''; }
 }
 
-/* Tout, en UN appel, réessayé jusqu'à 3 fois (le VPN a ses hoquets).
+/* Le bandeau rouge (J-C, 2026-10-06 : « travailler avec des données pas à jour, c'est inconscient »; B puis A sur aperçu) :
+   tant que la réserve n'a pas été relue, il reste en haut — on consulte ce que l'app a gardé, en le sachant; ce qu'on change
+   attend dans sa file et part dès que le réseau répond. « Réessayer » relit sous le chariot. Il pousse la page et le burger. */
+function marquerPasAJour(oui, raison) {
+  $('pas-a-jour').hidden = !oui;
+  $('pas-a-jour-texte').textContent = 'Réserve pas à jour' + (raison ? ' (' + raison + ')' : '');
+  caleBandeau();
+}
+function caleBandeau() {                // sa hauteur (une raison peut le faire passer sur deux lignes) pousse la page et le burger
+  const b = $('pas-a-jour');
+  document.documentElement.style.setProperty('--alerte-haut', (b.hidden ? 0 : b.offsetHeight) + 'px');
+  placerTitre();
+}
+async function relire() {               // « Réessayer » : comme au retour dans l'app, l'écran suit
+  if (await chargerAvecChariot()) redessinerApresLecture();
+}
+
+/* Tout, en UN appel, réessayé jusqu'à 5 fois, chaque essai plus patient que le précédent (J-C, 2026-10-06 : « l'app a juste
+   à essayer plusieurs fois en disant je fais un 2e essai »; le VPN a ses hoquets, le coffre-fort ses réveils lents).
    Jamais de demi-chargement : sans le stock, l'app croirait la réserve vide — et l'écrirait dans sa mémoire.
-   Si rien ne passe, on garde ce qu'on avait. */
-async function chargerData() {
+   Si rien ne passe, on garde ce qu'on avait (et le bandeau rouge le dit). suivi(i) : avant chaque essai. */
+const ESSAIS_LECTURE = [12000, 18000, 25000, 30000, 30000];   // ms : la patience de chaque essai
+async function chargerData(suivi) {
   let err;
-  for (let i = 0; i < 3; i++) {
+  for (let i = 0; i < ESSAIS_LECTURE.length; i++) {
+    if (suivi) suivi(i);
     try {
-      const r = await Coffre.references();
+      const r = await Coffre.references(ESSAIS_LECTURE[i]);
       if (r && r.ok && r.categories !== undefined) return { cats: r.categories, emps: r.emplacements, prods: r.produits, stock: r.stock, variantes: r.variantes, codes: r.codes, codesTri: r.codesTri, couleurs: r.couleurs, listes: r.listes, pasAimes: r.pasAimes, achats: r.achats, speciaux: r.speciaux, nbATrier: r.nbATrier, epiceries: r.epiceries, menage: r.menage };   // tout ce que l'app lit : un oubli ici = une donnée qui n'arrive jamais
       if (r && r.erreur === 'non autorisé') throw new Error('non autorisé');   // inutile de réessayer
       err = new Error((r && r.erreur) || 'refus'); err.refus = true;          // le coffre-fort a répondu, mais pas oui
     } catch (e) { if (e.message === 'non autorisé') throw e; err = e; }
-    if (i < 2) await new Promise(res => setTimeout(res, 500 * (i + 1)));
+    if (i < ESSAIS_LECTURE.length - 1) await new Promise(res => setTimeout(res, 1000 * (i + 1)));
   }
   throw err;
 }
@@ -4168,6 +4189,7 @@ function initEntree() {
   $('mdp').addEventListener('keydown', e => { if (e.key === 'Enter') entrer(); });
   // page d'ouverture : menu burger + items
   $('btn-burger').addEventListener('click', basculerMenu);
+  $('btn-relire').addEventListener('click', relire);   // le bandeau rouge : « Réessayer »
   $('menu-ouverture').addEventListener('click', montrerAccueil);   // 1er item = retour à l'ouverture
   $('menu-outils').addEventListener('click', () => montrerGrilleMenu('outils'));
   $('menu-outils-retour').addEventListener('click', () => montrerGrilleMenu('principal'));
@@ -4470,6 +4492,10 @@ async function retourDansApp() {
   if (Date.now() - dernierChargement < FRAICHEUR) return;
   if (!$('vue-app').hidden) return;   // une saisie en cours : on ne touche à rien
   await chargerReferences();
+  redessinerApresLecture();
+}
+/* Après une relecture : l'écran affiché suit, sauf pendant une saisie ou une question. */
+function redessinerApresLecture() {
   if (!$('vue-listes').hidden && !document.querySelector('#liste-inventaire .endroit')) remplirInventaire();   // pas pendant un rangement
   if (!$('vue-pieces').hidden && !Object.keys(ordreModifie).length && !document.querySelector('.champ-renommer')) remplirPieces();
   const saisieMeubles = [...$('liste-meubles').querySelectorAll('input')].some(i => i.value) || $('liste-meubles').querySelector('.champ-renommer, [data-confirme]');

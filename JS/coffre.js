@@ -48,7 +48,7 @@ const Coffre = {
   modifier(table, id, ligne){ return this.appel({ action: 'modifier', table, id, ligne }); },
 
   // Rapides : un seul aller-retour
-  references()              { return this.appel({ action: 'references' }, this.DELAI_LECTURE); },
+  references(delai)         { return this.appel({ action: 'references' }, delai || this.DELAI_LECTURE); },   // delai : la patience de cet essai (l'entrée en fait plusieurs, de plus en plus patients)
   entrerArticle(charge)     { return this.appel(Object.assign({ action: 'entrerArticle' }, charge)); },
   ordonner(groupes)         { return this.appel({ action: 'ordonner', groupes }); },
   couleurs(charge)          { return this.appel(Object.assign({ action: 'couleurs' }, charge)); },

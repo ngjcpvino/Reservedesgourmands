@@ -10,9 +10,15 @@
   <!-- Ecran d'accueil iPad : le meme sac, en PNG (iOS n'accepte pas le SVG ici) -->
   <link rel="apple-touch-icon" href="apple-touch-icon.png?v=2">
 
-<link rel="stylesheet" href="CSS/rdg.css?v=132">
+<link rel="stylesheet" href="CSS/rdg.css?v=133">
 </head>
 <body>
+
+<!-- La réserve pas relue : reste en haut tant que ça ne passe pas (le script le montre et pousse la page dessous) -->
+<div class="pas-a-jour" id="pas-a-jour" hidden>
+  <span id="pas-a-jour-texte">Réserve pas à jour</span>
+  <button class="bouton bouton-petit" id="btn-relire" type="button">Réessayer</button>
+</div>
 
 <!-- Menu burger — GLOBAL (accueil + pages de choix), caché sur connexion/fiche -->
 <button class="coin burger" id="btn-burger" type="button" aria-label="Menu" hidden>
@@ -60,7 +66,7 @@
 </div>
 
 <!-- Voile bloquant + le chariot qui traverse (spinner) — le dessin vit dans CSS/rdg.css -->
-<div id="voile" class="voile" hidden><div class="spinner"><span></span></div></div>
+<div id="voile" class="voile" hidden><div class="spinner"><span></span></div><div class="voile-texte" id="voile-texte"></div></div>
 
 <!-- ============================================================
      LE CADRE — un seul conteneur pour les 9 feuilles.
@@ -510,8 +516,8 @@
 
 </div><!-- fin du conteneur -->
 
-<script src="JS/coffre.js?v=13"></script>
-<script src="JS/entree.js?v=163"></script>
+<script src="JS/coffre.js?v=14"></script>
+<script src="JS/entree.js?v=164"></script>
 <script src="JS/epicerie.js?v=8"></script>
 <script src="JS/scan.js?v=12"></script>
 </body>

@@ -156,6 +156,7 @@
   /* ---- Durees ---- */
   --transition-pli:   0.25s;     /* le triangle qui tourne */
   --titre-bas:        166px;     /* le bas du titre du site, au départ : juste au-dessus du champ du mot de passe (J-C, 2026-09-27) */
+  --alerte-haut:      0px;       /* la hauteur du bandeau « Réserve pas à jour » quand il est là : il pousse la page et le burger (le script la calcule) */
   --titre-monte:      0px;       /* de combien le titre du site monte pour rester au-dessus de ce qui se pose sur la photo (le script le calcule) */
   --transition-menu:  0.8s;      /* la page qui glisse vers le haut pour montrer le menu */
   --toast-duree:      3s;        /* un message reste 3 s au centre de l'écran (J-C, 2026-09-30, choix A sur aperçu parmi 3 / 4 / 5 — avant : 1,6 s en bas) */
@@ -210,6 +211,7 @@
   --plan-fond:         -1;     /* la photo pâlie des pages de travail : sous tout le reste */
   --plan-menu:         220;    /* le menu : par-dessus la page, sous le X */
   --plan-coin:         230;    /* le burger (le X) : par-dessus le menu */
+  --plan-alerte:       235;    /* le bandeau « Réserve pas à jour » : par-dessus le menu et le X, sous un message */
   --plan-toast:        240;    /* un message : par-dessus le menu et le X, sous le voile */
   --plan-voile:        300;    /* le voile du chariot : par-dessus tout */
   --interligne-titre:  1.2;    /* le titre du site, sur la photo */
@@ -286,7 +288,7 @@ body {
   max-width: var(--largeur-max);
   margin: 0 auto;
   min-height: var(--plein-ecran);
-  padding-top: var(--haut-ecran);
+  padding-top: calc(var(--haut-ecran) + var(--alerte-haut));   /* le bandeau rouge, s'il est là, pousse la page */
   position: relative;   /* une feuille posée sur la photo se cale sur son bas */
 }
 /* Les pages de travail (fiche, listes, bases, couleurs…) : la photo très pâlie en fond, fixe, qui ne défile pas.
@@ -1063,11 +1065,37 @@ select.champ {
 .toast-erreur { background: var(--couleur-402); }
 
 /* ============================================================
+   LA RÉSERVE PAS À JOUR — le bandeau rouge en haut (J-C, 2026-10-06, A sur aperçu)
+   Il reste tant que la réserve n'est pas relue; sa hauteur (--alerte-haut, que le script calcule)
+   pousse la page et le burger. « Réessayer » : un bouton crème, le texte rouge.
+============================================================ */
+.pas-a-jour {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  max-width: var(--largeur-max);
+  margin: 0 auto;
+  z-index: var(--plan-alerte);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--espace-s);
+  padding: var(--espace-s) var(--espace-l);
+  background: var(--couleur-402);
+  color: var(--couleur-101);
+  font-size: var(--texte-petit);
+  font-weight: var(--poids-fort);
+  box-shadow: var(--bouton-ombre);
+}
+.pas-a-jour .bouton { --c: var(--couleur-101); color: var(--couleur-402); flex-shrink: 0; padding: var(--espace-xs) var(--espace-m); }
+
+/* ============================================================
    MENU BURGER — bouton fixe en haut à DROITE + menu plein écran
 ============================================================ */
 .coin {
   position: fixed;
-  top: calc(var(--haut-ecran) + var(--espace-xl));   /* aligné avec le haut de la photo — suit --haut-ecran tout seul */
+  top: calc(var(--haut-ecran) + var(--espace-xl) + var(--alerte-haut));   /* aligné avec le haut de la photo — suit --haut-ecran (et le bandeau rouge) tout seul */
   z-index: var(--plan-coin);
   width: var(--coin-taille);
   height: var(--coin-taille);
@@ -1141,6 +1169,16 @@ body.menu-ouvert .conteneur > [id^="vue-"] { opacity: 0; pointer-events: none; }
           mask: var(--spinner-dessin) center / contain no-repeat;
   filter: var(--spinner-lueur);
   animation: traverse var(--spinner-vitesse) linear infinite;
+}
+/* Sous le chariot : ce qu'il fait (« Lecture de la réserve… », « 2e essai… ») — le script l'écrit, vide sinon. */
+.voile-texte {
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: calc(50% + var(--spinner-taille) / 2 + var(--espace-m));
+  text-align: center;
+  color: var(--spinner-trait);
+  font-size: var(--texte-normal);
 }
 @keyframes traverse {
   from { transform: translateX(calc(var(--spinner-taille) * -1)); }
