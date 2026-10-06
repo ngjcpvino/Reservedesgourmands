@@ -254,6 +254,17 @@ On choisit dans la fiche, « Nouveau… » au bout; on corrige au crayon dans G�
 | F | Couleur | **MAGASINS seulement** (2026-10-05) : un numéro de la palette (« 401 »), choisi dans Gérer les bases → Magasins — l'épicerie a cette couleur partout (Magasins, le choix de l'épicerie, Compléter, À trier). Vide = brune |
 | G | Logo | **MAGASINS seulement** (2026-10-05) : le lien (https) de l'image de son logo, collé par J-C dans Gérer les bases → Magasins — sa tuile sur la page Circulaires. Vide = son nom, sur sa couleur |
 
+### UNITES — les unités ajoutées à la main (2026-10-05)
+*Créé tout seul par le coffre-fort. Les 5 de base (unité, g, kg, ml, L) n'y sont pas : elles sont fixes, dans l'app. On ajoute dans
+Gérer les bases → Unités (« Nouvelle unité… »); la fiche les propose avant même leur premier usage. Un format (STOCK col. G, « 2 L »)
+garde le TEXTE de l'unité, pas son ID.*
+
+| Col | Nom | Sens |
+|-----|-----|------|
+| A | ID | date/heure de création |
+| B | Nom | « boîte », « sachet »… en texte; deux noms qui ne diffèrent que par les accents ou les majuscules sont LE MÊME |
+| C | Actif | O / N — N = retirée (aucun aliment ne s'en servait) ou réunie à une autre au crayon |
+
 ### CODES-BARRES — PAS de table séparée (décision 2026-09-20)
 
 Le code-barres vit sur **STOCK, colonne I** (ci-dessus), comme la marque et le

@@ -16,6 +16,7 @@ var CODES_TRI = {};         // { code: [produitId, marque, saveur] } — appris 
 var produitCourant = null;  // id du produit reconnu (existant) ; null = nouveau produit
 var modeManuel = false;     // entrée À LA MAIN : entonnoir catégorie -> sous-catégorie -> produit
 var LISTES = { Magasins: [], Marques: [], Saveurs: [] };   // les listes gérées : [{ id, nom }], actifs seulement
+var UNITES_LISTE = [];     // les unités ajoutées dans Gérer les bases → Unités (onglet Unites, actives) : [{ id, nom }] — un format garde le TEXTE de l'unité
                                                             // (un magasin : + circ, sa circulaire lue le jeudi; introuvable, Flipp ne la connaît pas)
 var NOMS_LISTES = {};        // { id: nom } des trois listes : STOCK retient l'ID, on lit le nom
 var LISTES_NEUVES = [];      // noms ajoutés à la fiche, pas encore au coffre-fort : partent avec la prochaine entrée
@@ -364,6 +365,7 @@ function appliquer(d) {
   }));
   LISTES_NEUVES.forEach(x => { if (!NOMS_LISTES[x.id]) { NOMS_LISTES[x.id] = x.nom; LISTES[x.liste].push({ id: x.id, nom: x.nom }); } });   // pas encore envoyés : gardés
   Object.keys(LISTES).forEach(n => LISTES[n].sort((a, b) => a.nom.localeCompare(b.nom, 'fr')));
+  UNITES_LISTE = (L.Unites || []).filter(r => String(r[2]) !== 'N' && String(r[1] || '').trim()).map(r => ({ id: String(r[0]), nom: String(r[1]).trim() }));   // [ID, Nom, Actif]
   VARIANTES = d.variantes || {};                      // { produitId: { marques:[], formats:[] } }
   CODES = d.codes || {};                              // { codeBarres: produitId }
   CODES_TRI = d.codesTri || {};                       // { code: [produitId, marque, saveur] } (le tri des circulaires)
@@ -886,9 +888,11 @@ function adopterProduit(pid) {
 
 /* ---------- Le format : un nombre + une unité ----------
    Écrit toujours pareil, donc les quantités s'additionnent. La liste d'unités part de
-   UNITES_BASE et s'enrichit de tout ce qui a déjà servi; « Autre… » en ajoute une. */
+   UNITES_BASE, puis celles ajoutées dans Gérer les bases → Unités (l'onglet Unites, J-C 2026-10-05), puis tout ce qui a
+   déjà servi; « Autre… » en ajoute une. */
 function unitesConnues() {
   const vues = UNITES_BASE.slice();
+  UNITES_LISTE.forEach(x => { if (vues.indexOf(x.nom) === -1) vues.push(x.nom); });
   STOCK.forEach(l => {
     const u = uniteDe(l[6]);
     if (u && vues.indexOf(u) === -1) vues.push(u);
@@ -1661,7 +1665,7 @@ const PAGES_NOMS = {
   magasins: { titre: 'Magasins', choix: 'magasin', aucun: 'Aucun magasin.', gere: true, circulaire: true, couleur: true },   // choix -> CHOIX_FICHE (la liste, « Nouveau… »)
   marques:  { titre: 'Marques',  choix: 'marque',  aucun: 'Aucune marque.' },
   saveurs:  { titre: 'Saveurs',  choix: 'saveur',  aucun: 'Aucune saveur.' },
-  unites:   { titre: 'Unités',   unites: true }                             // pas une liste du Sheet : le texte des formats
+  unites:   { titre: 'Unités',   unites: true, gere: true, neuve: 'Nouvelle unité…' }   // le texte des formats, + l'onglet Unites (2026-10-05)
 };
 var pageNoms = PAGES_NOMS.magasins;                // la liste que la page montre
 const listeNoms = () => CHOIX_FICHE[pageNoms.choix].liste;                                      // 'Magasins', 'Marques', 'Saveurs'
@@ -1711,7 +1715,7 @@ async function montrerPageNoms(cle) {
   $('liste-noms').innerHTML = '';                  // on arrive : tout fermé
   $('noms-titre').textContent = pageNoms.titre;
   $('noms-ajout').hidden = !pageNoms.gere;
-  $('nom-nouveau').value = ''; if (pageNoms.gere) $('nom-nouveau').placeholder = CHOIX_FICHE[pageNoms.choix].neuve;
+  $('nom-nouveau').value = ''; if (pageNoms.gere) $('nom-nouveau').placeholder = pageNoms.neuve || CHOIX_FICHE[pageNoms.choix].neuve;
   $('noms-msg').className = 'message message-repli'; $('noms-msg').textContent = '';
   if (!RAYONS.length) {                            // pas encore chargé → on charge (même patron que les bases)
     $('liste-noms').innerHTML = '<div class="texte-petit texte-pale">Chargement…</div>';
@@ -1723,6 +1727,7 @@ async function montrerPageNoms(cle) {
    revient (Actif = O) au lieu d'être doublé. Un échec relit la réserve : si le nom a été créé quand même,
    il paraît, et le 2e essai ne le double pas. */
 async function ajouterNom() {
+  if (pageNoms.unites) { ajouterUnite(); return; }
   const champ = $('nom-nouveau'), msg = $('noms-msg'), btn = $('btn-nom-ajouter'), L = listeNoms();
   const nom = champ.value.trim();
   msg.className = 'message message-repli'; msg.textContent = '';
@@ -1771,16 +1776,65 @@ function retirerNom(id) {
   avis('Retiré : ' + x.nom, 'succes');
 }
 
-/* ---------- Gérer les bases → Unités (la balance) — décisions de J-C, 2026-09-30 ----------
-   Une unité n'est pas une liste du Sheet : c'est le texte après le nombre, dans le format (« 2 L »). La page montre
-   celles de la fiche (les 5 de base, puis tout ce que « Autre… » a ajouté), avec le look des Magasins.
+/* ---------- Gérer les bases → Unités (la balance) — décisions de J-C, 2026-09-30, revues le 2026-10-05 ----------
+   Une unité, c'est le texte après le nombre, dans le format (« 2 L »). La page montre celles de la fiche (les 5 de base, celles
+   ajoutées ici, puis tout ce que « Autre… » a ajouté), avec le look des Magasins.
    Les 5 de base, SANS crayon : fixes, c'est grâce à elles que l'app additionne (4 L + deux 1 L = 6 L).
    Les autres, avec le crayon : corriger une faute (« Lt » -> « L ») réécrit tous les lots qui s'en servent, et l'ancienne
-   disparaît de la fiche; un nom qui existe déjà -> « les réunir ? ». Pas d'Ajouter ni de poubelle : une unité naît
-   à l'entrée et existe tant qu'un lot s'en sert. */
+   disparaît de la fiche; un nom qui existe déjà -> « les réunir ? ».
+   AJOUTER (J-C, 2026-10-05 : « on peut pas en ajouter ? ») : les unités ont leur liste, l'onglet Unites (ID · Nom · Actif) —
+   « Nouvelle unité… » au bas, comme un magasin; la fiche la propose avant même son premier usage. La poubelle : seulement une unité
+   de la liste dont aucun aliment ne se sert (Actif = N). Une unité née dans la fiche (« Autre… ») vit tant qu'un aliment s'en sert. */
+const uniteEnStock = u => STOCK.some(l => uniteDe(l[6]) === u);
 function remplirPageUnites() {
   $('liste-noms').innerHTML = unitesConnues().map(u => '<div class="accordeon" data-id="' + esc(u) + '"><div class="accordeon-tete"><span>' + esc(u) + '</span>' +
-    (UNITES_BASE.indexOf(u) === -1 ? crayon('u:' + u) : '') + '</div></div>').join('');
+    (UNITES_BASE.indexOf(u) === -1 ? crayon('u:' + u) : '') +
+    (UNITES_LISTE.some(x => x.nom === u) && !uniteEnStock(u) ? poubelle('u', u) : '') + '</div></div>').join('');
+}
+/* La ligne d'une unité de la liste, telle que le cache la garde (pour la réécrire). */
+const rangUnite = nom => { const c = lireCache(); return ((c && c.listes && c.listes.Unites) || []).find(r => String(r[1]).trim() === nom && String(r[2]) !== 'N'); };
+/* « Nouvelle unité… » + Ajouter (ou Entrée) : un nom qui existe déjà (sans accent ni majuscule : « ml » = « mL ») ne crée rien; une
+   unité retirée du même nom revient. Sous le chariot, comme un magasin : un échec relit la réserve (le 2e essai ne double rien). */
+async function ajouterUnite() {
+  const champ = $('nom-nouveau'), msg = $('noms-msg'), btn = $('btn-nom-ajouter'), nom = champ.value.trim();
+  msg.className = 'message message-repli'; msg.textContent = '';
+  if (!nom || btn.disabled) return;
+  const deja = unitesConnues().find(u => cleNom(u) === cleNom(nom));
+  if (deja) { msg.className = 'message message-repli message-erreur'; msg.textContent = '« ' + deja + ' » existe déjà.'; return; }
+  const c = lireCache(), ancien = ((c && c.listes && c.listes.Unites) || []).find(r => String(r[2]) === 'N' && cleNom(r[1]) === cleNom(nom));
+  btn.disabled = true; montrerVoile(true);
+  try {
+    const ligne = [ancien ? ancien[0] : '', nom, 'O'];   // Unites : ID · Nom · Actif
+    const r = ancien ? await Coffre.modifier('Unites', ancien[0], ligne) : await Coffre.ajouter('Unites', ligne);
+    if (!r || !r.ok) throw new Error((r && r.erreur) || 'refus');
+    ligne[0] = ancien ? String(ancien[0]) : String(r.id);
+    UNITES_LISTE.push({ id: ligne[0], nom: nom });
+    if (c) { c.listes = c.listes || {}; c.listes.Unites = (c.listes.Unites || []).filter(x => String(x[0]) !== ligne[0]).concat([ligne]); ecrireCache(c); }
+    champ.value = '';
+    remplirPageUnites();
+    avis('Unité ajoutée : ' + nom, 'succes');
+  } catch (e) {
+    msg.className = 'message message-repli message-erreur'; msg.textContent = 'Pas ajoutée — réessaie.';
+    chargerReferences().then(() => { if (!$('vue-noms').hidden) remplirPageNoms(); });
+  } finally { btn.disabled = false; montrerVoile(false); }
+}
+/* La poubelle d'une unité : la question à la place de sa barre. Rien ne bouge avant Oui. */
+function demanderRetraitUnite(nom) {
+  remplirPageUnites();
+  const acc = [...$('liste-noms').querySelectorAll('.accordeon')].find(a => a.dataset.id === nom);
+  if (!acc) return;
+  acc.outerHTML = '<div class="accordeon-item accordeon-item-saisie" data-confirme><span>' + esc('Retirer ' + nom + ' ?') + '</span>' + ouiNon('u', nom) + '</div>';
+}
+/* Oui : Actif = N, par la file des gestes (instantané). Un aliment s'en sert entre-temps : on ne retire pas. */
+function retirerUnite(nom) {
+  const x = UNITES_LISTE.find(y => y.nom === nom), row = rangUnite(nom);
+  if (!x || !row) { avis('Pas retirée — réessaie', 'erreur'); remplirPageUnites(); return; }
+  if (uniteEnStock(nom)) { avis('Un aliment s\'en sert : pas retirée', 'erreur'); remplirPageUnites(); return; }
+  const l = row.slice(); l[2] = 'N';
+  poserGeste({ action: 'lignes', table: 'Unites', opId: 'retu-' + Date.now() + '-' + Math.random().toString(36).slice(2, 8), lignes: [l] });
+  UNITES_LISTE.splice(UNITES_LISTE.indexOf(x), 1);
+  remplirPageUnites();
+  avis('Retirée : ' + nom, 'succes');
 }
 /* Le crayon d'une unité : un nom qui existe déjà (sans accent ni majuscule) -> la question; sinon, on la change partout. */
 function renommerUnite(ancienne, nom) {
@@ -1801,8 +1855,15 @@ async function changerUnite(ancienne, nouvelle) {
     montrerVoile(false);
     if (!lu || lignes().some(l => !l[0])) { avis('Unité pas corrigée — réessaie', 'erreur'); rafraichirBases(); return; }
   }
+  const existe = unitesConnues().some(u => u !== ancienne && u === nouvelle);   // réunir : la nouvelle est déjà là
   const modifs = lignes().map(l => { const ligne = l.slice(); ligne[4] = dateCourte(ligne[4]); ligne[6] = formatAvec(l[6], nouvelle); return { id: String(l[0]), ligne: ligne }; });
   if (modifs.length) poserGeste({ action: 'deplacer', opId: 'unite-' + Date.now() + '-' + Math.random().toString(36).slice(2, 8), modifs: modifs, ajouts: [] });
+  const row = rangUnite(ancienne), x = UNITES_LISTE.find(y => y.nom === ancienne);   // une unité de la liste : sa ligne suit (renommée, ou retirée si on réunit)
+  if (row && x) {
+    const l = row.slice(); if (existe) l[2] = 'N'; else l[1] = nouvelle;
+    poserGeste({ action: 'lignes', table: 'Unites', opId: 'renu-' + Date.now() + '-' + Math.random().toString(36).slice(2, 8), lignes: [l] });
+    if (existe) UNITES_LISTE.splice(UNITES_LISTE.indexOf(x), 1); else x.nom = nouvelle;
+  }
   const suivre = vr => {                               // la fiche pré-remplit d'après les formats déjà vus : ils suivent
     if (!vr) return;
     vr.formats = (vr.formats || []).map(f => uniteDe(f) === ancienne ? formatAvec(f, nouvelle) : f).filter((f, k, t) => t.indexOf(f) === k);
@@ -2691,6 +2752,7 @@ function poserGeste(envoi) {
    (les premiers, 2026-09-30). Chaque table : où sont ses lignes dans d. */
 const TABLES_GESTE = { Emplacements: d => d.emps, Produits: d => d.prods, Categories: d => d.cats,
                        Magasins: d => (d.listes || {}).Magasins, Marques: d => (d.listes || {}).Marques, Saveurs: d => (d.listes || {}).Saveurs,
+                       Unites: d => (d.listes || {}).Unites,
                        Epiceries: d => d.epiceries };
 function appliquerGeste(e, d) {
   if (e.action === 'trier') return;                   // le tri des circulaires : rien dans la réserve (la page de tri le pose elle-même, appliquerTri)
@@ -4311,13 +4373,13 @@ function initEntree() {
   $('btn-nom-ajouter').addEventListener('click', ajouterNom);
   $('nom-nouveau').addEventListener('keydown', e => { if (e.key === 'Enter') { e.preventDefault(); ajouterNom(); } });
   $('liste-noms').addEventListener('click', function (ev) {
-    const oui = ev.target.closest('[data-retirer-oui]');   // « Retirer … ? » Oui
-    if (oui) { retirerNom(oui.dataset.retirerOui.split('|')[1]); return; }
+    const oui = ev.target.closest('[data-retirer-oui]');   // « Retirer … ? » Oui (une unité : « u|<son nom> »)
+    if (oui) { const k = oui.dataset.retirerOui, id = k.slice(k.indexOf('|') + 1); if (k.charAt(0) === 'u') retirerUnite(id); else retirerNom(id); return; }
     const ru = ev.target.closest('[data-reunir]');         // « … existe déjà : les réunir ? » Oui
     if (ru) { reunirNoms(ru.dataset.reunir); return; }
     if (ev.target.closest('[data-retirer-non], [data-reunir-non]')) { remplirPageNoms(); return; }
     const pb = ev.target.closest('.retirer');
-    if (pb) { demanderRetraitNom(pb.dataset.retirer.split('|')[1]); return; }
+    if (pb) { const k = pb.dataset.retirer, id = k.slice(k.indexOf('|') + 1); if (k.charAt(0) === 'u') demanderRetraitUnite(id); else demanderRetraitNom(id); return; }
     const it = ev.target.closest('[data-circulaire]');     // l'interrupteur « Circulaire » (Magasins)
     if (it) { basculerCirculaire(it.dataset.circulaire); return; }
     const cr = ev.target.closest('.crayon');
