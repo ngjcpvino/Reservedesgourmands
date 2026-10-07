@@ -64,8 +64,12 @@ sont donc en suspens** : le besoin, c'est **sa liste**, comparée d'une épiceri
        au IGA. Ça serait dommage de payer plus cher la pâte de tomates quand le magasin en face l'a en solde. » L'app dirait :
        « Au Super C : le veau. À l'IGA : la pâte de tomates, la ricotta, les pâtes. »
 
+11. **Le partage** — J-C : « Oui ». **Le temps 1 (les idées) = « En spécial cette semaine »** : feuilleter ce qui est en solde,
+    ajouter à la liste d'un toucher. **Le temps 2 (quoi acheter où) = la Liste d'achats** : « Au Super C : le veau. À l'IGA :
+    le reste. »
+
 ## 3. Questions ouvertes (dans l'ordre, une à la fois)
 
-0. **Le temps 1 (les idées) = « En spécial cette semaine »; le temps 2 (quoi acheter où) = dans la Liste d'achats ?**
+0. **Les pâtes en solde aux deux places ?** (la question de J-C)
 
 1. **L'allure (aperçu d'abord) : les logos (comme la page Circulaires) ou les barres à leur couleur ?
