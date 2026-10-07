@@ -129,7 +129,7 @@
     if (typeof ouvrirFicheScan === 'function') { ouvrirFicheScan(code); return; }   // -> la fiche (mode code)
     el('scan-code').textContent = code;          // filet : fiche pas branchée
     el('scan-resultat').hidden = false;
-    msg('Code lu ✓');
+    msg('Code lu');
   }
 
   /* Open Food Facts : code -> { code, nom, marque, format, trouve }. */
