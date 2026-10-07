@@ -110,11 +110,14 @@ function lignePrix(avant, x, court, rouge) {
   return '<div class="item-detail' + (rouge ? ' solde-meilleur' : '') + '">' + esc(avant + t) + htmlUnite(x.detail) + '</div>';
 }
 
-/* ---------- La Liste d'achats « Par épicerie » (décisions 13 à 19, 28, 30, 31) ----------
-   Les épiceries dont la circulaire est lue, en bannières à leur logo (sinon leur barre à leur couleur), le nombre à droite = ce qu'on va
-   chercher là; la plus garnie en premier. Ouverte, une épicerie montre TOUTE la liste en trois parties — Moins cher ici · Prix pareil ou
-   inconnu · Moins cher ailleurs —, un bandeau par catégorie dans chacune. La case seulement (cochée dans une, cochée partout). */
-function htmlParEpicerie(items) {
+/* ---------- La Liste d'achats « Par épicerie » (décisions 13 à 19, 28, 30, 31, 34) ----------
+   COMME LA PAGE CIRCULAIRES (J-C, 2026-10-07 : « faudrait être cohérent… respecter ce qui a déjà été décidé dans les autres pages »;
+   aperçu « Oui ») : les épiceries dont la circulaire est lue en tuiles, 2 colonnes — leur logo sur une carte blanche, sinon leur nom sur
+   leur couleur —, le nombre dans le coin (là où se pose le point rouge sur Circulaires) = ce qu'on va chercher là; la plus garnie en
+   premier. Une épicerie touchée (ouverte : son ID) : elle seule, en bannière, et TOUTE la liste en trois parties — Moins cher ici · Prix
+   pareil ou inconnu · Moins cher ailleurs —, un bandeau par catégorie dans chacune; la bannière touchée ramène aux tuiles. La case
+   seulement (cochée dans une, cochée partout). */
+function htmlParEpicerie(items, ouverte) {
   const mags = LISTES.Magasins.filter(x => x.circ !== false && !x.introuvable).map(x => x.id);
   if (!mags.length) return '<div class="accordeon-item"><span class="texte-petit texte-pale">Aucune circulaire lue cette semaine.</span></div>';
   const prix = {}, gagne = {}, compte = {};
@@ -150,14 +153,20 @@ function htmlParEpicerie(items) {
     });
     return h;
   };
-  return mags.map(m => {
-    const logo = styleLogo(m), t = teinteMagasin(m), n = '<span class="nombre">' + compte[m] + '</span>';
-    const tete = logo ? '<div class="accordeon-tete banniere"><span class="logo"' + logo + ' aria-label="' + esc(nomListe(m)) + '"></span>' + n + '</div>'
-                      : '<div class="accordeon-tete' + t.pale + '"' + t.style + '><span>' + esc(nomListe(m)) + '</span>' + n + '</div>';
+  const n = m => '<span class="nombre">' + compte[m] + '</span>';
+  if (ouverte && mags.indexOf(ouverte) !== -1) {      // une épicerie touchée : elle seule, en bannière (sa circulaire éteinte entre-temps : les tuiles)
+    const m = ouverte, logo = styleLogo(m), t = teinteMagasin(m);
+    const tete = logo ? '<div class="accordeon-tete ouvert banniere"><span class="logo"' + logo + ' aria-label="' + esc(nomListe(m)) + '"></span>' + n(m) + '</div>'
+                      : '<div class="accordeon-tete ouvert' + t.pale + '"' + t.style + '><span>' + esc(nomListe(m)) + '</span>' + n(m) + '</div>';
     const corps = partie('Moins cher ici', items.filter(it => gagne[it.pid] === m), m) + partie('Prix pareil ou inconnu', items.filter(it => !gagne[it.pid]), m) +
                   partie('Moins cher ailleurs', items.filter(it => gagne[it.pid] && gagne[it.pid] !== m), m);
-    return '<div class="accordeon" data-groupe="' + esc('m:' + m) + '">' + tete + '<div class="liste-blanche achats-groupe" hidden>' + corps + '</div></div>';
-  }).join('');
+    return '<div class="accordeon" data-epicerie-ouverte>' + tete + '<div class="liste-blanche achats-groupe">' + corps + '</div></div>';
+  }
+  return '<div class="grille">' + mags.map(m => {     // les tuiles : celles de la page Circulaires (remplirTri), le nombre en plus
+    const logo = styleLogo(m), t = teinteMagasin(m);
+    return logo ? '<button class="bouton bouton-grand tuile-logo" type="button" data-epicerie="' + esc(m) + '" aria-label="' + esc(nomListe(m)) + '"><span class="logo"' + logo + '></span>' + n(m) + '</button>'
+                : '<button class="bouton bouton-grand tuile-nom' + (t.pale ? ' tuile-pale' : '') + '" type="button" data-epicerie="' + esc(m) + '"' + t.style + '>' + esc(nomListe(m)) + n(m) + '</button>';
+  }).join('') + '</div>';
 }
 
 /* ---------- Listes → « En solde du 8 au 14 octobre 2026 » (décisions 2, 6, 20 à 23, 33) ----------

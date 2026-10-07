@@ -985,9 +985,9 @@ select.champ {
 /* La liste « En solde » (J-C, 2026-10-07, choix B) : les Peut-être sous les Oui, plus pâles. */
 .peut-etre .item-nom, .peut-etre .item-detail { color: var(--couleur-302); }
 .peut-etre .solde { opacity: var(--peut-etre-opacite); }
-/* LA LISTE D'ACHATS PAR ÉPICERIE (J-C, 2026-10-07, sur aperçus; RdG-08) : chaque épicerie en bannière (son logo, sinon sa barre), le
-   nombre à droite = ce qu'on va chercher là; ouverte, ses trois parties — Moins cher ici · Prix pareil ou inconnu · Moins cher
-   ailleurs —, un bandeau par catégorie dans chacune. */
+/* LA LISTE D'ACHATS PAR ÉPICERIE (J-C, 2026-10-07, sur aperçus; RdG-08) : comme la page Circulaires — les épiceries en tuiles, 2 colonnes,
+   le nombre dans le coin (= ce qu'on va chercher là); touchée, elle seule en bannière, le nombre à droite, ses trois parties — Moins
+   cher ici · Prix pareil ou inconnu · Moins cher ailleurs —, un bandeau par catégorie dans chacune. */
 .nombre {
   flex-shrink: 0;
   min-width: var(--nombre-large);
@@ -1000,6 +1000,8 @@ select.champ {
   text-align: center;
 }
 .accordeon-tete:not(.banniere) > .nombre { background: var(--couleur-101); color: var(--couleur-306); }   /* sur une barre de couleur : une pastille claire */
+.tuile-nom > .nombre { background: var(--couleur-101); color: var(--couleur-306); }   /* idem, sur une tuile à sa couleur */
+.bouton-grand > .nombre { position: absolute; top: var(--point-marge); right: var(--point-marge); }   /* une tuile (comme la page Circulaires) : dans le coin, là où se pose le point rouge */
 .partie { padding: var(--espace-s) var(--espace-l) var(--espace-xs); font-size: var(--texte-normal); font-weight: var(--poids-fort); color: var(--couleur-306); border-top: var(--filet) solid var(--champ-bord); }
 .partie:first-child { border-top: none; }
 

@@ -2965,20 +2965,19 @@ function lignesAchats(cote) {
    « Il y a aussi ceci », est retirée le 2026-10-07 : les idées se cherchent dans Listes → « En solde du … au … », RdG-08.)
    DEUX VUES (J-C, 2026-10-07; RdG-08), deux boutons comme l'Inventaire : « Par catégorie » pour bâtir la liste (toujours à l'ouverture),
    « Par épicerie » pour faire les courses (JS/prix.js : les épiceries, ce qui est moins cher où; la case seulement).
-   ouvrir : le groupe à ouvrir (data-groupe : l'ID de la catégorie, 'sans', 'cote'; Par épicerie : 'm:' + l'épicerie); sinon celui qui
-   l'était reste ouvert. */
+   ouvrir : le groupe à ouvrir (data-groupe : l'ID de la catégorie, 'sans', 'cote'); sinon celui qui l'était reste ouvert. Par épicerie :
+   epicerieOuverte (la tuile touchée). */
 var vueAchats = 'categorie';                           // 'categorie' | 'epicerie'
+var epicerieOuverte = '';                              // Par épicerie : l'épicerie touchée ('' = les tuiles)
 function remplirAchats(ouvrir) {
   const cible = $('liste-achats');
   const ouverte = cible.querySelector(':scope > .accordeon > .accordeon-tete.ouvert'), garde = ouverte ? ouverte.parentElement.dataset.groupe : '';   // on coche l'un après l'autre : elle reste ouverte
-  ouvrir = vueAchats === 'epicerie' && !String(ouvrir || '').startsWith('m:') ? garde : ouvrir || garde;   // un aliment ajouté ouvre sa catégorie; Par épicerie, l'épicerie ouverte le reste
+  ouvrir = ouvrir || garde;                            // un aliment ajouté ouvre sa catégorie
   const items = lignesAchats(), cote = lignesAchats(true);
   const choix = items.length || cote.length ? '<div class="grille choix-vue">' + [['categorie', 'Par catégorie'], ['epicerie', 'Par épicerie']].map(v =>
     '<button class="bouton bouton-petit ' + (v[0] === vueAchats ? 'bouton-brun' : 'choix-eteint') + '" type="button" data-vue-achats="' + v[0] + '">' + v[1] + '</button>').join('') + '</div>' : '';
-  if (vueAchats === 'epicerie') {
-    cible.innerHTML = choix + (items.length ? htmlParEpicerie(items) : '<div class="accordeon-item"><span class="texte-petit texte-pale">Rien à acheter.</span></div>');
-    const e = [...cible.querySelectorAll(':scope > .accordeon')].find(a => ouvrir && a.dataset.groupe === ouvrir);
-    if (e) toggleAccordeon(e.firstElementChild);
+  if (vueAchats === 'epicerie') {                      // l'épicerie touchée le reste (on coche l'un après l'autre)
+    cible.innerHTML = choix + (items.length ? htmlParEpicerie(items, epicerieOuverte) : '<div class="accordeon-item"><span class="texte-petit texte-pale">Rien à acheter.</span></div>');
     return;
   }
   const nomDe = pid => (PRODUITS.find(p => String(p.id) === String(pid)) || {}).nom || '';
@@ -3023,7 +3022,7 @@ function remplirAchats(ouvrir) {
 async function montrerAchats() {
   toutCacher(); $('vue-achats').hidden = false; $('btn-burger').hidden = false;
   fermerAjoutAchat();
-  vueAchats = 'categorie';                         // toujours Par catégorie à l'ouverture (J-C, 2026-10-07, choix B : il bâtit sa liste toute la semaine)
+  vueAchats = 'categorie'; epicerieOuverte = '';   // toujours Par catégorie à l'ouverture (J-C, 2026-10-07, choix B : il bâtit sa liste toute la semaine)
   $('liste-achats').innerHTML = '';                // une nouvelle visite : tout repart fermé
   if (!RAYONS.length) {                            // pas encore chargé → on charge (même patron que les bases)
     $('liste-achats').innerHTML = '<div class="texte-petit texte-pale">Chargement…</div>';
@@ -3162,15 +3161,23 @@ async function montrerCirculaires() {
   $('liste-tri').innerHTML = ''; TRI_VUE = '';     // une nouvelle visite : les épiceries et les ronds, tout fermé
   montrerVoile(true);                              // le chariot jusqu'à ce que tout soit là
   if (!RAYONS.length) await chargerReferences();   // l'entonnoir a besoin des catégories et des aliments
+  // Comme la réserve (chargerData) : jusqu'à 5 essais, chaque essai plus patient, et sous le chariot ce qu'il fait — une seule lecture
+  // de 12 s ne suffisait plus (J-C, 2026-10-07, capture à l'appui : « Circulaires pas lues », deux fois de suite, sans raison = pas
+  // de réponse à temps). Le coffre-fort qui répond non (r.erreur) : réessayer n'y changerait rien.
   let r = null;
-  try { r = await Coffre.lireTri(); } catch (e) {}
+  for (let i = 0; i < ESSAIS_LECTURE.length && !(r && r.ok) && !(r && r.erreur); i++) {
+    if (i) await new Promise(res => setTimeout(res, 1000 * i));
+    if ($('vue-circulaires').hidden) break;         // parti ailleurs entre-temps : on n'insiste pas
+    $('voile-texte').textContent = i ? (i + 1) + 'e essai…' : 'Lecture des circulaires…';
+    try { r = await Coffre.lireTri(ESSAIS_LECTURE[i]); } catch (e) { r = null; }
+  }
   montrerVoile(false);
   if ($('vue-circulaires').hidden) return;          // parti ailleurs entre-temps
   if (r && r.ok) {
     TRI = { aTrier: r.aTrier || [], tri: r.tri || [] };
     lireAttenteGestes().forEach(e => { if (e.action === 'trier') appliquerTri(e, TRI); });   // un tri en route reste fait
     noterNbATrier(TRI.aTrier.length);
-  } else avis('Circulaires pas lues' + (r && r.erreur ? ' (' + r.erreur + ')' : '') + ' — réessaie dans un instant', 'erreur');   // la raison du coffre-fort, s'il a répondu
+  } else avis(r && r.erreur ? 'Circulaires pas lues (' + r.erreur + ')' : 'Circulaires pas lues : pas de réponse après ' + ESSAIS_LECTURE.length + ' essais — réessaie dans un instant', 'erreur');   // la raison du coffre-fort, s'il a répondu
   remplirTri();                                    // (pas relues : ce qu'on avait, s'il y a lieu)
 }
 /* D, E, F d'une ligne de Tri : un ou plusieurs aliments (une ligne à plusieurs produits), séparés par des virgules. */
@@ -4269,15 +4276,17 @@ function initEntree() {
     const rv = ev.target.closest('[data-achat-remettre]');
     if (rv) { remettreAchat(rv.dataset.achatRemettre); return; }
     const vue = ev.target.closest('[data-vue-achats]');    // « Par catégorie » / « Par épicerie »
-    if (vue) { if (vue.dataset.vueAchats !== vueAchats) { vueAchats = vue.dataset.vueAchats; remplirAchats(); } return; }
-    const tete = ev.target.closest('.accordeon-tete');     // une catégorie, « Mis de côté », une épicerie : une seule ouverte à la fois
+    if (vue) { if (vue.dataset.vueAchats !== vueAchats) { vueAchats = vue.dataset.vueAchats; epicerieOuverte = ''; remplirAchats(); } return; }
+    const epi = ev.target.closest('[data-epicerie]');      // Par épicerie : une tuile touchée — elle seule, en bannière
+    if (epi) { epicerieOuverte = epi.dataset.epicerie; remplirAchats(); window.scrollTo(0, 0); return; }
+    if (ev.target.closest('[data-epicerie-ouverte] > .accordeon-tete')) { epicerieOuverte = ''; remplirAchats(); return; }   // sa bannière touchée : les tuiles
+    const tete = ev.target.closest('.accordeon-tete');     // une catégorie, « Mis de côté » : une seule ouverte à la fois
     if (tete) { toggleAccordeon(tete); return; }
     const l = ev.target.closest('[data-achat]');
     if (l) cocherAchat(l.dataset.achat);
   });
-  $('achats-retour').addEventListener('click', () => {   // Retour recule d'un pas : Par épicerie, l'épicerie ouverte se ferme; puis le menu
-    const t = vueAchats === 'epicerie' && $('liste-achats').querySelector(':scope > .accordeon > .accordeon-tete.ouvert');
-    if (t) toggleAccordeon(t); else retourAuMenu();
+  $('achats-retour').addEventListener('click', () => {   // Retour recule d'un pas : Par épicerie, l'épicerie touchée revient aux tuiles; puis le menu
+    if (vueAchats === 'epicerie' && epicerieOuverte) { epicerieOuverte = ''; remplirAchats(); } else retourAuMenu();
   });
   $('btn-achat-ajouter').addEventListener('click', () => { nomScanne = ''; ouvrirAjoutAchat(); });
   $('achat-annuler').addEventListener('click', () => { fermerAjoutAchat(); remplirAchats(); });

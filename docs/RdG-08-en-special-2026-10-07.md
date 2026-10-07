@@ -183,6 +183,13 @@ cette semaine » dit « Rien en circulaire cette semaine. », et « Par épiceri
     2026 », « du 31 décembre 2026 au 6 janvier 2027 »); sans solde en cours : « En solde ». Bâti le même jour (`titreSoldes()`,
     sur la barre, ouverte ou fermée).
 
+34. **« Par épicerie » : comme la page Circulaires** (J-C, après le bâti : « Faudrait être cohérent. On clique Par épicerie, on voit
+    pas 2 colonnes avec les épiceries. Me semble que c'est simple de respecter ce qui a déjà été décidé dans les autres pages ! »;
+    aperçu « Oui »). Les épiceries en **tuiles, 2 colonnes** (leur logo sur une carte blanche, sinon leur nom sur leur couleur), **le
+    nombre dans le coin** (là où se pose le point rouge sur Circulaires); **une épicerie touchée : elle seule, en bannière**, le nombre
+    à droite, ses trois parties dessous; la bannière touchée (ou Retour) ramène aux tuiles. Remplace les bannières empilées de la
+    décision 19. Bâti le même jour.
+
 **✅ RÉFLEXION FINIE le 2026-10-07** — l'aperçu final (`scratchpad/apercu-prix.html`, `apercu-final.html`) : J-C, « Oui. Il y a
 quelques choses avec la grosseur de la police, mais là aussi j'aviserai » (**à revoir à l'usage**).
 
@@ -200,8 +207,9 @@ quelques choses avec la grosseur de la police, mais là aussi j'aviserai » (**�
    (`ajouterDepuisSpecial()` → `surLaListe()`, tirée de `mettreSurListe()`) ou « (déjà sur ta liste) »; un aliment mis de côté
    revient; ce qui était ouvert le reste; « Rien en circulaire cette semaine. ».
 4. ✅ **La Liste d'achats : « Par catégorie » / « Par épicerie »** (`vueAchats`, `data-vue-achats`; toujours Par catégorie à
-   l'ouverture). Par épicerie (`htmlParEpicerie()`) : les épiceries dont la circulaire est lue (interrupteur à Oui, trouvée), en
-   bannières à leur logo (sinon leur barre à leur couleur), le nombre à droite (`.nombre`), la plus garnie en premier; ouverte :
+   l'ouverture). Par épicerie (`htmlParEpicerie()`) : les épiceries dont la circulaire est lue (interrupteur à Oui, trouvée), **en tuiles
+   comme la page Circulaires** (décision 34 : 2 colonnes, le logo, le nombre dans le coin, `.nombre`), la plus garnie en premier;
+   touchée (`epicerieOuverte`) : elle seule en bannière, et
    **Moins cher ici · Prix pareil ou inconnu · Moins cher ailleurs** (`.partie`), un bandeau par catégorie dans chacune; la case
    seulement. **Le prix connu** (`prixConnus()`) : le solde de la semaine (le meilleur au détail), sinon le plus récent des prix
    payés (STOCK col. L et M, la date col. E) et des prix réguliers d'avant (`PRIX_REGULIERS`, section 4). **Où c'est moins cher**
@@ -210,7 +218,7 @@ quelques choses avec la grosseur de la police, mais là aussi j'aviserai » (**�
    « à égalité : là où il y a le plus d'articles » — la partie « Prix pareil ou inconnu » de la décision 31 les remplace). Les
    lignes : « Catelli · 250 g · 2,49 (3,99) » en rouge et « aussi au Super C : 2,79 »; « au Super C : … » et « ici aussi : 5,99 »
    (ici en solde) ou « ici : 6,49 · payé le 19 sept. »; « ici : prix inconnu »; « · payé le 3 oct. », « · régulier, vu le 19
-   sept. ». Retour : l'épicerie ouverte se ferme, puis le menu. « Aucune circulaire lue cette semaine. »
+   sept. ». Retour : l'épicerie touchée revient aux tuiles, puis le menu. « Aucune circulaire lue cette semaine. »
 5. ✅ **La barre « En circulaire » du bas de la Liste d'achats : retirée** (avec `.groupe-solde`, `data-achat-ajouter`, le
    paramètre `rep` de `soldesDe()` et `htmlSoldes()`).
 

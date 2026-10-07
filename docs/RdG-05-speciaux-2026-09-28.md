@@ -749,3 +749,14 @@ Consigner les réponses ici, puis on reprend la réflexion.
 
 **Pas encore discuté** : un prix inconnu dans un magasin (case vide ?);
 l'âge d'un prix (lu jeudi, affiché quand ?).
+
+## 9. ⚠️ 2026-10-07 — LA PAGE CIRCULAIRES NE SE LIT PLUS (POUR L'ORDI)
+
+J-C, captures à l'appui (mercredi 7 octobre, 8 h 54 et 8 h 57) : « Circulaires pas lues — réessaie dans un instant », deux fois
+de suite, **sans raison entre parenthèses** = le coffre-fort n'a pas répondu à temps (la lecture `lireTri` était abandonnée après
+12 s, un seul essai). La réserve (`references`), elle, se lisait (pas de bandeau rouge). **Côté app, le même jour** : `lireTri`
+fait comme la réserve — jusqu'à 5 essais, de plus en plus patients (12, 18, 25, 30, 30 s), « 2e essai… » sous le chariot; au bout,
+« pas de réponse après 5 essais ». **Pour l'ordi** : chronométrer `lireTri` (l'archive Circulaires grossit chaque jeudi, et
+`codesEntres` / `triAuto` lisent STOCK et Tri); s'il dépasse ~10 s, l'alléger — par exemple, « À trier » calculé une fois au
+jeudi (après `lireSpeciaux`) et après chaque `trier`, rangé tout petit (un onglet, ou le cache), lu d'un coup.
+
