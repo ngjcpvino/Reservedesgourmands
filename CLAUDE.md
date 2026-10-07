@@ -122,7 +122,7 @@ Principes structurels non négociables (détail dans `RdG-00`) : rien de fixe (l
 > 41. **La page Circulaires s'ouvre-t-elle du premier coup ?** (l'allègement d'`api.gs` du 2026-10-07, à vérifier le jeudi 8 au matin).
 >
 > **Ajoutés après la numérotation**
-> 42. **L'Inventaire compte les paquets, Consommer compte les pots** : deux paquets de 12 yogourts, l'un entamé, font « 2 » dans l'Inventaire (« 12 x 100 g + 11 x 100 g ») et « 23 » dans Consommer — question posée à J-C le 2026-10-07 : l'Inventaire doit-il compter les pots ?
+> 42. ~~**L'Inventaire compte les paquets, Consommer compte les pots**~~ ✅ 2026-10-07 (J-C : « Ben oui ») : **partout où l'app montre ce qu'on a, un pack compte ses pots** (`qteDe()` : l'Inventaire par meuble et par catégorie, l'Escale, Rechercher et l'écran de rayon, Déplacer, À consommer bientôt) — deux paquets de 12 dont un entamé = 23; **Déplacer se compte en pots** (4 yogourts au frigo : « 4 x 100 g » y va, « 8 x 100 g » reste; un paquet entier = 12); **ce qu'on a scanné se compte en boîtes** (Entrer, « Déjà scanné », « À compléter (12 articles) », Compléter et sa répartition : `deplacerLot(…, parBoite)`). Essais : 9 + 22 vérifications.
 > 43. **« x 100 g » paraît comme une unité** dans la fiche et Gérer les bases → Unités, quand un format vient d'Open Food Facts (« 12 x 100 g » se coupe en 12 + « x 100 g »).
 >
 > ⚠️ `docs/collection territoire.md` n'est **pas** de la Réserve (une collection de savons, Univers Caresse) : rangé là par erreur, n'y rien toucher.

@@ -2048,7 +2048,7 @@ var LOTS = {};                                        // { produitId: [lot…] }
 function lotsParProduit() {
   const par = {};
   STOCK.forEach(l => {
-    const emp = String(l[2] || ''), qte = Number(l[3]) || 0;
+    const emp = String(l[2] || ''), qte = qteDe(l);   // un pack compte ses pots
     if (qte <= 0) return;                             // vide : rien à montrer
     const pid = String(l[1]);
     const marque = String(l[5] || '').trim(), saveur = String(l[9] || '').trim(), format = String(l[6] || '').trim();
@@ -2148,8 +2148,10 @@ function dateCourte(v) {
 /* Porte q du lot vers emp — INSTANTANÉ (J-C) : la mémoire change tout de suite, l'envoi part dans la file des gestes.
    Une ligne qui entre au complet : on réécrit son endroit. Une ligne coupée en deux (déplacer ou ranger une partie) :
    la ligne d'origine garde le reste, la part qui part devient une ligne neuve (ID donné ici) qui GARDE sa date
-   d'entrée — un aliment ne rajeunit pas en changeant de tablette (« le plus vieux d'abord » reste juste). */
-async function deplacerLot(lot, emp, q, fin) {
+   d'entrée — un aliment ne rajeunit pas en changeant de tablette (« le plus vieux d'abord » reste juste).
+   q se compte en POTS (qteDe : 4 yogourts d'un paquet de 12 vont au frigo, 8 restent à la réserve, « 4 x 100 g » / « 8 x 100 g »);
+   parBoite (Compléter : les boîtes de l'épicerie) : en boîtes, comme avant. */
+async function deplacerLot(lot, emp, q, fin, parBoite) {
   const parDeplacer = !!fin;                          // Déplacer (menu) décide lui-même de la suite
   fin = fin || redessinerLots;
   if (!emp || emp === lot.emp || !(q > 0)) { fin(false); return; }
@@ -2171,14 +2173,26 @@ async function deplacerLot(lot, emp, q, fin) {
     if (!row || String(row[2]) === emp) continue;
     const qte = Number(row[3]) || 0;
     if (qte <= 0) continue;
+    const n = parBoite ? 1 : (nbUnites(row[6]) || 1), total = qte * n;   // n : les pots d'un paquet (1 = une boîte, un contenant)
     const ligne = row.slice(); ligne[4] = dateCourte(ligne[4]);
     if (ligne.length > 15) ligne[15] = dateCourte(ligne[15]);
-    if (qte <= reste) { poserHorloge(ligne, row[2], emp); ligne[2] = emp; reste -= qte; }   // toute la ligne va à l'endroit (entre au congélo ou en sort : l'horloge repart)
+    if (total <= reste) { poserHorloge(ligne, row[2], emp); ligne[2] = emp; reste -= total; }   // toute la ligne va à l'endroit (entre au congélo ou en sort : l'horloge repart)
     else {                                             // la ligne se coupe : « reste » part, le reste attend
-      ligne[3] = qte - reste;
-      const a = ligne.slice(); a[0] = idLocal(); a[2] = emp; a[3] = reste; a[7] = estReste(row) ? op + '-reste' : op;   // toutes ses colonnes : sa liste d'épicerie (N), son horloge (P) la suivent; la part d'un reste reste un reste
-      poserHorloge(a, row[2], emp);
-      ajouts.push(a);
+      const jeton = estReste(row) ? op + '-reste' : op;   // la part d'un reste reste un reste
+      const nouvelle = (k, format, jt, ici) => {       // toutes ses colonnes : sa liste d'épicerie (N), son horloge (P) la suivent
+        const a = ligne.slice(); a[0] = idLocal(); a[3] = k; a[6] = format; a[7] = jt;
+        if (!ici) { a[2] = emp; poserHorloge(a, row[2], emp); }
+        ajouts.push(a);
+      };
+      const part = reste, garde = total - part;
+      if (Math.floor(part / n)) nouvelle(Math.floor(part / n), row[6], jeton);              // des paquets entiers partent
+      if (part % n) nouvelle(1, formatPack(part % n, row[6]), op + '-reste');               // un bout de paquet part (« 4 x 100 g »)
+      const pleins = Math.floor(garde / n), bout = garde % n;
+      if (bout && !pleins && estReste(row)) { ligne[3] = 1; ligne[6] = formatPack(bout, row[6]); }   // un reste qui rapetisse sur place
+      else {                                           // une ENTRÉE garde son format et son prix (0 s'il n'y avait qu'un paquet)
+        ligne[3] = pleins;
+        if (bout) nouvelle(1, formatPack(bout, row[6]), op + '-reste', true);               // le bout qui reste ici (« 8 x 100 g »)
+      }
       reste = 0;
     }
     modifs.push({ id: id, ligne: ligne });
@@ -2193,7 +2207,7 @@ function stockParEndroit() {
   const par = {};
   STOCK.forEach(l => {
     const emp = String(l[2] || '');
-    const qte = Number(l[3]) || 0;
+    const qte = qteDe(l);                      // un pack compte ses pots
     if (!emp || qte <= 0) return;              // sans endroit (en transit) ou vide : pas ici
     const prod = PRODUITS.find(p => String(p.id) === String(l[1]));
     if (!prod) return;                         // produit disparu : on n'invente rien
@@ -2575,7 +2589,7 @@ function filtreSorte(prod, lots) {
   let total = 0;
   const garde = lots.map(l => {
     const q = lignesDuLot(l).filter(r => sorteColle(l.marque, l.saveur, String(r[6] || '').trim()))
-                            .reduce((s, r) => s + (Number(r[3]) || 0), 0);
+                            .reduce((s, r) => s + qteDe(r), 0);
     total += q;
     return q > 0 ? l : null;
   });
@@ -2711,6 +2725,10 @@ function ouvrirDeplacement(cle) {
 function nbUnites(format) { const m = String(format || '').trim().match(/^([0-9]+)\s*(?:unit|[x×]\s*[0-9])/i); return m ? parseInt(m[1], 10) : 0; }
 function tailleUnite(format) { const m = String(format || '').trim().match(/^[0-9]+\s*[x×]\s*(.+)$/i); return m ? m[1].trim() : ''; }
 function formatPack(n, format) { const t = tailleUnite(format); return t ? n + ' x ' + t : n + ' unité'; }
+/* Combien une ligne de STOCK en contient : un pack compte ses pots (J-C, 2026-10-07 : « Ben oui » — l'Inventaire comme Consommer :
+   deux paquets de 12, dont un entamé, font 23, pas 2). Partout où l'app montre ce qu'on a (l'Inventaire, l'Escale, Rechercher,
+   Déplacer, À consommer bientôt). Ce qu'on a scanné (Entrer, « Déjà scanné », Compléter) se compte en boîtes. */
+function qteDe(l) { return (Number(l[3]) || 0) * (nbUnites(l[6]) || 1); }
 function estPasAime(pid, marque, saveur) {
   return PAS_AIMES.some(r => String(r[1]) === String(pid) && String(r[2] || '').trim() === marque && String(r[3] || '').trim() === saveur);
 }
