@@ -93,9 +93,13 @@ sont donc en suspens** : le besoin, c'est **sa liste**, comparée d'une épiceri
 17. **L'ordre des épiceries : celle qui a le plus de soldes de la liste en premier, le nombre sur sa barre** (« IGA · 7 »,
     « Super C · 4 », « Metro · 0 ») — J-C : « Ok ».
 
+18. **Dans une épicerie : les trois parties, puis un bandeau par catégorie dans chacune (choix B, sur aperçu)** — J-C : « B ».
+    La partie = un titre (« En solde ici », « Pas en solde », « En solde ailleurs »), dessous ses catégories en bandeaux pâles
+    à leur couleur, leurs aliments dessous. L'aperçu : `scratchpad/apercu-parepicerie.html`. Rejeté : A (les parties en
+    bandeaux, les catégories dans l'ordre sans bandeau — la reco de Claude, plus courte).
+
 ## 3. Questions ouvertes (dans l'ordre, une à la fois)
 
-1. **Par épicerie, dans une partie : l'ordre des catégories, avec ou sans bandeaux ? (aperçu)**
-2. L'allure des épiceries dans « Par épicerie » : barres à leur couleur, ou leur logo ?
-3. Le temps 1 (« En spécial cette semaine », feuilleter pour des idées, surtout les protéines) : à repenser (les décisions
+1. **L'allure des épiceries dans « Par épicerie » : barres à leur couleur, ou leur logo ?
+2. Le temps 1 (« En spécial cette semaine », feuilleter pour des idées, surtout les protéines) : à repenser (les décisions
    1 à 6 sont en suspens).
