@@ -229,8 +229,41 @@ qui ne sont pas closes.*
 | A | ID | date/heure, donné par l'app |
 | B | Magasin | ID dans MAGASINS |
 | C | Date | le jour où elle a commencé |
-| D | Etat | **O** en cours · **T** terminée (Terminé touché : elle attend Compléter) · **C** close (le OK de Compléter, à venir) |
+| D | Etat | **O** en cours · **T** terminée (Terminé touché : elle attend Compléter) · **C** close (le OK de Compléter, bâti le 2026-10-04) |
 | E | Qui | qui l'a commencée |
+
+### ACHATS — la liste d'achats (2026-09-30, RdG-06; ajoutée ici le 2026-10-07 : elle manquait)
+*Créé tout seul au premier usage (action `achats`). Ce qui manque se calcule depuis STOCK, sans rien écrire : l'onglet ne garde que
+les gestes. Une ligne n'est jamais effacée : Actif = N. Depuis le 2026-10-05, tout se lit **par aliment** (col. B); marque et
+saveur s'écrivent vides (une vieille ligne par sorte compte pour son aliment). `references` renvoie les lignes Actif ≠ N.*
+
+| Col | Nom | Sens |
+|-----|-----|------|
+| A | ID | date/heure, donné par l'app |
+| B | ProduitID | lien vers PRODUITS |
+| C | Marque | ID dans MARQUES — vide depuis le 2026-10-05 |
+| D | Saveur | ID dans SAVEURS — vide depuis le 2026-10-05 |
+| E | Etat | `main` ajouté à la main · `coche` dans le panier · `plustard` mis de côté |
+| F | Date | le jour du geste |
+| G | Qui | qui l'a fait |
+| H | Actif | O / N |
+
+### PRIXREGULIERS — le dernier prix régulier vu en circulaire, par aliment et épicerie (2026-10-07, RdG-08 section 4)
+*Créé et **refait en entier** à la fin de chaque lecture du jeudi (`finirLecture`), d'après l'archive Circulaires gardée un an;
+`calculerPrixReguliers` le refait à la demande, depuis l'éditeur. Jamais écrit par l'app. `references` le renvoie tel quel
+(`prixReguliers`) : la Liste d'achats « Par épicerie » s'en sert quand l'aliment n'est pas en solde. Une ligne par aliment et par
+épicerie : la plus récente ligne de l'archive qui porte un prix régulier et dont l'article est relié à l'aliment comme ses soldes
+(Tri Oui / Peut-être, ou déjà entré). Tout en texte sauf le prix.*
+
+| Col | Nom | Sens |
+|-----|-----|------|
+| A | ProduitID | lien vers PRODUITS |
+| B | Magasin | ID dans MAGASINS |
+| C | Regulier | le prix régulier (nombre) |
+| D | Unite | les conditions de la circulaire (« /lb », « le 100 g »…) |
+| E | Description | le format, tel que la circulaire l'écrit |
+| F | Date | le début de cette circulaire (AAAA-MM-JJ) |
+| G | Marque | l'ID de la marque du Tri, sinon le nom donné par Flipp |
 
 ### CORRESPONDANCES — les anciennes réponses Oui / Non (2026-09-29, remplacé par TRI le 2026-10-01)
 *Plus écrit ni lu (ses Oui sont passés dans TRI le 2026-10-01; `repondreSpecial` retiré le 2026-10-02). Peut être effacé du Sheet à la main.*
@@ -285,7 +318,8 @@ correct. Reporté à plus tard : le **multiplicateur par code** (« paquet de 12
 
 ## CE QUI VIENDRA PLUS TARD (s'ajoutera au bout, sans rien casser)
 
-- Sur **PRODUITS** : Marque, Photo, Notes, Seuil d'alerte (point 5),
-  prix-mémoire (point 12).
-- Nouvelles tables : **Magasins**, **Listes d'achats** (point 5),
-  **Recettes** + **Ingrédients** (point 6), **Utilisateurs**.
+- Sur **PRODUITS** : Photo, Notes, Seuil d'alerte (point 5).
+- Nouvelles tables : **Recettes** + **Ingrédients** (point 6), **Utilisateurs**, les **prêts** (point 8 : ce qui est sorti et
+  doit revenir).
+- *Déjà venus depuis (relu le 2026-10-07)* : Magasins, Marques, Saveurs, Unites (listes gérées), Achats (la liste d'achats),
+  le prix payé (STOCK col. M, la mémoire des prix), PrixReguliers. La marque vit sur le lot (STOCK col. F), pas sur le produit.

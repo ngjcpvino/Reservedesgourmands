@@ -59,7 +59,14 @@ Principes structurels non négociables (détail dans `RdG-00`) : rien de fixe (l
 > - **Bâti aujourd'hui, PAS ENCORE TESTÉ EN LIGNE par J-C** (tout est poussé, `api.gs` collé) : le tri des circulaires par épicerie (+ « déjà entré = Oui tout seul »); la Liste d'achats retouchée (la flèche « mettre de côté » et la case en haut à droite, les soldes en une ligne, « En circulaire » au bas); le PLU dans l'entonnoir des fruits et légumes. J-C a commencé à trier (« Oh que j'ai du travail! »).
 > - **Le tour des listes** : 3. Liste d'achats repris aujourd'hui (c'est J-C qui dira si c'est fini); restent 4. Rechercher · 5. l'écran de rayon · 6. Déplacer · 7. Consommer · 8. Gérer les bases → Aliments.
 
-> 🗂 **CE QUI RESTE, D'APRÈS TOUS LES DOCUMENTS (relus le 2026-10-07, à la demande de J-C)** — c'est J-C qui choisit l'ordre :
+> 🗂 **CE QUI RESTE, D'APRÈS TOUS LES DOCUMENTS (relus EN ENTIER le 2026-10-07, à la demande de J-C — une première réponse faite sans les avoir lus était fausse)** — c'est J-C qui choisit l'ordre :
+> - **La liste de déplacement** (`RdG-02` §4, 3 septembre) : quand un endroit tombe à zéro pendant qu'un autre en a encore (le garde-manger vide, la réserve pleine), une tournée à faire s'inscrit toute seule; on coche la ligne (ou on scanne). Jamais bâtie : Déplacer existe comme geste, pas la liste.
+> - **Les raisons de sortie** (`RdG-02` §3) : consommé et jeté existent; **prêté** (avec Prêter) et **donné**, non.
+> - **L'écran de rayon** (`RdG-03`) : les étages au-dessus avec leur décompte; « c'est déjà sur ta liste »; la ligne « en solde » (`RdG-05` §3).
+> - **Le seuil d'alerte** (`RdG-structure-donnees`, « plus tard ») : sur la liste avant zéro — le voisin d'« entamé ».
+> - **Le copier-coller d'une page Super C / Metro au tri** (`RdG-01`, parenthèse) : pour donner un code à un article de circulaire qui n'en a pas.
+> - **Open Food Facts, en prime** (`RdG-sources`) : allergènes, végé / sans gluten, Nutri-Score — pour plus tard.
+> - **À revoir à l'usage** (`RdG-08`) : les bandeaux par catégorie, le mot « (déjà sur ta liste) », la grosseur de la police; la même bannière sur les deux rives du fleuve (`RdG-05` §3, pas vérifié); un achat scanné le lendemain du changement de circulaire prend la mauvaise semaine (`RdG-01`, rare).
 > - **Des 12 actions** : 6 **Cuisiner** (ai-je tout pour cette recette ? + deux parenthèses de `RdG-03` : une date qui approche → une recette; une fabrication maison → la sortie de ses ingrédients) · 8 **Prêter** (le retour, `RdG-02`) · 11 **l'inventaire annuel**.
 > - **Corriger une entrée après coup** (la quantité, la marque, le format, le prix — `RdG-04`, « le dernier chantier avant les 100 entrées »; l'endroit se corrige par Déplacer, le reste non). La fusion de deux aliments, elle, est bâtie.
 > - **Ce que l'historique des sorties permettra** (onglet Sorties, rempli depuis le 2026-09-29) : les « populaires » dans Rechercher, et « il en manque bientôt » au rythme de consommation (`RdG-04`, section 6).
