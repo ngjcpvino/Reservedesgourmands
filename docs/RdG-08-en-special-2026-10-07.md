@@ -138,9 +138,13 @@ sont donc en suspens** : le besoin, c'est **sa liste**, comparée d'une épiceri
     un seul endroit, « En spécial cette semaine » (le temps 1); la Liste d'achats reste la liste (le temps 2). À retirer en
     bâtissant, avec ce qui ne sert qu'à elle. Rejeté : B (la garder, sous la main pendant qu'on fait la liste).
 
+28. **En solde aux deux places, vu de chaque épicerie** (les décisions 12 et 16 réunies; compris par Claude, J-C : « Oui ») :
+    les pâtes, 2,29 à l'IGA, 2,49 au Super C. **À l'IGA** (la moins chère) : dans « En solde ici », le prix en rouge. **Au
+    Super C** : dans « En solde ailleurs » — « à l'IGA : 2,29 · ici aussi : 2,49 » (s'il n'a le temps que pour le Super C, il
+    les voit). **Le nombre sur la bannière ne compte que les aliments à aller chercher là** : il dit où aller. À prix égal ou
+    sans format (décisions 12, 26) : là où il y a déjà le plus d'articles.
+
 ## 3. Questions ouvertes (dans l'ordre, une à la fois)
 
-1. **Les pâtes en solde aux deux places, vues de chaque épicerie** — la décision 12 (l'aliment va là où il est le moins cher)
-   prise avant la 16 (chaque épicerie montre toute la liste). Compris par Claude : à l'IGA (la moins chère), les pâtes sont
-   dans « En solde ici », en rouge; au Super C, dans « En solde ailleurs » (« à l'IGA : 2,29 · ici aussi : 2,49 »). Le nombre
-   sur la bannière ne compte que les aliments à aller chercher là. À confirmer.
+1. **La Liste d'achats à l'ouverture** : les deux boutons et rien de choisi (comme l'Inventaire), toujours « Par catégorie »
+   (comme aujourd'hui), ou la dernière vue choisie ?
