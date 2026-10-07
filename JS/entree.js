@@ -127,9 +127,10 @@ async function montrerListes() {
   // À l'ouverture (J-C, 2026-10-01) : tout est fermé, toutes les listes paraissent; l'Inventaire s'ouvrira sur ses deux boutons, rien de choisi
   $('vue-listes').querySelectorAll('.contenu > .accordeon > .accordeon-tete').forEach(t => { t.classList.remove('ouvert'); t.nextElementSibling.hidden = true; });
   vueInventaire = '';
-  remplirInventaire();                         // instantané : ce qu'on a déjà en mémoire
+  $('liste-bientot').innerHTML = '';           // À consommer bientôt : ses catégories repartent fermées
+  remplirInventaire(); remplirBientot();       // instantané : ce qu'on a déjà en mémoire
   if (!MEUBLES.length) await chargerReferences();
-  remplirInventaire();                         // puis la version fraîche, quand elle arrive
+  remplirInventaire(); remplirBientot();       // puis la version fraîche, quand elle arrive
 }
 function montrerAccueil()    { toutCacher(); $('vue-accueil').hidden = false; $('btn-burger').hidden = false; $('entete-photo').hidden = false; }
 /* Le Retour final (J-C, 2026-10-01) : pas l'accueil nu, l'accueil avec le menu ouvert — la prochaine action est là. */
@@ -330,7 +331,7 @@ function appliquer(d) {
   (d.cats || []).forEach(r => {                       // [ID,Nom,ParentID,SecteurID,DureeVie,Actif,Ordre]
     if (!SECTEUR_ID && r[3]) SECTEUR_ID = String(r[3]);   // secteur de l'app (Épicerie)
     if (String(r[5]) !== 'O') return;
-    const x = { id: r[0], nom: r[1], ordre: r[6] || '', couleur: r[7] || '' };   // col. H : la couleur (une catégorie; J-C, 2026-10-01)
+    const x = { id: r[0], nom: r[1], ordre: r[6] || '', couleur: r[7] || '', duree: valeurDuree(r[4]) };   // col. H : la couleur (une catégorie; J-C, 2026-10-01); E : sa durée (À consommer bientôt)
     if (!r[2]) RAYONS.push(x);
     else (SOUSCATS[r[2]] = SOUSCATS[r[2]] || []).push(x);
   });
@@ -339,21 +340,21 @@ function appliquer(d) {
   const parOrdre = (a, b) => rang(a) === rang(b) ? 0 : rang(a) < rang(b) ? -1 : 1;
   RAYONS.sort(parOrdre); Object.values(SOUSCATS).forEach(l => l.sort(parOrdre));
   MEUBLES = []; ESPACES = {}; PIECES = [];
-  const emps = (d.emps || []).filter(r => String(r[4]) === 'O');   // [ID,Nom,ParentID,SecteurID,Actif,Couleur]
+  const emps = (d.emps || []).filter(r => String(r[4]) === 'O');   // [ID,Nom,ParentID,SecteurID,Actif,Couleur,Congelateur]
   const estPiece = {};                                             // pièce = enfant direct du SECTEUR
   emps.forEach(r => { if (SECTEUR_ID && String(r[2]) === SECTEUR_ID) { PIECES.push({ id: r[0], nom: r[1], couleur: r[5] || '' }); estPiece[r[0]] = true; } });
   const estMeuble = {};                                            // meuble = enfant d'une pièce, OU pas encore rangé (ParentID vide)
   emps.forEach(r => {
     const p = String(r[2] || '');
-    if (!p || estPiece[p]) { MEUBLES.push({ id: r[0], nom: r[1], couleur: r[5] || '', pieceId: estPiece[p] ? p : '' }); estMeuble[r[0]] = true; }
+    if (!p || estPiece[p]) { MEUBLES.push({ id: r[0], nom: r[1], couleur: r[5] || '', pieceId: estPiece[p] ? p : '', congelo: String(r[6] || '').trim() === 'O' }); estMeuble[r[0]] = true; }   // G : un congélateur (À consommer bientôt)
   });
   emps.forEach(r => {                                              // espace = enfant d'un meuble
     const p = String(r[2] || '');
     if (p && estMeuble[p]) (ESPACES[p] = ESPACES[p] || []).push({ id: r[0], nom: r[1] });
   });
-  PRODUITS = (d.prods || [])              // [ID,Nom,CategorieID,Unite,Actif,Marque,Format,MarqueCompte,SaveurCompte,OrdreEmp]
+  PRODUITS = (d.prods || [])              // [ID,Nom,CategorieID,Unite,Actif,Marque,Format,MarqueCompte,SaveurCompte,OrdreEmp,DureeVieJours]
     .filter(r => String(r[4]) !== 'N')
-    .map(r => ({ id: r[0], nom: r[1], catId: r[2], ordre: String(r[9] || '') }));   // ordre = ses endroits, le 1er d'abord (J-C, flèches)
+    .map(r => ({ id: r[0], nom: r[1], catId: r[2], ordre: String(r[9] || ''), duree: valeurDuree(r[10]) }));   // ordre = ses endroits, le 1er d'abord (J-C, flèches); K : sa durée
   LISTES = { Magasins: [], Marques: [], Saveurs: [] }; NOMS_LISTES = {};
   const L = d.listes || {};
   Object.keys(LISTES).forEach(n => (L[n] || []).forEach(r => {   // [ID, Nom, Actif] — Magasins : + Circulaire (D), Trouvee (E), Couleur (F)
@@ -736,6 +737,9 @@ const CHOIX_FICHE = {
 function nomListe(v) { const k = String(v == null ? '' : v).trim(); return NOMS_LISTES[k] || k; }
 /* Deux noms « pareils » : sans accent, sans majuscule, sans espace ni ponctuation (« Super C » = « SuperC »). Même règle que le coffre-fort. */
 function cleNom(n) { return String(n || '').normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase().replace(/[^a-z0-9]/g, ''); }
+/* Une durée lue du Sheet (Categories col. E, Produits col. K) : '' (rien d'écrit) ou un nombre de jours (0 = Aucune).
+   Ici et pas dans bientot.js : appliquer() s'en sert dès la lecture de ce script, avant l'affichage. */
+function valeurDuree(v) { const t = String(v == null ? '' : v).trim(); return t === '' || isNaN(Number(t)) ? '' : Number(t); }
 /* Les options d'un choix : les ID proposés (par nom), celui qui est choisi, puis « Nouvelle… ». (La fiche et le tri des circulaires.) */
 function optionsListe(champ, ids, choisi) {
   const C = CHOIX_FICHE[champ], vus = [];
@@ -1185,6 +1189,8 @@ function htmlMeuble(m, i, groupe) {
       '<div class="bloc accordeon-bloc"><div class="label">Pièce</div>' +
         '<select class="champ choix-piece" data-meuble="' + esc(m.id) + '">' + optionsPieces(m.pieceId) + '</select></div>' +
       '<div class="bloc accordeon-bloc"><div class="label">Couleur</div><div class="palette">' + htmlPalette(numeroCouleur(m.couleur)) + '</div></div>' +
+      '<div class="bloc accordeon-bloc"><div class="label">Congélateur</div><button class="interrupteur" type="button" role="switch" aria-checked="' + !!m.congelo +
+        '" aria-label="Congélateur" data-congelo="' + esc(m.id) + '"></button></div>' +
       (ESPACES[m.id] || []).map(htmlEspace).join('') +
       htmlAjout('espace-nouveau', 'Nouvel espace…', 'ajout-espace', 'data-meuble', m.id) +
     '</div>' +
@@ -1433,6 +1439,19 @@ function retirerLieu(type, id) {
   remplirMeubles(true);
   avis('Retiré : ' + L.nom, 'succes');
 }
+/* L'interrupteur « Congélateur » (J-C, 2026-10-06, choix B : allumé une fois par congélo) : au congélo, un aliment a 4 mois
+   (À consommer bientôt). Instantané : Emplacements col. G (O / vide) par la file des gestes — la ligne réécrite au complet,
+   avec la couleur que l'app montre (une couleur en route ne se fait pas écraser par la vieille du cache). */
+function basculerCongelo(id) {
+  const m = MEUBLES.find(x => String(x.id) === String(id)), c = lireCache();
+  const row = c && (c.emps || []).find(r => String(r[0]) === String(id));
+  if (!m || !row) { avis('Pas changé — réessaie', 'erreur'); remplirMeubles(true); return; }
+  const l = row.slice(); while (l.length < 7) l.push('');
+  l[5] = m.couleur || ''; l[6] = m.congelo ? '' : 'O';
+  poserGeste({ action: 'lignes', table: 'Emplacements', opId: 'congelo-' + Date.now() + '-' + Math.random().toString(36).slice(2, 8), lignes: [l] });
+  m.congelo = l[6] === 'O';
+  remplirMeubles(true);
+}
 /* Ajouter un meuble dans sa pièce : le nom, Ajouter (ou Entrée). Même nom dans la même pièce = rien de créé.
    Le meuble s'ouvre tout de suite : sa couleur, ses espaces. Un échec relit la réserve (un 2e essai ne le double pas). */
 async function ajouterMeuble(pieceId, btn) {
@@ -1617,7 +1636,7 @@ function remplirCorpsAliment(tete) {
   const corps = tete.nextElementSibling, p = PRODUITS.find(x => String(x.id) === String(tete.parentElement.dataset.id));
   if (corps && p && !corps.firstChild) corps.innerHTML = htmlCorpsAliment(p);
 }
-/* Un aliment ouvert : sa sous-catégorie, ses endroits 1-2-3 (flèches), ses « Pas aimé » (Enlever). */
+/* Un aliment ouvert : sa sous-catégorie, sa durée (À consommer bientôt), ses endroits 1-2-3 (flèches), ses « Pas aimé » (Enlever). */
 function htmlCorpsAliment(p) {
   const titre = t => '<div class="bloc accordeon-bloc"><div class="label">' + t + '</div></div>';
   const ok = rayonDe(p.catId) !== '';
@@ -1629,7 +1648,7 @@ function htmlCorpsAliment(p) {
   }).join('');
   return '<div class="bloc accordeon-bloc"><div class="label">Sous-catégorie</div>' +
       '<select class="champ choix-souscat" data-aliment="' + esc(p.id) + '">' + (ok ? '' : '<option value="">— Choisir —</option>') +
-      groupesSousCats(p.catId, '') + '</select></div>' +
+      groupesSousCats(p.catId, '') + '</select></div>' + htmlDureeAliment(p) +
     (ends ? titre('Ses endroits') + ends : '') + (pas ? titre('Pas aimé') + pas : '');
 }
 async function montrerPageAliments() {
@@ -2142,10 +2161,12 @@ async function deplacerLot(lot, emp, q, fin) {
     const qte = Number(row[3]) || 0;
     if (qte <= 0) continue;
     const ligne = row.slice(); ligne[4] = dateCourte(ligne[4]);
-    if (qte <= reste) { ligne[2] = emp; reste -= qte; }   // toute la ligne va à l'endroit
+    if (ligne.length > 15) ligne[15] = dateCourte(ligne[15]);
+    if (qte <= reste) { poserHorloge(ligne, row[2], emp); ligne[2] = emp; reste -= qte; }   // toute la ligne va à l'endroit (entre au congélo ou en sort : l'horloge repart)
     else {                                             // la ligne se coupe : « reste » part, le reste attend
       ligne[3] = qte - reste;
-      const a = row.slice(); a[0] = idLocal(); a[2] = emp; a[3] = reste; a[4] = ligne[4]; a[7] = op;   // toutes ses colonnes : sa liste d'épicerie (N) la suit
+      const a = ligne.slice(); a[0] = idLocal(); a[2] = emp; a[3] = reste; a[7] = op;   // toutes ses colonnes : sa liste d'épicerie (N), son horloge (P) la suivent
+      poserHorloge(a, row[2], emp);
       ajouts.push(a);
       reste = 0;
     }
@@ -2259,7 +2280,10 @@ function lotsDeCle(cle) {
 }
 function ouvrirActionInventaire(btn) {
   const conso = btn.dataset.inv === 'c', lots = lotsDeCle(btn.dataset.lots), item = btn.closest('.item');
-  $('liste-inventaire').querySelectorAll('.carte-inv').forEach(c => c.remove());   // une seule carte ouverte à la fois
+  const zone = btn.closest('#liste-inventaire, #liste-bientot');   // l'Inventaire, ou À consommer bientôt (la même carte)
+  const redessiner = zone && zone.id === 'liste-bientot' ? remplirBientot : remplirInventaire;
+  if (!zone) return;
+  zone.querySelectorAll('.carte-inv').forEach(c => c.remove());   // une seule carte ouverte à la fois
   if (!lots.length || !item) return;
   const carte = document.createElement('div');
   carte.className = 'endroit carte carte-inv';
@@ -2267,7 +2291,8 @@ function ouvrirActionInventaire(btn) {
       lots.map((l, i) => '<option value="' + i + '">' + esc(endroitMeuble(l.emp) + ' (' + l.qte + ')') + '</option>').join('') + '</select></div>' : '') +
     (conso ? '<div class="bloc inv-bloc-format" hidden><div class="label">Format</div><select class="champ inv-format"></select></div>' : htmlChoixEndroit()) +
     htmlQuantite() +
-    (conso ? '<label class="case-ligne inv-pas-aime"><input class="case" type="checkbox"><span>Ne pas racheter</span></label>' : '') +
+    (conso ? '<label class="case-ligne inv-pas-aime"><input class="case" type="checkbox"><span>Ne pas racheter</span></label>' +
+      '<label class="case-ligne"><input class="case jete" type="checkbox"><span>Jeté</span></label>' : '') +
     '<div class="message"></div>' +
     '<div class="grille bloc-suite"><button class="bouton bouton-petit bouton-vert inv-oui" type="button">' + (conso ? 'Consommer' : 'Déplacer') + '</button>' +
     '<button class="bouton bouton-petit inv-non" type="button">Annuler</button></div>';
@@ -2304,6 +2329,7 @@ function ouvrirActionInventaire(btn) {
   carte.addEventListener('change', ev => {
     if (ev.target.classList.contains('inv-de')) preparer();
     else if (ev.target.classList.contains('inv-format')) { carte.querySelector('.qte').value = 1; brancherPlusMoins(carte, maxi()); verifier(); }
+    else if (ev.target.classList.contains('jete')) carte.querySelector('.inv-oui').textContent = ev.target.checked ? 'Jeter' : 'Consommer';
     else verifier();
   });
   carte.querySelector('.inv-non').onclick = () => carte.remove();
@@ -2311,8 +2337,8 @@ function ouvrirActionInventaire(btn) {
     const l = lot(), q = combien();
     if (conso) {
       const c = carte.querySelector('.inv-pas-aime input');
-      consommerPart(l, part().cle, q, !!(c && c.checked && !c.closest('[hidden]')), () => remplirInventaire());
-    } else deplacerLot(l, cible(), q, fait => { if (fait) avis('Déplacé', 'succes'); remplirInventaire(); });
+      consommerPart(l, part().cle, q, !!(c && c.checked && !c.closest('[hidden]')), () => redessiner(), carte.querySelector('.jete').checked);
+    } else deplacerLot(l, cible(), q, fait => { if (fait) avis('Déplacé', 'succes'); redessiner(); });
   };
   preparer();
 }
@@ -2704,7 +2730,11 @@ function planSortie(p, k) {
     const ligne = row.slice(); ligne[4] = dateCourte(ligne[4]);
     if (!bout) ligne[3] = pleins;                                            // des contenants entiers (ou plus rien : 0)
     else if (!pleins) { ligne[3] = 1; ligne[6] = bout + ' unité'; }          // un seul pack, entamé
-    else { ligne[3] = pleins; ajouts.push(['', row[1], row[2], 1, ligne[4], row[5], bout + ' unité', '', row[8], row[9], row[10], row[11], row[12]]); }
+    else {                                                                   // le reste d'un pack : une ligne de plus, avec toutes ses colonnes (son épicerie, son horloge)
+      ligne[3] = pleins;
+      const a = ligne.slice(); a[0] = ''; a[3] = 1; a[6] = bout + ' unité'; a[7] = '';
+      ajouts.push(a);
+    }
     modifs.push({ row: row, ligne: ligne });
   }
   return { modifs: modifs, ajouts: ajouts };
@@ -2722,6 +2752,7 @@ function ouvrirConsommation(cle) {
   carte.className = 'endroit carte';
   carte.innerHTML = htmlQuantite() +
     (pas ? '' : '<label class="case-ligne"><input class="case pas-aime" type="checkbox"><span>Ne pas racheter</span></label>') +
+    '<label class="case-ligne"><input class="case jete" type="checkbox"><span>Jeté</span></label>' +
     '<div class="message"></div>' +
     '<div class="grille"><button class="bouton bouton-petit bouton-vert conso-oui" type="button">Consommer</button>' +
     '<button class="bouton bouton-petit conso-non" type="button">Annuler</button></div>';
@@ -2736,10 +2767,11 @@ function ouvrirConsommation(cle) {
     carte.querySelector('.conso-oui').hidden = !ok;
   };
   carte.addEventListener('input', verifier);
+  carte.querySelector('.jete').onchange = ev => { carte.querySelector('.conso-oui').textContent = ev.target.checked ? 'Jeter' : 'Consommer'; };
   carte.querySelector('.conso-non').onclick = () => montrerRayon(lot.pid, true);
   carte.querySelector('.conso-oui').onclick = () => {
     const case_ = carte.querySelector('.pas-aime');
-    consommerPart(lot, p.cle, combien(), !!(case_ && case_.checked));
+    consommerPart(lot, p.cle, combien(), !!(case_ && case_.checked), null, carte.querySelector('.jete').checked);
   };
   verifier();
 }
@@ -2749,7 +2781,7 @@ function ouvrirConsommation(cle) {
    Un envoi = les lignes de STOCK réécrites (+ un reste de pack), la trace dans Sorties, et « Pas aimé » s'il est coché.
    Le jeton (opId) voyage avec l'envoi : renvoyé après une coupure, le coffre-fort le trouve dans Sorties et n'écrit rien deux fois.
    Le reste d'un pack reçoit son ID ICI (idLocal) : une 2e sortie du même pack le vise sans attendre le coffre-fort. */
-async function consommerPart(lot, cleP, q, pasAime, fin) {   // fin : qui reprend la main après (l'Inventaire); sans : l'écran Consommer
+async function consommerPart(lot, cleP, q, pasAime, fin, jete) {   // fin : qui reprend la main après (l'Inventaire); sans : l'écran Consommer. jete : « Jeté »
   let p = partsDuLot(lot).find(x => x.cle === cleP);
   if (p && p.rows.some(r => !r[0])) {                  // filet : une ligne sans ID (ne devrait plus arriver) -> on relit d'abord
     montrerVoile(true);
@@ -2766,12 +2798,12 @@ async function consommerPart(lot, cleP, q, pasAime, fin) {   // fin : qui repren
   poserGeste({
     action: 'consommer',
     opId: op,
-    sortie: ['', lot.pid, lot.emp, q, date, lot.marque, p.format, lot.saveur, qui, op],
+    sortie: ['', lot.pid, lot.emp, q, date, lot.marque, p.format, lot.saveur, qui, op, jete ? 'J' : ''],   // K : la raison (vide = consommé, J = jeté — J-C, 2026-10-06 : la trace dit la vérité)
     modifs: plan.modifs.map(m => ({ id: String(m.row[0]), ligne: m.ligne })),
     ajouts: plan.ajouts,
     pasAime: pasAime && !estPasAime(lot.pid, lot.marque, lot.saveur) ? ['', lot.pid, lot.marque, lot.saveur, date, qui] : null
   });
-  avis('Consommé', 'succes');
+  avis(jete ? 'Jeté' : 'Consommé', 'succes');
   if (fin) { fin(true); return; }
   $('recherche-texte').value = '';
   montrerRecherche(false);                             // le champ vide : on enchaîne avec le suivant
@@ -4285,6 +4317,8 @@ function initEntree() {
     if (fl) { if (!fl.classList.contains('fleche-eteinte')) deplacer(fl.dataset.type, fl.dataset.id, Number(fl.dataset.sens)); return; }
     const pa = ev.target.closest('.pastille-choix');       // la couleur du meuble
     if (pa) { choisirCouleurLieu(pa.closest('.accordeon').dataset.id, pa.dataset.num); return; }
+    const cg = ev.target.closest('[data-congelo]');         // l'interrupteur « Congélateur »
+    if (cg) { basculerCongelo(cg.dataset.congelo); return; }
     const bEsp = ev.target.closest('.ajout-espace');
     if (bEsp) { ajouterEspace(bEsp.dataset.meuble, bEsp); return; }
     const bMeu = ev.target.closest('.ajout-meuble');
@@ -4315,9 +4349,11 @@ function initEntree() {
   });
   // Gérer les bases → Aliments
   $('aliments-retour').addEventListener('click', () => { ouvrirMenu(); montrerGrilleMenu('bases'); });   // le menu, sur la grille des bases
-  $('liste-aliments').addEventListener('change', function (ev) {   // une autre sous-catégorie
+  $('liste-aliments').addEventListener('change', function (ev) {   // une autre sous-catégorie, une autre durée
     const sel = ev.target.closest('.choix-souscat');
     if (sel) assignerSousCat(sel.dataset.aliment, sel.value);
+    const du = ev.target.closest('.choix-duree');          // sa durée (À consommer bientôt)
+    if (du) choisirDureeAliment(du.dataset.aliment, du.value);
   });
   $('liste-aliments').addEventListener('click', function (ev) {
     const oui = ev.target.closest('[data-retirer-oui]');   // « Retirer … ? » Oui
@@ -4406,6 +4442,16 @@ function initEntree() {
     tete.addEventListener('click', () => toggleAccordeon(tete)));
   $('liste-inventaire').previousElementSibling.addEventListener('click', function () {   // l'Inventaire s'ouvre toujours sur ses deux boutons, rien de choisi
     if (this.classList.contains('ouvert')) { vueInventaire = ''; remplirInventaire(); }
+  });
+  $('liste-bientot').previousElementSibling.addEventListener('click', function () {   // À consommer bientôt : refaite à l'ouverture, ses catégories fermées
+    if (this.classList.contains('ouvert')) { $('liste-bientot').innerHTML = ''; remplirBientot(); }
+  });
+  $('liste-bientot').addEventListener('click', function (ev) {
+    const inv = ev.target.closest('[data-inv]');           // la fourchette (consommer, jeter) ou les deux flèches (déplacer) : la carte de l'Inventaire
+    if (inv) { ouvrirActionInventaire(inv); return; }
+    if (ev.target.closest('.endroit')) return;             // toucher la carte ouverte ne plie pas l'accordéon
+    const tete = ev.target.closest('.accordeon-tete');
+    if (tete) toggleAccordeon(tete);
   });
   // Rechercher : chaque lettre tapée relance la recherche (en mémoire, instantané)
   $('recherche-texte').addEventListener('input', surRecherche);
@@ -4497,6 +4543,7 @@ async function retourDansApp() {
 /* Après une relecture : l'écran affiché suit, sauf pendant une saisie ou une question. */
 function redessinerApresLecture() {
   if (!$('vue-listes').hidden && !document.querySelector('#liste-inventaire .endroit')) remplirInventaire();   // pas pendant un rangement
+  if (!$('vue-listes').hidden && !document.querySelector('#liste-bientot .endroit')) remplirBientot();          // ni pendant un geste
   if (!$('vue-pieces').hidden && !Object.keys(ordreModifie).length && !document.querySelector('.champ-renommer')) remplirPieces();
   const saisieMeubles = [...$('liste-meubles').querySelectorAll('input')].some(i => i.value) || $('liste-meubles').querySelector('.champ-renommer, [data-confirme]');
   if (!$('vue-meubles').hidden && !Object.keys(ordreModifie).length && !saisieMeubles) remplirMeubles(true);   // pas pendant une saisie ni une question

@@ -729,6 +729,7 @@ select.champ {
   border-radius: 50%;
   background: var(--c);
 }
+.bloc .interrupteur { --c: var(--couleur-101); }   /* hors d'une barre (le meuble ouvert : « Congélateur ») : le rond se creuse sur le blanc */
 .interrupteur[aria-checked="false"] { opacity: var(--interrupteur-eteint); }
 .interrupteur[aria-checked="false"]::before { background: none; }
 .interrupteur[aria-checked="false"]::after {
@@ -838,6 +839,7 @@ select.champ {
 .item-info { flex: 1; }
 .item-nom { font-size: var(--texte-moyen); font-weight: var(--poids-normal); color: var(--couleur-306); }
 .item-detail { font-size: var(--texte-petit); font-weight: var(--poids-normal); color: var(--couleur-305); }   /* marque, format… : brun 305, normal (J-C, 2026-10-01, choix C sur aperçu; avant : 302 léger, trop pâle) */
+.item-detail.date-passee { color: var(--couleur-402); font-weight: var(--poids-fort); }   /* À consommer bientôt : « Date passée », en rouge (J-C, 2026-10-06) */
 .item-quantite {
   font-size: var(--texte-petit);
   font-weight: var(--poids-fort);

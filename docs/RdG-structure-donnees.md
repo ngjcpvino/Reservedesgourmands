@@ -43,6 +43,7 @@ endroits en même temps).*
 | H | MarqueCompte | O / N — la marque **sépare-t-elle les comptes** de ce produit ? (yogourt : O; lait : N). Demandé une fois, à la création |
 | I | SaveurCompte | O / N — idem pour la saveur (yogourt fraise ≠ vanille). Demandé au même moment |
 | J | OrdreEmp | ses endroits dans l'ordre choisi (ID d'EMPLACEMENTS séparés par des virgules) : le 1er = celui que Déplacer regarnit et la 1re carte à l'entrée. Vide = l'ordre d'apparition dans STOCK. Changé par les flèches de Gérer les bases → Aliments (2026-09-29) |
+| K | DureeVieJours | À consommer bientôt (2026-10-06, RdG-07) : sa durée au frais, en jours, choisie dans Gérer les bases → Aliments. Vide = la proposée par l'app (un fruit, un légume, un fromage qu'elle connaît), sinon celle de sa sous-catégorie. 0 = Aucune (jamais dans la liste) |
 
 ### EMPLACEMENTS — les rangements, en arbre (Meuble → Espace)
 
@@ -53,7 +54,8 @@ endroits en même temps).*
 | C | ParentID | = SecteurID → **pièce** · = une pièce → **meuble** · = un meuble → **espace**. (Vide = meuble pas encore rangé dans une pièce = legacy) |
 | D | SecteurID | lien vers SECTEURS |
 | E | Actif | O / N |
-| F | Couleur | couleur distinctive du meuble (HEX). Sur le meuble; vide sur l'espace (il en hérite) |
+| F | Couleur | couleur distinctive du meuble (un numéro de la palette). Sur le meuble; vide sur l'espace (il en hérite) |
+| G | Congelateur | O = ce meuble est un congélateur (l'interrupteur de Gérer les bases → Meubles, 2026-10-06) : un aliment y a 4 mois (À consommer bientôt). Vide = non. Sur le meuble seulement |
 
 > **L'ordre d'affichage = l'ordre des lignes** (décision 2026-09-22, pas de colonne « Ordre »).
 > Les flèches ↑↓ de « Gérer les bases » font réordonner les lignes par le coffre-fort
@@ -79,6 +81,7 @@ endroits en même temps).*
 | M | Prix | **facultatif** — ce que le lot a coûté, pour comparer les épiceries. Toute l'épicerie : rempli tout seul par le prix de la circulaire (« 2/ » = le prix divisé; au poids : vide) |
 | N | Epicerie | toute l'épicerie (2026-10-02) : l'ID de sa liste dans EPICERIES. Vide pour un produit entré seul (la fiche) |
 | O | Complete | Compléter (2026-10-04) : le jour du OK — la ligne quitte la liste de son épicerie (placée et sa catégorie donnée). Vide = encore à compléter. Écrit par l'app (action `deplacer`, la ligne entière) |
+| P | Horloge | À consommer bientôt (2026-10-06) : le jour où le lot est entré au congélo ou en est sorti — l'horloge repart de là. Vide = la date d'entrée (E). Écrit par Déplacer (action `deplacer`, la ligne entière) |
 
 > **La quantité mesurable** se lit dans le **Format** : « 1 L », « 500 g », « 0,54 kg ».
 > L'app additionne (un 4 L + deux 1 L = 6 L) quand les unités s'accordent; sinon elle
@@ -110,7 +113,7 @@ endroits en même temps).*
 | B | Nom | ex. « Fromages », « Fromages frais » |
 | C | ParentID | lien vers CATEGORIES. Vide = racine du secteur |
 | D | SecteurID | lien vers SECTEURS |
-| E | DureeVieJours | durée de conservation. Vide = hérite du parent le plus proche |
+| E | DureeVieJours | durée de conservation au frais, en jours (À consommer bientôt, 2026-10-06). Vide = la proposée par l'app (d'après le nom), sinon celle du parent. 0 = Aucune (jamais dans la liste) |
 | F | Actif | O / N |
 | G | Ordre | le rang choisi parmi ses frères (1, 2, 3…), avec les flèches de Gérer les bases → Catégories (2026-09-30). Vide = après les numérotées, dans l'ordre du Sheet. C'est l'ordre de la fiche |
 
@@ -143,6 +146,7 @@ Servira à prévoir le rachat (le rythme de chaque aliment).*
 | H | Saveur | du lot sorti (ID dans SAVEURS) |
 | I | Qui | qui a consommé (le nom de l'appareil, comme QuiEntre) |
 | J | OpId | jeton anti-reclic : écrit **en dernier**, c'est lui qui dit « fait ». Un renvoi du même jeton n'écrit RIEN |
+| K | Raison | vide = consommé · **J** = jeté (la case « Jeté » de la carte de Consommer, 2026-10-06 : un aliment jeté ne compte pas comme mangé) |
 
 ### PASAIMES — « Ne pas racheter », pour la maison (2026-09-29)
 *Créé tout seul au premier « Ne pas racheter » coché. Vise exactement ce produit :

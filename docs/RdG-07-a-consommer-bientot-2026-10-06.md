@@ -1,7 +1,8 @@
 # RdG-07 — À consommer bientôt (2026-10-06)
 
 > La 2e liste de la page Listes (l'accordéon « À consommer bientôt », vide jusqu'ici).
-> **Réflexion finie le 2026-10-06** (onze décisions, section 2). À bâtir : section 3; le coffre-fort : section 4.
+> **Réflexion finie le 2026-10-06** (onze décisions, section 2). **✅ BÂTI le même soir** (section 3), sauf le menu de la durée
+> d'une sous-catégorie (aperçu d'abord); le coffre-fort : section 4, à l'ordi. ⚠️ Pas encore testé en ligne.
 
 ## 1. Ce qui était déjà décidé (juillet, redit le 23 septembre — `RdG-01`, `RdG-04`)
 
@@ -77,17 +78,34 @@
 
 **✅ RÉFLEXION FINIE le 2026-10-06.**
 
-## 3. Ce qu'il y a à bâtir (les actions, pour J-C)
+## 3. Ce qui est bâti (2026-10-06 au soir) — `JS/bientot.js` (chargé après `entree.js`)
 
-1. **Gérer les bases → Meubles** : l'interrupteur « Congélateur » sur chaque meuble.
-2. **Gérer les bases → Catégories** : sous chaque sous-catégorie, sa durée (le menu), déjà remplie par
-   les propositions de Claude.
-3. **Gérer les bases → Aliments** : la durée de l'aliment (le menu, « comme sa sous-catégorie » d'office);
-   les fruits, légumes, fines herbes et fromages fins déjà remplis quand Claude les connaît.
-4. **Listes → À consommer bientôt** : par catégorie, le dernier quart de la durée, « Date passée » en
-   rouge en tête, la fourchette et les deux flèches.
-5. **Consommer** (partout où sa carte s'ouvre) : « Jeté » à côté de « Ne pas racheter ».
-6. **Déplacer** entre un congélateur et le frais : l'horloge repart.
+1. ✅ **Gérer les bases → Meubles** : l'interrupteur « Congélateur » dans un meuble ouvert, sous sa couleur
+   (`basculerCongelo()`, geste « lignes » Emplacements, la ligne réécrite avec la couleur que l'app montre;
+   `MEUBLES[].congelo`; `.bloc .interrupteur` : le rond se creuse sur le blanc).
+2. ⏳ **Gérer les bases → Catégories** : le menu de la durée d'une sous-catégorie — **pas encore : où le poser
+   sur la page (la ligne a déjà crayon, flèches, poubelle) = un aperçu d'abord**. En attendant, la proposée vaut.
+3. ✅ **Gérer les bases → Aliments** : « Durée » dans un aliment ouvert, sous sa sous-catégorie (`htmlDureeAliment()`,
+   `choisirDureeAliment()`, Produits col. K). En tête du menu, ce qui vaut sans choix : « Proposée : 3 jours » ou
+   « Comme sa sous-catégorie : 3 semaines ».
+4. ✅ **Listes → À consommer bientôt** (`#liste-bientot`, `remplirBientot()`, `lignesBientot()`) : par catégorie,
+   fermées à l'ouverture (refaite chaque fois qu'on l'ouvre), la plus pressée en tête; une ligne = aliment + endroit +
+   marque + saveur + jours qui restent; « Encore 3 jours » / « Encore 2 semaines » / « Encore 3 mois » / « Date passée »
+   (`.date-passee`, rouge). La fourchette et les flèches : la carte de l'Inventaire (`ouvrirActionInventaire()` sert les
+   deux listes); ce qui était ouvert le reste après un geste. « Rien à consommer bientôt. » quand c'est vide.
+5. ✅ **« Jeté »** sur la carte de Consommer (l'écran Consommer et la carte de l'Inventaire / de la liste) : coché, le
+   bouton dit « Jeter », le message « Jeté »; `consommerPart(…, jete)` → Sorties col. K = J.
+6. ✅ **Déplacer** (`deplacerLot()`) : un lot qui entre au congélo ou en sort → STOCK col. P = aujourd'hui
+   (`poserHorloge()`); la part qui reste garde la sienne. Le reste d'un pack (Consommer) garde maintenant toutes les
+   colonnes de sa ligne (son épicerie, son horloge) — avant : 13 colonnes.
+
+**Un changement de façon, pas de décision** : les durées proposées **ne sont pas écrites dans le Sheet**, l'app les
+calcule (`PROPOSEES_CATS`, `PROPOSEES_ALIMENTS`, `SOUSCATS_MELANGEES`). Ce que J-C choisit s'écrit (col. E, col. K) et
+l'emporte. Gain : **un fruit ou un légume ajouté plus tard prend aussi sa durée** (les framboises : 3 jours, pas les 7 de
+« Fruits »), et rien à écrire d'un coup. Le nom : le mot qui vient le plus tôt, le plus long d'abord (« Pommes de terre »
+n'est pas une pomme, « Courge orange » est une courge, « Fromage cheddar » un cheddar). Le calcul : l'horloge (col. P,
+sinon E) + la durée (congélo : 120 jours; sinon `dureeAliment()`); dans la liste quand il reste ≤ max(1, ⌈durée ÷ 4⌉) jours.
+Essai dans le faux navigateur : 36 vérifications (heure du Québec).
 
 ## 4. Pour le coffre-fort (`api.gs`, à l'ordi — un seul collage)
 
