@@ -113,7 +113,9 @@ sont donc en suspens** : le besoin, c'est **sa liste**, comparée d'une épiceri
     seulement, prise pour choisir où aller) : pour chercher des idées, un Peut-être compte — « si une recette en demande, je
     vais essayer » (1er octobre). Dans chaque catégorie : ses Oui, puis ses Peut-être en plus pâle. Rejeté : A (les Oui seulement).
 
+22. **L'ordre habituel de ses catégories (choix A)** — J-C : « A ». Le même partout; les catégories sont fermées à
+    l'ouverture, il touche « Viandes » directement. Rejeté : B (les protéines d'abord).
+
 ## 3. Questions ouvertes (dans l'ordre, une à la fois)
 
-1. **Les protéines d'abord, ou l'ordre habituel de ses catégories ?
-2. L'allure (aperçu).
+1. **L'allure (aperçu) : une ligne par aliment, ses épiceries dessous; ou une ligne par épicerie ?**
