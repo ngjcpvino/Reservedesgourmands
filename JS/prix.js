@@ -79,7 +79,7 @@ function prixConnus(pid) {
   });
   const autre = (m, x, plusTard) => { const a = par[m]; if (!a || (a.source !== 'solde' && (x.date > a.date || (plusTard && x.date === a.date)))) par[m] = x; };
   STOCK.forEach(l => {                                  // payé : [ID, Produit, Emp, Qte, Date, Marque, Format, …, Magasin (L), Prix (M)]
-    if (String(l[1]) !== String(pid)) return;
+    if (String(l[1]) !== String(pid) || estReste(l)) return;   // le reste d'un pack entamé : son format n'est plus celui du prix payé
     const m = magasinDe(l[11]), d = prixAuDetail(l[12], '', l[6]);
     if (m && d) autre(m, { source: 'paye', prix: l[12], unite: '', regulier: '', marque: l[5], format: String(l[6] || ''), date: String(dateCourte(l[4]) || '').slice(0, 10), detail: d }, true);
   });
