@@ -59,23 +59,69 @@ Principes structurels non négociables (détail dans `RdG-00`) : rien de fixe (l
 > - **Bâti aujourd'hui, PAS ENCORE TESTÉ EN LIGNE par J-C** (tout est poussé, `api.gs` collé) : le tri des circulaires par épicerie (+ « déjà entré = Oui tout seul »); la Liste d'achats retouchée (la flèche « mettre de côté » et la case en haut à droite, les soldes en une ligne, « En circulaire » au bas); le PLU dans l'entonnoir des fruits et légumes. J-C a commencé à trier (« Oh que j'ai du travail! »).
 > - **Le tour des listes** : 3. Liste d'achats repris aujourd'hui (c'est J-C qui dira si c'est fini); restent 4. Rechercher · 5. l'écran de rayon · 6. Déplacer · 7. Consommer · 8. Gérer les bases → Aliments.
 
-> 🗂 **CE QUI RESTE, D'APRÈS TOUS LES DOCUMENTS (relus EN ENTIER le 2026-10-07, à la demande de J-C — une première réponse faite sans les avoir lus était fausse)** — c'est J-C qui choisit l'ordre :
-> - **La liste de déplacement** (`RdG-02` §4, 3 septembre) : quand un endroit tombe à zéro pendant qu'un autre en a encore (le garde-manger vide, la réserve pleine), une tournée à faire s'inscrit toute seule; on coche la ligne (ou on scanne). Jamais bâtie : Déplacer existe comme geste, pas la liste.
-> - **Les raisons de sortie** (`RdG-02` §3) : consommé et jeté existent; **prêté** (avec Prêter) et **donné**, non.
-> - **L'écran de rayon** (`RdG-03`) : les étages au-dessus avec leur décompte; « c'est déjà sur ta liste »; la ligne « en solde » (`RdG-05` §3).
-> - **Le seuil d'alerte** (`RdG-structure-donnees`, « plus tard ») : sur la liste avant zéro — le voisin d'« entamé ».
-> - **Le copier-coller d'une page Super C / Metro au tri** (`RdG-01`, parenthèse) : pour donner un code à un article de circulaire qui n'en a pas.
-> - **Open Food Facts, en prime** (`RdG-sources`) : allergènes, végé / sans gluten, Nutri-Score — pour plus tard.
-> - **À revoir à l'usage** (`RdG-08`) : les bandeaux par catégorie, le mot « (déjà sur ta liste) », la grosseur de la police; la même bannière sur les deux rives du fleuve (`RdG-05` §3, pas vérifié); un achat scanné le lendemain du changement de circulaire prend la mauvaise semaine (`RdG-01`, rare).
-> - **Des 12 actions** : 6 **Cuisiner** (ai-je tout pour cette recette ? + deux parenthèses de `RdG-03` : une date qui approche → une recette; une fabrication maison → la sortie de ses ingrédients) · 8 **Prêter** (le retour, `RdG-02`) · 11 **l'inventaire annuel**.
-> - **Corriger une entrée après coup** (la quantité, la marque, le format, le prix — `RdG-04`, « le dernier chantier avant les 100 entrées »; l'endroit se corrige par Déplacer, le reste non). La fusion de deux aliments, elle, est bâtie.
-> - **Ce que l'historique des sorties permettra** (onglet Sorties, rempli depuis le 2026-09-29) : les « populaires » dans Rechercher, et « il en manque bientôt » au rythme de consommation (`RdG-04`, section 6).
-> - **Les sections du magasin** et le regroupement « sans section » (`RdG-03`) — la Liste d'achats suit l'ordre des catégories depuis le 30 septembre, à reprendre seulement si l'usage le demande.
-> - **Le multiplicateur par code** (« paquet de 12 » au scan, `RdG-04`, `RdG-structure-donnees`) — pour plus tard.
-> - **La Liste d'achats pendant la course** : le conjoint voit-il les coches à mesure ? (relire toutes les minutes pendant qu'elle est ouverte ? `RdG-06`).
-> - **Jamais discutés** (`RdG-reste-a-faire`) : la photo du site vient encore d'Internet (Cloudinary) — la rapatrier dans le dépôt la rendrait instantanée; aucune règle d'écran (`@media` : zéro, iPhone et iPad ont la même mise en page); le meuble « Coin » juste sous le seuil pâle / foncé.
-> - **Le grand projet** (`RdG-00`) : les autres secteurs (la quincaillerie, les passe-temps) et leur ligne artistique; les Secteurs en liste gérée.
-> - Noté aussi : le juge du « vrai rabais » (l'avis d'après l'historique des prix, `RdG-05` §7), les soldes sur l'écran de rayon, « déjà sur ta liste » dans Rechercher, « entamé », où revenir après une action. ⚠️ `docs/collection territoire.md` n'est **pas** de la Réserve (une collection de savons, Univers Caresse) : rangé là par erreur, n'y rien toucher.
+> 🗂 **CE QUI RESTE — LA LISTE NUMÉROTÉE (tous les documents relus EN ENTIER le 2026-10-07, à la demande de J-C : « Numérote afin de ne rien perdre encore ! »)**
+> **Règle : un numéro ne change jamais.** Un point fait est **barré** (~~…~~ ✅ la date), jamais retiré ni renuméroté; un point nouveau prend **le numéro suivant** (le prochain : **42**). C'est J-C qui choisit l'ordre. **Avant de dire à J-C ce qui reste : relire cette liste ET les documents** (une première réponse, faite sans les avoir lus, était fausse).
+>
+> **Les actions du départ jamais bâties** (`RdG-01` §2)
+> 1. **Cuisiner** : ai-je tout pour cette recette ? (action 6)
+> 2. Une date qui approche propose une recette (« 2 fromages périment bientôt → macaroni au fromage », `RdG-01`, `RdG-02`).
+> 3. Une fabrication maison fait sortir ses ingrédients (la sauce à spag, 12 pots, `RdG-01`).
+> 4. **Prêter** : la sortie et surtout **le retour** (la sableuse, `RdG-02` §5; une table des prêts).
+> 5. Les raisons de sortie **« prêté »** et **« donné »** (`RdG-02` §3) — consommé et jeté existent.
+> 6. **L'inventaire annuel** : vérifier que l'app dit vrai (action 11).
+>
+> **L'entrée, la sortie, le rachat**
+> 7. **Corriger une entrée après coup** : la quantité, la marque, le format, le prix (`RdG-04` §5 : « le dernier chantier avant les 100 entrées »). L'endroit se corrige par Déplacer; le reste, non.
+> 8. **La liste de déplacement** (`RdG-02` §4) : un endroit vide alors qu'un autre en a encore → la tournée s'inscrit toute seule, on coche (ou on scanne).
+> 9. Les **« populaires »** dans Rechercher, tirés des sorties (`RdG-03`, `RdG-04` §6).
+> 10. **« Il en manque bientôt »** au rythme de consommation, tiré des sorties (`RdG-04` §6).
+> 11. **Le seuil d'alerte** : sur la liste avant zéro (`RdG-structure-donnees`, « plus tard »).
+> 12. **« Entamé »** pour un contenant (le lait, le beurre d'arachide) — seulement si l'usage le demande (`RdG-06`).
+>
+> **Rechercher et l'écran de rayon** (`RdG-03`)
+> 13. Les étages au-dessus de l'aliment, chacun avec son décompte.
+> 14. **« C'est déjà sur ta liste »** (l'écran de rayon et Rechercher).
+> 15. La ligne **« en solde »** sur l'écran de rayon (`RdG-05` §3).
+>
+> **Les prix et les circulaires**
+> 16. **Le juge du « vrai rabais »** : l'avis de l'app d'après l'historique des prix (« prix habituel ici depuis 2 mois », `RdG-05` 5 quater et §7).
+> 17. **Les sections du magasin** et le regroupement « sans section » (`RdG-03`) — remplacées le 30 septembre par l'ordre des catégories; à reprendre si l'usage le demande.
+> 18. **Le multiplicateur par code** : un paquet de 12 scanné = 12 (`RdG-01`, `RdG-04`, `RdG-structure-donnees`).
+> 19. **La Liste d'achats pendant la course** : le conjoint voit-il les coches à mesure ? (relire toutes les minutes pendant qu'elle est ouverte ? `RdG-06` §3).
+> 20. **Le copier-coller d'une page Super C / Metro au tri**, pour donner un code à un article de circulaire qui n'en a pas (`RdG-01`, parenthèse).
+> 21. **La proposition d'aliment au tri**, à soigner (« Pommes de terre » n'est pas « Pomme », `RdG-05`, en suspens n° 4).
+> 22. **Open Food Facts, en prime** : allergènes, végé / sans gluten, Nutri-Score (`RdG-sources`).
+>
+> **La cohérence et le look**
+> 23. **Où revenir après chaque action** — à revoir pour tous les boutons (noté le 2026-09-29).
+> 24. **Les logos ailleurs** : le choix de l'épicerie, Compléter, la page Magasins (noté le 2026-10-05).
+> 25. **Des couleurs fixes** pour les boutons du menu et d'Outils, comme dans Gérer les bases (J-C : « on verra au fur et à mesure »).
+> 26. **Un seul ordre de questions pour la fiche**, au scan comme à la main (décidé le 2026-09-30, pas bâti : attendre que J-C le demande).
+> 27. **Compléter** : deux sortes d'un aliment au même endroit = deux lignes (l'Inventaire : une ligne, on touche pour voir les sortes).
+> 28. **Le fond** : la photo pâlie (Par meuble, Compléter) ou la liste blanche (Par catégorie, Liste d'achats, Circulaires, Rechercher).
+> 29. **La fin du tour des listes** : Rechercher · l'écran de rayon · Déplacer · Consommer · Gérer les bases → Aliments.
+> 30. **La règle des listes : l'accordéon partout ?** — en réflexion, J-C y pense : **ne pas relancer**.
+>
+> **Jamais discutés** (`RdG-reste-a-faire`)
+> 31. **La photo du site vient encore d'Internet** (Cloudinary) : la rapatrier dans le dépôt la rendrait instantanée.
+> 32. **Aucune règle d'écran** (`@media` : zéro) : l'iPhone et l'iPad ont exactement la même mise en page.
+> 33. **Le meuble « Coin »** : sa couleur tombe juste sous le seuil pâle / foncé, son nom est peut-être difficile à lire.
+>
+> **Le grand projet** (`RdG-00`)
+> 34. **Les autres secteurs** (la quincaillerie, les passe-temps), chacun sa ligne artistique; les Secteurs en liste gérée.
+>
+> **À revoir à l'usage, pas vérifiés**
+> 35. La page « En solde » (`RdG-08`) : les bandeaux par catégorie, les mots « (déjà sur ta liste) », la grosseur de la police.
+> 36. La même bannière sur les deux rives du fleuve : deux circulaires différentes ? (`RdG-05` §3, pas vérifié).
+> 37. Un achat scanné le lendemain du changement de circulaire prend la mauvaise semaine (`RdG-01`, rare).
+>
+> **Ce qui attend J-C**
+> 38. **La photo d'une étiquette de viande** du magasin (le prix est-il caché dans le code ? `RdG-01` 3 bis).
+> 39. **Dire quand il voit les logos sur ses deux appareils** → retirer les bouts temporaires (`LOGOS_DEPART` / `poserLogosDepart()`, `sans102()`).
+> 40. **Les essais en ligne** de ce qui est bâti : la page Circulaires visuelle et le tri par épicerie, les couleurs des épiceries, le nuancier, À consommer bientôt, En solde et « Par épicerie », la liste d'achats par aliment, le PLU, la mise au point du scan, Entrer et Compléter, le bandeau rouge « Réserve pas à jour ».
+> 41. **La page Circulaires s'ouvre-t-elle du premier coup ?** (l'allègement d'`api.gs` du 2026-10-07, à vérifier le jeudi 8 au matin).
+>
+> ⚠️ `docs/collection territoire.md` n'est **pas** de la Réserve (une collection de savons, Univers Caresse) : rangé là par erreur, n'y rien toucher.
 
 > 🗣️ **UNE SEULE CONVERSATION (J-C, 2026-10-02, en fin de matinée : fini de se promener de l'ordi à l'iPad) — remplace le régime à deux conversations (l'ordi silencieux, le nuage qui parle)** : la conversation **locale, sur l'ordi**, est désormais **la seule**; J-C la suit **aussi depuis l'iPad** (elle s'affiche des deux côtés). Elle **parle directement à J-C**, selon les règles habituelles (court, une question à la fois, pas de tuyauterie). Plus de note-boîte aux lettres, plus de « regarde la note », plus de conversation du nuage. Elle voit tout : `rdg.html`, `CSS/`, `JS/`, `gas/`, et son réseau atteint Flipp et Open Food Facts. Les blocs « POUR LE NUAGE » plus bas sont de l'**historique**. **Coller `api.gs` ne se fait QU'À L'ORDI** (J-C : sur l'iPad, « inaccessible, du moins de façon humaine ») : quand J-C écrit depuis l'iPad, les changements d'`api.gs` attendent qu'il soit à l'ordi; **un seul collage couvre tout ce qui s'est accumulé** — ne jamais lui demander de coller quand il est sur l'iPad (en cas de doute, lui demander où il est). **En attente de J-C** : le test de la page Circulaires demandé par le nuage le 2026-10-02 (Produits surgelés : la marque et le format sous chaque nom, Chagnon et Coaticook sur deux lignes).
 
