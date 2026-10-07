@@ -144,7 +144,11 @@ sont donc en suspens** : le besoin, c'est **sa liste**, comparée d'une épiceri
     les voit). **Le nombre sur la bannière ne compte que les aliments à aller chercher là** : il dit où aller. À prix égal ou
     sans format (décisions 12, 26) : là où il y a déjà le plus d'articles.
 
+29. **La Liste d'achats s'ouvre toujours sur « Par catégorie » (choix B)** — J-C : « B ». Comme aujourd'hui : il bâtit sa
+    liste toute la semaine, fait les courses une fois; « Par épicerie » est à un toucher, au magasin. Rejetés : A (les deux
+    boutons, rien de choisi, comme l'Inventaire : un toucher chaque fois), C (la dernière vue choisie).
+
 ## 3. Questions ouvertes (dans l'ordre, une à la fois)
 
-1. **La Liste d'achats à l'ouverture** : les deux boutons et rien de choisi (comme l'Inventaire), toujours « Par catégorie »
-   (comme aujourd'hui), ou la dernière vue choisie ?
+1. **« Par épicerie » : quels outils ?** La case (cocher) va de soi. La flèche « mettre de côté » sur chaque ligne et la barre
+   « Mis de côté » : aussi, ou seulement dans « Par catégorie » ? (« Ajouter à la liste » est au bas de la page : dans les deux.)
