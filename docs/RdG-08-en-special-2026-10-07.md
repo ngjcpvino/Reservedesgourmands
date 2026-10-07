@@ -23,10 +23,13 @@
    semaine, chez une épicerie dont la circulaire est lue (interrupteur à Oui). Rejeté : B (aussi les Peut-être : du bruit;
    un Peut-être se retrouve en le cherchant, décision du 1er octobre).
 
+4. **Le nombre de soldes, la plus garnie en premier (choix A)** — J-C : « A ». Sur chaque épicerie, son nombre de soldes
+   (« IGA · 12 »); l'épicerie qui en a le plus vient en premier. Rejeté : B (l'économie en dollars : plus parlant, mais
+   incomplet quand la circulaire ne donne pas le prix régulier).
+
 ## 3. Questions ouvertes (dans l'ordre, une à la fois)
 
-1. **« Où il y a plus de solde » : comment le voir d'un coup — le nombre de soldes, ou l'économie en dollars ?**
-2. Dans une épicerie : une liste, ou par catégorie ?
-3. Une ligne : ce qu'elle dit (aliment, marque, format, prix, régulier ?) et le geste pour l'ajouter (la flèche de
+1. **Dans une épicerie : une liste, des barres de catégorie à ouvrir, ou des bandeaux de catégorie ?**
+2. Une ligne : ce qu'elle dit (aliment, marque, format, prix, régulier ?) et le geste pour l'ajouter (la flèche de
    « Il y a aussi ceci » ?); un aliment déjà sur la liste ?
-4. L'allure (aperçu d'abord) : les logos (comme la page Circulaires) ou les barres à leur couleur ?
+3. L'allure (aperçu d'abord) : les logos (comme la page Circulaires) ou les barres à leur couleur ?
