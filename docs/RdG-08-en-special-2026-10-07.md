@@ -122,7 +122,14 @@ sont donc en suspens** : le besoin, c'est **sa liste**, comparée d'une épiceri
     l'ajouter, « (déjà sur ta liste) » sinon; un Peut-être en plus pâle. L'aperçu : `scratchpad/apercu-idees.html`.
     Rejeté : B (une ligne par épicerie, l'aliment répété).
 
+24. **Le prix au 100 g (à l'unité, au litre) écrit sur chaque ligne de prix (choix A)** — J-C : « A ». Partout où un prix
+    paraît (« En spécial cette semaine », la Liste d'achats) : « Super C · 900 g · 2,49 (3,99) · 0,28 / 100 g ». Rejetés :
+    B (jamais écrit, il sert seulement à décider), C (écrit seulement quand les formats diffèrent — la reco de Claude).
+
 ## 3. Questions ouvertes (dans l'ordre, une à la fois)
 
-1. **Le prix au 100 g (à l'unité, au litre) : l'écrire sur chaque ligne de prix, ou seulement s'en servir pour décider la
-   moins chère ?**
+1. **La mesure : au 100 g et au 100 ml, comme l'étiquette des tablettes à l'épicerie, et à l'unité pour ce qui se compte ?**
+   (Le litre ou le kilo donneraient de plus gros chiffres; l'étiquette permet de comparer avec la tablette, sur place.)
+2. **Un prix sans format** (la circulaire ne dit pas « 900 g ») : comment le comparer ?
+3. **La barre « En circulaire » au bas de la Liste d'achats** (« Il y a aussi ceci » : les Oui en solde pas sur la liste) fait
+   la même chose que « En spécial cette semaine » : la garder ou la retirer ?
