@@ -116,6 +116,13 @@ sont donc en suspens** : le besoin, c'est **sa liste**, comparée d'une épiceri
 22. **L'ordre habituel de ses catégories (choix A)** — J-C : « A ». Le même partout; les catégories sont fermées à
     l'ouverture, il touche « Viandes » directement. Rejeté : B (les protéines d'abord).
 
+23. **La ligne de « En spécial cette semaine » : une ligne par aliment, ses épiceries dessous (choix A, sur aperçu)** — J-C : « A ».
+    Le nom de l'aliment; dessous, en petit, une ligne par épicerie (« Super C · Le Choix du Président · 450 g · 4,49 (6,99) »),
+    la moins chère en premier et **en rouge**, les autres en vert (comme les soldes de la Liste d'achats); la flèche pour
+    l'ajouter, « (déjà sur ta liste) » sinon; un Peut-être en plus pâle. L'aperçu : `scratchpad/apercu-idees.html`.
+    Rejeté : B (une ligne par épicerie, l'aliment répété).
+
 ## 3. Questions ouvertes (dans l'ordre, une à la fois)
 
-1. **L'allure (aperçu) : une ligne par aliment, ses épiceries dessous; ou une ligne par épicerie ?**
+1. **Le prix au 100 g (à l'unité, au litre) : l'écrire sur chaque ligne de prix, ou seulement s'en servir pour décider la
+   moins chère ?**
