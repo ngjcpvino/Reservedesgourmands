@@ -186,6 +186,12 @@ async function surCode() {
         if (nomListe(tri[1])) choisirParNom('marque', nomListe(tri[1]));
         if (nomListe(tri[2])) choisirParNom('saveur', nomListe(tri[2]));
       }
+      const l = !tri && produitCourant !== null ? derniereLigneCode(code) : null;
+      if (l) {                                        // déjà entré : la boîte qu'on tient — sa marque, sa saveur, SON format (le paquet de 4
+        if (nomListe(l[5])) choisirParNom('marque', nomListe(l[5]));   // n'est pas celui de 12), pas les derniers de l'aliment (J-C, 2026-10-07),
+        if (nomListe(l[9])) choisirParNom('saveur', nomListe(l[9]));   // comme toute l'épicerie
+        if (String(l[6] || '').trim()) poserFormat(String(l[6]).trim());
+      }
       return;
     }
   }
@@ -2170,7 +2176,7 @@ async function deplacerLot(lot, emp, q, fin) {
     if (qte <= reste) { poserHorloge(ligne, row[2], emp); ligne[2] = emp; reste -= qte; }   // toute la ligne va à l'endroit (entre au congélo ou en sort : l'horloge repart)
     else {                                             // la ligne se coupe : « reste » part, le reste attend
       ligne[3] = qte - reste;
-      const a = ligne.slice(); a[0] = idLocal(); a[2] = emp; a[3] = reste; a[7] = op;   // toutes ses colonnes : sa liste d'épicerie (N), son horloge (P) la suivent
+      const a = ligne.slice(); a[0] = idLocal(); a[2] = emp; a[3] = reste; a[7] = estReste(row) ? op + '-reste' : op;   // toutes ses colonnes : sa liste d'épicerie (N), son horloge (P) la suivent; la part d'un reste reste un reste
       poserHorloge(a, row[2], emp);
       ajouts.push(a);
       reste = 0;
@@ -2542,7 +2548,23 @@ function sortesDuCode(code) {
   });
   return sortes;
 }
-function memeFormat(a, b) { return a === b || (nbUnites(a) > 0 && nbUnites(b) > 0); }
+function memeFormat(a, b) { return a === b || (nbUnites(a) > 0 && nbUnites(b) > 0 && tailleUnite(a) === tailleUnite(b)); }   // « 6 unité » = « 5 unité »; « 12 x 100 g » = « 11 x 100 g », pas « 4 x 200 g »
+/* Le reste d'un pack entamé (Consommer) : une ligne de STOCK qui n'est pas une entrée — son jeton finit par « -reste » (ou il
+   n'en a pas). Son format (« 5 unité ») n'est plus celui de la boîte, ni son prix celui de ce qui reste : on ne s'en sert ni pour
+   proposer un format au scan, ni pour les prix. */
+function estReste(l) { const op = String(l[7] || ''); return !op || /-reste$/.test(op); }
+/* La dernière ENTRÉE de ce code (pas le reste d'un pack entamé) : sa marque, sa saveur, son format — au scan, la boîte qu'on tient
+   (le paquet de 4 n'est pas celui de 12). Toute l'épicerie et la fiche s'en servent. Aucune entrée : le dernier reste, faute de mieux. */
+function derniereLigneCode(code) {
+  const a = codeNu(code);
+  let reste = null;
+  for (let i = STOCK.length - 1; i >= 0; i--) {
+    if (codeNu(STOCK[i][8]) !== a) continue;
+    if (!estReste(STOCK[i])) return STOCK[i];
+    reste = reste || STOCK[i];
+  }
+  return reste;
+}
 function sorteColle(marque, saveur, format) {
   return !!sorteScannee && sorteScannee.sortes.some(s => s.marque === marque && s.saveur === saveur && memeFormat(s.format, format));
 }
@@ -2682,7 +2704,13 @@ function ouvrirDeplacement(cle) {
    Le même écran que Rechercher. Chaque lot montre une ligne par FORMAT (le gros pot ≠ le pack) : on touche ce qu'on consomme.
    Un format en unités (« 6 unité ») se compte à l'unité : les packs du lot ne font qu'une ligne, la quantité = le nombre de pots.
    Un contenant sort quand il est fini. On sort le plus vieux d'abord (à l'unité : le pack entamé d'abord). */
-function nbUnites(format) { const m = String(format || '').trim().match(/^([0-9]+)\s*unit/i); return m ? parseInt(m[1], 10) : 0; }
+/* UN PACK SE COMPTE À L'UNITÉ (2026-09-29; élargi le 2026-10-07, J-C : « Gros problème ») : « 6 unité », et aussi « 12 x 100 g »,
+   « 6 x 355 ml » — le format qu'Open Food Facts donne aux yogourts, aux canettes. Avant, « 12 x 100 g » comptait pour un : manger
+   un yogourt vidait le paquet. nbUnites = combien dans le pack (0 = pas un pack); tailleUnite = la taille d'une unité (« 100 g »,
+   '' pour « N unité »); formatPack écrit ce qui reste dans la même forme (« 11 x 100 g », « 5 unité »). */
+function nbUnites(format) { const m = String(format || '').trim().match(/^([0-9]+)\s*(?:unit|[x×]\s*[0-9])/i); return m ? parseInt(m[1], 10) : 0; }
+function tailleUnite(format) { const m = String(format || '').trim().match(/^[0-9]+\s*[x×]\s*(.+)$/i); return m ? m[1].trim() : ''; }
+function formatPack(n, format) { const t = tailleUnite(format); return t ? n + ' x ' + t : n + ' unité'; }
 function estPasAime(pid, marque, saveur) {
   return PAS_AIMES.some(r => String(r[1]) === String(pid) && String(r[2] || '').trim() === marque && String(r[3] || '').trim() === saveur);
 }
@@ -2694,7 +2722,7 @@ function lignesDuLot(lot) {
 function partsDuLot(lot) {
   const parts = [];
   lignesDuLot(lot).forEach(row => {
-    const f = String(row[6] || '').trim(), n = nbUnites(f), cle = n ? 'unite' : f;
+    const f = String(row[6] || '').trim(), n = nbUnites(f), t = tailleUnite(f), cle = n ? 'unite' + (t ? ' de ' + t : '') : f;
     let p = parts.find(x => x.cle === cle);
     if (!p) parts.push(p = { cle: cle, unites: !!n, format: f, pack: 0, qte: 0, rows: [] });
     p.rows.push(row);
@@ -2703,7 +2731,11 @@ function partsDuLot(lot) {
   });
   return parts;
 }
-function libellePart(p) { return p.unites ? (p.pack > 1 ? 'à l\'unité · pack de ' + p.pack : 'à l\'unité') : p.format; }
+function libellePart(p) {
+  if (!p.unites) return p.format;
+  const t = tailleUnite(p.format);
+  return 'à l\'unité' + (t ? ' (' + t + ')' : '') + (p.pack > 1 ? ' · pack de ' + p.pack : '');   // « à l'unité (100 g) · pack de 12 »
+}
 function htmlPartsConsommer(prod, l, i, scanne) {
   const nom = [nomListe(l.marque), nomListe(l.saveur)].filter(Boolean).join(' ') || prod.nom;
   const pas = estPasAime(prod.id, l.marque, l.saveur);
@@ -2734,10 +2766,10 @@ function planSortie(p, k) {
     reste -= pris;
     const ligne = row.slice(); ligne[4] = dateCourte(ligne[4]);
     if (!bout) ligne[3] = pleins;                                            // des contenants entiers (ou plus rien : 0)
-    else if (!pleins) { ligne[3] = 1; ligne[6] = bout + ' unité'; }          // un seul pack, entamé
+    else if (!pleins && estReste(row)) { ligne[3] = 1; ligne[6] = formatPack(bout, row[6]); }   // un reste encore entamé : il rapetisse
     else {                                                                   // le reste d'un pack : une ligne de plus, avec toutes ses colonnes (son épicerie, son horloge)
-      ligne[3] = pleins;
-      const a = ligne.slice(); a[0] = ''; a[3] = 1; a[6] = bout + ' unité'; a[7] = '';
+      ligne[3] = pleins;                                                     // une ENTRÉE garde son format et son prix (0 s'il n'y avait qu'un pack) :
+      const a = ligne.slice(); a[0] = ''; a[3] = 1; a[6] = formatPack(bout, row[6]); a[7] = '';   // c'est elle qui dit la boîte au scan et le prix au 100 g
       ajouts.push(a);
     }
     modifs.push({ row: row, ligne: ligne });

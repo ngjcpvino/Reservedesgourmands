@@ -134,17 +134,6 @@ function articleConnu(code) {
   if (t && produitActif(t[0])) return { code: code, pid: String(t[0]), marque: String(t[1] || ''), saveur: String(t[2] || ''), format: '' };
   return null;
 }
-/* La dernière ENTRÉE de ce code (une ligne qui porte un jeton : pas le reste d'un pack entamé, « 5 unité »). */
-function derniereLigneCode(code) {
-  const a = codeNu(code);
-  let reste = null;
-  for (let i = STOCK.length - 1; i >= 0; i--) {
-    if (codeNu(STOCK[i][8]) !== a) continue;
-    if (String(STOCK[i][7] || '')) return STOCK[i];
-    reste = reste || STOCK[i];
-  }
-  return reste;
-}
 /* Pas à nous : un produit neuf (le nom de la circulaire d'IGA ou d'Open Food Facts), ou inconnu (le code seul). */
 function articleNouveau(code, r) {
   if (!r || !r.source || !String(r.texte || r.marque || '').trim()) return { code: code, pid: null, nouveau: { nom: 'Inconnu ' + code, inconnu: true }, format: '' };
@@ -353,7 +342,7 @@ function remplirHabituels() {
   const par = {}, xs = [];
   STOCK.forEach(r => {
     const code = String(r[8] || '').trim(), pid = String(r[1] || '');
-    if ((code && !estPlu(code)) || !produitActif(pid)) return;      // un vrai code-barres : il se scanne
+    if ((code && !estPlu(code)) || !produitActif(pid) || estReste(r)) return;   // un vrai code-barres : il se scanne; le reste d'un pack entamé n'est pas une entrée
     const k = pid + '|' + code;
     let x = par[k];
     if (!x) { x = par[k] = { pid: pid, code: code, n: 0 }; xs.push(x); }
