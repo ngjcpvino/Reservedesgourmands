@@ -148,7 +148,18 @@ sont donc en suspens** : le besoin, c'est **sa liste**, comparée d'une épiceri
     liste toute la semaine, fait les courses une fois; « Par épicerie » est à un toucher, au magasin. Rejetés : A (les deux
     boutons, rien de choisi, comme l'Inventaire : un toucher chaque fois), C (la dernière vue choisie).
 
-## 3. Questions ouvertes (dans l'ordre, une à la fois)
+30. **« Par épicerie » : la case seulement (choix A)** — J-C : « A ». Au magasin, on coche ce qui est dans le panier; la flèche
+    « mettre de côté » et la barre « Mis de côté » restent dans « Par catégorie » (moins de risque de toucher la mauvaise
+    flèche). Un article qui manque sur la tablette : on ne le coche pas, il reste sur la liste pour la prochaine fois.
+    « Ajouter à la liste » reste au bas de la page, dans les deux vues. Rejeté : B (tout pareil dans les deux vues).
 
-1. **« Par épicerie » : quels outils ?** La case (cocher) va de soi. La flèche « mettre de côté » sur chaque ligne et la barre
-   « Mis de côté » : aussi, ou seulement dans « Par catégorie » ? (« Ajouter à la liste » est au bas de la page : dans les deux.)
+**Les cas qui vont de soi (Claude, sans question)** : la flèche de « En spécial cette semaine » sur un aliment **mis de
+côté** le ramène sur la liste (comme « revenir »); aucune circulaire lue (avant le jeudi, une panne de Flipp) : « En spécial
+cette semaine » dit « Rien en circulaire cette semaine. », et « Par épicerie » dit « Aucune circulaire lue cette semaine. »
+(la liste reste dans « Par catégorie »); une épicerie ouverte à la fois (la règle des accordéons); Retour recule d'un pas
+(l'épicerie ouverte se ferme, puis le menu).
+
+## 3. Questions ouvertes
+
+Aucune. **Reste : l'aperçu final des deux écrans** (le prix au 100 g, « (format ?) », « ici aussi », la case seule), puis
+« Je bâtis ? ».
