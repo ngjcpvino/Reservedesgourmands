@@ -95,9 +95,7 @@ sont donc en suspens** : le besoin, c'est **sa liste**, comparée d'une épiceri
 
 ## 3. Questions ouvertes (dans l'ordre, une à la fois)
 
-0 bis. **Dans une partie : l'ordre des catégories, avec ou sans bandeaux ? (aperçu)**
-0 ter. Le temps 1 (« En spécial cette semaine », feuilleter pour des idées, surtout les protéines) : à repenser (les décisions
+1. **Par épicerie, dans une partie : l'ordre des catégories, avec ou sans bandeaux ? (aperçu)**
+2. L'allure des épiceries dans « Par épicerie » : barres à leur couleur, ou leur logo ?
+3. Le temps 1 (« En spécial cette semaine », feuilleter pour des idées, surtout les protéines) : à repenser (les décisions
    1 à 6 sont en suspens).
-0 bis. Dans une épicerie : l'ordre (bandeaux de catégorie ?), où se placent ceux qui ne sont pas en solde.
-
-1. **L'allure (aperçu d'abord) : les logos (comme la page Circulaires) ou les barres à leur couleur ?
