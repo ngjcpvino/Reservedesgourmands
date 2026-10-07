@@ -76,8 +76,16 @@ sont donc en suspens** : le besoin, c'est **sa liste**, comparée d'une épiceri
     (comme aujourd'hui), « **Par épicerie** » pour faire les courses : Super C, puis IGA, chacun avec ses articles.
     Rejeté : B (toujours par épicerie, les catégories en bandeaux dedans).
 
+14. **Ce qui n'est en solde nulle part : dans CHAQUE épicerie (choix C, le sien)** — J-C : « C. Dans chaque épicerie pour que
+    je n'oublie pas. Comme il n'est pas en solde, qu'importe où je l'achète. Et je le coche quand il est dans le panier. Donc si
+    je vais ensuite à l'autre, il est coché, donc je n'en prends pas un 2e. » **La case est celle de l'aliment** : cochée dans
+    une épicerie, elle l'est dans toutes. Rejetés : A (un groupe « Pas en solde » à part), B (dans l'épicerie qui a le plus
+    d'articles; plus tard, là où il a été payé le moins cher).
+
 ## 3. Questions ouvertes (dans l'ordre, une à la fois)
 
-0. **Par épicerie : ce qui n'est en solde nulle part, où va-t-il ?**
+0. **Par épicerie : quelles épiceries paraissent — celles où au moins un article de la liste est en solde, ou toutes celles
+   dont la circulaire est lue ?**
+0 bis. Dans une épicerie : l'ordre (bandeaux de catégorie ?), où se placent ceux qui ne sont pas en solde.
 
 1. **L'allure (aperçu d'abord) : les logos (comme la page Circulaires) ou les barres à leur couleur ?
