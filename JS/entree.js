@@ -4035,7 +4035,7 @@ async function expedierOrdre() {
       if (reste[id] === cats[id]) { delete reste[id]; ecrireAttenteCats(reste); }
     }
     ok = true;
-    avis('Ordre enregistré ✓', 'succes');
+    avis('Ordre enregistré', 'succes');
   } catch (e) {
     avis("Ordre pas encore enregistré — il repartira tout seul", 'erreur');
   } finally {
@@ -4210,7 +4210,7 @@ async function expedierCouleurs() {
     Object.keys(a.meubles).forEach(k => { if (reste.meubles[k] === a.meubles[k]) delete reste.meubles[k]; });
     ecrireAttenteCouleurs(reste);
     ok = true;
-    avis('Couleurs enregistrées ✓', 'succes');
+    avis('Couleurs enregistrées', 'succes');
   } catch (e) {
     avis('Couleurs pas encore enregistrées — elles repartiront toutes seules', 'erreur');
   } finally {
