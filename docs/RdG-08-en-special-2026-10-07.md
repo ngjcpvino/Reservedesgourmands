@@ -109,9 +109,11 @@ sont donc en suspens** : le besoin, c'est **sa liste**, comparée d'une épiceri
     valables : 2 (pointer pour ajouter à la Liste d'achats), 6 (la ligne : flèche, « (déjà sur ta liste) »).
     Rejeté : B (par épicerie, comme le matin).
 
+21. **Les Oui, et dessous, en plus pâle, les Peut-être (choix B)** — J-C : « B ». **Remplace la décision 3** (les Oui
+    seulement, prise pour choisir où aller) : pour chercher des idées, un Peut-être compte — « si une recette en demande, je
+    vais essayer » (1er octobre). Dans chaque catégorie : ses Oui, puis ses Peut-être en plus pâle. Rejeté : A (les Oui seulement).
+
 ## 3. Questions ouvertes (dans l'ordre, une à la fois)
 
-1. **Ce qui y paraît, pour chercher des idées : les Oui seulement (décision 3), ou aussi les Peut-être (« si une recette en
-   demande, je vais essayer ») ?**
-2. Les protéines d'abord, ou l'ordre habituel de ses catégories ?
-3. L'allure (aperçu).
+1. **Les protéines d'abord, ou l'ordre habituel de ses catégories ?
+2. L'allure (aperçu).
