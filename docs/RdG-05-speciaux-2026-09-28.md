@@ -766,8 +766,16 @@ qui plante** (Google renvoie alors une page d'erreur au lieu de la réponse; l'a
 phrase d'erreur de Google; (3) la raison reste **écrite en tête de la page Circulaires** (un message de 3 s est trop court pour lire
 une erreur), et un plantage de la réserve s'écrit dans le bandeau rouge.
 
-**Pour l'ordi** : (a) la page **Exécutions** de l'éditeur Apps Script montre les `doPost` ratés de mercredi matin et leur erreur
-(la ligne d'`api.gs` en cause) — le plus rapide; (b) sinon, la prochaine fois, la raison écrite par l'app; (c) si c'est la lenteur,
-chronométrer `lireTri` (`codesEntres` / `triAuto` lisent STOCK et Tri) et, au-delà de ~10 s, l'alléger — par exemple, « À trier »
-calculé une fois au jeudi (après `lireSpeciaux`) et après chaque `trier`, rangé tout petit (un onglet, ou le cache), lu d'un coup.
+**✅ VÉRIFIÉ par J-C dans la page Exécutions (le même jour, 9 h 24) : AUCUN plantage.** Tous les `doPost` du matin sont
+« Terminée », en **5,4 à 9,9 s** (5,4 s à 8 h 57, 9,9 s à 9 h 01 : la vitesse de Google varie d'une minute à l'autre). Et la preuve
+de l'abandon : deux `doPost` à **12 s pile** d'écart (8:57:25 → 8:57:37; 9:00:56 → 9:01:08) — l'app lâchait la lecture à 12 s et la
+file passait à l'appel suivant, pendant que le script, lui, finissait. **La cause : le script prend 5 à 10 s, plus le trajet (le VPN,
+la réponse — ~800 articles à trier); lundi ça passait sous 12 s, mercredi non.** Même code. Les essais plus patients de l'app
+(jusqu'à 30 s) la font passer, mais lentement — **confirmé par J-C juste après : la page s'ouvre au 2e essai** (12 s perdues, puis
+une 2e lecture complète) : **la vraie réparation = alléger `lireTri`.**
+
+**Pour l'ordi (`api.gs`, que la conversation du nuage ne voit pas)** : chronométrer `lireTri` (ce qui prend le temps : `codesEntres` /
+`triAuto` lisent STOCK et Tri, l'archive Circulaires, la taille de la réponse) et l'amener sous ~3 s — par exemple, « À trier »
+calculé une fois au jeudi (après `lireSpeciaux`) et après chaque `trier`, rangé tout petit (un onglet, ou le cache), lu d'un coup;
+et ne renvoyer que ce que la page montre.
 
