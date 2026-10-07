@@ -29,9 +29,15 @@ const Coffre = {
   // écriture : le coffre-fort pourrait l'avoir faite quand même.
   DELAI_LECTURE: 12000,
 
+  // Un échec dit POURQUOI (J-C, 2026-10-07 : « Circulaires pas lues », sans raison, et on devinait) — trois cas que l'app
+  // confondait : e.delai (pas de réponse à temps), e.reseau (la communication
+  // coupée — le VPN, ou une page d'erreur de Google qui n'a pas le droit d'entrer), e.plante (le coffre-fort a répondu
+  // une page d'erreur au lieu de sa réponse : le script a planté — sa phrase d'erreur est gardée).
   async _envoyer(charge, delai) {
     const ctrl = delai ? new AbortController() : null;
     const minuterie = ctrl ? setTimeout(() => ctrl.abort(), delai) : null;
+    const debut = Date.now();
+    let texte;
     try {
       const res = await fetch(this.URL, {
         method: 'POST',
@@ -39,8 +45,23 @@ const Coffre = {
         body: JSON.stringify(Object.assign({ motDePasse: this.motDePasse() }, charge)),
         signal: ctrl ? ctrl.signal : undefined
       });
-      return await res.json();
+      texte = await res.text();
+    } catch (e) {
+      const s = Math.round((Date.now() - debut) / 1000);
+      throw e.name === 'AbortError' ? this._echec('pas de réponse en ' + s + ' s', 'delai')
+                                    : this._echec('communication coupée après ' + s + ' s (' + e.message + ')', 'reseau');
     } finally { if (minuterie) clearTimeout(minuterie); }
+    try { return JSON.parse(texte); }
+    catch (e) { throw this._echec('le coffre-fort a planté : ' + this._extrait(texte), 'plante'); }
+  },
+  _echec(message, genre) { const e = new Error(message); e[genre] = true; return e; },
+  // La page d'erreur de Google n'est pas du JSON : on en garde la phrase qui dit pourquoi (« TypeError: … (ligne 812, fichier api) »).
+  _extrait(html) {
+    const t = String(html || '').replace(/<(style|script|title)[^]*?<\/\1>/gi, ' ').replace(/<[^>]*>/g, ' ')
+      .replace(/&#(\d+);/g, (_, n) => String.fromCharCode(n)).replace(/&nbsp;/g, ' ').replace(/&quot;/g, '"')
+      .replace(/&lt;/g, '<').replace(/&gt;/g, '>').replace(/&amp;/g, '&').replace(/\s+/g, ' ').trim();
+    const m = t.match(/[A-Za-z]*(Error|Exception|Erreur)\b.*/);
+    return (m ? m[0] : t).slice(0, 200) || 'réponse vide';
   },
 
   lire(table)               { return this.appel({ action: 'lire', table }); },

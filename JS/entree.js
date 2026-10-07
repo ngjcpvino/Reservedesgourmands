@@ -419,7 +419,7 @@ async function chargerReferences() {
   } catch (e) {
     if (e.message === 'non autorisé') { marquerPasAJour(false); Coffre.oublier(); revenirConnexion('Mot de passe refusé.'); return false; }
     if (!cache) statut('Réseau lent — patiente un instant ou recharge la page.', 'erreur');
-    marquerPasAJour(true, e.refus ? e.message : '');   // reste en haut tant que la réserve n'est pas relue
+    marquerPasAJour(true, e.refus || e.plante ? e.message : '');   // reste en haut tant que la réserve n'est pas relue (un plantage dit le sien)
     return null;
   } finally { $('voile-texte').textContent = ''; }
 }
@@ -3162,24 +3162,30 @@ async function montrerCirculaires() {
   montrerVoile(true);                              // le chariot jusqu'à ce que tout soit là
   if (!RAYONS.length) await chargerReferences();   // l'entonnoir a besoin des catégories et des aliments
   // Comme la réserve (chargerData) : jusqu'à 5 essais, chaque essai plus patient, et sous le chariot ce qu'il fait — une seule lecture
-  // de 12 s ne suffisait plus (J-C, 2026-10-07, capture à l'appui : « Circulaires pas lues », deux fois de suite, sans raison = pas
-  // de réponse à temps). Le coffre-fort qui répond non (r.erreur) : réessayer n'y changerait rien.
-  let r = null;
+  // de 12 s ne suffisait plus (J-C, 2026-10-07, capture à l'appui : « Circulaires pas lues », deux fois de suite, sans raison).
+  // Le coffre-fort qui répond non (r.erreur) : réessayer n'y changerait rien. Qui plante (e.plante) : on réessaie — Google a ses ratés passagers.
+  // Un échec reste ÉCRIT en tête de la page avec sa raison (TRI_ECHEC) : 3 s de message, c'est trop court pour lire une erreur.
+  let r = null, raison = '';
   for (let i = 0; i < ESSAIS_LECTURE.length && !(r && r.ok) && !(r && r.erreur); i++) {
     if (i) await new Promise(res => setTimeout(res, 1000 * i));
     if ($('vue-circulaires').hidden) break;         // parti ailleurs entre-temps : on n'insiste pas
     $('voile-texte').textContent = i ? (i + 1) + 'e essai…' : 'Lecture des circulaires…';
-    try { r = await Coffre.lireTri(ESSAIS_LECTURE[i]); } catch (e) { r = null; }
+    try { r = await Coffre.lireTri(ESSAIS_LECTURE[i]); }
+    catch (e) { r = null; raison = e.message + (i ? ' (' + (i + 1) + 'e essai)' : ''); }
   }
   montrerVoile(false);
   if ($('vue-circulaires').hidden) return;          // parti ailleurs entre-temps
   if (r && r.ok) {
-    TRI = { aTrier: r.aTrier || [], tri: r.tri || [] };
+    TRI = { aTrier: r.aTrier || [], tri: r.tri || [] }; TRI_ECHEC = '';
     lireAttenteGestes().forEach(e => { if (e.action === 'trier') appliquerTri(e, TRI); });   // un tri en route reste fait
     noterNbATrier(TRI.aTrier.length);
-  } else avis(r && r.erreur ? 'Circulaires pas lues (' + r.erreur + ')' : 'Circulaires pas lues : pas de réponse après ' + ESSAIS_LECTURE.length + ' essais — réessaie dans un instant', 'erreur');   // la raison du coffre-fort, s'il a répondu
-  remplirTri();                                    // (pas relues : ce qu'on avait, s'il y a lieu)
+  } else {
+    TRI_ECHEC = 'Circulaires pas lues : ' + (r && r.erreur ? r.erreur : raison || 'pas de réponse');   // la raison exacte, du coffre-fort ou du réseau
+    avis('Circulaires pas lues', 'erreur');
+  }
+  remplirTri();                                    // (pas relues : ce qu'on avait, s'il y a lieu, sous la raison)
 }
+var TRI_ECHEC = '';                                  // la dernière lecture des circulaires a raté : pourquoi (écrit en tête de la page)
 /* D, E, F d'une ligne de Tri : un ou plusieurs aliments (une ligne à plusieurs produits), séparés par des virgules. */
 const morceaux = v => String(v == null ? '' : v).split(',');
 /* Une catégorie de la page : une des siennes, sinon « Autres ». */
@@ -3296,7 +3302,8 @@ const RONDS_TRI = [['O', 'Oui', 'rond-oui'], ['P', 'Peut-être', 'rond-peutetre'
 /* La page. Ce qui était ouvert (l'épicerie ou le rond, la catégorie) le reste : on trie l'un après l'autre. */
 function remplirTri() {
   const cible = $('liste-tri');
-  if (!TRI) { cible.innerHTML = '<div class="texte-petit texte-pale">Circulaires pas lues — réessaie dans un instant.</div>'; return; }
+  const echec = TRI_ECHEC ? '<div class="message message-erreur">' + esc(TRI_ECHEC) + '</div>' : '';   // la raison d'une lecture ratée, en tête
+  if (!TRI) { cible.innerHTML = echec || '<div class="texte-petit texte-pale">Circulaires pas lues — réessaie dans un instant.</div>'; return; }
   const tG = cible.querySelector('[data-groupe] > .accordeon-tete.ouvert'), groupe = tG ? tG.parentElement.dataset.groupe : '';
   const parTexte = (a, b) => String(a).localeCompare(String(b), 'fr');
   const vide = t => '<div class="accordeon-item"><span class="texte-petit texte-pale">' + t + '</span></div>';
@@ -3318,7 +3325,7 @@ function remplirTri() {
   } else {
     // les épiceries dont la circulaire est lue : celles qui ont quelque chose à trier d'abord (IGA, qui donne ses codes, en tête), puis les autres
     const avec = ordreMagasins(aTrier), sans = LISTES.Magasins.filter(x => x.circ !== false && !x.introuvable && avec.indexOf(String(x.id)) === -1).map(x => String(x.id));
-    cible.innerHTML = '<div class="grille">' + avec.concat(sans).map(m => {
+    cible.innerHTML = echec + '<div class="grille">' + avec.concat(sans).map(m => {
       const logo = styleLogo(m), t = teinteMagasin(m), point = avec.indexOf(m) !== -1 ? ' point-rouge' : '';
       return logo ? '<button class="bouton bouton-grand tuile-logo' + point + '" type="button" data-ouvrir="m:' + esc(m) + '" aria-label="' + esc(nomListe(m)) + '"><span class="logo"' + logo + '></span></button>'
                   : '<button class="bouton bouton-grand tuile-nom' + point + (t.pale ? ' tuile-pale' : '') + '" type="button" data-ouvrir="m:' + esc(m) + '"' + t.style + '>' + esc(nomListe(m)) + '</button>';

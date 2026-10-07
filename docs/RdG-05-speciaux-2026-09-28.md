@@ -753,10 +753,21 @@ l'âge d'un prix (lu jeudi, affiché quand ?).
 ## 9. ⚠️ 2026-10-07 — LA PAGE CIRCULAIRES NE SE LIT PLUS (POUR L'ORDI)
 
 J-C, captures à l'appui (mercredi 7 octobre, 8 h 54 et 8 h 57) : « Circulaires pas lues — réessaie dans un instant », deux fois
-de suite, **sans raison entre parenthèses** = le coffre-fort n'a pas répondu à temps (la lecture `lireTri` était abandonnée après
-12 s, un seul essai). La réserve (`references`), elle, se lisait (pas de bandeau rouge). **Côté app, le même jour** : `lireTri`
-fait comme la réserve — jusqu'à 5 essais, de plus en plus patients (12, 18, 25, 30, 30 s), « 2e essai… » sous le chariot; au bout,
-« pas de réponse après 5 essais ». **Pour l'ordi** : chronométrer `lireTri` (l'archive Circulaires grossit chaque jeudi, et
-`codesEntres` / `triAuto` lisent STOCK et Tri); s'il dépasse ~10 s, l'alléger — par exemple, « À trier » calculé une fois au
-jeudi (après `lireSpeciaux`) et après chaque `trier`, rangé tout petit (un onglet, ou le cache), lu d'un coup.
+de suite, **sans raison**. La réserve (`references`), elle, se lisait (pas de bandeau rouge). Lundi 5 octobre, la même page se
+lisait (la soupe Knorr testée OK). **Ce qui a changé entre les deux : le collage d'`api.gs` du mardi 6** (l'onglet `Unites`, les
+en-têtes F `Couleur` et G `Logo` de Magasins). ⚠️ « L'archive qui grossit chaque jeudi » ne tient pas (J-C : « On est mercredi.
+C'est supposé être la même vitesse depuis jeudi passé ! ») : rien n'a été lu depuis jeudi.
+
+**« Sans raison » ne disait rien** : l'app confondait trois échecs — pas de réponse à temps, la communication coupée, et **le script
+qui plante** (Google renvoie alors une page d'erreur au lieu de la réponse; l'app n'arrivait pas à la lire et se taisait).
+**Côté app, le même jour** : (1) `lireTri` fait comme la réserve — jusqu'à 5 essais, de plus en plus patients (12, 18, 25, 30,
+30 s), « 2e essai… » sous le chariot; (2) **chaque échec dit pourquoi** (`Coffre._envoyer`) : « pas de réponse en 30 s »,
+« communication coupée après 4 s (Load failed) », ou « le coffre-fort a planté : TypeError: … (ligne 812, fichier api) » — la
+phrase d'erreur de Google; (3) la raison reste **écrite en tête de la page Circulaires** (un message de 3 s est trop court pour lire
+une erreur), et un plantage de la réserve s'écrit dans le bandeau rouge.
+
+**Pour l'ordi** : (a) la page **Exécutions** de l'éditeur Apps Script montre les `doPost` ratés de mercredi matin et leur erreur
+(la ligne d'`api.gs` en cause) — le plus rapide; (b) sinon, la prochaine fois, la raison écrite par l'app; (c) si c'est la lenteur,
+chronométrer `lireTri` (`codesEntres` / `triAuto` lisent STOCK et Tri) et, au-delà de ~10 s, l'alléger — par exemple, « À trier »
+calculé une fois au jeudi (après `lireSpeciaux`) et après chaque `trier`, rangé tout petit (un onglet, ou le cache), lu d'un coup.
 
