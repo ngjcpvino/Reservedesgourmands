@@ -38,6 +38,27 @@
    flèche, **« (déjà sur ta liste) »** dessous (J-C, après explication : « je verrai, mais ça serait plutôt "déjà sur ta
    liste" » — **à revoir à l'usage**).
 
+## 2 bis. ⚠️ REMIS EN QUESTION LE MÊME JOUR — le vrai besoin : comparer les épiceries POUR SA LISTE
+
+Devant l'aperçu des trois allures (barres, bannières, tuiles), J-C : « Ouin. C'est pas convivial. Ça m'aide pas à prendre une
+décision où je vais aller. […] Quand on prépare la liste d'épicerie, on ajoute ce qu'on veut manger, ce qu'on va avoir besoin
+pour la semaine. À partir de là, faudrait une façon pour comparer les 3 épiceries principales […] Là je dois regarder chaque
+épicerie. C'est ce que je fais présentement et je trouve ça fastidieux. » **Les décisions 1 à 6 (tous ses Oui par épicerie)
+sont donc en suspens** : le besoin, c'est **sa liste**, comparée d'une épicerie à l'autre.
+
+7. **On commence par ce qu'on a : comparer les trois épiceries sur les soldes de SA LISTE** — J-C : « Oui ». Aujourd'hui l'app
+   ne connaît que les prix des circulaires (pas le prix de tous les jours : c'est le comparateur, `RdG-05` section 7, rien de
+   bâti, il faut les sites des épiceries).
+8. **Les prix payés feront le comparatif** — J-C : « au fur et à mesure, l'app aura les prix payés lors d'achat des soldes. Ça
+   devient un comparatif. » (STOCK col. M, rempli à l'entrée de toute l'épicerie par le prix de la circulaire.)
+9. **Comparer des pommes avec des pommes : le prix au 100 g, à l'unité, au litre** — J-C : « ça prend une conversion au 100 g,
+   unité, 250 ml etc. Exemple : le plus petit format est en solde, mais si tu achètes le grand format à prix régulier, c'est
+   moins cher. » C'est ce qu'il avait décidé le 29 septembre (`RdG-05` §7, choix C : le prix de la boîte, et le prix au 100 g
+   en petit dessous; **le meilleur se décide sur le prix au 100 g**).
+
 ## 3. Questions ouvertes (dans l'ordre, une à la fois)
+
+0. **Où vit ce comparatif : dans la Liste d'achats (le 29 septembre : « pas de page Prix à part »), ou dans « En spécial
+   cette semaine » ? Et que devient « En spécial cette semaine » ?**
 
 1. **L'allure (aperçu d'abord) : les logos (comme la page Circulaires) ou les barres à leur couleur ?
