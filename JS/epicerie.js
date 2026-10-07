@@ -554,7 +554,7 @@ function ouvrirLotCompleter(btn) {
     deplacerLot(lot, emp, combien(), fait => {
       if (fait) memoriserVariante(lot.pid, '', '', [{ emp: emp }], '');   // sa place devient connue : la prochaine fois, il y ira tout seul
       remplirCompleter();
-    });
+    }, true);                                            // Compléter compte les boîtes de l'épicerie
   };
   question();
 }

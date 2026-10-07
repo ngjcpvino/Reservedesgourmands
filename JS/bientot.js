@@ -175,7 +175,7 @@ function lignesBientot() {
   const auj = dateDuJour(), prods = {}, congelo = {}, par = {};
   PRODUITS.forEach(p => { prods[String(p.id)] = p; });
   STOCK.forEach(r => {
-    const q = Number(r[3]) || 0, p = prods[String(r[1])];
+    const q = qteDe(r), p = prods[String(r[1])];                  // un pack compte ses pots, comme l'Inventaire
     if (q <= 0 || !p) return;
     const emp = String(r[2] || '');
     if (!(emp in congelo)) congelo[emp] = estCongelo(emp);
