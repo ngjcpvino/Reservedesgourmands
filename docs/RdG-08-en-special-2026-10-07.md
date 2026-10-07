@@ -27,9 +27,12 @@
    (« IGA · 12 »); l'épicerie qui en a le plus vient en premier. Rejeté : B (l'économie en dollars : plus parlant, mais
    incomplet quand la circulaire ne donne pas le prix régulier).
 
+5. **Dans une épicerie : une liste, un bandeau pâle par catégorie (choix C)** — J-C : « C, mais pas certain. Je vais voir à
+   l'usage. » Comme les espaces d'un meuble dans l'Inventaire : tout visible d'un coup, et rangé. Rejetés : A (une liste
+   sans séparation), B (des barres de catégorie à ouvrir : un toucher de plus). **À revoir à l'usage.**
+
 ## 3. Questions ouvertes (dans l'ordre, une à la fois)
 
-1. **Dans une épicerie : une liste, des barres de catégorie à ouvrir, ou des bandeaux de catégorie ?**
-2. Une ligne : ce qu'elle dit (aliment, marque, format, prix, régulier ?) et le geste pour l'ajouter (la flèche de
-   « Il y a aussi ceci » ?); un aliment déjà sur la liste ?
-3. L'allure (aperçu d'abord) : les logos (comme la page Circulaires) ou les barres à leur couleur ?
+1. **Une ligne : ce qu'elle dit (aliment, marque, format, prix, régulier ?) et le geste pour l'ajouter (la flèche de
+   « Il y a aussi ceci » ?); un aliment déjà sur la liste ?**
+2. L'allure (aperçu d'abord) : les logos (comme la page Circulaires) ou les barres à leur couleur ?
