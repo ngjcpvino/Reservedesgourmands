@@ -34,7 +34,9 @@
 6. **Une ligne (proposition de Claude, J-C : « Oui »)** — le nom de l'aliment (« Lait »), dessous la marque, le format et le
    prix, le régulier entre parenthèses (« Québon · 2 L · 4,99 (6,49) »), comme les soldes de la Liste d'achats; **le prix en
    rouge** quand cette épicerie a le meilleur prix pour cet aliment; **au bout, la flèche** de « Il y a aussi ceci » : un
-   toucher, l'aliment est sur la Liste d'achats; **déjà sur la liste** : pas de flèche, « (sur ta liste) » dessous.
+   toucher, l'aliment est sur la Liste d'achats; **déjà sur la Liste d'achats** (il n'en reste plus, ou ajouté à la main — un Oui n'y entre pas tout seul) : pas de
+   flèche, **« (déjà sur ta liste) »** dessous (J-C, après explication : « je verrai, mais ça serait plutôt "déjà sur ta
+   liste" » — **à revoir à l'usage**).
 
 ## 3. Questions ouvertes (dans l'ordre, une à la fois)
 
