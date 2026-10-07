@@ -134,8 +134,13 @@ sont donc en suspens** : le besoin, c'est **sa liste**, comparée d'une épiceri
     égalité (décision 12) : l'aliment va là où il y a déjà le plus d'articles. Rejetés : B (comparer le prix de la boîte : ça
     trompe), C (prendre le format acheté d'habitude : deviner).
 
+27. **La barre « En circulaire » au bas de la Liste d'achats est retirée (choix A)** — J-C : « A ». Les idées se cherchent à
+    un seul endroit, « En spécial cette semaine » (le temps 1); la Liste d'achats reste la liste (le temps 2). À retirer en
+    bâtissant, avec ce qui ne sert qu'à elle. Rejeté : B (la garder, sous la main pendant qu'on fait la liste).
+
 ## 3. Questions ouvertes (dans l'ordre, une à la fois)
 
-1. **La barre « En circulaire » au bas de la Liste d'achats** (« Il y a aussi ceci » : les Oui en solde pas sur la liste, la
-   flèche pour l'ajouter — vérifié dans le code, `remplirAchats()`) fait la même chose que « En spécial cette semaine » :
-   la garder ou la retirer ?
+1. **Les pâtes en solde aux deux places, vues de chaque épicerie** — la décision 12 (l'aliment va là où il est le moins cher)
+   prise avant la 16 (chaque épicerie montre toute la liste). Compris par Claude : à l'IGA (la moins chère), les pâtes sont
+   dans « En solde ici », en rouge; au Super C, dans « En solde ailleurs » (« à l'IGA : 2,29 · ici aussi : 2,49 »). Le nombre
+   sur la bannière ne compte que les aliments à aller chercher là. À confirmer.
