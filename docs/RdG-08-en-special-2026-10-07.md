@@ -102,7 +102,16 @@ sont donc en suspens** : le besoin, c'est **sa liste**, comparée d'une épiceri
     (la carte blanche plate, le logo), **le nombre à droite**; une épicerie sans logo : sa barre à sa couleur. Rejeté : A (des
     barres à leur couleur — la reco de Claude, moitié moins hautes).
 
+20. **« En spécial cette semaine » (le temps 1, les idées) : par catégorie (choix A)** — J-C : « A ». Dans son ordre (Viandes
+    et volailles, Poissons…); sous chaque article, où il est en solde et à combien (« Veau haché — Super C : 9,99 »); en
+    solde à deux places : les deux, la moins chère en premier. **Remplace la décision 1** (par épicerie) : quand il cherche une
+    idée, il pense « une viande », pas « une épicerie »; c'est la Liste d'achats (Par épicerie) qui dit où aller. Restent
+    valables : 2 (pointer pour ajouter à la Liste d'achats), 6 (la ligne : flèche, « (déjà sur ta liste) »).
+    Rejeté : B (par épicerie, comme le matin).
+
 ## 3. Questions ouvertes (dans l'ordre, une à la fois)
 
-1. **Le temps 1 (« En spécial cette semaine », feuilleter pour des idées, surtout les protéines) : à repenser (les décisions
-   1 à 6 sont en suspens) — d'abord : par catégorie ou par épicerie ?**
+1. **Ce qui y paraît, pour chercher des idées : les Oui seulement (décision 3), ou aussi les Peut-être (« si une recette en
+   demande, je vais essayer ») ?**
+2. Les protéines d'abord, ou l'ordre habituel de ses catégories ?
+3. L'allure (aperçu).
