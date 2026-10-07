@@ -82,10 +82,14 @@ sont donc en suspens** : le besoin, c'est **sa liste**, comparée d'une épiceri
     une épicerie, elle l'est dans toutes. Rejetés : A (un groupe « Pas en solde » à part), B (dans l'épicerie qui a le plus
     d'articles; plus tard, là où il a été payé le moins cher).
 
+15. **Toutes les épiceries dont la circulaire est lue paraissent (choix B)** — J-C : « B, car le temps est aussi un facteur… »
+    Une épicerie sans rien en solde pour la liste paraît quand même : il peut n'avoir le temps que pour celle-là.
+    Rejeté : A (seulement celles où au moins un article de la liste est en solde).
+
 ## 3. Questions ouvertes (dans l'ordre, une à la fois)
 
-0. **Par épicerie : quelles épiceries paraissent — celles où au moins un article de la liste est en solde, ou toutes celles
-   dont la circulaire est lue ?**
+0. **Le temps compte : s'il ne va qu'à IGA, le veau (en solde au Super C) doit-il paraître aussi dans IGA, à part
+   (« en solde ailleurs ») ?**
 0 bis. Dans une épicerie : l'ordre (bandeaux de catégorie ?), où se placent ceux qui ne sont pas en solde.
 
 1. **L'allure (aperçu d'abord) : les logos (comme la page Circulaires) ou les barres à leur couleur ?
