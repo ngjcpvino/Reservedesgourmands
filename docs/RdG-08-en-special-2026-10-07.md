@@ -98,8 +98,11 @@ sont donc en suspens** : le besoin, c'est **sa liste**, comparée d'une épiceri
     à leur couleur, leurs aliments dessous. L'aperçu : `scratchpad/apercu-parepicerie.html`. Rejeté : A (les parties en
     bandeaux, les catégories dans l'ordre sans bandeau — la reco de Claude, plus courte).
 
+19. **Les épiceries de « Par épicerie » : des bannières à leur logo (choix B)** — J-C : « B ». Comme la page Circulaires
+    (la carte blanche plate, le logo), **le nombre à droite**; une épicerie sans logo : sa barre à sa couleur. Rejeté : A (des
+    barres à leur couleur — la reco de Claude, moitié moins hautes).
+
 ## 3. Questions ouvertes (dans l'ordre, une à la fois)
 
-1. **L'allure des épiceries dans « Par épicerie » : barres à leur couleur, ou leur logo ?
-2. Le temps 1 (« En spécial cette semaine », feuilleter pour des idées, surtout les protéines) : à repenser (les décisions
-   1 à 6 sont en suspens).
+1. **Le temps 1 (« En spécial cette semaine », feuilleter pour des idées, surtout les protéines) : à repenser (les décisions
+   1 à 6 sont en suspens) — d'abord : par catégorie ou par épicerie ?**
