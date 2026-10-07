@@ -56,9 +56,16 @@ sont donc en suspens** : le besoin, c'est **sa liste**, comparée d'une épiceri
    moins cher. » C'est ce qu'il avait décidé le 29 septembre (`RdG-05` §7, choix C : le prix de la boîte, et le prix au 100 g
    en petit dessous; **le meilleur se décide sur le prix au 100 g**).
 
+10. **L'histoire de J-C, en deux temps** (sa façon de faire, racontée après « Oh que c'est pas clair »; compris par Claude,
+    J-C : « Oui ») :
+    1. **Le jeudi, chercher des idées** : il regarde les circulaires, **surtout les protéines** — « Ah, le veau est en solde
+       cette semaine. Ça serait bon des manicotti. » — puis ajoute à sa liste ce qu'il faut pour les faire.
+    2. **Sa liste faite, savoir quoi acheter où** : « à part le veau, en solde au Super C, tous les autres ingrédients le sont
+       au IGA. Ça serait dommage de payer plus cher la pâte de tomates quand le magasin en face l'a en solde. » L'app dirait :
+       « Au Super C : le veau. À l'IGA : la pâte de tomates, la ricotta, les pâtes. »
+
 ## 3. Questions ouvertes (dans l'ordre, une à la fois)
 
-0. **Où vit ce comparatif : dans la Liste d'achats (le 29 septembre : « pas de page Prix à part »), ou dans « En spécial
-   cette semaine » ? Et que devient « En spécial cette semaine » ?**
+0. **Le temps 1 (les idées) = « En spécial cette semaine »; le temps 2 (quoi acheter où) = dans la Liste d'achats ?**
 
 1. **L'allure (aperçu d'abord) : les logos (comme la page Circulaires) ou les barres à leur couleur ?
