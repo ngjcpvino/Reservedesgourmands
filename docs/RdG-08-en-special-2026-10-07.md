@@ -72,10 +72,12 @@ sont donc en suspens** : le besoin, c'est **sa liste**, comparée d'une épiceri
     l'aliment va **là où il est le moins cher au 100 g** (à l'unité, au litre), avec dessous, en petit, l'autre prix (« aussi
     au Super C : 2,29 »); **à prix égal, là où il y a déjà le plus d'articles** (un arrêt de moins).
 
+13. **La Liste d'achats : deux boutons, comme l'Inventaire (choix A)** — J-C : « A ». « Par catégorie » pour bâtir la liste
+    (comme aujourd'hui), « **Par épicerie** » pour faire les courses : Super C, puis IGA, chacun avec ses articles.
+    Rejeté : B (toujours par épicerie, les catégories en bandeaux dedans).
+
 ## 3. Questions ouvertes (dans l'ordre, une à la fois)
 
-0. **Dans la Liste d'achats, « quoi acheter où » : deux boutons comme l'Inventaire (« Par catégorie » / « Par épicerie »), ou
-   toujours par épicerie ?**
-0 bis. Ce qui n'est en solde nulle part : où va-t-il ?
+0. **Par épicerie : ce qui n'est en solde nulle part, où va-t-il ?**
 
 1. **L'allure (aperçu d'abord) : les logos (comme la page Circulaires) ou les barres à leur couleur ?
