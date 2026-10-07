@@ -221,7 +221,7 @@
   --interligne-texte:  1.4;    /* un paragraphe (.texte) */
   --placeholder-opacite: 0.6;  /* l'invite d'un champ vide, pâlie */
   --pli-opacite:       0.55;   /* le petit triangle d'un aliment à plusieurs sortes */
-  --peut-etre-opacite: 0.7;    /* les soldes d'un Peut-être (En spécial cette semaine) : plus pâles */
+  --peut-etre-opacite: 0.7;    /* les soldes d'un Peut-être (la liste En solde) : plus pâles */
   --chevron-place:     calc(var(--espace-m) * 2.5);   /* la place du chevron, à droite d'un menu déroulant */
   --pastille:          28px;   /* le carré à toucher pour choisir une couleur (pièces, meubles, catégories, épiceries) */
   --puce-haut:         76px;   /* LE NUANCIER (Outils → Couleurs) : la couleur d'une puce de peinture, au-dessus de son hex */
@@ -982,7 +982,7 @@ select.champ {
 /* LE PRIX AU 100 G (au 100 ml, à l'unité — comme l'étiquette des tablettes) : sous chaque prix, sur sa propre ligne, petit, de la couleur
    de sa ligne (J-C, 2026-10-07 : « plus petit et sur une autre ligne, car là c'est difficile à lire »; choix C sur aperçu). */
 .prix-unite { display: block; font-size: var(--texte-unite); }
-/* En spécial cette semaine (J-C, 2026-10-07, choix B) : les Peut-être sous les Oui, plus pâles. */
+/* La liste « En solde » (J-C, 2026-10-07, choix B) : les Peut-être sous les Oui, plus pâles. */
 .peut-etre .item-nom, .peut-etre .item-detail { color: var(--couleur-302); }
 .peut-etre .solde { opacity: var(--peut-etre-opacite); }
 /* LA LISTE D'ACHATS PAR ÉPICERIE (J-C, 2026-10-07, sur aperçus; RdG-08) : chaque épicerie en bannière (son logo, sinon sa barre), le

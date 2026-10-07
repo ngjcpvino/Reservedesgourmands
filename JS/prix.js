@@ -1,6 +1,7 @@
 /* ============================================================
-   LES PRIX — « En spécial cette semaine » et la Liste d'achats « Par épicerie » (J-C, 2026-10-07; docs/RdG-08).
-   Son histoire en deux temps : le jeudi, chercher des idées dans ce qui est en solde (En spécial cette semaine, dans Listes);
+   LES PRIX — « En solde du … au … » (la 3e liste de Listes, « En spécial cette semaine » jusqu'au 2026-10-07) et la Liste d'achats
+   « Par épicerie » (J-C, 2026-10-07; docs/RdG-08). Son histoire en deux temps : le jeudi, chercher des idées dans ce qui est en solde
+   (la liste « En solde », dans Listes);
    la liste faite, savoir quoi acheter où (la Liste d'achats, Par épicerie).
    · Le prix au 100 g, au 100 ml, à l'unité — comme l'étiquette des tablettes (décision 25) — écrit sous chaque prix, sur sa
      propre ligne, en petit (décisions 24, 32). Sans format : « (format ?) », jamais en rouge (décision 26).
@@ -159,13 +160,26 @@ function htmlParEpicerie(items) {
   }).join('');
 }
 
-/* ---------- Listes → « En spécial cette semaine » (décisions 2, 6, 20 à 23) ----------
-   Le jeudi, les idées : par catégorie, dans son ordre, fermées; dans chacune, ses Oui puis, plus pâles, ses Peut-être (une idée peut
+/* ---------- Listes → « En solde du 8 au 14 octobre 2026 » (décisions 2, 6, 20 à 23, 33) ----------
+   Son titre (J-C, 2026-10-07 : « Remplacer "En spécial cette semaine" par "En solde du xx au xx 2026" ») : les dates des circulaires
+   en cours — le plus tôt des débuts, le plus tard des fins (d'habitude, du jeudi au mercredi); sans solde en cours : « En solde ». */
+const MOIS = ['janvier', 'février', 'mars', 'avril', 'mai', 'juin', 'juillet', 'août', 'septembre', 'octobre', 'novembre', 'décembre'];
+function titreSoldes() {
+  const jour = v => String(dateCourte(v) || '').slice(0, 10), ok = d => /^\d{4}-\d{2}-\d{2}$/.test(d);
+  const en = SPECIAUX.filter(soldeEnCours), debuts = en.map(r => jour(r[8])).filter(ok).sort(), fins = en.map(r => jour(r[9])).filter(ok).sort();
+  if (!debuts.length || !fins.length) return 'En solde';
+  const d = debuts[0].split('-').map(Number), f = fins[fins.length - 1].split('-').map(Number);
+  const quand = x => (x[2] === 1 ? '1er' : String(x[2]));   // « 1er octobre »
+  const de = quand(d) + (d[1] !== f[1] || d[0] !== f[0] ? ' ' + MOIS[d[1] - 1] : '') + (d[0] !== f[0] ? ' ' + d[0] : '');
+  return 'En solde du ' + de + ' au ' + quand(f) + ' ' + MOIS[f[1] - 1] + ' ' + f[0];
+}
+/* Le jeudi, les idées : par catégorie, dans son ordre, fermées; dans chacune, ses Oui puis, plus pâles, ses Peut-être (une idée peut
    naître d'un Peut-être). Une ligne par aliment, ses épiceries dessous (la moins chère au détail en rouge); la flèche l'ajoute à la
    Liste d'achats, sinon « (déjà sur ta liste) ». Ce qui était ouvert le reste (on ajoute l'un après l'autre). */
 function remplirSpecial() {
   const cible = $('liste-special');
   if (!cible) return;
+  cible.previousElementSibling.textContent = titreSoldes();   // la barre dit les dates, ouverte ou fermée
   const ouverts = [...cible.querySelectorAll('[data-cle] > .ouvert')].map(t => t.parentElement.dataset.cle);
   const rep = {}, surListe = {};
   SPECIAUX.forEach(r => {

@@ -177,6 +177,12 @@ cette semaine » dit « Rien en circulaire cette semaine. », et « Par épiceri
     J-C : « je le placerais plus petit et sur une autre ligne, car là c'est difficile à lire », puis « C » parmi 14 / 13 / 12 px.
     Précise la décision 24. L'aperçu : `scratchpad/apercu-unite.html`.
 
+33. **Le titre : « En solde du 8 au 14 octobre 2026 »** (J-C, après le bâti : « Remplacer "En spécial cette semaine" par "En solde
+    du xx au xx 2026" »). Les dates des circulaires en cours (le plus tôt des débuts, le plus tard des fins — d'habitude du jeudi
+    au mercredi), « 1er » le premier du mois, le mois et l'année au début seulement s'ils changent (« du 30 septembre au 6 octobre
+    2026 », « du 31 décembre 2026 au 6 janvier 2027 »); sans solde en cours : « En solde ». Bâti le même jour (`titreSoldes()`,
+    sur la barre, ouverte ou fermée).
+
 **✅ RÉFLEXION FINIE le 2026-10-07** — l'aperçu final (`scratchpad/apercu-prix.html`, `apercu-final.html`) : J-C, « Oui. Il y a
 quelques choses avec la grosseur de la police, mais là aussi j'aviserai » (**à revoir à l'usage**).
 

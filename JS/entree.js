@@ -2962,7 +2962,7 @@ function lignesAchats(cote) {
    la flèche « revenir » (J-C, 2026-10-01 : une poubelle touchée par erreur se répare).
    TOUT FERMÉ à l'ouverture de la page (J-C, 2026-10-01 : « une vraie épicerie, je vais trop scroller »), une barre ouverte à la fois.
    Les soldes (J-C, 2026-10-01) : sous chaque aliment, partout (catégories, « Mis de côté »). (La barre « En circulaire » du bas,
-   « Il y a aussi ceci », est retirée le 2026-10-07 : les idées se cherchent dans Listes → « En spécial cette semaine », RdG-08.)
+   « Il y a aussi ceci », est retirée le 2026-10-07 : les idées se cherchent dans Listes → « En solde du … au … », RdG-08.)
    DEUX VUES (J-C, 2026-10-07; RdG-08), deux boutons comme l'Inventaire : « Par catégorie » pour bâtir la liste (toujours à l'ouverture),
    « Par épicerie » pour faire les courses (JS/prix.js : les épiceries, ce qui est moins cher où; la case seulement).
    ouvrir : le groupe à ouvrir (data-groupe : l'ID de la catégorie, 'sans', 'cote'; Par épicerie : 'm:' + l'épicerie); sinon celui qui
@@ -3099,7 +3099,7 @@ async function expedierAchats() {
    détail (le petit format en solde peut coûter plus cher que le grand au prix régulier), la moins chère en premier; un prix sans
    format (« (format ?) ») ne se compare pas : personne en rouge (décision 26). Seulement ce qui est en cours (Debut ≤ aujourd'hui
    ≤ Fin) : un cache de la semaine passée ne montre rien de périmé. Un magasin dont l'interrupteur « Circulaire » est à Non : ses
-   soldes disparaissent TOUT DE SUITE (J-C, 2026-10-01), sans attendre la relecture. Servent aussi « En spécial cette semaine » et la
+   soldes disparaissent TOUT DE SUITE (J-C, 2026-10-01), sans attendre la relecture. Servent aussi la liste « En solde » et la
    Liste d'achats « Par épicerie » (JS/prix.js). */
 const prixSolde = r => { const t = String(r[4] == null ? '' : r[4]).trim(), n = Number(t.replace(',', '.')); return t && isFinite(n) ? n : Infinity; };
 function soldeEnCours(r) {
@@ -3755,7 +3755,7 @@ async function attendreCreation(pid) {
   for (let i = 0; i < 40 && envoiGestes && enAttente(); i++) await new Promise(r => setTimeout(r, 250));   // une file déjà en route : on la laisse finir
   return !enAttente();
 }
-/* Un aliment va sur la liste (« Ajouter à la liste », la flèche de « En spécial cette semaine ») : un ajout mis de côté plus tôt revient
+/* Un aliment va sur la liste (« Ajouter à la liste », la flèche de la liste « En solde ») : un ajout mis de côté plus tôt revient
    (son « plus tard » s'en va), sinon il naît. false : il y était déjà. */
 function surLaListe(pid) {
   if (lignesAchats().some(it => it.pid === String(pid))) return false;
@@ -4472,7 +4472,7 @@ function initEntree() {
   $('liste-bientot').previousElementSibling.addEventListener('click', function () {   // À consommer bientôt : refaite à l'ouverture, ses catégories fermées
     if (this.classList.contains('ouvert')) { $('liste-bientot').innerHTML = ''; remplirBientot(); }
   });
-  $('liste-special').previousElementSibling.addEventListener('click', function () {   // En spécial cette semaine : refaite à l'ouverture, fermée
+  $('liste-special').previousElementSibling.addEventListener('click', function () {   // En solde du … au … : refaite à l'ouverture, fermée
     if (this.classList.contains('ouvert')) { $('liste-special').innerHTML = ''; remplirSpecial(); }
   });
   $('liste-special').addEventListener('click', function (ev) {
