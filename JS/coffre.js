@@ -58,7 +58,7 @@ const Coffre = {
   reunirProduits(charge)    { return this.appel(Object.assign({}, charge, { action: 'reunirProduits' })); },   // deux aliments n'en font plus qu'un (lots, sorties, « Pas aimé »)
   pasAime(charge)           { return this.appel(Object.assign({ action: 'pasAime' }, charge)); },     // retirer un « Pas aimé »
   achats(charge)            { return this.appel(Object.assign({}, charge, { action: 'achats' })); },  // la liste d'achats : des lignes écrites par ID (rejouable)
-  lireTri()                 { return this.appel({ action: 'lireTri' }, this.DELAI_LECTURE); },   // la page de tri des circulaires : ce qui est à trier + les réponses déjà données (une lecture)
+  lireTri(delai)            { return this.appel({ action: 'lireTri' }, delai || this.DELAI_LECTURE); },   // la page de tri des circulaires : ce qui est à trier + les réponses déjà données (une lecture; delai : la patience de cet essai)
   trier(charge)             { return this.appel(Object.assign({}, charge, { action: 'trier' })); },     // Oui / Peut-être / Jamais pour des articles (onglet Tri, rejouable)
   chercherOFF(charge)       { return this.appel(Object.assign({}, charge, { action: 'chercherOFF' }), this.DELAI_LECTURE); },   // le tri : Open Food Facts par le nom et la marque (une lecture)
   identifier(code)          { return this.appel({ action: 'identifier', code: code }, this.DELAI_LECTURE); },                 // toute l'épicerie : un code inconnu → les circulaires d'IGA, puis Open Food Facts (une lecture)
