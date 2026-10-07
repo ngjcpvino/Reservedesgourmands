@@ -124,6 +124,23 @@ function htmlDureeAliment(p) {
   return '<div class="bloc accordeon-bloc"><div class="label">Durée</div>' +
     '<select class="champ choix-duree" data-aliment="' + esc(p.id) + '">' + optionsDuree(valeurDuree(p.duree), premier) + '</select></div>';
 }
+/* Gérer les bases → Catégories : la durée d'une sous-catégorie, sous son nom (J-C, choix A sur aperçu). Rien de choisi = la proposée,
+   sinon celle de sa catégorie. */
+function htmlDureeSousCat(sc) {
+  const k = cleNom(sc.nom), prop = Object.prototype.hasOwnProperty.call(DUREE_DE_CAT, k) ? DUREE_DE_CAT[k] : '';
+  const r = dureeDeCat(RAYONS.find(x => String(x.id) === String(rayonDe(sc.id))));
+  const premier = prop !== '' ? 'Proposée : ' + texteDuree(prop) : 'Comme sa catégorie : ' + (r !== '' ? texteDuree(r) : 'aucune');
+  return '<select class="champ choix-duree-sc" data-souscat="' + esc(sc.id) + '">' + optionsDuree(valeurDuree(sc.duree), premier) + '</select>';
+}
+/* Une durée choisie pour une sous-catégorie : instantané, Categories col. E par la file des gestes ('' = la proposée; 0 = Aucune). */
+function choisirDureeSousCat(id, v) {
+  const sc = [].concat(...Object.values(SOUSCATS)).find(x => String(x.id) === String(id)), c = lireCache();
+  const row = c && (c.cats || []).find(r => String(r[0]) === String(id));
+  if (!sc || !row) { avis('Pas changé — réessaie', 'erreur'); remplirPageCategories(true); return; }
+  const l = row.slice(); l[4] = valeurDuree(v);
+  poserGeste({ action: 'lignes', table: 'Categories', opId: 'dureesc-' + Date.now() + '-' + Math.random().toString(36).slice(2, 8), lignes: [l] });
+  sc.duree = l[4];
+}
 /* Une durée choisie pour un aliment : instantané, Produits col. K par la file des gestes ('' = rien de choisi; 0 = Aucune). */
 function choisirDureeAliment(pid, v) {
   const p = PRODUITS.find(x => String(x.id) === String(pid)), c = lireCache();

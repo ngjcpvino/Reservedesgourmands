@@ -1,8 +1,8 @@
 # RdG-07 — À consommer bientôt (2026-10-06)
 
 > La 2e liste de la page Listes (l'accordéon « À consommer bientôt », vide jusqu'ici).
-> **Réflexion finie le 2026-10-06** (onze décisions, section 2). **✅ BÂTI le même soir** (section 3), sauf le menu de la durée
-> d'une sous-catégorie (aperçu d'abord); le coffre-fort : section 4, écrit, à coller. ⚠️ Pas encore testé en ligne.
+> **Réflexion finie le 2026-10-06** (onze décisions, section 2). **✅ BÂTI le même soir** (section 3), le menu de la durée
+> d'une sous-catégorie compris (2026-10-07, choix A); le coffre-fort : section 4, écrit, à coller. ⚠️ Pas encore testé en ligne.
 
 ## 1. Ce qui était déjà décidé (juillet, redit le 23 septembre — `RdG-01`, `RdG-04`)
 
@@ -83,8 +83,10 @@
 1. ✅ **Gérer les bases → Meubles** : l'interrupteur « Congélateur » dans un meuble ouvert, sous sa couleur
    (`basculerCongelo()`, geste « lignes » Emplacements, la ligne réécrite avec la couleur que l'app montre;
    `MEUBLES[].congelo`; `.bloc .interrupteur` : le rond se creuse sur le blanc).
-2. ⏳ **Gérer les bases → Catégories** : le menu de la durée d'une sous-catégorie — **pas encore : où le poser
-   sur la page (la ligne a déjà crayon, flèches, poubelle) = un aperçu d'abord**. En attendant, la proposée vaut.
+2. ✅ **Gérer les bases → Catégories** (2026-10-07, J-C : « Ça sera A », sur aperçu parmi A sous le nom / B sur la ligne /
+   C un bloc à part / D on touche le nom) : le menu de la durée **sous le nom de chaque sous-catégorie** (`.nom-duree`,
+   `htmlDureeSousCat()`, `choisirDureeSousCat()`, Categories col. E). En tête : « Proposée : 3 semaines », ou « Comme sa
+   catégorie : … ». Le crayon renomme le nom seulement (`ouvrirRenommer()` le trouve au-dessus de la durée).
 3. ✅ **Gérer les bases → Aliments** : « Durée » dans un aliment ouvert, sous sa sous-catégorie (`htmlDureeAliment()`,
    `choisirDureeAliment()`, Produits col. K). En tête du menu, ce qui vaut sans choix : « Proposée : 3 jours » ou
    « Comme sa sous-catégorie : 3 semaines ».

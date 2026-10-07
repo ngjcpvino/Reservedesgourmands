@@ -595,7 +595,9 @@ select.champ {
   font-size: var(--texte-normal);
   min-height: var(--tactile);
 }
-.accordeon-item-saisie { gap: var(--espace-s); }   /* une ligne ou l'on saisit : un champ + son bouton */
+.accordeon-item-saisie { gap: var(--espace-s); }
+.nom-duree { flex: 1; display: flex; flex-direction: column; align-items: flex-start; gap: var(--espace-xs); }   /* une sous-catégorie : son nom, sa durée dessous (J-C, 2026-10-07, choix A sur aperçu) */
+.nom-duree > .champ { width: auto; }   /* une ligne ou l'on saisit : un champ + son bouton */
 .accordeon-item-saisie > .bouton { flex-shrink: 0; }   /* une question longue (« Terminer IGA ? ») passe à la ligne; Oui / Non ne se tassent pas */
 /* Un meuble ou une catégorie ouvert : on n'y voit que SON « Nouveau… » (espace, sous-catégorie) — la ligne « Nouveau meuble… »
    ou « Nouvelle catégorie… » de ses frères se cache (J-C, 2026-09-30) */

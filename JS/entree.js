@@ -1494,7 +1494,8 @@ function remplirPageCategories(garderOuverts) {
         fleches('c', r.id, i, RAYONS.length) + (scs.length ? '' : poubelle('c', r.id)) + '</div>' +
       '<div class="accordeon-corps"' + (o ? '' : ' hidden') + '>' +
         '<div class="bloc accordeon-bloc"><div class="label">Couleur</div><div class="palette">' + htmlPalette(numeroCouleur(r.couleur)) + '</div></div>' +
-        scs.map((sc, j) => '<div class="accordeon-item" data-type="s" data-id="' + esc(sc.id) + '"><span>' + esc(sc.nom) + '</span>' +
+        scs.map((sc, j) => '<div class="accordeon-item" data-type="s" data-id="' + esc(sc.id) + '"><span class="nom-duree"><span>' + esc(sc.nom) + '</span>' +
+          htmlDureeSousCat(sc) + '</span>' +   // sa durée, sous son nom (À consommer bientôt — J-C, choix A sur aperçu)
           crayon('c:' + sc.id) + fleches('s', sc.id, j, scs.length) + poubelle('s', sc.id) + '</div>').join('') +
         htmlAjout('souscat-nouvelle', 'Nouvelle sous-catégorie…', 'ajout-categorie', 'data-rayon', r.id) +
       '</div></div>';
@@ -1965,7 +1966,8 @@ function rafraichirBases() {
 function planifierOrdre() { clearTimeout(minuterieOrdre); minuterieOrdre = setTimeout(envoyerOrdre, DELAI_ORDRE); }
 /* Le crayon touché : le nom devient un champ. Entrée ou toucher ailleurs = enregistrer; Échap = laisser tel quel. */
 function ouvrirRenommer(btn) {
-  const span = btn.previousElementSibling;
+  const avant = btn.previousElementSibling;
+  const span = avant.classList.contains('nom-duree') ? avant.firstElementChild : avant;   // une sous-catégorie : le nom, au-dessus de sa durée
   const input = document.createElement('input');
   input.className = 'champ champ-renommer';
   input.value = span.textContent;
@@ -4330,6 +4332,10 @@ function initEntree() {
   // Gérer les bases → Catégories
   $('categories-retour').addEventListener('click', () => { ouvrirMenu(); montrerGrilleMenu('bases'); });   // le menu, sur la grille des bases
   $('liste-categories').addEventListener('keydown', entreeAjoute);
+  $('liste-categories').addEventListener('change', ev => {   // la durée d'une sous-catégorie (À consommer bientôt)
+    const du = ev.target.closest('.choix-duree-sc');
+    if (du) choisirDureeSousCat(du.dataset.souscat, du.value);
+  });
   $('liste-categories').addEventListener('click', function (ev) {
     const oui = ev.target.closest('[data-retirer-oui]');   // « Retirer … ? » Oui (avec, s'il le faut, où vont ses aliments)
     if (oui) { const k = oui.dataset.retirerOui.split('|'), sel = oui.parentElement.querySelector('.destination'); retirerCategorie(k[0], k[1], sel ? sel.value : ''); return; }
