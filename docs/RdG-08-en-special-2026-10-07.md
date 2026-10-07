@@ -129,8 +129,13 @@ sont donc en suspens** : le besoin, c'est **sa liste**, comparée d'une épiceri
 25. **La mesure : au 100 g, au 100 ml, à l'unité (comme l'étiquette des tablettes)** — J-C : « Oui ». Les œufs, les bagels :
     à l'unité. Sur place, il compare avec l'étiquette du magasin. Rejeté : au kilo et au litre.
 
+26. **Un prix sans format (choix A)** — J-C : « A ». La circulaire ne dit pas « 900 g » : le prix paraît quand même, avec
+    « (format ?) » à la place du prix au 100 g, et **ne passe jamais en rouge**. Quand on ne peut pas comparer, c'est comme une
+    égalité (décision 12) : l'aliment va là où il y a déjà le plus d'articles. Rejetés : B (comparer le prix de la boîte : ça
+    trompe), C (prendre le format acheté d'habitude : deviner).
+
 ## 3. Questions ouvertes (dans l'ordre, une à la fois)
 
-1. **Un prix sans format** (la circulaire ne dit pas « 900 g ») : comment le comparer ?
-2. **La barre « En circulaire » au bas de la Liste d'achats** (« Il y a aussi ceci » : les Oui en solde pas sur la liste) fait
-   la même chose que « En spécial cette semaine » : la garder ou la retirer ?
+1. **La barre « En circulaire » au bas de la Liste d'achats** (« Il y a aussi ceci » : les Oui en solde pas sur la liste, la
+   flèche pour l'ajouter — vérifié dans le code, `remplirAchats()`) fait la même chose que « En spécial cette semaine » :
+   la garder ou la retirer ?
