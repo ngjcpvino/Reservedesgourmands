@@ -2,6 +2,11 @@
 
 > Séance de **look** sur `rdg.html`. Tout ce qui est marqué ✅ est poussé sur `main` et testable.
 > Ce document ne liste que ce qui **reste**.
+>
+> ⚠️ **HISTORIQUE — relu le 2026-10-07** : presque tout ce qui suit est fait ou dépassé (`api.gs` redéployé depuis, la photo
+> passée chez Cloudinary, les messages au centre de l'écran sur fond de couleur, le menu en grille…). Ce qui reste vraiment ouvert
+> est repris dans `CLAUDE.md`, au bloc « CE QUI RESTE » : la photo encore à distance, aucune règle d'écran (`@media`), le meuble
+> « Coin ». Ne plus se fier à la liste ci-dessous.
 
 ---
 
