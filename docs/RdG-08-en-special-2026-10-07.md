@@ -2,7 +2,7 @@
 
 > La 3e liste de la page Listes (l'accordéon « En spécial cette semaine », vide jusqu'ici) — et, en chemin, la Liste d'achats
 > « Par épicerie ». **Réflexion finie le 2026-10-07 (32 décisions, section 2) et ✅ BÂTIE le même jour** (section 3; aperçu final
-> approuvé : « Oui »). ⚠️ Pas encore testé en ligne. Le coffre-fort : section 4, **écrit à l'ordi le 2026-10-07, à coller**.
+> approuvé : « Oui »). ⚠️ Pas encore testé en ligne. Le coffre-fort : section 4, **écrit à l'ordi le 2026-10-07, ✅ collé par J-C le même jour**.
 
 ## 1. Ce qui était déjà décidé (`RdG-05`, 28 septembre, et depuis)
 
@@ -235,9 +235,9 @@ Date = le début de la circulaire (col. I); Unite = col. G (l'app n'en garde que
 col. H (le format); Marque = celle du Tri (col. E), sinon celle de Flipp. ⚠️ **`references` ne doit pas ralentir** : ne pas relire
 l'archive entière à chaque appel — la calculer au jeudi (après `lireSpeciaux`) et la ranger toute petite (un onglet `PrixReguliers`,
 ou le cache), lue d'un coup par `references`. Absente, l'app fait sans (elle est déjà branchée : `chargerData()`, `appliquer()`).
-Essayer à blanc, puis l'inscrire ici; un seul collage avec la section 4 de `RdG-07` (encore à coller).
+Essayer à blanc, puis l'inscrire ici; un seul collage avec la section 4 de `RdG-07` (collée le 2026-10-07, avec celle-ci).
 
-**✅ ÉCRIT À L'ORDI le 2026-10-07, essayé à blanc (13 vérifications, la vraie semaine du 1er octobre) — À COLLER** (le même collage
+**✅ ÉCRIT À L'ORDI le 2026-10-07, essayé à blanc (13 vérifications, la vraie semaine du 1er octobre) — ✅ COLLÉ par J-C le même jour** (le même collage
 que `RdG-07`, section 4, et l'allègement de `lireTri`, `RdG-05`, section 9). `references` renvoie **`prixReguliers`**, lu dans
 l'onglet **`PrixReguliers`** (créé tout seul; A ProduitID · B Magasin · C Regulier · D Unite · E Description · F Date · G Marque,
 tout en texte sauf le prix). Il est **refait à la fin de chaque lecture du jeudi** (`finirLecture` → `ecrirePrixReguliers`, d'après

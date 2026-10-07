@@ -2,7 +2,7 @@
 
 > La 2e liste de la page Listes (l'accordéon « À consommer bientôt », vide jusqu'ici).
 > **Réflexion finie le 2026-10-06** (onze décisions, section 2). **✅ BÂTI le même soir** (section 3), le menu de la durée
-> d'une sous-catégorie compris (2026-10-07, choix A); le coffre-fort : section 4, écrit, à coller. ⚠️ Pas encore testé en ligne.
+> d'une sous-catégorie compris (2026-10-07, choix A); le coffre-fort : section 4, écrit, ✅ collé par J-C le 2026-10-07. ⚠️ Pas encore testé en ligne.
 
 ## 1. Ce qui était déjà décidé (juillet, redit le 23 septembre — `RdG-01`, `RdG-04`)
 
@@ -121,7 +121,7 @@ Des colonnes au bout, rien ne bouge; l'app les envoie dans les lignes qu'elle é
 Vérifier que chaque action écrit bien la ligne telle que l'app l'envoie (sans la couper), poser les
 en-têtes, essayer à blanc, l'inscrire ici.
 
-**✅ ÉCRIT le 2026-10-06 (à l'ordi), essayé à blanc (22 vérifications) — À COLLER par J-C.** Vérifié : `modifier`,
+**✅ ÉCRIT le 2026-10-06 (à l'ordi), essayé à blanc (22 vérifications) — ✅ COLLÉ par J-C le 2026-10-07.** Vérifié : `modifier`,
 `ajouter`, `deplacer` (modifs et ajouts), `consommer` (la sortie) écrivent la ligne **telle que l'app l'envoie**, sans
 la couper; `texteDates` relit toute colonne en date (P comprise). Ajouté : les en-têtes (Produits K, Stock P,
 Emplacements G, Sorties K) posés par `assurerEntetes()` à la prochaine entrée — une ligne d'en-tête lue d'un coup par

@@ -460,7 +460,7 @@ tout essayer à blanc avant de dire « à coller ». Une fois une partie faite :
 **L'ordre de travail (proposé)** : 1 → 2 → (le rapport à J-C) → 3 → 4 → 5 → 6. Les parties 1 et 2 sont petites et
 débloquent tout; ne pas bâtir 3 à 5 avant d'avoir le rapport de la partie 2.
 
-### Partie 1 — L'interrupteur « Circulaire » des Magasins (déjà côté app, bâti le 1er octobre) — ✅ FAIT sur l'ordi le 1er octobre, essayé à blanc, ⚠️ à coller
+### Partie 1 — L'interrupteur « Circulaire » des Magasins (déjà côté app, bâti le 1er octobre) — ✅ FAIT sur l'ordi le 1er octobre, essayé à blanc, ✅ collé, en ligne
 La consigne en 5 points est dans `CLAUDE.md`, « Gérer les bases → Magasins », paragraphe « ⚠️ À FAIRE SUR L'ORDI » :
 `references` renvoie les col. D (`Circulaire`, O / N, vide = Oui) et E (`Trouvee`, O / N) de Magasins; en-têtes posés;
 `lireSpeciaux()` saute les magasins à D = N; après chaque lecture, col. E = O / N pour chaque magasin à Oui (ne pas
@@ -589,7 +589,7 @@ de J-C reste dans les Propriétés du script) :**
   comme « la semaine en cours » ou le remplacer par l'archive filtrée sur la semaine **(à toi de voir)** — le dire ici.
 - Inscrire chaque onglet et ses colonnes (positions exactes) dans `RdG-structure-donnees.md`.
 
-### ✅ CE QUI EST BÂTI DANS `api.gs` (1er octobre 2026, conversation de l'ordi — essayé à blanc sur les VRAIES circulaires de la semaine, ⚠️ à coller → Nouvelle version, puis lancer `installerDeclencheur`)
+### ✅ CE QUI EST BÂTI DANS `api.gs` (1er octobre 2026, conversation de l'ordi — essayé à blanc sur les VRAIES circulaires de la semaine, ✅ collé et lancé par J-C le 2026-10-01 : `installerDeclencheur`, 20 h 02)
 
 **Le jeudi, en passes.** `lireSpeciaux()` (le déclencheur de 1 h) lit la liste et chaque circulaire en entier (≈ 10 appels),
 écrit **Speciaux** (la semaine, 20 colonnes, voir `RdG-structure-donnees.md`) et programme `suiteCirculaires()` une
@@ -779,7 +779,7 @@ une 2e lecture complète) : **la vraie réparation = alléger `lireTri`.**
 calculé une fois au jeudi (après `lireSpeciaux`) et après chaque `trier`, rangé tout petit (un onglet, ou le cache), lu d'un coup;
 et ne renvoyer que ce que la page montre.
 
-**✅ FAIT À L'ORDI (le même jour) — `api.gs` allégé, essayé à blanc, À COLLER.** Chronométré sur un banc (la vraie semaine du
+**✅ FAIT À L'ORDI (le même jour) — `api.gs` allégé, essayé à blanc, ✅ COLLÉ par J-C le même jour.** Chronométré sur un banc (la vraie semaine du
 1er octobre : 1 028 articles, 311 réponses, 150 lots) : ni l'archive ni la taille de la réponse — **la cause : les dates**. Chaque
 lecture de la semaine convertissait **3 dates par article** (début, fin, lecture) par le service de dates de Google :
 **3 546 appels** par `lireTri`, autant pour `references`, `trier` et `circulaireMagasin`, toujours pour les mêmes dix jours. Désormais
