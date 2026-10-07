@@ -90,10 +90,12 @@ sont donc en suspens** : le besoin, c'est **sa liste**, comparée d'une épiceri
     J-C : « Oui ») : **1. En solde ici · 2. Pas en solde · 3. En solde ailleurs** (« Veau — au Super C : 9,99 » : il décide sur
     place, plein prix ici ou un arrêt au Super C). Coché dans une épicerie, coché partout.
 
+17. **L'ordre des épiceries : celle qui a le plus de soldes de la liste en premier, le nombre sur sa barre** (« IGA · 7 »,
+    « Super C · 4 », « Metro · 0 ») — J-C : « Ok ».
+
 ## 3. Questions ouvertes (dans l'ordre, une à la fois)
 
-0. **L'ordre des épiceries : celle qui a le plus de soldes de la liste en premier, le nombre sur sa barre (comme la décision 4) ?**
-0 bis. Dans une partie : l'ordre des catégories, avec ou sans bandeaux ?
+0 bis. **Dans une partie : l'ordre des catégories, avec ou sans bandeaux ? (aperçu)**
 0 ter. Le temps 1 (« En spécial cette semaine », feuilleter pour des idées, surtout les protéines) : à repenser (les décisions
    1 à 6 sont en suspens).
 0 bis. Dans une épicerie : l'ordre (bandeaux de catégorie ?), où se placent ceux qui ne sont pas en solde.
