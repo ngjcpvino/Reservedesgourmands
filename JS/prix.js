@@ -170,14 +170,18 @@ function htmlParEpicerie(items, ouverte) {
 }
 
 /* ---------- Listes → « En solde du 8 au 14 octobre 2026 » (décisions 2, 6, 20 à 23, 33) ----------
-   Son titre (J-C, 2026-10-07 : « Remplacer "En spécial cette semaine" par "En solde du xx au xx 2026" ») : les dates des circulaires
-   en cours — le plus tôt des débuts, le plus tard des fins (d'habitude, du jeudi au mercredi); sans solde en cours : « En solde ». */
+   Son titre (J-C, 2026-10-07 : « Remplacer "En spécial cette semaine" par "En solde du xx au xx 2026" ») : LA SEMAINE EN COURS, du
+   jeudi au mercredi (J-C, le même soir : « on affiche que les soldes du jeudi au mercredi pour une semaine »). Avant : le plus tôt des
+   débuts et le plus tard des fins — le cahier d'IGA, valide trois semaines, faisait dire « du 24 septembre au 14 octobre », et rien ne
+   disait ce qui valait encore la semaine suivante. Ce qui est montré vaut cette semaine (un solde de plus longue durée aussi : « un
+   solde c'est un solde »); jeudi, la nouvelle semaine remplace tout. Sans solde en cours : « En solde ». */
 const MOIS = ['janvier', 'février', 'mars', 'avril', 'mai', 'juin', 'juillet', 'août', 'septembre', 'octobre', 'novembre', 'décembre'];
 function titreSoldes() {
-  const jour = v => String(dateCourte(v) || '').slice(0, 10), ok = d => /^\d{4}-\d{2}-\d{2}$/.test(d);
-  const en = SPECIAUX.filter(soldeEnCours), debuts = en.map(r => jour(r[8])).filter(ok).sort(), fins = en.map(r => jour(r[9])).filter(ok).sort();
-  if (!debuts.length || !fins.length) return 'En solde';
-  const d = debuts[0].split('-').map(Number), f = fins[fins.length - 1].split('-').map(Number);
+  if (!SPECIAUX.some(soldeEnCours)) return 'En solde';
+  const a = dateDuJour().split('-').map(Number), jeudi = new Date(a[0], a[1] - 1, a[2]);   // aujourd'hui, à l'heure du Québec
+  jeudi.setDate(jeudi.getDate() - (jeudi.getDay() + 3) % 7);                                // le jeudi d'avant (ou aujourd'hui)
+  const mercredi = new Date(jeudi.getFullYear(), jeudi.getMonth(), jeudi.getDate() + 6);
+  const d = [jeudi.getFullYear(), jeudi.getMonth() + 1, jeudi.getDate()], f = [mercredi.getFullYear(), mercredi.getMonth() + 1, mercredi.getDate()];
   const quand = x => (x[2] === 1 ? '1er' : String(x[2]));   // « 1er octobre »
   const de = quand(d) + (d[1] !== f[1] || d[0] !== f[0] ? ' ' + MOIS[d[1] - 1] : '') + (d[0] !== f[0] ? ' ' + d[0] : '');
   return 'En solde du ' + de + ' au ' + quand(f) + ' ' + MOIS[f[1] - 1] + ' ' + f[0];

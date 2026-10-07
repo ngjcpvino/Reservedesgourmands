@@ -181,7 +181,10 @@ cette semaine » dit « Rien en circulaire cette semaine. », et « Par épiceri
     du xx au xx 2026" »). Les dates des circulaires en cours (le plus tôt des débuts, le plus tard des fins — d'habitude du jeudi
     au mercredi), « 1er » le premier du mois, le mois et l'année au début seulement s'ils changent (« du 30 septembre au 6 octobre
     2026 », « du 31 décembre 2026 au 6 janvier 2027 »); sans solde en cours : « En solde ». Bâti le même jour (`titreSoldes()`,
-    sur la barre, ouverte ou fermée).
+    sur la barre, ouverte ou fermée). **Changé le même soir** (J-C : « en solde du au porte à confusion »; « on affiche que les soldes du
+    jeudi au mercredi pour une semaine ») : le titre dit **la semaine en cours, du jeudi au mercredi** — avant, le plus tôt des débuts et
+    le plus tard des fins, et le cahier d'IGA (valide trois semaines) faisait dire « du 24 septembre au 14 octobre ». Un solde de plus
+    longue durée paraît aussi (« un solde c'est un solde »), sans date de fin sur sa ligne : jeudi, la nouvelle semaine remplace tout.
 
 34. **« Par épicerie » : comme la page Circulaires** (J-C, après le bâti : « Faudrait être cohérent. On clique Par épicerie, on voit
     pas 2 colonnes avec les épiceries. Me semble que c'est simple de respecter ce qui a déjà été décidé dans les autres pages ! »;
