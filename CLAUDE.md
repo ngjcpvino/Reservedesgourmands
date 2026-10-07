@@ -118,7 +118,7 @@ Principes structurels non négociables (détail dans `RdG-00`) : rien de fixe (l
 > **Ce qui attend J-C**
 > 38. **La photo d'une étiquette de viande** du magasin (le prix est-il caché dans le code ? `RdG-01` 3 bis).
 > 39. **Dire quand il voit les logos sur ses deux appareils** → retirer les bouts temporaires (`LOGOS_DEPART` / `poserLogosDepart()`, `sans102()`).
-> 40. **Les essais en ligne** de ce qui est bâti : la page Circulaires visuelle et le tri par épicerie, les couleurs des épiceries, le nuancier, À consommer bientôt, En solde et « Par épicerie », la liste d'achats par aliment, le PLU, la mise au point du scan, Entrer et Compléter, le bandeau rouge « Réserve pas à jour ».
+> 40. **Les essais en ligne** — **la liste numérotée des tests : `docs/RdG-tests-2026-10-07.md` (T1 à T31, dans l'ordre d'une vraie semaine; J-C répond « T7 : ok »)**. Ce qui est bâti : la page Circulaires visuelle et le tri par épicerie, les couleurs des épiceries, le nuancier, À consommer bientôt, En solde et « Par épicerie », la liste d'achats par aliment, le PLU, la mise au point du scan, Entrer et Compléter, le bandeau rouge « Réserve pas à jour ».
 > 41. **La page Circulaires s'ouvre-t-elle du premier coup ?** (l'allègement d'`api.gs` du 2026-10-07, à vérifier le jeudi 8 au matin).
 >
 > **Ajoutés après la numérotation**
@@ -290,6 +290,7 @@ Le dépôt GitHub est **public**. Les fichiers **`.gs`** (Google Apps Script) ne
 - **`RdG-06-liste-achats-2026-09-30.md`** — la liste d'achats (point 5), **réflexion FINIE et app BÂTIE le 30 septembre; coffre-fort ÉCRIT le même jour (onglet Achats, action `achats`), collé et vérifié le 2026-10-01** : une seule liste, sa page, sa propre icône (le chariot vide, 7e du menu), dans l'ordre des catégories, catégories en barres; deux niveaux (« pas pressé » = réserve vide / il n'en reste plus); on coche au magasin (grisé); l'aliment quitte la liste **quand on l'entre**; ajouter à la main (entonnoir + scan); la poubelle = « pas pour l'instant »; pas de quantité. (Section 4 du document : `references` renvoie `achats`, action `achats`, onglet Achats — en place.)
 - **`RdG-07-a-consommer-bientot-2026-10-06.md`** — « À consommer bientôt » : la durée de vie (sous-catégorie, au frais) + le congélo (4 mois pour tout); réflexion finie et bâtie le 2026-10-06.
 - **`RdG-08-en-special-2026-10-07.md`** — « En spécial cette semaine » (le jeudi, les idées) et la Liste d'achats « Par épicerie » (quoi acheter où, au prix au 100 g, avec les prix payés); réflexion finie et bâtie le 2026-10-07; `api.gs` (les prix réguliers d'avant) : section 4, écrite à l'ordi et collée le 2026-10-07.
+- **`RdG-tests-2026-10-07.md`** — **la liste des tests** (T1 à T31) de ce qui est bâti et jamais essayé en ligne, dans l'ordre d'une vraie semaine; un numéro ne change jamais, un test réussi est barré.
 - **`RdG-structure-donnees.md`** — LA référence des colonnes (positions exactes) : les 6 tables du point 1, bâties pour évoluer.
 - **`RdG-categories-superc.md`** — la liste finale des catégories Épicerie (12 rayons / 48 sous-cat), taillée avec J-C depuis Super C. Déjà semée.
 
