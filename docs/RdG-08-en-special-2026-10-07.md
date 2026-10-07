@@ -31,8 +31,11 @@
    l'usage. » Comme les espaces d'un meuble dans l'Inventaire : tout visible d'un coup, et rangé. Rejetés : A (une liste
    sans séparation), B (des barres de catégorie à ouvrir : un toucher de plus). **À revoir à l'usage.**
 
+6. **Une ligne (proposition de Claude, J-C : « Oui »)** — le nom de l'aliment (« Lait »), dessous la marque, le format et le
+   prix, le régulier entre parenthèses (« Québon · 2 L · 4,99 (6,49) »), comme les soldes de la Liste d'achats; **le prix en
+   rouge** quand cette épicerie a le meilleur prix pour cet aliment; **au bout, la flèche** de « Il y a aussi ceci » : un
+   toucher, l'aliment est sur la Liste d'achats; **déjà sur la liste** : pas de flèche, « (sur ta liste) » dessous.
+
 ## 3. Questions ouvertes (dans l'ordre, une à la fois)
 
-1. **Une ligne : ce qu'elle dit (aliment, marque, format, prix, régulier ?) et le geste pour l'ajouter (la flèche de
-   « Il y a aussi ceci » ?); un aliment déjà sur la liste ?**
-2. L'allure (aperçu d'abord) : les logos (comme la page Circulaires) ou les barres à leur couleur ?
+1. **L'allure (aperçu d'abord) : les logos (comme la page Circulaires) ou les barres à leur couleur ?
