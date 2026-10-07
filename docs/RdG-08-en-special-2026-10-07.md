@@ -19,11 +19,14 @@
 2. **On peut y pointer un aliment pour l'ajouter à la Liste d'achats** — J-C : « faudrait aussi qu'on puisse pointer des
    aliments pour les ajouter à la liste de l'épicerie à faire. Pour faire des réserves entre autres. »
 
+3. **Les Oui seulement (choix A)** — J-C : « A ». Ce qu'il a trié Oui (ce qu'il achète) et qui est en circulaire cette
+   semaine, chez une épicerie dont la circulaire est lue (interrupteur à Oui). Rejeté : B (aussi les Peut-être : du bruit;
+   un Peut-être se retrouve en le cherchant, décision du 1er octobre).
+
 ## 3. Questions ouvertes (dans l'ordre, une à la fois)
 
-1. **Ce qui y paraît : les Oui seulement, ou aussi les Peut-être ?**
-2. « Où il y a plus de solde » : comment le voir d'un coup (un nombre sur chaque épicerie ? l'ordre ?).
-3. Dans une épicerie : une liste, ou par catégorie ?
-4. Une ligne : ce qu'elle dit (aliment, marque, format, prix, régulier ?) et le geste pour l'ajouter (la flèche de
+1. **« Où il y a plus de solde » : comment le voir d'un coup — le nombre de soldes, ou l'économie en dollars ?**
+2. Dans une épicerie : une liste, ou par catégorie ?
+3. Une ligne : ce qu'elle dit (aliment, marque, format, prix, régulier ?) et le geste pour l'ajouter (la flèche de
    « Il y a aussi ceci » ?); un aliment déjà sur la liste ?
-5. L'allure (aperçu d'abord) : les logos (comme la page Circulaires) ou les barres à leur couleur ?
+4. L'allure (aperçu d'abord) : les logos (comme la page Circulaires) ou les barres à leur couleur ?
