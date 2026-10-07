@@ -779,3 +779,14 @@ une 2e lecture complète) : **la vraie réparation = alléger `lireTri`.**
 calculé une fois au jeudi (après `lireSpeciaux`) et après chaque `trier`, rangé tout petit (un onglet, ou le cache), lu d'un coup;
 et ne renvoyer que ce que la page montre.
 
+**✅ FAIT À L'ORDI (le même jour) — `api.gs` allégé, essayé à blanc, À COLLER.** Chronométré sur un banc (la vraie semaine du
+1er octobre : 1 028 articles, 311 réponses, 150 lots) : ni l'archive ni la taille de la réponse — **la cause : les dates**. Chaque
+lecture de la semaine convertissait **3 dates par article** (début, fin, lecture) par le service de dates de Google :
+**3 546 appels** par `lireTri`, autant pour `references`, `trier` et `circulaireMagasin`, toujours pour les mêmes dix jours. Désormais
+chaque jour n'est converti **qu'une fois** (`texteDates`, `_jours`) : **~10 appels**. Aussi : le découpage des mots (`motsFlipp`)
+n'est fait qu'une fois par texte (5 000 découpages, presque tous répétés), et les onglets se lisent en un aller-retour
+(`getDataRange`) — **`lireTri` 37 → 20 appels au Sheet, `references` 85 → 53**. Rien ne change dans ce qui est renvoyé : les
+13 réponses du banc (lireTri, references, trier, circulaireMagasin… avant et après des gestes) sont **identiques à l'octet**; les
+essais d'À consommer bientôt et des Unités repassent. Rien à changer dans l'app. **À vérifier après le collage** : la page
+Exécutions, la durée des `doPost` (5 à 10 s ce matin); si `lireTri` reste au-dessus de ~3 s, la suite est le précalcul ci-dessus.
+

@@ -2,7 +2,7 @@
 
 > La 3e liste de la page Listes (l'accordéon « En spécial cette semaine », vide jusqu'ici) — et, en chemin, la Liste d'achats
 > « Par épicerie ». **Réflexion finie le 2026-10-07 (32 décisions, section 2) et ✅ BÂTIE le même jour** (section 3; aperçu final
-> approuvé : « Oui »). ⚠️ Pas encore testé en ligne. Le coffre-fort : section 4, **à écrire à l'ordi**.
+> approuvé : « Oui »). ⚠️ Pas encore testé en ligne. Le coffre-fort : section 4, **écrit à l'ordi le 2026-10-07, à coller**.
 
 ## 1. Ce qui était déjà décidé (`RdG-05`, 28 septembre, et depuis)
 
@@ -236,3 +236,15 @@ col. H (le format); Marque = celle du Tri (col. E), sinon celle de Flipp. ⚠️
 l'archive entière à chaque appel — la calculer au jeudi (après `lireSpeciaux`) et la ranger toute petite (un onglet `PrixReguliers`,
 ou le cache), lue d'un coup par `references`. Absente, l'app fait sans (elle est déjà branchée : `chargerData()`, `appliquer()`).
 Essayer à blanc, puis l'inscrire ici; un seul collage avec la section 4 de `RdG-07` (encore à coller).
+
+**✅ ÉCRIT À L'ORDI le 2026-10-07, essayé à blanc (13 vérifications, la vraie semaine du 1er octobre) — À COLLER** (le même collage
+que `RdG-07`, section 4, et l'allègement de `lireTri`, `RdG-05`, section 9). `references` renvoie **`prixReguliers`**, lu dans
+l'onglet **`PrixReguliers`** (créé tout seul; A ProduitID · B Magasin · C Regulier · D Unite · E Description · F Date · G Marque,
+tout en texte sauf le prix). Il est **refait à la fin de chaque lecture du jeudi** (`finirLecture` → `ecrirePrixReguliers`, d'après
+l'archive gardée par `garderUnAn`). Ce qui a été précisé en écrivant : (1) les lettres de colonnes plus haut suivent le format de
+`speciaux`; dans l'archive, le régulier est en **H**, l'unité en **I**, la description en **F**, le début en **J** — c'est bien
+ce qui est pris; (2) **relié comme les soldes** (`choisirTri`) : un Oui / Peut-être du Tri, **ou un article déjà entré** (son code
+dans STOCK : le Oui tout seul), et un Jamais l'emporte comme ailleurs; (3) **un tri fait dans la semaine relie l'archive au jeudi
+suivant** (relire l'archive à chaque tri serait trop lent); pour ne pas attendre : **`calculerPrixReguliers`**, une fois, depuis
+l'éditeur; (4) Marque : l'ID du Tri (l'app le lit par `nomListe`), sinon le texte de Flipp; (5) la description de la semaine du
+1er octobre porte encore l'histoire du rabais (« 300 ml. / Rég. 5,99$ à 6,29$ ») : l'app n'en tire que le format.
