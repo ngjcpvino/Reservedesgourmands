@@ -159,7 +159,24 @@ cette semaine » dit « Rien en circulaire cette semaine. », et « Par épiceri
 (la liste reste dans « Par catégorie »); une épicerie ouverte à la fois (la règle des accordéons); Retour recule d'un pas
 (l'épicerie ouverte se ferme, puis le menu).
 
+31. **Les vrais prix : la Liste d'achats « Par épicerie » compare le meilleur prix CONNU de chaque épicerie, dès le départ
+    (choix A)** — J-C : « je ne sais plus comment on va intégrer les vrais prix, mais le but est de savoir que tel aliment est
+    moins cher, soldé ou pas. Je sais que les bagels St-Viateur sont toujours 1,50 $ de moins chez Super C, même sans solde. »
+    Puis « A ». Les sites des épiceries refusent l'app (le gardien anti-robot, section 7 de `RdG-05` : on ne contourne pas) :
+    les prix viennent de **deux sources à nous** — **le prix payé** (STOCK col. M, avec l'épicerie, col. L : rempli par la
+    circulaire en solde, sinon tapé dans Compléter) et **le prix régulier des circulaires** (l'archive d'un an : un produit en
+    solde donne son prix régulier dans ce magasin). Le prix d'une épicerie = **le solde de la semaine, sinon le dernier prix
+    connu** (payé ou régulier), **sa date écrite** (« payé le 3 oct. »). **Les trois parties deviennent : Moins cher ici · Prix
+    pareil ou inconnu · Moins cher ailleurs** (remplacent En solde ici · Pas en solde · En solde ailleurs, décision 16); le
+    nombre sur la bannière = ce qu'on va chercher là (décision 28). Au début (l'historique est vide depuis le grand ménage),
+    ça revient aux soldes seulement; ça s'enrichit à chaque épicerie, sans rien à rebâtir. Rejeté : B (les soldes d'abord,
+    les prix connus plus tard).
+
+32. **Le prix au 100 g : sur sa propre ligne, sous le prix, en 12 px, de la même couleur que sa ligne (choix C, sur aperçu)** —
+    J-C : « je le placerais plus petit et sur une autre ligne, car là c'est difficile à lire », puis « C » parmi 14 / 13 / 12 px.
+    Précise la décision 24. L'aperçu : `scratchpad/apercu-unite.html`.
+
 ## 3. Questions ouvertes
 
-Aucune. **Reste : l'aperçu final des deux écrans** (le prix au 100 g, « (format ?) », « ici aussi », la case seule), puis
-« Je bâtis ? ».
+Aucune. **Reste : l'aperçu de « Par épicerie » avec les prix connus** (les trois parties renommées, la date d'un prix payé),
+puis « Je bâtis ? ».
