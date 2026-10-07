@@ -55,6 +55,8 @@ var EPICERIES = [];                                 // toute l'épicerie : les l
 var SPECIAUX = [];                                  // les soldes de la semaine dont le genre est trié Oui ou Peut-être (le coffre-fort filtre) :
                                                     // [ID, Magasin, ProduitID, Texte, Prix, Regulier, Unite, Description, Debut, Fin, Cle, 'O',
                                                     //  FlippId, Reponse (O / P), Marque, Saveur, CodeBarres, Categorie]
+var PRIX_REGULIERS = [];                            // les prix réguliers des circulaires des semaines passées (le coffre-fort, l'archive d'un an) :
+                                                    // [ProduitID, Magasin, Regulier, Unite, Description, Date, Marque] — le dernier par aliment et épicerie (JS/prix.js)
 var NB_A_TRIER = 0;                                 // les genres d'articles de la semaine sans réponse : le point rouge (Outils, Gérer les bases, Circulaires)
 var TRI = null;                                     // la page de tri, lue à l'ouverture (lireTri) : { aTrier: [{ cle, magasin, texte, categorie,
                                                     //   produitId, marque, saveur, produits, code, genre, format, description, marqueFlipp,
@@ -127,10 +129,10 @@ async function montrerListes() {
   // À l'ouverture (J-C, 2026-10-01) : tout est fermé, toutes les listes paraissent; l'Inventaire s'ouvrira sur ses deux boutons, rien de choisi
   $('vue-listes').querySelectorAll('.contenu > .accordeon > .accordeon-tete').forEach(t => { t.classList.remove('ouvert'); t.nextElementSibling.hidden = true; });
   vueInventaire = '';
-  $('liste-bientot').innerHTML = '';           // À consommer bientôt : ses catégories repartent fermées
-  remplirInventaire(); remplirBientot();       // instantané : ce qu'on a déjà en mémoire
+  $('liste-bientot').innerHTML = ''; $('liste-special').innerHTML = '';   // À consommer bientôt, En spécial : leurs catégories repartent fermées
+  remplirInventaire(); remplirBientot(); remplirSpecial();   // instantané : ce qu'on a déjà en mémoire
   if (!MEUBLES.length) await chargerReferences();
-  remplirInventaire(); remplirBientot();       // puis la version fraîche, quand elle arrive
+  remplirInventaire(); remplirBientot(); remplirSpecial();   // puis la version fraîche, quand elle arrive
 }
 function montrerAccueil()    { toutCacher(); $('vue-accueil').hidden = false; $('btn-burger').hidden = false; $('entete-photo').hidden = false; }
 /* Le Retour final (J-C, 2026-10-01) : pas l'accueil nu, l'accueil avec le menu ouvert — la prochaine action est là. */
@@ -375,6 +377,7 @@ function appliquer(d) {
   PAS_AIMES = d.pasAimes || [];
   ACHATS = d.achats || [];
   SPECIAUX = d.speciaux || [];
+  PRIX_REGULIERS = d.prixReguliers || [];
   EPICERIES = d.epiceries || [];
   NB_A_TRIER = Number(d.nbATrier) || 0; poserPoints();
   // une couleur pas encore confirmée (attente) ou en cours d'essai (écran) l'emporte sur le Sheet
@@ -449,7 +452,7 @@ async function chargerData(suivi) {
     if (suivi) suivi(i);
     try {
       const r = await Coffre.references(ESSAIS_LECTURE[i]);
-      if (r && r.ok && r.categories !== undefined) return { cats: r.categories, emps: r.emplacements, prods: r.produits, stock: r.stock, variantes: r.variantes, codes: r.codes, codesTri: r.codesTri, couleurs: r.couleurs, listes: r.listes, pasAimes: r.pasAimes, achats: r.achats, speciaux: r.speciaux, nbATrier: r.nbATrier, epiceries: r.epiceries, menage: r.menage };   // tout ce que l'app lit : un oubli ici = une donnée qui n'arrive jamais
+      if (r && r.ok && r.categories !== undefined) return { cats: r.categories, emps: r.emplacements, prods: r.produits, stock: r.stock, variantes: r.variantes, codes: r.codes, codesTri: r.codesTri, couleurs: r.couleurs, listes: r.listes, pasAimes: r.pasAimes, achats: r.achats, speciaux: r.speciaux, prixReguliers: r.prixReguliers, nbATrier: r.nbATrier, epiceries: r.epiceries, menage: r.menage };   // tout ce que l'app lit : un oubli ici = une donnée qui n'arrive jamais
       if (r && r.erreur === 'non autorisé') throw new Error('non autorisé');   // inutile de réessayer
       err = new Error((r && r.erreur) || 'refus'); err.refus = true;          // le coffre-fort a répondu, mais pas oui
     } catch (e) { if (e.message === 'non autorisé') throw e; err = e; }
@@ -2958,16 +2961,26 @@ function lignesAchats(cote) {
    « Sans catégorie » au bout (brune). Puis « Mis de côté » (sans compteur : J-C) : ce que la poubelle a écarté, chacun avec
    la flèche « revenir » (J-C, 2026-10-01 : une poubelle touchée par erreur se répare).
    TOUT FERMÉ à l'ouverture de la page (J-C, 2026-10-01 : « une vraie épicerie, je vais trop scroller »), une barre ouverte à la fois.
-   Les soldes (J-C, 2026-10-01) : sous chaque aliment, partout (catégories, « Mis de côté »). Et AU BAS, la barre « En circulaire »
-   (le mot de J-C, plus parlant que « en solde ») = « Il y a aussi ceci » SEULEMENT (J-C, 2026-10-01; bâti le 2026-10-02) : les aliments
-   triés Oui en solde cette semaine qui ne sont NI sur la liste NI mis de côté — ceux de la liste ne s'y répètent plus. La flèche
-   l'ajoute à la liste, dans sa catégorie (comme « revenir » dans « Mis de côté »).
-   ouvrir : le groupe à ouvrir (data-groupe : l'ID de la catégorie, 'sans', 'cote' ou 'solde'); sinon celui qui l'était reste ouvert. */
+   Les soldes (J-C, 2026-10-01) : sous chaque aliment, partout (catégories, « Mis de côté »). (La barre « En circulaire » du bas,
+   « Il y a aussi ceci », est retirée le 2026-10-07 : les idées se cherchent dans Listes → « En spécial cette semaine », RdG-08.)
+   DEUX VUES (J-C, 2026-10-07; RdG-08), deux boutons comme l'Inventaire : « Par catégorie » pour bâtir la liste (toujours à l'ouverture),
+   « Par épicerie » pour faire les courses (JS/prix.js : les épiceries, ce qui est moins cher où; la case seulement).
+   ouvrir : le groupe à ouvrir (data-groupe : l'ID de la catégorie, 'sans', 'cote'; Par épicerie : 'm:' + l'épicerie); sinon celui qui
+   l'était reste ouvert. */
+var vueAchats = 'categorie';                           // 'categorie' | 'epicerie'
 function remplirAchats(ouvrir) {
   const cible = $('liste-achats');
-  const ouverte = cible.querySelector(':scope > .accordeon > .accordeon-tete.ouvert');   // on coche l'un après l'autre : elle reste ouverte
-  ouvrir = ouvrir || (ouverte ? ouverte.parentElement.dataset.groupe : '');
+  const ouverte = cible.querySelector(':scope > .accordeon > .accordeon-tete.ouvert'), garde = ouverte ? ouverte.parentElement.dataset.groupe : '';   // on coche l'un après l'autre : elle reste ouverte
+  ouvrir = vueAchats === 'epicerie' && !String(ouvrir || '').startsWith('m:') ? garde : ouvrir || garde;   // un aliment ajouté ouvre sa catégorie; Par épicerie, l'épicerie ouverte le reste
   const items = lignesAchats(), cote = lignesAchats(true);
+  const choix = items.length || cote.length ? '<div class="grille choix-vue">' + [['categorie', 'Par catégorie'], ['epicerie', 'Par épicerie']].map(v =>
+    '<button class="bouton bouton-petit ' + (v[0] === vueAchats ? 'bouton-brun' : 'choix-eteint') + '" type="button" data-vue-achats="' + v[0] + '">' + v[1] + '</button>').join('') + '</div>' : '';
+  if (vueAchats === 'epicerie') {
+    cible.innerHTML = choix + (items.length ? htmlParEpicerie(items) : '<div class="accordeon-item"><span class="texte-petit texte-pale">Rien à acheter.</span></div>');
+    const e = [...cible.querySelectorAll(':scope > .accordeon')].find(a => ouvrir && a.dataset.groupe === ouvrir);
+    if (e) toggleAccordeon(e.firstElementChild);
+    return;
+  }
   const nomDe = pid => (PRODUITS.find(p => String(p.id) === String(pid)) || {}).nom || '';
   const tri = (x, y) => nomDe(x.pid).localeCompare(nomDe(y.pid), 'fr');
   // UNE ligne par aliment (J-C, 2026-10-05) : son nom; en petit, ses sortes (« Natrel 2 % · Lactantia » : pour choisir au magasin) et
@@ -2981,7 +2994,7 @@ function remplirAchats(ouvrir) {
       '<div class="achat-boutons"><button class="remettre ecarter" type="button" data-achat-cote="' + esc(it.cle) + '" aria-label="Mettre de côté"></button>' +
       '<input class="case" type="checkbox" tabindex="-1"' + (it.coche ? ' checked' : '') + '></div>' + soldesSous(it.pid) + '</div>';
   // les soldes d'un aliment : SOUS sa ligne, sur toute la largeur (J-C, 2026-10-02 : « sur une même ligne si possible »)
-  const soldesSous = (pid, rep) => { const h = htmlSoldes(pid, rep); return h ? '<div class="soldes-ligne">' + h + '</div>' : ''; };
+  const soldesSous = pid => { const h = htmlSoldes(pid); return h ? '<div class="soldes-ligne">' + h + '</div>' : ''; };
   // une ligne de « Mis de côté » : pas de case (on ne coche pas ce qui est écarté), la flèche « revenir » au bout
   const ligneCote = it =>
     '<div class="item"><div class="item-info"><div class="item-nom">' + esc(nomDe(it.pid)) + '</div>' +
@@ -3003,21 +3016,14 @@ function remplirAchats(ouvrir) {
   html = html || '<div class="accordeon-item"><span class="texte-petit texte-pale">Rien à acheter.</span></div>';
   if (cote.length) html += '<div class="accordeon" data-groupe="cote"><div class="accordeon-tete">Mis de côté</div>' +
     '<div class="liste-blanche achats-groupe" hidden>' + cote.sort(tri).map(ligneCote).join('') + '</div></div>';
-  // « Il y a aussi ceci » : un aliment par ligne, ses soldes triés Oui dessous, la flèche pour l'ajouter
-  const surListe = {};
-  items.concat(cote).forEach(it => { surListe[it.pid] = true; });
-  const aussi = [...new Set(SPECIAUX.filter(r => Array.isArray(r) && r[13] === 'O').map(r => String(r[2])))]
-    .filter(pid => !surListe[pid] && nomDe(pid) && soldesDe(pid, 'O').length).sort((x, y) => nomDe(x).localeCompare(nomDe(y), 'fr'));
-  if (aussi.length) html += '<div class="accordeon groupe-solde" data-groupe="solde"><div class="accordeon-tete tete-pale"><span>En circulaire</span></div>' +
-    '<div class="liste-blanche achats-groupe" hidden>' + aussi.map(pid => '<div class="item"><div class="item-info"><div class="item-nom">' + esc(nomDe(pid)) + '</div>' +
-      '</div><button class="remettre" type="button" data-achat-ajouter="' + esc(pid) + '" aria-label="Ajouter à la liste"></button>' + soldesSous(pid, 'O') + '</div>').join('') + '</div></div>';
-  cible.innerHTML = html;
+  cible.innerHTML = choix + html;
   const acc = [...cible.querySelectorAll(':scope > .accordeon')].find(a => ouvrir && a.dataset.groupe === ouvrir);
   if (acc) toggleAccordeon(acc.firstElementChild);
 }
 async function montrerAchats() {
   toutCacher(); $('vue-achats').hidden = false; $('btn-burger').hidden = false;
   fermerAjoutAchat();
+  vueAchats = 'categorie';                         // toujours Par catégorie à l'ouverture (J-C, 2026-10-07, choix B : il bâtit sa liste toute la semaine)
   $('liste-achats').innerHTML = '';                // une nouvelle visite : tout repart fermé
   if (!RAYONS.length) {                            // pas encore chargé → on charge (même patron que les bases)
     $('liste-achats').innerHTML = '<div class="texte-petit texte-pale">Chargement…</div>';
@@ -3087,31 +3093,39 @@ async function expedierAchats() {
 }
 /* ---------- LES SOLDES (J-C, 2026-10-01, sur aperçu; RdG-05) ----------
    Le coffre-fort lit les circulaires le jeudi et renvoie SPECIAUX : seulement ce que J-C a trié Oui ou Peut-être (Gérer les bases
-   → Circulaires). Sous un aliment : une ligne par magasin, la moins chère en premier — COURTE (J-C, 2026-10-02 : « trop d'info ») :
-   « IGA · Québon · 2 L · 4,99 (6,49) » — le magasin, la marque, le format, le prix (le régulier entre parenthèses); LE MEILLEUR PRIX
-   EN ROUGE. (Avant : « Metro · 4,99 $ (rég. 6,49 $) · jusqu'au 7 oct. » et dessous les mots de la circulaire.) Le régulier sera un
-   jour le vrai prix du magasin, pour comparer (J-C; RdG-05, section 7). Seulement ce qui est en cours (Debut ≤ aujourd'hui ≤ Fin) : un
-   cache de la semaine passée ne montre rien de périmé. Un magasin dont l'interrupteur « Circulaire » est à Non : ses soldes
-   disparaissent TOUT DE SUITE (J-C, 2026-10-01), sans attendre la relecture. rep ('O') : seulement ce qui est trié Oui (« Il y a aussi ceci »). */
+   → Circulaires). Sous un aliment : une ligne par magasin — COURTE (J-C, 2026-10-02 : « trop d'info ») : « IGA · Québon · 2 L · 4,99
+   (6,49) » — le magasin, la marque, le format, le prix (le régulier entre parenthèses); dessous, sur sa propre ligne et en petit, le
+   prix au 100 g, au 100 ml ou à l'unité (J-C, 2026-10-07 : RdG-08, décisions 24, 25, 32). LE MEILLEUR PRIX EN ROUGE, décidé au
+   détail (le petit format en solde peut coûter plus cher que le grand au prix régulier), la moins chère en premier; un prix sans
+   format (« (format ?) ») ne se compare pas : personne en rouge (décision 26). Seulement ce qui est en cours (Debut ≤ aujourd'hui
+   ≤ Fin) : un cache de la semaine passée ne montre rien de périmé. Un magasin dont l'interrupteur « Circulaire » est à Non : ses
+   soldes disparaissent TOUT DE SUITE (J-C, 2026-10-01), sans attendre la relecture. Servent aussi « En spécial cette semaine » et la
+   Liste d'achats « Par épicerie » (JS/prix.js). */
 const prixSolde = r => { const t = String(r[4] == null ? '' : r[4]).trim(), n = Number(t.replace(',', '.')); return t && isFinite(n) ? n : Infinity; };
-function soldesDe(pid, rep) {
+function soldeEnCours(r) {
+  if (!Array.isArray(r) || r[11] !== 'O') return false;
   const auj = dateDuJour(), jour = v => String(dateCourte(v) || '').slice(0, 10);
-  const eteint = m => { const x = LISTES.Magasins.find(y => y.id === String(m)); return !!x && x.circ === false; };
-  return SPECIAUX.filter(r => Array.isArray(r) && String(r[2]) === String(pid) && r[11] === 'O' && (!rep || r[13] === rep) && !eteint(r[1]) &&
-      (!r[8] || jour(r[8]) <= auj) && (!r[9] || jour(r[9]) >= auj))
+  const m = LISTES.Magasins.find(y => y.id === String(r[1]));
+  return !(m && m.circ === false) && (!r[8] || jour(r[8]) <= auj) && (!r[9] || jour(r[9]) >= auj);
+}
+function soldesDe(pid) {
+  return SPECIAUX.filter(r => soldeEnCours(r) && String(r[2]) === String(pid))
     .sort((a, b) => prixSolde(a) === prixSolde(b) ? 0 : prixSolde(a) < prixSolde(b) ? -1 : 1);
 }
 function textePrix(v) {                               // « 4,99 » (J-C l'écrit sans le $)
   const t = String(v == null ? '' : v).trim(), n = Number(t.replace(',', '.'));
   return !t ? '' : isFinite(n) ? n.toLocaleString('fr-CA', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) : t;
 }
-function htmlSoldes(pid, rep) {
-  const soldes = soldesDe(pid, rep), min = Math.min(...soldes.map(prixSolde));
-  return soldes.map(r => {
-    const u = String(r[6] || '').trim(), prix = textePrix(r[4]) + (u ? (u[0] === '/' ? '' : ' ') + u : ''), reg = textePrix(r[5]);
+function prixAvecUnite(p, u) { u = String(u || '').trim(); return textePrix(p) + (u ? (u[0] === '/' ? '' : ' ') + u : ''); }   // « 3,99/lb »
+function htmlSoldes(pid) {
+  const soldes = soldesDe(pid).map(r => ({ r: r, d: prixAuDetail(r[4], r[6], r[7]) }));
+  const comp = comparables(soldes.map(s => s.d)), min = comp ? Math.min(...soldes.map(s => centsDe(s.d))) : null;
+  if (comp) soldes.sort((a, b) => centsDe(a.d) - centsDe(b.d));   // la moins chère au détail en premier (sinon : au prix de la boîte)
+  return soldes.map(s => {
+    const r = s.r, reg = textePrix(r[5]);
     const fmt = formatAffiche(formatCle(r[7])).replace(/(\d)x(\d)/g, '$1 x $2').replace(/ \+ /g, ' ou ');   // le format de la circulaire : « 2 L »
-    const t = [nomListe(r[1]), nomListe(r[14]), fmt, prix + (reg ? ' (' + reg + ')' : '')].filter(Boolean).join(' · ');
-    return '<div class="solde' + (min !== Infinity && prixSolde(r) === min ? ' solde-meilleur' : '') + '">' + esc(t) + '</div>';
+    const t = [nomListe(r[1]), nomListe(r[14]), fmt, prixAvecUnite(r[4], r[6]) + (reg ? ' (' + reg + ')' : '')].filter(Boolean).join(' · ');
+    return '<div class="solde' + (comp && centsDe(s.d) === min ? ' solde-meilleur' : '') + '">' + esc(t) + (s.d ? htmlUnite(s.d) : '') + '</div>';
   }).join('');
 }
 /* ---------- GÉRER LES BASES → CIRCULAIRES : LE TRI (J-C, 2026-10-01 et 2026-10-02, sur aperçus; RdG-05, 5 quater) ----------
@@ -3741,16 +3755,19 @@ async function attendreCreation(pid) {
   for (let i = 0; i < 40 && envoiGestes && enAttente(); i++) await new Promise(r => setTimeout(r, 250));   // une file déjà en route : on la laisse finir
   return !enAttente();
 }
+/* Un aliment va sur la liste (« Ajouter à la liste », la flèche de « En spécial cette semaine ») : un ajout mis de côté plus tôt revient
+   (son « plus tard » s'en va), sinon il naît. false : il y était déjà. */
+function surLaListe(pid) {
+  if (lignesAchats().some(it => it.pid === String(pid))) return false;
+  const cote = lignesDeAliment(pid, 'plustard').map(r => { const l = r.slice(); l[7] = 'N'; return l; });
+  const main = lignesDeAliment(pid, 'main').length > 0;
+  poserAchats(cote.concat(main ? [] : [ligneAchat(pid, 'main')]));
+  return true;
+}
 function mettreSurListe(pid) {
   const p = PRODUITS.find(x => String(x.id) === String(pid)) || {}, nom = p.nom || '';
   fermerAjoutAchat();
-  if (lignesAchats().some(it => it.pid === String(pid))) avis('Déjà sur la liste : ' + nom);
-  else {                                           // un ajout mis de côté plus tôt revient (son « plus tard » s'en va), sinon il naît
-    const cote = lignesDeAliment(pid, 'plustard').map(r => { const l = r.slice(); l[7] = 'N'; return l; });
-    const main = lignesDeAliment(pid, 'main').length > 0;
-    poserAchats(cote.concat(main ? [] : [ligneAchat(pid, 'main')]));
-    avis('Sur la liste : ' + nom, 'succes');
-  }
+  if (surLaListe(pid)) avis('Sur la liste : ' + nom, 'succes'); else avis('Déjà sur la liste : ' + nom);
   const r = RAYONS.find(x => (SOUSCATS[x.id] || []).some(sc => String(sc.id) === String(p.catId)));
   remplirAchats(r ? String(r.id) : 'sans');        // sa catégorie s'ouvre : on le voit sur la liste
 }
@@ -4251,14 +4268,17 @@ function initEntree() {
     if (mc) { mettreDeCote(mc.dataset.achatCote); return; }
     const rv = ev.target.closest('[data-achat-remettre]');
     if (rv) { remettreAchat(rv.dataset.achatRemettre); return; }
-    const aj = ev.target.closest('[data-achat-ajouter]');  // « En circulaire » : la flèche l'ajoute à la liste, sa catégorie s'ouvre
-    if (aj) { mettreSurListe(aj.dataset.achatAjouter); return; }
-    const tete = ev.target.closest('.accordeon-tete');     // une catégorie, « Mis de côté » ou « En circulaire » : une seule ouverte à la fois
+    const vue = ev.target.closest('[data-vue-achats]');    // « Par catégorie » / « Par épicerie »
+    if (vue) { if (vue.dataset.vueAchats !== vueAchats) { vueAchats = vue.dataset.vueAchats; remplirAchats(); } return; }
+    const tete = ev.target.closest('.accordeon-tete');     // une catégorie, « Mis de côté », une épicerie : une seule ouverte à la fois
     if (tete) { toggleAccordeon(tete); return; }
     const l = ev.target.closest('[data-achat]');
     if (l) cocherAchat(l.dataset.achat);
   });
-  $('achats-retour').addEventListener('click', retourAuMenu);
+  $('achats-retour').addEventListener('click', () => {   // Retour recule d'un pas : Par épicerie, l'épicerie ouverte se ferme; puis le menu
+    const t = vueAchats === 'epicerie' && $('liste-achats').querySelector(':scope > .accordeon > .accordeon-tete.ouvert');
+    if (t) toggleAccordeon(t); else retourAuMenu();
+  });
   $('btn-achat-ajouter').addEventListener('click', () => { nomScanne = ''; ouvrirAjoutAchat(); });
   $('achat-annuler').addEventListener('click', () => { fermerAjoutAchat(); remplirAchats(); });
   $('achat-cat').addEventListener('change', surAchatCat);
@@ -4452,6 +4472,15 @@ function initEntree() {
   $('liste-bientot').previousElementSibling.addEventListener('click', function () {   // À consommer bientôt : refaite à l'ouverture, ses catégories fermées
     if (this.classList.contains('ouvert')) { $('liste-bientot').innerHTML = ''; remplirBientot(); }
   });
+  $('liste-special').previousElementSibling.addEventListener('click', function () {   // En spécial cette semaine : refaite à l'ouverture, fermée
+    if (this.classList.contains('ouvert')) { $('liste-special').innerHTML = ''; remplirSpecial(); }
+  });
+  $('liste-special').addEventListener('click', function (ev) {
+    const aj = ev.target.closest('[data-special-ajouter]');   // la flèche : sur la Liste d'achats
+    if (aj) { ajouterDepuisSpecial(aj.dataset.specialAjouter); return; }
+    const tete = ev.target.closest('.accordeon-tete');
+    if (tete) toggleAccordeon(tete);
+  });
   $('liste-bientot').addEventListener('click', function (ev) {
     const inv = ev.target.closest('[data-inv]');           // la fourchette (consommer, jeter) ou les deux flèches (déplacer) : la carte de l'Inventaire
     if (inv) { ouvrirActionInventaire(inv); return; }
@@ -4550,6 +4579,7 @@ async function retourDansApp() {
 function redessinerApresLecture() {
   if (!$('vue-listes').hidden && !document.querySelector('#liste-inventaire .endroit')) remplirInventaire();   // pas pendant un rangement
   if (!$('vue-listes').hidden && !document.querySelector('#liste-bientot .endroit')) remplirBientot();          // ni pendant un geste
+  if (!$('vue-listes').hidden) remplirSpecial();
   if (!$('vue-pieces').hidden && !Object.keys(ordreModifie).length && !document.querySelector('.champ-renommer')) remplirPieces();
   const saisieMeubles = [...$('liste-meubles').querySelectorAll('input')].some(i => i.value) || $('liste-meubles').querySelector('.champ-renommer, [data-confirme]');
   if (!$('vue-meubles').hidden && !Object.keys(ordreModifie).length && !saisieMeubles) remplirMeubles(true);   // pas pendant une saisie ni une question

@@ -1,7 +1,8 @@
 # RdG-08 — En spécial cette semaine (2026-10-07)
 
-> La 3e liste de la page Listes (l'accordéon « En spécial cette semaine », vide jusqu'ici).
-> **EN RÉFLEXION — ZÉRO CODE.** Une question à la fois; c'est J-C qui décide.
+> La 3e liste de la page Listes (l'accordéon « En spécial cette semaine », vide jusqu'ici) — et, en chemin, la Liste d'achats
+> « Par épicerie ». **Réflexion finie le 2026-10-07 (32 décisions, section 2) et ✅ BÂTIE le même jour** (section 3; aperçu final
+> approuvé : « Oui »). ⚠️ Pas encore testé en ligne. Le coffre-fort : section 4, **à écrire à l'ordi**.
 
 ## 1. Ce qui était déjà décidé (`RdG-05`, 28 septembre, et depuis)
 
@@ -176,7 +177,48 @@ cette semaine » dit « Rien en circulaire cette semaine. », et « Par épiceri
     J-C : « je le placerais plus petit et sur une autre ligne, car là c'est difficile à lire », puis « C » parmi 14 / 13 / 12 px.
     Précise la décision 24. L'aperçu : `scratchpad/apercu-unite.html`.
 
-## 3. Questions ouvertes
+**✅ RÉFLEXION FINIE le 2026-10-07** — l'aperçu final (`scratchpad/apercu-prix.html`, `apercu-final.html`) : J-C, « Oui. Il y a
+quelques choses avec la grosseur de la police, mais là aussi j'aviserai » (**à revoir à l'usage**).
 
-Aucune. **Reste : l'aperçu de « Par épicerie » avec les prix connus** (les trois parties renommées, la date d'un prix payé),
-puis « Je bâtis ? ».
+## 3. Ce qui est bâti (2026-10-07) — `JS/prix.js` (chargé après `bientot.js`)
+
+1. ✅ **Le prix au détail** (`contenuFormat()`, `prixAuDetail()`, `texteUnite()`) : le format lu en grammes, millilitres ou unités
+   (« 450 g », « 2 L », « 12 x 200 ml », « 1,2 kg », « 6 unité », « paq. de 6 », « douzaine »); l'unité de la circulaire (« /lb »,
+   « /kg », « le 100 g », « 2/ » = 2 pour ce prix). Plusieurs formats différents (« choix varié »), un écart (« 1-1,5 kg »), une
+   boîte, rien : « (format ?) ». Sous chaque prix, sur sa ligne, en 12 px (`.prix-unite`, `--texte-unite`).
+2. ✅ **Les soldes** (`htmlSoldes()`, `entree.js`) : le prix au détail dessous; **le rouge et l'ordre décidés au détail**
+   (`comparables()` : tous ont leur prix au détail, dans la même base — sinon personne en rouge). Sert la Liste d'achats (Par
+   catégorie, Mis de côté) et « En spécial cette semaine ». `soldeEnCours()` : le filtre d'un solde (en cours, épicerie allumée).
+3. ✅ **Listes → En spécial cette semaine** (`#liste-special`, `remplirSpecial()`) : par catégorie, fermées, refaite à l'ouverture;
+   ses Oui puis ses Peut-être plus pâles (`.peut-etre`); une ligne par aliment, ses soldes dessous; la flèche
+   (`ajouterDepuisSpecial()` → `surLaListe()`, tirée de `mettreSurListe()`) ou « (déjà sur ta liste) »; un aliment mis de côté
+   revient; ce qui était ouvert le reste; « Rien en circulaire cette semaine. ».
+4. ✅ **La Liste d'achats : « Par catégorie » / « Par épicerie »** (`vueAchats`, `data-vue-achats`; toujours Par catégorie à
+   l'ouverture). Par épicerie (`htmlParEpicerie()`) : les épiceries dont la circulaire est lue (interrupteur à Oui, trouvée), en
+   bannières à leur logo (sinon leur barre à leur couleur), le nombre à droite (`.nombre`), la plus garnie en premier; ouverte :
+   **Moins cher ici · Prix pareil ou inconnu · Moins cher ailleurs** (`.partie`), un bandeau par catégorie dans chacune; la case
+   seulement. **Le prix connu** (`prixConnus()`) : le solde de la semaine (le meilleur au détail), sinon le plus récent des prix
+   payés (STOCK col. L et M, la date col. E) et des prix réguliers d'avant (`PRIX_REGULIERS`, section 4). **Où c'est moins cher**
+   (`moinsCher()`) : un seul prix connu — un solde l'emporte, un prix payé ou régulier seul ne se compare à rien; plusieurs — le
+   moins cher au détail, seul à ce prix, tous comparables; sinon « Prix pareil ou inconnu » (les décisions 12 et 26 disaient
+   « à égalité : là où il y a le plus d'articles » — la partie « Prix pareil ou inconnu » de la décision 31 les remplace). Les
+   lignes : « Catelli · 250 g · 2,49 (3,99) » en rouge et « aussi au Super C : 2,79 »; « au Super C : … » et « ici aussi : 5,99 »
+   (ici en solde) ou « ici : 6,49 · payé le 19 sept. »; « ici : prix inconnu »; « · payé le 3 oct. », « · régulier, vu le 19
+   sept. ». Retour : l'épicerie ouverte se ferme, puis le menu. « Aucune circulaire lue cette semaine. »
+5. ✅ **La barre « En circulaire » du bas de la Liste d'achats : retirée** (avec `.groupe-solde`, `data-achat-ajouter`, le
+   paramètre `rep` de `soldesDe()` et `htmlSoldes()`).
+
+Essai dans le faux navigateur : 50 vérifications (les formats, les prix au détail, qui gagne, les deux écrans, cocher partout,
+Retour, la flèche, l'interrupteur à Non).
+
+## 4. Pour le coffre-fort (`api.gs`, à l'ordi) — les prix réguliers des semaines passées
+
+L'app sait déjà se servir des prix payés et des soldes de la semaine. Pour les prix réguliers vus dans les circulaires d'avant
+(l'archive d'un an), `references` doit renvoyer **`prixReguliers`** : `[ProduitID, Magasin, Regulier, Unite, Description, Date, Marque]`
+— **une ligne par aliment et par épicerie** : la plus récente ligne de l'archive Circulaires qui porte un prix régulier (col. F) et
+dont l'article est relié à cet aliment par le Tri (Oui ou Peut-être; col. D peut porter plusieurs aliments : une ligne pour chacun).
+Date = le début de la circulaire (col. I); Unite = col. G (l'app n'en garde que « /lb », « /kg », « le 100 g »); Description =
+col. H (le format); Marque = celle du Tri (col. E), sinon celle de Flipp. ⚠️ **`references` ne doit pas ralentir** : ne pas relire
+l'archive entière à chaque appel — la calculer au jeudi (après `lireSpeciaux`) et la ranger toute petite (un onglet `PrixReguliers`,
+ou le cache), lue d'un coup par `references`. Absente, l'app fait sans (elle est déjà branchée : `chargerData()`, `appliquer()`).
+Essayer à blanc, puis l'inscrire ici; un seul collage avec la section 4 de `RdG-07` (encore à coller).

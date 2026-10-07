@@ -102,6 +102,7 @@
   /* ---- Tailles de texte (échelle neutre : change la valeur, tout suit) ---- */
   --texte-petit:      17px;   /* J-C, 2026-09-29, choix D sur aperçu (14 : trop petit) */
   --texte-solde:      15px;   /* un solde sous un aliment (Liste d'achats) : un peu plus petit, sur une seule ligne (J-C, 2026-10-02) */
+  --texte-unite:      12px;   /* le prix au 100 g, sur sa ligne sous le prix (J-C, 2026-10-07, choix C sur aperçu parmi 14 / 13 / 12) */
   --texte-normal:     17px;   /* J-C, 2026-09-29, choix B sur aperçu (16 / 17 / 18 / 19) : égal au petit texte */
   --texte-moyen:      18px;
   --texte-grand:      22px;
@@ -201,6 +202,8 @@
   --rond-tri:          48px;   /* les 3 boutons ronds de la page Circulaires : Oui, Peut-être, Jamais (J-C, 2026-10-05, sur aperçu : 48 parmi 32 / 40 / 48; 64 avant) */
   --ronds-ecart:       calc(var(--espace-xl) * 1.5);   /* entre deux ronds */
   --banniere-haut:     calc(var(--tactile) * 2);       /* une épicerie ouverte : son logo en bannière, aussi haute que deux barres */
+  --nombre-large:      calc(var(--tactile) * 0.75);    /* le nombre sur la bannière d'une épicerie (Liste d'achats, Par épicerie) */
+  --arrondi-pilule:    999px;                          /* un arrondi complet : le nombre en pastille allongée */
   --photo-tri:         56px;   /* au tri : la petite photo d'un produit (derrière un code, une proposition) — J-C, 2026-10-02, sur aperçu */
   --photo-vide:        color-mix(in srgb, var(--couleur-201) 60%, var(--couleur-101));   /* pas de photo : une case pâle */
   --point-taille:      14px;   /* le point rouge « du nouveau à trier », sur le chemin (Outils, Gérer les bases, Circulaires) */
@@ -218,6 +221,7 @@
   --interligne-texte:  1.4;    /* un paragraphe (.texte) */
   --placeholder-opacite: 0.6;  /* l'invite d'un champ vide, pâlie */
   --pli-opacite:       0.55;   /* le petit triangle d'un aliment à plusieurs sortes */
+  --peut-etre-opacite: 0.7;    /* les soldes d'un Peut-être (En spécial cette semaine) : plus pâles */
   --chevron-place:     calc(var(--espace-m) * 2.5);   /* la place du chevron, à droite d'un menu déroulant */
   --pastille:          28px;   /* le carré à toucher pour choisir une couleur (pièces, meubles, catégories, épiceries) */
   --puce-haut:         76px;   /* LE NUANCIER (Outils → Couleurs) : la couleur d'une puce de peinture, au-dessus de son hex */
@@ -969,13 +973,35 @@ select.champ {
 .achat-coche .item-nom, .achat-coche .item-detail { color: var(--couleur-205); text-decoration: line-through; }
 /* LES SOLDES (J-C, 2026-10-02 : « trop d'info ») : sous l'aliment, une ligne courte par magasin — « IGA · Québon · 2 L · 4,99 (6,49) »,
    en vert (J-C : « j'aime les verts du lettrage des soldes »); LE MEILLEUR PRIX EN ROUGE. Seulement ce qui est trié Oui ou Peut-être
-   (Gérer les bases → Circulaires). « En circulaire » AU BAS de la liste (« Il y a aussi ceci ») : une barre vert pâle. */
+   (Gérer les bases → Circulaires). Dessous, le prix au 100 g (au 100 ml, à l'unité). */
 .solde { margin-top: var(--espace-xs); font-size: var(--texte-solde); color: var(--couleur-703); }
 /* Sous la ligne de l'aliment, sur toute la largeur (la case et la flèche ne la rétrécissent plus) : un solde tient sur une ligne. */
 .item:has(> .soldes-ligne) { flex-wrap: wrap; row-gap: 0; }
 .soldes-ligne { flex-basis: 100%; }
 .solde-meilleur { color: var(--couleur-402); }
-.groupe-solde { --meuble: var(--couleur-701); }
+/* LE PRIX AU 100 G (au 100 ml, à l'unité — comme l'étiquette des tablettes) : sous chaque prix, sur sa propre ligne, petit, de la couleur
+   de sa ligne (J-C, 2026-10-07 : « plus petit et sur une autre ligne, car là c'est difficile à lire »; choix C sur aperçu). */
+.prix-unite { display: block; font-size: var(--texte-unite); }
+/* En spécial cette semaine (J-C, 2026-10-07, choix B) : les Peut-être sous les Oui, plus pâles. */
+.peut-etre .item-nom, .peut-etre .item-detail { color: var(--couleur-302); }
+.peut-etre .solde { opacity: var(--peut-etre-opacite); }
+/* LA LISTE D'ACHATS PAR ÉPICERIE (J-C, 2026-10-07, sur aperçus; RdG-08) : chaque épicerie en bannière (son logo, sinon sa barre), le
+   nombre à droite = ce qu'on va chercher là; ouverte, ses trois parties — Moins cher ici · Prix pareil ou inconnu · Moins cher
+   ailleurs —, un bandeau par catégorie dans chacune. */
+.nombre {
+  flex-shrink: 0;
+  min-width: var(--nombre-large);
+  padding: var(--espace-micro) var(--espace-s);
+  border-radius: var(--arrondi-pilule);
+  background: var(--couleur-306);
+  color: var(--couleur-105);
+  font-size: var(--texte-normal);
+  font-weight: var(--poids-fort);
+  text-align: center;
+}
+.accordeon-tete:not(.banniere) > .nombre { background: var(--couleur-101); color: var(--couleur-306); }   /* sur une barre de couleur : une pastille claire */
+.partie { padding: var(--espace-s) var(--espace-l) var(--espace-xs); font-size: var(--texte-normal); font-weight: var(--poids-fort); color: var(--couleur-306); border-top: var(--filet) solid var(--champ-bord); }
+.partie:first-child { border-top: none; }
 
 /* ============================================================
    LES CIRCULAIRES : LE TRI (Gérer les bases — J-C, 2026-10-01, sur aperçus). La base = la Liste d'achats : quatre barres fermées,
