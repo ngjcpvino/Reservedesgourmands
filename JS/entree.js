@@ -97,6 +97,7 @@ function toutCacher() {
   $('btn-burger').hidden = true;   // burger caché par défaut ; ré-affiché sur accueil + choix + bases
   $('entete-photo').hidden = true; // l'en-tête photo est écrit UNE fois dans le HTML ; on le montre écran par écran
   fermerMenu();   // tout changement d'écran ferme le menu : personne d'autre n'a à le faire
+  fermerPhotoGrande();   // et la photo en grand
 }
 async function montrerCouleurs() {
   toutCacher(); $('vue-couleurs').hidden = false; $('btn-burger').hidden = false;
@@ -2859,6 +2860,26 @@ function ouvrirConsommation(cle) {
   };
   verifier();
 }
+/* ---------- LA PHOTO EN GRAND (J-C, 2026-10-08, choix A sur aperçu : « sur iPhone, c'est beaucoup trop petit ») ----------
+   La petite photo d'un produit touchée (au scan, au tri, « Tu n'en as pas ») s'ouvre en plein écran; un toucher n'importe où la
+   referme. La petite d'abord (déjà là), puis la grande d'Open Food Facts (« full » : nette, ~80 Ko) dès qu'elle arrive — chargée
+   seulement quand on touche. Le toucher ne va pas plus loin : la ligne autour (choisir une proposition) ne réagit pas. */
+var photoJeton = 0;
+function photoPleine(src) { return String(src || '').replace(/(\/images\/products\/.+\.)(?:100|200|400)(\.jpg)$/, '$1full$2'); }
+function montrerPhotoGrande(src) {
+  const img = $('photo-grande-img'), grand = photoPleine(src), j = ++photoJeton;
+  img.src = src;
+  $('photo-grande').hidden = false;
+  if (grand === src) return;
+  const g = new Image();
+  g.onload = () => { if (j === photoJeton && !$('photo-grande').hidden) img.src = grand; };   // pas encore refermée, ni une autre ouverte
+  g.src = grand;
+}
+function fermerPhotoGrande() {
+  const b = $('photo-grande');
+  if (!b || b.hidden) return;
+  photoJeton++; b.hidden = true; $('photo-grande-img').removeAttribute('src');
+}
 /* ---------- Ouvrir (RdG-09, J-C, 2026-10-08) ----------
    Un bouton du menu, après Consommer : le même écran (le nom ou le scan), le contenant touché s'ouvre — STOCK col. Q = aujourd'hui.
    Seulement ce qui raccourcit une fois ouvert (raccourcitOuvert) et encore fermé; jamais un paquet (« 12 x 100 g » : chaque pot se
@@ -4438,6 +4459,13 @@ function initEntree() {
   $('menu-deplacer').addEventListener('click', montrerDeplacer);
   $('menu-consommer').addEventListener('click', montrerConsommer);
   $('menu-ouvrir').addEventListener('click', montrerOuvrir);   // Ouvrir (RdG-09)
+  document.addEventListener('click', ev => {            // la photo en grand : AVANT tout autre écouteur (la ligne autour ne réagit pas)
+    const ph = ev.target.closest && ev.target.closest('img.tri-photo, img.photo-produit');
+    if (!ph || !ph.getAttribute('src')) return;
+    ev.preventDefault(); ev.stopPropagation();
+    montrerPhotoGrande(ph.getAttribute('src'));
+  }, true);
+  $('photo-grande').addEventListener('click', fermerPhotoGrande);   // un toucher n'importe où la referme
   $('menu-listes').addEventListener('click', montrerListes);
   $('menu-achats').addEventListener('click', montrerAchats);
   $('menu-rechercher').addEventListener('click', ouvrirRecherche);   // la loupe : le 8e bouton du menu (J-C, 2026-10-01; plus de loupe dans le coin)

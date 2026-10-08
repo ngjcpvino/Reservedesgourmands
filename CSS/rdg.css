@@ -217,6 +217,7 @@
   --nombre-large:      calc(var(--tactile) * 0.75);    /* le nombre sur la bannière d'une épicerie (Liste d'achats, Par épicerie) */
   --arrondi-pilule:    999px;                          /* un arrondi complet : le nombre en pastille allongée */
   --photo-tri:         56px;   /* au tri : la petite photo d'un produit (derrière un code, une proposition) — J-C, 2026-10-02, sur aperçu */
+  --photo-grande-haut: 78vh;   /* la photo touchée, en grand : sa hauteur au plus (J-C, 2026-10-08, choix A sur aperçu : « sur iPhone, c'est beaucoup trop petit ») */
   --photo-vide:        color-mix(in srgb, var(--couleur-201) 60%, var(--couleur-101));   /* pas de photo : une case pâle */
   --point-taille:      14px;   /* le point rouge « du nouveau à trier », sur le chemin (Outils, Gérer les bases, Circulaires) */
   --point-marge:       8px;    /* son écart du coin du bouton */
@@ -228,6 +229,7 @@
   --plan-coin:         230;    /* le burger (le X) : par-dessus le menu */
   --plan-alerte:       235;    /* le bandeau « Réserve pas à jour » : par-dessus le menu et le X, sous un message */
   --plan-toast:        240;    /* un message : par-dessus le menu et le X, sous le voile */
+  --plan-photo:        260;    /* la photo en grand : par-dessus tout, sauf le voile du chariot */
   --plan-voile:        300;    /* le voile du chariot : par-dessus tout */
   --interligne-titre:  1.2;    /* le titre du site, sur la photo */
   --interligne-texte:  1.4;    /* un paragraphe (.texte) */
@@ -1087,6 +1089,14 @@ select.champ {
    (.item), la liste blanche, les petits textes. Seule nouveauté : la petite photo d'un produit (Open Food Facts), carrée, sur blanc. */
 .tri-photo { display: block; flex-shrink: 0; width: var(--photo-tri); height: var(--photo-tri); padding: var(--espace-micro); object-fit: contain; background: var(--couleur-101); border-radius: var(--rayon); box-shadow: var(--ombre-carte); }
 .tri-photo-vide { background: var(--photo-vide); }
+/* LA PHOTO EN GRAND (J-C, 2026-10-08, choix A sur aperçu) : la petite photo d'un produit touchée (au scan, au tri, « Tu n'en as pas »)
+   s'ouvre en plein écran, sur le brun du chariot; le X, ou un toucher n'importe où, la referme. Le X : celui du burger. */
+.photo-grande { position: fixed; inset: 0; z-index: var(--plan-photo); background: var(--spinner-voile); display: flex; flex-direction: column; align-items: center; justify-content: center; gap: var(--espace-m); padding: var(--espace-l); }
+.photo-grande-img { max-width: 100%; max-height: var(--photo-grande-haut); object-fit: contain; padding: var(--espace-s); background: var(--couleur-101); border-radius: var(--rayon); }
+.photo-grande-texte { color: var(--couleur-101); font-size: var(--texte-petit); }
+.photo-grande-x { position: absolute; top: calc(var(--espace-l) + var(--alerte-haut)); right: var(--espace-l); width: var(--coin-taille); height: var(--coin-taille); }
+.photo-grande-x::before, .photo-grande-x::after { content: ''; position: absolute; left: 50%; top: 50%; width: var(--burger-trait-large); height: var(--burger-trait-haut); margin: calc(var(--burger-trait-haut) / -2) 0 0 calc(var(--burger-trait-large) / -2); background: var(--couleur-101); border-radius: var(--rayon); transform: rotate(45deg); }
+.photo-grande-x::after { transform: rotate(-45deg); }
 /* LE POINT ROUGE (choix B de J-C) : quelque chose attend au bout du chemin — du nouveau à trier (Outils, Gérer les bases, Circulaires,
    tant qu'« À trier » n'est pas vide), une épicerie à compléter (le +, Compléter). Le JS ne pose que la classe (poserPoints). */
 .point-rouge::after {
