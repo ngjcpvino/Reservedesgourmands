@@ -44,6 +44,7 @@ endroits en même temps).*
 | I | SaveurCompte | O / N — idem pour la saveur (yogourt fraise ≠ vanille). Demandé au même moment |
 | J | OrdreEmp | ses endroits dans l'ordre choisi (ID d'EMPLACEMENTS séparés par des virgules) : le 1er = celui que Déplacer regarnit et la 1re carte à l'entrée. Vide = l'ordre d'apparition dans STOCK. Changé par les flèches de Gérer les bases → Aliments (2026-09-29) |
 | K | DureeVieJours | À consommer bientôt (2026-10-06, RdG-07) : sa durée au frais, en jours, choisie dans Gérer les bases → Aliments. Vide = la proposée par l'app (un fruit, un légume, un fromage qu'elle connaît), sinon celle de sa sous-catégorie. 0 = Aucune (jamais dans la liste) |
+| L | DureeOuvert | « Entamé » (2026-10-08, RdG-09) : sa durée une fois ouvert, en jours, choisie dans Gérer les bases → Aliments (« Une fois ouvert »). Vide = la proposée par l'app (le lait, la crème, le ketchup… d'après le nom), sinon celle de sa sous-catégorie. 0 = Pas de changement (les pâtes, le riz : pas de bouton « Ouvrir ») |
 
 ### EMPLACEMENTS — les rangements, en arbre (Meuble → Espace)
 
@@ -82,6 +83,7 @@ endroits en même temps).*
 | N | Epicerie | toute l'épicerie (2026-10-02) : l'ID de sa liste dans EPICERIES. Vide pour un produit entré seul (la fiche) |
 | O | Complete | Compléter (2026-10-04) : le jour du OK — la ligne quitte la liste de son épicerie (placée et sa catégorie donnée). Vide = encore à compléter. Écrit par l'app (action `deplacer`, la ligne entière) |
 | P | Horloge | À consommer bientôt (2026-10-06) : le jour où le lot est entré au congélo ou en est sorti — l'horloge repart de là. Vide = la date d'entrée (E). Écrit par Déplacer (action `deplacer`, la ligne entière) |
+| Q | Ouvert | « Entamé » (2026-10-08, RdG-09) : le jour où ce contenant a été ouvert (le bouton « Ouvrir » du menu). Vide = fermé. Un contenant ouvert parmi plusieurs : la ligne se coupe, la part ouverte devient une ligne à elle qui garde tout le reste. Écrit par l'action `deplacer` (la ligne entière) |
 
 > **La quantité mesurable** se lit dans le **Format** : « 1 L », « 500 g », « 0,54 kg ».
 > L'app additionne (un 4 L + deux 1 L = 6 L) quand les unités s'accordent; sinon elle
@@ -116,6 +118,8 @@ endroits en même temps).*
 | E | DureeVieJours | durée de conservation au frais, en jours (À consommer bientôt, 2026-10-06). Vide = la proposée par l'app (d'après le nom), sinon celle du parent. 0 = Aucune (jamais dans la liste) |
 | F | Actif | O / N |
 | G | Ordre | le rang choisi parmi ses frères (1, 2, 3…), avec les flèches de Gérer les bases → Catégories (2026-09-30). Vide = après les numérotées, dans l'ordre du Sheet. C'est l'ordre de la fiche |
+| H | Couleur | **une catégorie racine** (2026-10-01) : un numéro de la palette (« 702 »), la même couleur partout (Inventaire, Liste d'achats, Gérer les bases). Vide = brune |
+| I | DureeOuvert | « Entamé » (2026-10-08, RdG-09) : la durée une fois ouvert de ses aliments, en jours. Vide = la proposée par l'app, sinon celle du parent. 0 = Pas de changement. (Le menu pour la choisir dans Gérer les bases → Catégories : pas encore bâti, point 44) |
 
 ### COULEURS — la palette du site, par secteur (2026-09-22)
 *Créé tout seul par le coffre-fort au premier enregistrement (Outils → Couleurs).

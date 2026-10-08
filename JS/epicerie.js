@@ -249,7 +249,7 @@ function validerCarte(rep) {
   if (!pid) {
     const n = a.nouveau, deja = !n.inconnu && PRODUITS.find(p => cleNom(p.nom) === cleNom(n.nom));   // le même nom déjà à nous : lui
     pid = deja ? String(deja.id) : creerAlimentInstant(n.nom, '');    // sans catégorie : Compléter (ou Gérer les bases → Aliments)
-    marque = n.marqueId || idMarque(n.marqueNom);
+    marque = n.marqueId || idListeOuNeuve('Marques', n.marqueNom);   // la marque d'un produit neuf : retrouvée, sinon créée
     saveur = n.saveurId || '';
   }
   pid = String(pid);
@@ -284,17 +284,6 @@ function annulerCarte() {
 function premierEndroit(pid) {
   const e = endroitsHabituels(pid).find(x => resoudreEmp(x));
   return e ? String(e) : '';
-}
-/* La marque d'un produit neuf : retrouvée dans la liste Marques (sans accent ni majuscule), sinon créée (ID d'ici, par la file). */
-function idMarque(nom) {
-  nom = String(nom || '').trim();
-  if (!nom) return '';
-  const x = LISTES.Marques.find(y => cleNom(y.nom) === cleNom(nom));
-  if (x) return x.id;
-  const id = idLocal();
-  LISTES.Marques.push({ id: id, nom: nom }); LISTES.Marques.sort((a, b) => a.nom.localeCompare(b.nom, 'fr')); NOMS_LISTES[id] = nom;
-  poserGeste({ action: 'creer', table: 'Marques', opId: 'liste-' + id, ligne: [id, nom, 'O'] });   // Marques : ID · Nom · Actif
-  return id;
 }
 /* Oui : la ligne de la circulaire est ce produit — onglet Tri (Oui, l'aliment, la marque, la saveur, le code scanné), par la file.
    Les semaines suivantes, l'article est déjà trié; le scan le reconnaît sans question. */
@@ -690,9 +679,13 @@ const formatPanneau = () => { const nb = $('cp-nb').value.trim().replace('.', ',
 /* Le choix d'une liste (marque, saveur) : un ID, ou un nom neuf — retrouvé dans la liste (sans accent ni majuscule), sinon créé. */
 function choixPanneau(champ) {
   const v = $('cp-' + champ).value;
-  return v === 'neuve' ? idListe(CHOIX_FICHE[champ].liste, $('cp-' + champ + '-neuve').value) : v;
+  return v === 'neuve' ? idListeOuNeuve(CHOIX_FICHE[champ].liste, $('cp-' + champ + '-neuve').value) : v;
 }
-function idListe(liste, nom) {
+/* Un NOM dans une liste (Marques, Saveurs) : retrouvé (sans accent ni majuscule), sinon créé (ID d'ici, par la file).
+   ⚠️ Jamais « idListe » : c'est la fonction d'entree.js qui CHERCHE un ID ou un nom sans rien créer. Du 4 au 8 octobre, celle-ci
+   portait le même nom et la remplaçait (le dernier fichier chargé gagne) : le tri des circulaires, qui cherchait la marque par son
+   ID, créait une marque nommée « 20261004082900169-28ddy » (vu par J-C : « une drôle de lait biologique »). */
+function idListeOuNeuve(liste, nom) {
   nom = String(nom || '').trim();
   if (!nom) return '';
   const x = LISTES[liste].find(y => cleNom(y.nom) === cleNom(nom));

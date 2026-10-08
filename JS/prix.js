@@ -129,7 +129,8 @@ function htmlParEpicerie(items, ouverte) {
   const ordre = (a, b) => { const x = rang(a.pid), y = rang(b.pid); return x[0] - y[0] || x[1] - y[1] || String(pDe(a.pid).nom || '').localeCompare(String(pDe(b.pid).nom || ''), 'fr'); };
   const ligne = (it, m) => {
     const par = prix[it.pid], g = gagne[it.pid], ici = par[m];
-    let d = it.auto === 'pas' && !it.main ? '<div class="item-detail">(pour réserve)</div>' : '';
+    const quand = it.main ? '' : it.auto === 'pas' ? '(pour réserve)' : it.auto === 'ouvert' ? '(dernier ouvert)' : '';   // le dernier ouvert (RdG-09)
+    let d = quand ? '<div class="item-detail">' + quand + '</div>' : '';
     if (g === m) d += lignePrix('', ici, false, true) + mags.filter(o => o !== m && par[o]).map(o => lignePrix('aussi ' + chez(o) + ' : ', par[o], true)).join('');
     else if (g) d += lignePrix(chez(g) + ' : ', par[g], false) + (ici ? lignePrix(ici.source === 'solde' ? 'ici aussi : ' : 'ici : ', ici, true) : '');
     else {

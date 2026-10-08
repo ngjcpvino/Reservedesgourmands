@@ -19,6 +19,8 @@ var LISTES = { Magasins: [], Marques: [], Saveurs: [] };   // les listes gérée
 var UNITES_LISTE = [];     // les unités ajoutées dans Gérer les bases → Unités (onglet Unites, actives) : [{ id, nom }] — un format garde le TEXTE de l'unité
                                                             // (un magasin : + circ, sa circulaire lue le jeudi; introuvable, Flipp ne la connaît pas)
 var NOMS_LISTES = {};        // { id: nom } des trois listes : STOCK retient l'ID, on lit le nom
+var NUMEROS = {};            // TEMPORAIRE (2026-10-08) : { faux : vrai } — une marque nommée d'après l'ID d'une autre (voir appliquer)
+const RE_NUMERO = /^\d{17}-[a-z0-9]{1,8}$/;   // un ID (de l'app ou du coffre-fort) écrit comme un nom
 var LISTES_NEUVES = [];      // noms ajoutés à la fiche, pas encore au coffre-fort : partent avec la prochaine entrée
 const UNITES_BASE = ['unité', 'g', 'kg', 'ml', 'L'];   // le départ; toute unité déjà utilisée s'y ajoute
 const QUI = 'rdg_qui';      // qui se sert de l'app sur CET appareil
@@ -339,7 +341,7 @@ function appliquer(d) {
   (d.cats || []).forEach(r => {                       // [ID,Nom,ParentID,SecteurID,DureeVie,Actif,Ordre]
     if (!SECTEUR_ID && r[3]) SECTEUR_ID = String(r[3]);   // secteur de l'app (Épicerie)
     if (String(r[5]) !== 'O') return;
-    const x = { id: r[0], nom: r[1], ordre: r[6] || '', couleur: r[7] || '', duree: valeurDuree(r[4]) };   // col. H : la couleur (une catégorie; J-C, 2026-10-01); E : sa durée (À consommer bientôt)
+    const x = { id: r[0], nom: r[1], ordre: r[6] || '', couleur: r[7] || '', duree: valeurDuree(r[4]), dureeOuvert: valeurDuree(r[8]) };   // col. H : la couleur (une catégorie; J-C, 2026-10-01); E : sa durée (À consommer bientôt); I : une fois ouvert (RdG-09)
     if (!r[2]) RAYONS.push(x);
     else (SOUSCATS[r[2]] = SOUSCATS[r[2]] || []).push(x);
   });
@@ -362,7 +364,7 @@ function appliquer(d) {
   });
   PRODUITS = (d.prods || [])              // [ID,Nom,CategorieID,Unite,Actif,Marque,Format,MarqueCompte,SaveurCompte,OrdreEmp,DureeVieJours]
     .filter(r => String(r[4]) !== 'N')
-    .map(r => ({ id: r[0], nom: r[1], catId: r[2], ordre: String(r[9] || ''), duree: valeurDuree(r[10]) }));   // ordre = ses endroits, le 1er d'abord (J-C, flèches); K : sa durée
+    .map(r => ({ id: r[0], nom: r[1], catId: r[2], ordre: String(r[9] || ''), duree: valeurDuree(r[10]), dureeOuvert: valeurDuree(r[11]) }));   // ordre = ses endroits, le 1er d'abord (J-C, flèches); K : sa durée; L : une fois ouvert (RdG-09)
   LISTES = { Magasins: [], Marques: [], Saveurs: [] }; NOMS_LISTES = {};
   const L = d.listes || {};
   Object.keys(LISTES).forEach(n => (L[n] || []).forEach(r => {   // [ID, Nom, Actif] — Magasins : + Circulaire (D), Trouvee (E), Couleur (F)
@@ -373,6 +375,16 @@ function appliquer(d) {
     LISTES[n].push(x);
   }));
   LISTES_NEUVES.forEach(x => { if (!NOMS_LISTES[x.id]) { NOMS_LISTES[x.id] = x.nom; LISTES[x.liste].push({ id: x.id, nom: x.nom }); } });   // pas encore envoyés : gardés
+  // LES NOMS-NUMÉROS (TEMPORAIRE, 2026-10-08) : du 4 au 8 octobre, le tri créait une marque (une saveur) NOMMÉE d'après l'ID d'une
+  // vraie (« 20261004082900169-28ddy » : voir idListeOuNeuve, epicerie.js). Elle se lit sous le nom de la vraie et n'est plus
+  // proposée; le coffre-fort la répare à la lecture (reparerNumeros, api.gs). À retirer quand la page Marques n'en montre plus.
+  NUMEROS = {};
+  Object.keys(LISTES).forEach(n => { LISTES[n] = LISTES[n].filter(x => !RE_NUMERO.test(x.nom)); });
+  Object.keys(NOMS_LISTES).forEach(id => {
+    let t = id, k = 0;
+    while (RE_NUMERO.test(NOMS_LISTES[t] || '') && NOMS_LISTES[NOMS_LISTES[t]] !== undefined && k++ < 5) t = NOMS_LISTES[t];   // son nom est l'ID d'un autre : lui (un faux d'un faux : jusqu'au vrai)
+    if (t !== id) NUMEROS[id] = t;
+  });
   Object.keys(LISTES).forEach(n => LISTES[n].sort((a, b) => a.nom.localeCompare(b.nom, 'fr')));
   UNITES_LISTE = (L.Unites || []).filter(r => String(r[2]) !== 'N' && String(r[1] || '').trim()).map(r => ({ id: String(r[0]), nom: String(r[1]).trim() }));   // [ID, Nom, Actif]
   VARIANTES = d.variantes || {};                      // { produitId: { marques:[], formats:[] } }
@@ -743,7 +755,7 @@ const CHOIX_FICHE = {
   magasin: { liste: 'Magasins', vide: '— Magasin —',       neuve: 'Nouveau magasin…' }
 };
 /* Ce que STOCK retient (un ID) -> ce qu'on lit. Une vieille valeur écrite en texte se lit telle quelle. */
-function nomListe(v) { const k = String(v == null ? '' : v).trim(); return NOMS_LISTES[k] || k; }
+function nomListe(v) { let k = String(v == null ? '' : v).trim(); k = NUMEROS[k] || k; return NOMS_LISTES[k] || k; }   // un faux nom-numéro : le nom du vrai (TEMPORAIRE)
 /* Deux noms « pareils » : sans accent, sans majuscule, sans espace ni ponctuation (« Super C » = « SuperC »). Même règle que le coffre-fort. */
 function cleNom(n) { return String(n || '').normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase().replace(/[^a-z0-9]/g, ''); }
 /* Une durée lue du Sheet (Categories col. E, Produits col. K) : '' (rien d'écrit) ou un nombre de jours (0 = Aucune).
@@ -1662,7 +1674,7 @@ function htmlCorpsAliment(p) {
   }).join('');
   return '<div class="bloc accordeon-bloc"><div class="label">Sous-catégorie</div>' +
       '<select class="champ choix-souscat" data-aliment="' + esc(p.id) + '">' + (ok ? '' : '<option value="">— Choisir —</option>') +
-      groupesSousCats(p.catId, '') + '</select></div>' + htmlDureeAliment(p) +
+      groupesSousCats(p.catId, '') + '</select></div>' + htmlDureeAliment(p) + htmlDureeOuvertAliment(p) +   // sous « Durée » : « Une fois ouvert » (RdG-09)
     (ends ? titre('Ses endroits') + ends : '') + (pas ? titre('Pas aimé') + pas : '');
 }
 async function montrerPageAliments() {
@@ -2057,14 +2069,14 @@ function lotsParProduit() {
     if (qte <= 0) return;                             // vide : rien à montrer
     const pid = String(l[1]);
     const marque = String(l[5] || '').trim(), saveur = String(l[9] || '').trim(), format = String(l[6] || '').trim();
-    const lots = (par[pid] = par[pid] || []);
-    let lot = lots.find(x => x.emp === emp && x.marque === marque && x.saveur === saveur);
-    if (!lot) lots.push(lot = { pid: pid, emp: emp, marque: marque, saveur: saveur, formats: [], qte: 0, lignes: [] });
+    const lots = (par[pid] = par[pid] || []), ouvert = estOuvert(l);   // un contenant ouvert : un lot à lui (RdG-09)
+    let lot = lots.find(x => x.emp === emp && x.marque === marque && x.saveur === saveur && x.ouvert === ouvert);
+    if (!lot) lots.push(lot = { pid: pid, emp: emp, marque: marque, saveur: saveur, ouvert: ouvert, formats: [], qte: 0, lignes: [] });
     lot.qte += qte;
     if (format && lot.formats.indexOf(format) === -1) lot.formats.push(format);
     lot.lignes.push(String(l[0]));                    // les lignes de STOCK du lot, par ID
   });
-  Object.keys(par).forEach(pid => par[pid].sort((a, b) => libelleEndroit(a.emp).localeCompare(libelleEndroit(b.emp), 'fr')));
+  Object.keys(par).forEach(pid => par[pid].sort((a, b) => libelleEndroit(a.emp).localeCompare(libelleEndroit(b.emp), 'fr') || (b.ouvert - a.ouvert)));   // au même endroit : l'ouvert d'abord
   return par;
 }
 /* « Cuisine · Frigo · Tablette 2 ». */
@@ -2079,10 +2091,10 @@ function libelleEndroit(emp) {
 /* Une ligne de l'Escale avec ses deux flèches « ranger » (le dessin de Déplacer — J-C, 2026-10-01, choix B sur aperçu :
    le crayon ne veut plus dire que « corriger un nom »). titre = le nom de l'aliment.
    sorte : une sorte sous l'accordéon de son aliment, du même trait que les sortes des meubles, les flèches en plus. */
-function detailLot(l) { return [nomListe(l.marque), nomListe(l.saveur), l.formats.join(' + ')].filter(Boolean).join(' · '); }
+function detailLot(l) { return [[nomListe(l.marque), nomListe(l.saveur), l.formats.join(' + ')].filter(Boolean).join(' · '), l.ouvert ? '(ouvert)' : ''].filter(Boolean).join(' '); }
 function htmlLot(pid, i, l, titre, sorte) {
   const detail = detailLot(l);
-  const ranger = '<button class="consommer" type="button" data-inv="c" data-lots="' + esc([pid, '', l.marque, l.saveur].join('|')) + '" aria-label="Consommer"></button>' +
+  const ranger = '<button class="consommer" type="button" data-inv="c" data-lots="' + esc([pid, '', l.marque, l.saveur, l.ouvert ? 'o' : 'f'].join('|')) + '" aria-label="Consommer"></button>' +
     '<button class="ranger" type="button" data-lot="' + esc(pid) + '|' + i + '" aria-label="Ranger"></button>';   // AVANT la quantité (J-C) : les nombres restent au bout, sous le total
   if (sorte) return '<div class="item sorte"><div class="item-info"><div class="item-detail">' + esc(detail || titre) + '</div></div>' +
     ranger + '<span class="sorte-quantite">' + esc(l.qte) + '</span></div>';
@@ -2219,10 +2231,10 @@ function stockParEndroit() {
     const marque = String(l[5] || '').trim(), format = String(l[6] || '').trim(), saveur = String(l[9] || '').trim();
     // ce qui est écrit sépare : une marque ou une saveur notée fait sa propre ligne;
     // laissées vides (le lait, la poudre à pâte), tout se regroupe sous le produit.
-    const cleMarque = marque, cleSaveur = saveur;
-    const cle = prod.id + '|' + cleMarque + '|' + cleSaveur;
+    const cleMarque = marque, cleSaveur = saveur, ouvert = estOuvert(l);   // un contenant ouvert : sa propre ligne, « (ouvert) » (RdG-09)
+    const cle = prod.id + '|' + cleMarque + '|' + cleSaveur + (ouvert ? '|o' : '');
     const liste = (par[emp] = par[emp] || {});
-    if (!liste[cle]) liste[cle] = { pid: String(prod.id), nom: prod.nom, marque: cleMarque, saveur: cleSaveur, formats: [], qte: 0 };
+    if (!liste[cle]) liste[cle] = { pid: String(prod.id), nom: prod.nom, marque: cleMarque, saveur: cleSaveur, ouvert: ouvert, formats: [], qte: 0 };
     const x = liste[cle];
     x.qte += qte;
     if (format && x.formats.indexOf(format) === -1) x.formats.push(format);
@@ -2236,7 +2248,7 @@ function stockParEndroit() {
 function htmlLignesEndroit(par, empId) {
   const dedans = par[empId];
   if (!dedans) return '';
-  const detailDe = x => [nomListe(x.marque), nomListe(x.saveur), x.formats.join(' + ')].filter(Boolean).join(' · ');   // plus de « total 0,454 kg » (J-C, 2026-10-01 : pas besoin)
+  const detailDe = x => [[nomListe(x.marque), nomListe(x.saveur), x.formats.join(' + ')].filter(Boolean).join(' · '), x.ouvert ? '(ouvert)' : ''].filter(Boolean).join(' ');   // plus de « total 0,454 kg » (J-C, 2026-10-01 : pas besoin)
   const groupes = {};
   Object.keys(dedans).forEach(k => { const x = dedans[k]; (groupes[x.pid] = groupes[x.pid] || []).push(x); });
   return Object.keys(groupes).map(pid => groupes[pid])
@@ -2246,14 +2258,14 @@ function htmlLignesEndroit(par, empId) {
         const x = sortes[0], detail = detailDe(x);
         return '<div class="item"><div class="item-info"><div class="item-nom">' + esc(x.nom) + '</div>' +
           (detail ? '<div class="item-detail">' + esc(detail) + '</div>' : '') + '</div>' +
-          outilsInventaire(x.pid, empId, x.marque, x.saveur) + '<span class="item-quantite">' + esc(x.qte) + '</span></div>';
+          outilsInventaire(x.pid, empId, x.marque, x.saveur, x.ouvert) + '<span class="item-quantite">' + esc(x.qte) + '</span></div>';
       }
       sortes.sort((a, b) => detailDe(a).localeCompare(detailDe(b), 'fr'));
       const total = sortes.reduce((s, x) => s + (Number(x.qte) || 0), 0);
       return '<div class="accordeon aliment" data-cle="' + esc('a:' + sortes[0].pid + '|' + empId) + '"><div class="item aliment-tete"><div class="item-info"><div class="item-nom">' + esc(sortes[0].nom) + '</div>' +
         '</div><span class="item-quantite">' + total + '</span></div>' +
         '<div class="aliment-sortes" hidden>' + sortes.map(x => '<div class="item sorte"><div class="item-info"><div class="item-detail">' +
-          esc(detailDe(x) || x.nom) + '</div></div>' + outilsInventaire(x.pid, empId, x.marque, x.saveur) + '<span class="sorte-quantite">' + esc(x.qte) + '</span></div>').join('') + '</div></div>';
+          esc(detailDe(x) || x.nom) + '</div></div>' + outilsInventaire(x.pid, empId, x.marque, x.saveur, x.ouvert) + '<span class="sorte-quantite">' + esc(x.qte) + '</span></div>').join('') + '</div></div>';
     }).join('');
 }
 /* Un meuble : ce qui est posé dessus directement, puis chaque espace qui contient quelque chose.
@@ -2299,14 +2311,15 @@ function remplirInventaire() {
    Consommer et Déplacer : la quantité (1, − +); Consommer : le format s'il y en a plusieurs (le pot, le pack), « Ne pas racheter »;
    Déplacer : où (d'avance son autre endroit habituel). Par catégorie, un aliment à plusieurs endroits : « De » d'abord.
    Une ligne vise ses lots par « produit|endroit|marque|saveur » (endroit '*' = tous : Par catégorie; '' = l'Escale). */
-function outilsInventaire(pid, emp, marque, saveur) {
-  const k = esc([pid, emp, marque, saveur].join('|'));
+function outilsInventaire(pid, emp, marque, saveur, ouvert) {
+  const k = esc([pid, emp, marque, saveur].concat(ouvert === undefined ? [] : [ouvert ? 'o' : 'f']).join('|'));   // 5e : ouvert ou fermé (RdG-09)
   return '<button class="consommer" type="button" data-inv="c" data-lots="' + k + '" aria-label="Consommer"></button>' +
     '<button class="ranger" type="button" data-inv="d" data-lots="' + k + '" aria-label="Déplacer"></button>';
 }
 function lotsDeCle(cle) {
   const k = String(cle).split('|');
-  return (LOTS[k[0]] || []).filter(l => (k[1] === '*' || l.emp === k[1]) && l.marque === (k[2] || '') && l.saveur === (k[3] || '') && l.qte > 0);
+  return (LOTS[k[0]] || []).filter(l => (k[1] === '*' || l.emp === k[1]) && l.marque === (k[2] || '') && l.saveur === (k[3] || '') && l.qte > 0 &&
+                                         (!k[4] || l.ouvert === (k[4] === 'o')));
 }
 function ouvrirActionInventaire(btn) {
   const conso = btn.dataset.inv === 'c', lots = lotsDeCle(btn.dataset.lots), item = btn.closest('.item');
@@ -2394,18 +2407,18 @@ function htmlInventaireCategories() {
     if (!lots.length) return '';
     const sortes = [];
     lots.forEach(l => {
-      let x = sortes.find(y => y.marque === l.marque && y.saveur === l.saveur);
-      if (!x) sortes.push(x = { marque: l.marque, saveur: l.saveur, formats: [], qte: 0, lots: [] });
+      let x = sortes.find(y => y.marque === l.marque && y.saveur === l.saveur && y.ouvert === l.ouvert);   // l'ouvert : sa propre sorte (RdG-09)
+      if (!x) sortes.push(x = { marque: l.marque, saveur: l.saveur, ouvert: l.ouvert, formats: [], qte: 0, lots: [] });
       x.qte += l.qte; x.lots.push(l);
       l.formats.forEach(f => { if (x.formats.indexOf(f) === -1) x.formats.push(f); });
     });
-    const detail = x => [nomListe(x.marque), nomListe(x.saveur), x.formats.join(' + ')].filter(Boolean).join(' · ');
+    const detail = x => [[nomListe(x.marque), nomListe(x.saveur), x.formats.join(' + ')].filter(Boolean).join(' · '), x.ouvert ? '(ouvert)' : ''].filter(Boolean).join(' ');
     const ou = ouSontLots(p.id, lots), total = totalLots(lots);
     if (sortes.length === 1) {
       const d = detail(sortes[0]);
       return '<div class="item"><div class="item-info"><div class="item-nom">' + esc(p.nom) + '</div>' +
         (d ? '<div class="item-detail">' + esc(d) + '</div>' : '') + '<div class="item-detail">' + esc(ou) + '</div></div>' +
-        outilsInventaire(p.id, '*', sortes[0].marque, sortes[0].saveur) + '<span class="item-quantite">' + total + '</span></div>';
+        outilsInventaire(p.id, '*', sortes[0].marque, sortes[0].saveur, sortes[0].ouvert) + '<span class="item-quantite">' + total + '</span></div>';
     }
     const plusieursEndroits = new Set(lots.map(l => endroitMeuble(l.emp))).size > 1;   // les sortes disent où, seulement s'il y a à choisir
     sortes.sort((a, b) => detail(a).localeCompare(detail(b), 'fr'));
@@ -2413,7 +2426,7 @@ function htmlInventaireCategories() {
       '<div class="item-detail">' + esc(ou) + '</div></div><span class="item-quantite">' + total + '</span></div>' +
       '<div class="aliment-sortes" hidden>' + sortes.map(x => '<div class="item sorte"><div class="item-info"><div class="item-detail">' + esc(detail(x) || p.nom) + '</div>' +
         (plusieursEndroits ? '<div class="item-detail">' + esc(ouSontLots(p.id, x.lots)) + '</div>' : '') + '</div>' +
-        outilsInventaire(p.id, '*', x.marque, x.saveur) + '<span class="sorte-quantite">' + x.qte + '</span></div>').join('') + '</div></div>';
+        outilsInventaire(p.id, '*', x.marque, x.saveur, x.ouvert) + '<span class="sorte-quantite">' + x.qte + '</span></div>').join('') + '</div></div>';
   };
   const alpha = (a, b) => String(a.nom).localeCompare(String(b.nom), 'fr');
   const groupe = (nom, prods, rid) => {
@@ -2459,7 +2472,7 @@ var retourRecherche = retourAuMenu;     // où ramène le Retour : l'écran d'o�
 var rechercheJeton = 0;                 // un scan plus ancien qui répond en retard ne remplace pas l'écran
 var modeRecherche = '';                 // '' = Rechercher · 'deplacer' · 'consommer' : le même écran, le lot touché fait le geste
 var sorteScannee = null;                // Consommer, Déplacer : la boîte scannée { pid, sortes: [{ marque, saveur, format }] } — elle seule à l'écran
-const TITRES_RECHERCHE = { '': 'Rechercher', deplacer: 'Déplacer', consommer: 'Consommer' };
+const TITRES_RECHERCHE = { '': 'Rechercher', deplacer: 'Déplacer', consommer: 'Consommer', ouvrir: 'Ouvrir' };
 const RETOURS = { 'vue-accueil': () => retourAuMenu(), 'vue-choix-quoi': () => montrerChoixQuoi(),
                   'vue-listes': () => montrerListes(), 'vue-couleurs': () => montrerCouleurs() };
 /* depuis : true = on arrive de la loupe ou du menu (on retient d'où); false = on revient d'ailleurs (scan, rayon) */
@@ -2479,6 +2492,7 @@ function montrerRecherche(depuis) {
 /* Déplacer : la même recherche (nom ou scan). Un lot touché change d'endroit; ensuite, on revient au champ vide. */
 function montrerDeplacer() { modeRecherche = 'deplacer'; montrerRecherche(true); }
 function montrerConsommer() { modeRecherche = 'consommer'; montrerRecherche(true); }
+function montrerOuvrir() { modeRecherche = 'ouvrir'; montrerRecherche(true); }   // « Ouvrir » (RdG-09) : le même écran, le contenant touché s'ouvre
 function ouvrirRecherche() { modeRecherche = ''; montrerRecherche(true); }
 /* Un mot tapé colle-t-il à un mot de l'aliment ? Le début suffit (« fra » → fraise); une faute permise dès 4 lettres. */
 function motColle(q, mot) {
@@ -2527,14 +2541,18 @@ function surRecherche() {
   let trouves = parNom.sort(alpha).concat(parVariante.sort(alpha));
   // Consommer, Déplacer : seulement ce qu'on a (J-C, 2026-10-05 : « plus en réserve », « pas utile » — on ne consomme pas ce qu'on n'a
   // pas). Rechercher les garde : savoir qu'on n'en a plus, au magasin, ça sert.
-  const tousVides = modeRecherche && trouves.length && trouves.every(x => !totalLots(par[x.p.id]));
-  if (modeRecherche) trouves = trouves.filter(x => totalLots(par[x.p.id]));
-  if (tousVides) { cible.innerHTML = htmlVide('Tu n\'en as plus', '', ''); return; }   // le même message que l'écran de rayon
+  // Ouvrir : seulement ce qui raccourcit une fois ouvert et a encore un contenant fermé (RdG-09, choix A) — « Rien à ouvrir » sinon
+  const ouvrir = modeRecherche === 'ouvrir';
+  const lotsDe = p => ouvrir ? (par[p.id] || []).filter(l => partsAOuvrir(p, l).length) : (par[p.id] || []);
+  const combien = p => ouvrir ? qteAOuvrir(p, par[p.id]) : totalLots(par[p.id]);
+  const tousVides = modeRecherche && trouves.length && trouves.every(x => !combien(x.p));
+  if (modeRecherche) trouves = trouves.filter(x => combien(x.p));
+  if (tousVides) { cible.innerHTML = htmlVide(ouvrir ? 'Rien à ouvrir' : 'Tu n\'en as plus', '', ''); return; }   // le même message que l'écran de rayon
   if (!trouves.length) { cible.innerHTML = htmlVide('', 'Aucun aliment ne correspond', modeRecherche ? '' : 'data-ajouter-nom'); return; }
   cible.innerHTML = '<div class="liste-blanche">' + trouves.map(x => {
-    const lots = par[x.p.id] || [];                     // ses sortes (marque, saveur : « Lactantia 1 % ») puis où il est — J-C, 2026-10-04 : « pour choisir
+    const lots = lotsDe(x.p);                           // ses sortes (marque, saveur : « Lactantia 1 % ») puis où il est — J-C, 2026-10-04 : « pour choisir
     const sortes = [...new Set(lots.map(l => [nomListe(l.marque), nomListe(l.saveur)].filter(Boolean).join(' ')).filter(Boolean))];   //   lequel je consomme »
-    return htmlLigneAliment(x.p, totalLots(lots), lots.length ? sortes.join(' · ') : x.detail.join(' · '), lots.length ? ouSontLots(x.p.id, lots) : '');
+    return htmlLigneAliment(x.p, combien(x.p), lots.length ? sortes.join(' · ') : x.detail.join(' · '), lots.length ? ouSontLots(x.p.id, lots) : '');
   }).join('') + '</div>';
 }
 /* Une ligne à toucher : le nom, en petit ses sortes (marque, saveur) ou ce qui l'a fait trouver (ou « (plus en réserve) »), dessous où il
@@ -2617,6 +2635,8 @@ function montrerRayon(pid, sansDefiler) {
   else if (modeRecherche === 'deplacer') corps = htmlLotsParEndroit(prod, lots, true, (l, i) => htmlLigneLot(prod, l, 'data-bouger="' + esc(prod.id) + '|' + i + '"'))
                                             || htmlVide('Rien à déplacer', 'Tout est en escale', '');
   else if (modeRecherche === 'consommer') corps = htmlLotsParEndroit(prod, lots, false, (l, i) => htmlPartsConsommer(prod, l, i, !!sorte));
+  else if (modeRecherche === 'ouvrir') corps = htmlLotsParEndroit(prod, lots.map(l => partsAOuvrir(prod, l).length ? l : null), false, (l, i) => htmlPartsOuvrir(prod, l, i, !!sorte))
+                                          || htmlVide('Rien à ouvrir', raccourcitOuvert(prod) ? 'Tout est déjà ouvert' : 'Ne raccourcit pas une fois ouvert', '');
   else corps = htmlLotsParEndroit(prod, lots, false, l => htmlLigneLot(prod, l, ''));
   if (!modeRecherche) corps += htmlPasAimes(prod);   // au magasin : ce qu'on n'a pas aimé, même quand on n'en a plus
   let html = '<div class="vedette"><div class="vedette-tete"><span>' + esc(prod.nom) + '</span><span>' + esc(total) + '</span></div>' +
@@ -2653,7 +2673,7 @@ function htmlLotsParEndroit(prod, lots, sansTransit, ligne) {
 /* Une ligne de lot : marque + saveur (ou l'aliment), ses formats, sa quantité. attr : de quoi la rendre touchable. */
 function htmlLigneLot(prod, l, attr) {
   const nom = [nomListe(l.marque), nomListe(l.saveur)].filter(Boolean).join(' ') || prod.nom;
-  const detail = [l.formats.join(' + '), estPasAime(prod.id, l.marque, l.saveur) ? '(pas aimé)' : ''].filter(Boolean).join(' ');
+  const detail = [l.formats.join(' + '), l.ouvert ? '(ouvert)' : '', estPasAime(prod.id, l.marque, l.saveur) ? '(pas aimé)' : ''].filter(Boolean).join(' ');
   return '<div class="item"' + (attr ? ' ' + attr : '') + '><div class="item-info"><div class="item-nom">' + esc(nom) + '</div>' +
     (detail ? '<div class="item-detail">' + esc(detail) + '</div>' : '') + '</div>' +
     '<span class="item-quantite">' + esc(l.qte) + '</span></div>';
@@ -2734,13 +2754,17 @@ function formatPack(n, format) { const t = tailleUnite(format); return t ? n + '
    deux paquets de 12, dont un entamé, font 23, pas 2). Partout où l'app montre ce qu'on a (l'Inventaire, l'Escale, Rechercher,
    Déplacer, À consommer bientôt). Ce qu'on a scanné (Entrer, « Déjà scanné », Compléter) se compte en boîtes. */
 function qteDe(l) { return (Number(l[3]) || 0) * (nbUnites(l[6]) || 1); }
+/* Un contenant ouvert (RdG-09, le bouton « Ouvrir ») : STOCK col. Q porte le jour de l'ouverture. Ses lots vivent à part de ceux
+   qui sont fermés (deux pintes, une ouverte : 1 ouverte et 1 fermée), et disent « (ouvert) ». */
+function estOuvert(l) { return !!String(l[16] || '').trim(); }
 function estPasAime(pid, marque, saveur) {
   return PAS_AIMES.some(r => String(r[1]) === String(pid) && String(r[2] || '').trim() === marque && String(r[3] || '').trim() === saveur);
 }
 /* Les lignes de STOCK d'un lot (les objets eux-mêmes : une entrée toute fraîche n'a pas encore d'ID). */
 function lignesDuLot(lot) {
   return STOCK.filter(l => String(l[1]) === lot.pid && String(l[2] || '') === lot.emp && String(l[5] || '').trim() === lot.marque &&
-                           String(l[9] || '').trim() === lot.saveur && (Number(l[3]) || 0) > 0);
+                           String(l[9] || '').trim() === lot.saveur && (Number(l[3]) || 0) > 0 &&
+                           (lot.ouvert === undefined || estOuvert(l) === lot.ouvert));   // un lot ouvert ne prend que ses contenants ouverts
 }
 function partsDuLot(lot) {
   const parts = [];
@@ -2763,7 +2787,7 @@ function htmlPartsConsommer(prod, l, i, scanne) {
   const nom = [nomListe(l.marque), nomListe(l.saveur)].filter(Boolean).join(' ') || prod.nom;
   const pas = estPasAime(prod.id, l.marque, l.saveur);
   return partsDuLot(l).filter(p => !scanne || sorteColle(l.marque, l.saveur, p.format)).map(p => {
-    const detail = [libellePart(p), pas ? '(pas aimé)' : ''].filter(Boolean).join(' ');
+    const detail = [libellePart(p), l.ouvert ? '(ouvert)' : '', pas ? '(pas aimé)' : ''].filter(Boolean).join(' ');
     return '<div class="item" data-consommer="' + esc(prod.id + '|' + i + '|' + p.cle) + '"><div class="item-info"><div class="item-nom">' + esc(nom) + '</div>' +
       (detail ? '<div class="item-detail">' + esc(detail) + '</div>' : '') + '</div><span class="item-quantite">' + esc(p.qte) + '</span></div>';
   }).join('');
@@ -2834,6 +2858,76 @@ function ouvrirConsommation(cle) {
     consommerPart(lot, p.cle, combien(), !!(case_ && case_.checked), null, carte.querySelector('.jete').checked);
   };
   verifier();
+}
+/* ---------- Ouvrir (RdG-09, J-C, 2026-10-08) ----------
+   Un bouton du menu, après Consommer : le même écran (le nom ou le scan), le contenant touché s'ouvre — STOCK col. Q = aujourd'hui.
+   Seulement ce qui raccourcit une fois ouvert (raccourcitOuvert) et encore fermé; jamais un paquet (« 12 x 100 g » : chaque pot se
+   mange d'un coup). Un contenant ouvert parmi plusieurs : la ligne se coupe, la part ouverte garde tout le reste (sa date
+   d'entrée, son épicerie, son horloge). Instantané, par la file des gestes (deplacer : les lignes réécrites au complet). */
+function partsAOuvrir(prod, lot) {
+  if (!prod || !lot || lot.ouvert || !raccourcitOuvert(prod)) return [];
+  return partsDuLot(lot).filter(p => !p.unites);
+}
+function qteAOuvrir(prod, lots) { return (lots || []).reduce((s, l) => s + partsAOuvrir(prod, l).reduce((t, p) => t + p.qte, 0), 0); }
+function htmlPartsOuvrir(prod, l, i, scanne) {
+  const nom = [nomListe(l.marque), nomListe(l.saveur)].filter(Boolean).join(' ') || prod.nom;
+  return partsAOuvrir(prod, l).filter(p => !scanne || sorteColle(l.marque, l.saveur, p.format)).map(p =>
+    '<div class="item" data-entamer="' + esc(prod.id + '|' + i + '|' + p.cle) + '"><div class="item-info"><div class="item-nom">' + esc(nom) + '</div>' +
+    (p.format ? '<div class="item-detail">' + esc(p.format) + '</div>' : '') + '</div><span class="item-quantite">' + esc(p.qte) + '</span></div>').join('');
+}
+/* La ligne touchée ouvre sa carte, juste dessous : la quantité (1, − +), Ouvrir / Annuler. */
+function ouvrirOuverture(cle) {
+  const k = cle.split('|'), prod = PRODUITS.find(x => String(x.id) === k[0]), lot = (lotsParProduit()[k[0]] || [])[Number(k[1])];
+  const p = partsAOuvrir(prod, lot).find(x => x.cle === k.slice(2).join('|'));
+  if (!p) return;
+  if ($('recherche-rayon').querySelector('.carte')) montrerRayon(lot.pid, true);   // une seule carte ouverte à la fois
+  const item = [...$('recherche-rayon').querySelectorAll('[data-entamer]')].find(x => x.dataset.entamer === cle);
+  if (!item) return;
+  const carte = document.createElement('div');
+  carte.className = 'endroit carte';
+  carte.innerHTML = htmlQuantite() + '<div class="message"></div>' +
+    '<div class="grille"><button class="bouton bouton-petit bouton-vert ouv-oui" type="button">Ouvrir</button>' +
+    '<button class="bouton bouton-petit ouv-non" type="button">Annuler</button></div>';
+  item.after(carte);
+  brancherPlusMoins(carte, p.qte);
+  const combien = () => parseInt(carte.querySelector('.qte').value, 10) || 0;
+  const verifier = () => {
+    const q = combien(), m = carte.querySelector('.message'), ok = q > 0 && q <= p.qte;
+    m.className = ok ? 'message' : 'message message-erreur';
+    m.textContent = ok || !q ? '' : 'Il y en a ' + p.qte + '.';
+    carte.querySelector('.ouv-oui').hidden = !ok;
+  };
+  carte.addEventListener('input', verifier);
+  carte.querySelector('.ouv-non').onclick = () => montrerRayon(lot.pid, true);
+  carte.querySelector('.ouv-oui').onclick = () => ouvrirPart(lot, p, combien());
+  verifier();
+}
+function ouvrirPart(lot, part, q) {
+  const rows = part.rows.slice().sort((a, b) => String(dateCourte(a[4]) || '').localeCompare(String(dateCourte(b[4]) || '')));   // le plus vieux d'abord
+  if (!(q > 0) || q > part.qte || rows.some(r => !r[0])) { avis('Pas ouvert — réessaie', 'erreur'); montrerRayon(lot.pid, true); return; }
+  const op = 'ouv-' + Date.now() + '-' + Math.random().toString(36).slice(2, 8), jour = dateDuJour(), modifs = [], ajouts = [];
+  let reste = q;
+  for (const row of rows) {
+    if (reste <= 0) break;
+    const qte = Number(row[3]) || 0;
+    if (qte <= 0) continue;
+    const ligne = row.slice(); ligne[4] = dateCourte(ligne[4]);
+    while (ligne.length < 17) ligne.push('');
+    if (ligne[15]) ligne[15] = dateCourte(ligne[15]);
+    if (qte <= reste) { ligne[16] = jour; reste -= qte; }                  // toute la ligne s'ouvre
+    else {                                                                  // une part s'ouvre : une ligne à elle, le reste reste fermé
+      ligne[3] = qte - reste;
+      const a = ligne.slice(); a[0] = idLocal(); a[3] = reste; a[7] = op; a[16] = jour;
+      ajouts.push(a);
+      reste = 0;
+    }
+    modifs.push({ id: String(row[0]), ligne: ligne });
+  }
+  poserGeste({ action: 'deplacer', opId: op, modifs: modifs, ajouts: ajouts });
+  avis('Ouvert', 'succes');
+  $('recherche-texte').value = '';
+  montrerRecherche(false);                             // le champ vide : on enchaîne avec le suivant
+  $('recherche-texte').focus();
 }
 /* La sortie est INSTANTANÉE à l'écran (J-C : « si j'attends pour chaque aliment d'une recette… ») :
    la mémoire et le cache changent tout de suite, et l'envoi part en arrière-plan, gardé en attente (localStorage)
@@ -2986,7 +3080,7 @@ const cleAchat = pid => String(pid == null ? '' : pid).trim() + '||';   // la cl
 const achatActif = r => String(r[7]) !== 'N';
 const ligneAchat = (pid, etat) => [idLocal(), String(pid), '', '', etat, dateDuJour(), localStorage.getItem(QUI) || '', 'O'];
 const lignesDeAliment = (pid, etat) => ACHATS.filter(r => achatActif(r) && r[4] === etat && String(r[1]) === String(pid));
-/* Ce qui est sur la liste : [{ cle, pid, sortes, auto: '' | 'zero' | 'pas', main, coche }].
+/* Ce qui est sur la liste : [{ cle, pid, sortes, auto: '' | 'zero' | 'pas' | 'ouvert' (le dernier ouvert, RdG-09), main, coche }].
    cote : ce que la flèche a mis de côté (« plustard ») — le groupe « Mis de côté » (J-C, 2026-10-01, choix C). */
 function lignesAchats(cote) {
   const actifs = ACHATS.filter(achatActif);
@@ -2998,8 +3092,8 @@ function lignesAchats(cote) {
   const parAliment = {};
   STOCK.forEach(l => {
     const pid = String(l[1]), q = Number(l[3]) || 0, m = String(l[5] || '').trim(), sv = String(l[9] || '').trim();
-    const x = parAliment[pid] = parAliment[pid] || { total: 0, emps: {}, sortes: [] };
-    if (q > 0) { x.total += q; x.emps[String(l[2] || '')] = true; }
+    const x = parAliment[pid] = parAliment[pid] || { total: 0, emps: {}, sortes: [], ferme: false };
+    if (q > 0) { x.total += q; x.emps[String(l[2] || '')] = true; if (!estOuvert(l)) x.ferme = true; }   // un contenant encore fermé (RdG-09)
     const s = estPasAime(pid, m, sv) ? '' : [nomListe(m), nomListe(sv)].filter(Boolean).join(' ');
     if (s && x.sortes.indexOf(s) === -1) x.sortes.push(s);
   });
@@ -3013,6 +3107,7 @@ function lignesAchats(cote) {
     if (!existe(pid)) return;
     const x = parAliment[pid], hab = endroitsHabituels(pid).filter(e => resoudreEmp(e));
     if (!x.total) mettre(pid, 'zero');
+    else if (!x.ferme) mettre(pid, 'ouvert');           // tout ce qui reste est ouvert : « (dernier ouvert) », tout de suite (RdG-09, choix A)
     else if (hab.length >= 2 && Object.keys(x.emps).every(e => e === String(hab[0]))) mettre(pid, 'pas');
   });
   actifs.forEach(r => { if (r[4] === 'main' && existe(r[1])) mettre(String(r[1]), 'main'); });
@@ -3046,7 +3141,7 @@ function remplirAchats(ouvrir) {
   const tri = (x, y) => nomDe(x.pid).localeCompare(nomDe(y.pid), 'fr');
   // UNE ligne par aliment (J-C, 2026-10-05) : son nom; en petit, ses sortes (« Natrel 2 % · Lactantia » : pour choisir au magasin) et
   // « (pour réserve) »; ses soldes dessous
-  const detail = it => [it.sortes.join(' · '), it.auto === 'pas' && !it.main ? '(pour réserve)' : ''].filter(Boolean).join(' ');
+  const detail = it => [it.sortes.join(' · '), it.main ? '' : it.auto === 'pas' ? '(pour réserve)' : it.auto === 'ouvert' ? '(dernier ouvert)' : ''].filter(Boolean).join(' ');
   const ligne = it =>
     // en haut à droite, côte à côte (J-C, 2026-10-02, choix C sur aperçu) : la flèche « mettre de côté » (celle de « revenir »,
     // inversée — plus de poubelle), puis la case « dans le panier »; l'aliment et la case alignés par le haut
@@ -3476,7 +3571,7 @@ async function montrerProduitCode(code) {
 }
 /* Une marque ou une saveur proposée (un ID, ou un nom) → l'ID d'un nom actif de la liste; sinon rien. */
 function idListe(liste, v) {
-  v = String(v || '').trim();
+  v = String(v || '').trim(); v = NUMEROS[v] || v;   // un faux nom-numéro : le vrai (TEMPORAIRE)
   if (!v) return '';
   const x = LISTES[liste].find(y => y.id === v) || LISTES[liste].find(y => cleNom(y.nom) === cleNom(v));
   return x ? x.id : '';
@@ -3938,9 +4033,10 @@ function ouvrirFicheNom(nom) {
   surNom();
 }
 function surClicRecherche(ev) {
-  const b = ev.target.closest('[data-ajouter-code], [data-ajouter-nom], [data-ajouter-produit], [data-pid], [data-bouger], [data-consommer]');
+  const b = ev.target.closest('[data-ajouter-code], [data-ajouter-nom], [data-ajouter-produit], [data-pid], [data-bouger], [data-consommer], [data-entamer]');
   if (!b) return;
   if (b.hasAttribute('data-bouger')) { ouvrirDeplacement(b.dataset.bouger); return; }
+  if (b.hasAttribute('data-entamer')) { ouvrirOuverture(b.dataset.entamer); return; }   // Ouvrir (RdG-09)
   if (b.hasAttribute('data-consommer')) { ouvrirConsommation(b.dataset.consommer); return; }
   if (b.hasAttribute('data-pid')) { montrerRayon(b.dataset.pid); return; }
   if (b.hasAttribute('data-ajouter-code')) { ouvrirFicheScan(b.dataset.ajouterCode); return; }
@@ -4341,6 +4437,7 @@ function initEntree() {
   $('menu-ajouter').addEventListener('click', montrerChoixQuoi);
   $('menu-deplacer').addEventListener('click', montrerDeplacer);
   $('menu-consommer').addEventListener('click', montrerConsommer);
+  $('menu-ouvrir').addEventListener('click', montrerOuvrir);   // Ouvrir (RdG-09)
   $('menu-listes').addEventListener('click', montrerListes);
   $('menu-achats').addEventListener('click', montrerAchats);
   $('menu-rechercher').addEventListener('click', ouvrirRecherche);   // la loupe : le 8e bouton du menu (J-C, 2026-10-01; plus de loupe dans le coin)
@@ -4465,6 +4562,8 @@ function initEntree() {
     if (sel) assignerSousCat(sel.dataset.aliment, sel.value);
     const du = ev.target.closest('.choix-duree');          // sa durée (À consommer bientôt)
     if (du) choisirDureeAliment(du.dataset.aliment, du.value);
+    const dov = ev.target.closest('.choix-duree-ouvert');  // sa durée une fois ouvert (RdG-09)
+    if (dov) choisirDureeOuvertAliment(dov.dataset.aliment, dov.value);
   });
   $('liste-aliments').addEventListener('click', function (ev) {
     const oui = ev.target.closest('[data-retirer-oui]');   // « Retirer … ? » Oui
