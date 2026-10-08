@@ -1192,10 +1192,11 @@ function htmlEspace(e, i, groupe) {
 /* Un meuble = sa barre, à sa couleur (crayon, flèches, poubelle) → dedans : sa pièce, sa couleur, ses espaces, « Nouvel espace… ».
    Un congélateur porte un flocon collé à son nom (J-C, 2026-10-07, choix A sur aperçu : le voir sans ouvrir — « surtout pour nous
    avertir qu'on a coché un par erreur »). */
+function floconDe(m) { return m && m.congelo ? '<span class="flocon" aria-label="Congélateur"></span>' : ''; }   // sur sa barre, partout où un meuble en a une
 function htmlMeuble(m, i, groupe) {
   const t = teinteBarre(m);
   return '<div class="accordeon" data-type="m" data-id="' + esc(m.id) + '">' +
-    '<div class="accordeon-tete' + t.pale + '"' + t.style + '><span>' + esc(m.nom) + '</span>' + (m.congelo ? '<span class="flocon" aria-label="Congélateur"></span>' : '') +
+    '<div class="accordeon-tete' + t.pale + '"' + t.style + '><span>' + esc(m.nom) + '</span>' + floconDe(m) +
       crayon('e:' + m.id) + fleches('m', m.id, i, groupe.length) + poubelle('m', m.id) + '</div>' +
     '<div class="accordeon-corps" hidden>' +
       '<div class="bloc accordeon-bloc"><div class="label">Pièce</div>' +
@@ -2267,7 +2268,7 @@ function htmlMeubleInventaire(m, par) {
   const teinte = couleurDe(m.couleur);
   const style = teinte ? ' style="--meuble:' + esc(teinte) + '"' : '';   // la couleur est une DONNÉE ; la tête et les bandeaux des espaces la suivent
   const pale = (teinte && couleurPale(teinte)) ? ' tete-pale' : '';
-  return '<div class="accordeon" data-cle="' + esc('m:' + m.id) + '"' + style + '><div class="accordeon-tete' + pale + '">' + esc(m.nom) + '</div>' +
+  return '<div class="accordeon" data-cle="' + esc('m:' + m.id) + '"' + style + '><div class="accordeon-tete' + pale + '">' + esc(m.nom) + floconDe(m) + '</div>' +   // un congélateur : son flocon (J-C, 2026-10-07)
     '<div class="accordeon-corps" hidden>' + corps + '</div></div>';
 }
 /* L'Inventaire : UNE liste, deux vues (J-C, 2026-09-30, piste 2 sur aperçu : « l'inventaire mélange l'inventaire et les meubles »).

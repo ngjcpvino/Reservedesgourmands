@@ -500,8 +500,8 @@ function remplirCompleter() {
       '<button class="ranger" type="button" data-completer-lot="' + i + '" aria-label="Placer"></button><span class="item-quantite">' + esc(lot.qte) + '</span></div>';
   };
   const parNom = (a, b) => nom(a).localeCompare(nom(b), 'fr');
-  const groupe = (cle, titre, attrs, pale, corps) => '<div class="accordeon" data-groupe="' + esc(cle) + '"' + attrs + '><div class="accordeon-tete' + pale + (COMPLETER_OUVERT === cle ? ' ouvert' : '') + '">' +
-    esc(titre) + '</div><div class="accordeon-corps"' + (COMPLETER_OUVERT === cle ? '' : ' hidden') + '>' + corps + '</div></div>';
+  const groupe = (cle, titre, attrs, pale, corps, apres) => '<div class="accordeon" data-groupe="' + esc(cle) + '"' + attrs + '><div class="accordeon-tete' + pale + (COMPLETER_OUVERT === cle ? ' ouvert' : '') + '">' +
+    esc(titre) + (apres || '') + '</div><div class="accordeon-corps"' + (COMPLETER_OUVERT === cle ? '' : ' hidden') + '>' + corps + '</div></div>';
   let h = '';
   const aPlacer = LOTS_COMPLETER.filter(l => !l.emp).sort(parNom);
   if (aPlacer.length) h += groupe('escale', 'À placer', '', '', aPlacer.map(ligne).join(''));
@@ -514,7 +514,7 @@ function remplirCompleter() {
       if (la.length) corps += '<div class="espace-bandeau">' + esc(e.nom) + '</div>' + la.map(ligne).join('');
     });
     const teinte = couleurDe(m.couleur);
-    h += groupe(String(m.id), m.nom, teinte ? ' style="--meuble:' + esc(teinte) + '"' : '', teinte && couleurPale(teinte) ? ' tete-pale' : '', corps);   // la couleur du meuble est une DONNÉE
+    h += groupe(String(m.id), m.nom, teinte ? ' style="--meuble:' + esc(teinte) + '"' : '', teinte && couleurPale(teinte) ? ' tete-pale' : '', corps, floconDe(m));   // la couleur du meuble est une DONNÉE; un congélateur, son flocon
   });
   $('completer-liste').innerHTML = h || '<div class="vide"><div class="vide-titre">Tout est complété</div></div>';
   montrer('completer-ok', !!h);
