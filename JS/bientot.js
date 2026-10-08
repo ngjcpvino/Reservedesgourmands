@@ -120,7 +120,7 @@ function optionsDuree(choisie, premier) {
 /* Gérer les bases → Aliments, un aliment ouvert : « Durée ». Rien de choisi = la proposée, ou celle de sa sous-catégorie. */
 function htmlDureeAliment(p) {
   const a = dureeProposeeAliment(p), sc = dureeSousCat(p.catId);
-  const premier = a !== '' ? 'Proposée : ' + texteDuree(a) : 'Comme sa sous-catégorie : ' + (sc !== '' ? texteDuree(sc) : 'aucune');
+  const premier = a !== '' ? 'Proposée : ' + texteDuree(a) : 'Proposée : ' + (sc !== '' ? texteDuree(sc) : 'aucune');   // celle de sa sous-catégorie (J-C, 2026-10-07 : « Proposée », pas « Comme sa… »)
   return '<div class="bloc accordeon-bloc"><div class="label">Durée</div>' +
     '<select class="champ choix-duree" data-aliment="' + esc(p.id) + '">' + optionsDuree(valeurDuree(p.duree), premier) + '</select></div>';
 }
@@ -129,7 +129,7 @@ function htmlDureeAliment(p) {
 function htmlDureeSousCat(sc) {
   const k = cleNom(sc.nom), prop = Object.prototype.hasOwnProperty.call(DUREE_DE_CAT, k) ? DUREE_DE_CAT[k] : '';
   const r = dureeDeCat(RAYONS.find(x => String(x.id) === String(rayonDe(sc.id))));
-  const premier = prop !== '' ? 'Proposée : ' + texteDuree(prop) : 'Comme sa catégorie : ' + (r !== '' ? texteDuree(r) : 'aucune');
+  const premier = prop !== '' ? 'Proposée : ' + texteDuree(prop) : 'Proposée : ' + (r !== '' ? texteDuree(r) : 'aucune');   // celle de sa catégorie (J-C : « Proposée »)
   return '<select class="champ choix-duree-sc" data-souscat="' + esc(sc.id) + '">' + optionsDuree(valeurDuree(sc.duree), premier) + '</select>';
 }
 /* Une durée choisie pour une sous-catégorie : instantané, Categories col. E par la file des gestes ('' = la proposée; 0 = Aucune). */

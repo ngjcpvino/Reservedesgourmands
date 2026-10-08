@@ -85,11 +85,9 @@
    `MEUBLES[].congelo`; `.bloc .interrupteur` : le rond se creuse sur le blanc).
 2. ✅ **Gérer les bases → Catégories** (2026-10-07, J-C : « Ça sera A », sur aperçu parmi A sous le nom / B sur la ligne /
    C un bloc à part / D on touche le nom) : le menu de la durée **sous le nom de chaque sous-catégorie** (`.nom-duree`,
-   `htmlDureeSousCat()`, `choisirDureeSousCat()`, Categories col. E). En tête : « Proposée : 3 semaines », ou « Comme sa
-   catégorie : … ». Le crayon renomme le nom seulement (`ouvrirRenommer()` le trouve au-dessus de la durée).
+   `htmlDureeSousCat()`, `choisirDureeSousCat()`, Categories col. E). En tête : « Proposée : 3 semaines » — aussi quand elle vient de sa catégorie (J-C, 2026-10-07 : « Proposée », pas « Comme sa catégorie »). Le crayon renomme le nom seulement (`ouvrirRenommer()` le trouve au-dessus de la durée).
 3. ✅ **Gérer les bases → Aliments** : « Durée » dans un aliment ouvert, sous sa sous-catégorie (`htmlDureeAliment()`,
-   `choisirDureeAliment()`, Produits col. K). En tête du menu, ce qui vaut sans choix : « Proposée : 3 jours » ou
-   « Comme sa sous-catégorie : 3 semaines ».
+   `choisirDureeAliment()`, Produits col. K). En tête du menu, ce qui vaut sans choix : « Proposée : 3 jours » — aussi quand elle vient de sa sous-catégorie (J-C, 2026-10-07 : « Proposée »).
 4. ✅ **Listes → À consommer bientôt** (`#liste-bientot`, `remplirBientot()`, `lignesBientot()`) : par catégorie,
    fermées à l'ouverture (refaite chaque fois qu'on l'ouvre), la plus pressée en tête; une ligne = aliment + endroit +
    marque + saveur + jours qui restent; « Encore 3 jours » / « Encore 2 semaines » / « Encore 3 mois » / « Date passée »
