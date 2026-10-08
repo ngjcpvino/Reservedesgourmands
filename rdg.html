@@ -10,7 +10,7 @@
   <!-- Ecran d'accueil iPad : le meme sac, en PNG (iOS n'accepte pas le SVG ici) -->
   <link rel="apple-touch-icon" href="apple-touch-icon.png?v=2">
 
-<link rel="stylesheet" href="CSS/rdg.css?v=142">
+<link rel="stylesheet" href="CSS/rdg.css?v=143">
 </head>
 <body>
 
@@ -68,6 +68,9 @@
 
 <!-- Voile bloquant + le chariot qui traverse (spinner) — le dessin vit dans CSS/rdg.css -->
 <div id="voile" class="voile" hidden><div class="spinner"><span></span></div><div class="voile-texte" id="voile-texte"></div></div>
+
+<!-- La photo d'un produit, en grand : la petite photo touchée (au scan, au tri) s'ouvre ici; un toucher la referme. La photo : une donnée, posée par le JS -->
+<div id="photo-grande" class="photo-grande" hidden><span class="photo-grande-x"></span><img class="photo-grande-img" id="photo-grande-img" alt=""><div class="photo-grande-texte">Touche pour fermer</div></div>
 
 <!-- ============================================================
      LE CADRE — un seul conteneur pour les 9 feuilles.
@@ -517,7 +520,7 @@
 </div><!-- fin du conteneur -->
 
 <script src="JS/coffre.js?v=16"></script>
-<script src="JS/entree.js?v=177"></script>
+<script src="JS/entree.js?v=178"></script>
 <script src="JS/bientot.js?v=5"></script>
 <script src="JS/prix.js?v=6"></script>
 <script src="JS/epicerie.js?v=12"></script>
