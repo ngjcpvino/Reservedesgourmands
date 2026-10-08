@@ -2932,14 +2932,21 @@ async function expedierGestes() {
     let file = lireAttenteGestes();
     while (file.length) {
       const e = file[0];
-      let r = null;
-      try { r = await envoyerGeste(e); } catch (x) {}
+      let r = null, raison = '';
+      try { r = await envoyerGeste(e); } catch (x) { raison = (x && x.message) || ''; }   // la raison du réseau ou du coffre-fort (Coffre._envoyer)
       const definitif = r && !r.ok && (r.definitif || /introuvable|jeton manquant/.test(r.erreur || ''));   // (ou un coffre-fort pas encore à jour)
       if (r && r.ok || definitif) ecrireAttenteGestes(lireAttenteGestes().filter(x => x.opId !== e.opId));
       if (definitif) { relire = true; avis('Un changement a été refusé — la réserve est relue', 'erreur'); }
-      else if (!(r && r.ok)) { avis('Pas encore enregistré — ça repartira tout seul', 'erreur'); break; }
+      else if (!(r && r.ok)) {
+        // CHAQUE ÉCHEC DIT POURQUOI (J-C, 2026-10-08, au tri : « ça dit souvent pas encore enregistré », sans raison) : dans le message,
+        // et écrit en tête de la page Circulaires tant que la file ne passe pas (3 s, c'est trop court pour lire une raison)
+        poserEchecGeste('Pas encore enregistré (' + (raison || (r && r.erreur) || 'pas de réponse') + ') — ça repartira tout seul');
+        avis(GESTE_ECHEC, 'erreur');
+        break;
+      }
       file = lireAttenteGestes();
     }
+    if (!file.length) poserEchecGeste('');                 // tout est parti : la raison s'efface
   } finally { envoiGestes = false; }
   if (relire) chargerReferences();
 }
@@ -3241,6 +3248,12 @@ async function montrerCirculaires() {
   remplirTri();                                    // (pas relues : ce qu'on avait, s'il y a lieu, sous la raison)
 }
 var TRI_ECHEC = '';                                  // la dernière lecture des circulaires a raté : pourquoi (écrit en tête de la page)
+var GESTE_ECHEC = '';                                // le dernier envoi d'un geste a raté : pourquoi (en tête de la page Circulaires, jusqu'à ce que la file passe)
+function poserEchecGeste(t) {
+  GESTE_ECHEC = t;
+  const el = $('tri-geste-echec');                   // mis à jour sur place : redessiner fermerait l'article qu'on est en train de trier
+  if (el) { el.textContent = t; el.hidden = !t; }
+}
 /* D, E, F d'une ligne de Tri : un ou plusieurs aliments (une ligne à plusieurs produits), séparés par des virgules. */
 const morceaux = v => String(v == null ? '' : v).split(',');
 /* Une catégorie de la page : une des siennes, sinon « Autres ». */
@@ -3357,8 +3370,9 @@ const RONDS_TRI = [['O', 'Oui', 'rond-oui'], ['P', 'Peut-être', 'rond-peutetre'
 /* La page. Ce qui était ouvert (l'épicerie ou le rond, la catégorie) le reste : on trie l'un après l'autre. */
 function remplirTri() {
   const cible = $('liste-tri');
-  const echec = TRI_ECHEC ? '<div class="message message-erreur">' + esc(TRI_ECHEC) + '</div>' : '';   // la raison d'une lecture ratée, en tête
-  if (!TRI) { cible.innerHTML = echec || '<div class="texte-petit texte-pale">Circulaires pas lues — réessaie dans un instant.</div>'; return; }
+  const echec = (TRI_ECHEC ? '<div class="message message-erreur">' + esc(TRI_ECHEC) + '</div>' : '') +   // la raison d'une lecture ratée, en tête
+    '<div class="message message-erreur" id="tri-geste-echec"' + (GESTE_ECHEC ? '' : ' hidden') + '>' + esc(GESTE_ECHEC) + '</div>';   // et celle d'un tri pas encore parti
+  if (!TRI) { cible.innerHTML = echec + (TRI_ECHEC ? '' : '<div class="texte-petit texte-pale">Circulaires pas lues — réessaie dans un instant.</div>'); return; }
   const tG = cible.querySelector('[data-groupe] > .accordeon-tete.ouvert'), groupe = tG ? tG.parentElement.dataset.groupe : '';
   const parTexte = (a, b) => String(a).localeCompare(String(b), 'fr');
   const vide = t => '<div class="accordeon-item"><span class="texte-petit texte-pale">' + t + '</span></div>';
@@ -3370,12 +3384,12 @@ function remplirTri() {
     const m = TRI_VUE.slice(2), ici = aTrier.filter(x => x.magasin === m), logo = styleLogo(m), t = teinteMagasin(m);
     const tete = logo ? '<div class="accordeon-tete ouvert banniere"><span class="logo"' + logo + ' aria-label="' + esc(nomListe(m)) + '"></span></div>'
                       : '<div class="accordeon-tete ouvert' + t.pale + '"' + t.style + '><span>' + esc(nomListe(m)) + '</span></div>';
-    cible.innerHTML = ouverte('', tete, ici.length ? htmlGroupesTri(ici, x => x.categorie, x => ligneTri('a:' + x.cle, x.texte, detailATrier(x))) : vide('Rien à trier cette semaine.'));
+    cible.innerHTML = echec + ouverte('', tete, ici.length ? htmlGroupesTri(ici, x => x.categorie, x => ligneTri('a:' + x.cle, x.texte, detailATrier(x))) : vide('Rien à trier cette semaine.'));
   } else if (TRI_VUE.slice(0, 2) === 'b:') {
     const b = TRI_VUE.slice(2), rond = RONDS_TRI.find(r => r[0] === b) || RONDS_TRI[0], reps = b === 'J' ? ['J', 'M'] : [b];
     const vus = {}, rs = TRI.tri.filter(r => reps.indexOf(String(r[2])) !== -1 && !vus[cleDoublon(r)] && (vus[cleDoublon(r)] = 1))
       .sort((x, y) => parTexte(x[9] || x[1], y[9] || y[1]));
-    cible.innerHTML = ouverte(' tri-' + { O: 'oui', P: 'peutetre', J: 'jamais' }[b], '<div class="accordeon-tete ouvert"><span>' + rond[1] + '</span></div>',
+    cible.innerHTML = echec + ouverte(' tri-' + { O: 'oui', P: 'peutetre', J: 'jamais' }[b], '<div class="accordeon-tete ouvert"><span>' + rond[1] + '</span></div>',
       rs.length ? htmlGroupesTri(rs, categorieLigneTri, r => ligneTri('r:' + r[0], r[9] || r[1], detailTri(r))) : vide('Rien pour l\'instant.'));
   } else {
     // les épiceries dont la circulaire est lue : celles qui ont quelque chose à trier d'abord (IGA, qui donne ses codes, en tête), puis les autres
