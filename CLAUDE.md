@@ -76,7 +76,7 @@ Principes structurels non négociables (détail dans `RdG-00`) : rien de fixe (l
 > 9. Les **« populaires »** dans Rechercher, tirés des sorties (`RdG-03`, `RdG-04` §6).
 > 10. **« Il en manque bientôt »** au rythme de consommation, tiré des sorties (`RdG-04` §6).
 > 11. **Le seuil d'alerte** : sur la liste avant zéro (`RdG-structure-donnees`, « plus tard »).
-> 12. **« Entamé »** pour un contenant (le lait, le beurre d'arachide) — seulement si l'usage le demande (`RdG-06`).
+> 12. **« Entamé »** pour un contenant (le lait, le beurre d'arachide) — **réflexion FINIE le 2026-10-08, pas encore bâtie : `docs/RdG-09-entame-2026-10-08.md`** (un bouton « Ouvrir » au menu principal après Consommer, la conserve au couvercle soulevé, bleu pâle 801; la durée une fois ouvert proposée par sous-catégorie et aliment; le dernier ouvert sur la liste d'achats; « (ouvert) » dans l'Inventaire). J-C dit quand on bâtit.
 >
 > **Rechercher et l'écran de rayon** (`RdG-03`)
 > 13. Les étages au-dessus de l'aliment, chacun avec son décompte.
@@ -95,7 +95,7 @@ Principes structurels non négociables (détail dans `RdG-00`) : rien de fixe (l
 > **La cohérence et le look**
 > 23. **Où revenir après chaque action** — à revoir pour tous les boutons (noté le 2026-09-29).
 > 24. **Les logos ailleurs** : le choix de l'épicerie, Compléter, la page Magasins (noté le 2026-10-05).
-> 25. **Des couleurs fixes** pour les boutons du menu et d'Outils, comme dans Gérer les bases (J-C : « on verra au fur et à mesure »).
+> 25. **Des couleurs fixes** pour les boutons du menu et d'Outils, comme dans Gérer les bases (J-C : « on verra au fur et à mesure »). **Le menu : décidé le 2026-10-08 avec « Ouvrir »** (`RdG-09`, décision 7 : chaque bouton garde sa couleur d'aujourd'hui, figée) — à bâtir avec lui; Outils reste à faire.
 > 26. **Un seul ordre de questions pour la fiche**, au scan comme à la main (décidé le 2026-09-30, pas bâti : attendre que J-C le demande).
 > 27. **Compléter** : deux sortes d'un aliment au même endroit = deux lignes (l'Inventaire : une ligne, on touche pour voir les sortes).
 > 28. **Le fond** : la photo pâlie (Par meuble, Compléter) ou la liste blanche (Par catégorie, Liste d'achats, Circulaires, Rechercher).
@@ -290,6 +290,7 @@ Le dépôt GitHub est **public**. Les fichiers **`.gs`** (Google Apps Script) ne
 - **`RdG-06-liste-achats-2026-09-30.md`** — la liste d'achats (point 5), **réflexion FINIE et app BÂTIE le 30 septembre; coffre-fort ÉCRIT le même jour (onglet Achats, action `achats`), collé et vérifié le 2026-10-01** : une seule liste, sa page, sa propre icône (le chariot vide, 7e du menu), dans l'ordre des catégories, catégories en barres; deux niveaux (« pas pressé » = réserve vide / il n'en reste plus); on coche au magasin (grisé); l'aliment quitte la liste **quand on l'entre**; ajouter à la main (entonnoir + scan); la poubelle = « pas pour l'instant »; pas de quantité. (Section 4 du document : `references` renvoie `achats`, action `achats`, onglet Achats — en place.)
 - **`RdG-07-a-consommer-bientot-2026-10-06.md`** — « À consommer bientôt » : la durée de vie (sous-catégorie, au frais) + le congélo (4 mois pour tout); réflexion finie et bâtie le 2026-10-06.
 - **`RdG-08-en-special-2026-10-07.md`** — « En spécial cette semaine » (le jeudi, les idées) et la Liste d'achats « Par épicerie » (quoi acheter où, au prix au 100 g, avec les prix payés); réflexion finie et bâtie le 2026-10-07; `api.gs` (les prix réguliers d'avant) : section 4, écrite à l'ordi et collée le 2026-10-07.
+- **`RdG-09-entame-2026-10-08.md`** — « entamé » : le bouton « Ouvrir » au menu principal, la durée une fois ouvert, le dernier ouvert sur la liste d'achats; réflexion finie le 2026-10-08, pas encore bâtie.
 - **`RdG-tests-2026-10-07.md`** — **la liste des tests** (T1 à T31) de ce qui est bâti et jamais essayé en ligne, dans l'ordre d'une vraie semaine; un numéro ne change jamais, un test réussi est barré.
 - **`RdG-structure-donnees.md`** — LA référence des colonnes (positions exactes) : les 6 tables du point 1, bâties pour évoluer.
 - **`RdG-categories-superc.md`** — la liste finale des catégories Épicerie (12 rayons / 48 sous-cat), taillée avec J-C depuis Super C. Déjà semée.
