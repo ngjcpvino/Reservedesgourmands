@@ -1189,11 +1189,14 @@ function htmlEspace(e, i, groupe) {
   return '<div class="accordeon-item" data-type="e" data-id="' + esc(e.id) + '">' +
     '<span>' + esc(e.nom) + '</span>' + crayon('e:' + e.id) + fleches('e', e.id, i, groupe.length) + poubelle('e', e.id) + '</div>';
 }
-/* Un meuble = sa barre, à sa couleur (crayon, flèches, poubelle) → dedans : sa pièce, sa couleur, ses espaces, « Nouvel espace… ». */
+/* Un meuble = sa barre, à sa couleur (crayon, flèches, poubelle) → dedans : sa pièce, sa couleur, ses espaces, « Nouvel espace… ».
+   Un congélateur porte un flocon collé à son nom (J-C, 2026-10-07, choix A sur aperçu : le voir sans ouvrir — « surtout pour nous
+   avertir qu'on a coché un par erreur »). */
 function htmlMeuble(m, i, groupe) {
   const t = teinteBarre(m);
   return '<div class="accordeon" data-type="m" data-id="' + esc(m.id) + '">' +
-    '<div class="accordeon-tete' + t.pale + '"' + t.style + '><span>' + esc(m.nom) + '</span>' + crayon('e:' + m.id) + fleches('m', m.id, i, groupe.length) + poubelle('m', m.id) + '</div>' +
+    '<div class="accordeon-tete' + t.pale + '"' + t.style + '><span>' + esc(m.nom) + '</span>' + (m.congelo ? '<span class="flocon" aria-label="Congélateur"></span>' : '') +
+      crayon('e:' + m.id) + fleches('m', m.id, i, groupe.length) + poubelle('m', m.id) + '</div>' +
     '<div class="accordeon-corps" hidden>' +
       '<div class="bloc accordeon-bloc"><div class="label">Pièce</div>' +
         '<select class="champ choix-piece" data-meuble="' + esc(m.id) + '">' + optionsPieces(m.pieceId) + '</select></div>' +
@@ -1975,7 +1978,8 @@ function rafraichirBases() {
 function planifierOrdre() { clearTimeout(minuterieOrdre); minuterieOrdre = setTimeout(envoyerOrdre, DELAI_ORDRE); }
 /* Le crayon touché : le nom devient un champ. Entrée ou toucher ailleurs = enregistrer; Échap = laisser tel quel. */
 function ouvrirRenommer(btn) {
-  const avant = btn.previousElementSibling;
+  let avant = btn.previousElementSibling;
+  if (avant && avant.classList.contains('flocon')) avant = avant.previousElementSibling;   // un congélateur : le nom est avant son flocon
   const span = avant.classList.contains('nom-duree') ? avant.firstElementChild : avant;   // une sous-catégorie : le nom, au-dessus de sa durée
   const input = document.createElement('input');
   input.className = 'champ champ-renommer';
