@@ -164,13 +164,6 @@ function dureeOuvert(p) {
   const a = dureeDuNom(p.nom, CLES_OUVERT);
   return a !== '' ? a : dureeOuvertSousCat(p.catId);
 }
-/* « Ouvrir » ne paraît que là où ça compte (RdG-09, choix A) : sa durée raccourcit une fois ouvert. */
-function raccourcitOuvert(p) {
-  const o = dureeOuvert(p);
-  if (o === '' || o === 0) return false;
-  const d = dureeAliment(p);
-  return d === '' || d === 0 || o < d;
-}
 /* Le menu d'une durée (J-C, choix A) : en tête, ce qui vaut quand on n'a rien choisi; puis 1 jour… 2 ans; « Aucune »
    (« Pas de changement » pour « une fois ouvert »). */
 function optionsDuree(choisie, premier, zero) {

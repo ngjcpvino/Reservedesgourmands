@@ -2556,7 +2556,7 @@ function surRecherche() {
   let trouves = parNom.sort(alpha).concat(parVariante.sort(alpha));
   // Consommer, Déplacer : seulement ce qu'on a (J-C, 2026-10-05 : « plus en réserve », « pas utile » — on ne consomme pas ce qu'on n'a
   // pas). Rechercher les garde : savoir qu'on n'en a plus, au magasin, ça sert.
-  // Ouvrir : seulement ce qui raccourcit une fois ouvert et a encore un contenant fermé (RdG-09, choix A) — « Rien à ouvrir » sinon
+  // Ouvrir : seulement ce qui a encore un contenant fermé (RdG-09; tout s'ouvre depuis le 2026-10-09) — « Rien à ouvrir » sinon
   const ouvrir = modeRecherche === 'ouvrir';
   const lotsDe = p => ouvrir ? (par[p.id] || []).filter(l => partsAOuvrir(p, l).length) : (par[p.id] || []);
   const combien = p => ouvrir ? qteAOuvrir(p, par[p.id]) : totalLots(par[p.id]);
@@ -2651,7 +2651,7 @@ function montrerRayon(pid, sansDefiler) {
                                             || htmlVide('Rien à déplacer', 'Tout est en escale', '');
   else if (modeRecherche === 'consommer') corps = htmlLotsParEndroit(prod, lots, false, (l, i) => htmlPartsConsommer(prod, l, i, !!sorte));
   else if (modeRecherche === 'ouvrir') corps = htmlLotsParEndroit(prod, lots.map(l => partsAOuvrir(prod, l).length ? l : null), false, (l, i) => htmlPartsOuvrir(prod, l, i, !!sorte))
-                                          || htmlVide('Rien à ouvrir', raccourcitOuvert(prod) ? 'Tout est déjà ouvert' : 'Ne raccourcit pas une fois ouvert', '');
+                                          || htmlVide('Rien à ouvrir', lots.every(l => l.ouvert) ? 'Tout est déjà ouvert' : '', '');   // sinon : des paquets, pot par pot
   else corps = htmlLotsParEndroit(prod, lots, false, l => htmlLigneLot(prod, l, ''));
   if (!modeRecherche) corps += htmlPasAimes(prod);   // au magasin : ce qu'on n'a pas aimé, même quand on n'en a plus
   let html = '<div class="vedette"><div class="vedette-tete"><span>' + esc(prod.nom) + '</span><span>' + esc(total) + '</span></div>' +
@@ -2896,12 +2896,13 @@ function fermerPhotoGrande() {
 }
 /* ---------- Ouvrir (RdG-09, J-C, 2026-10-08) ----------
    Un bouton du menu, après Consommer : le même écran (le nom ou le scan), le contenant touché s'ouvre — STOCK col. Q = aujourd'hui.
-   Seulement ce qui raccourcit une fois ouvert (raccourcitOuvert) et encore fermé; jamais un paquet (« 12 x 100 g » : chaque pot se
-   mange d'un coup). Un contenant ouvert parmi plusieurs : la ligne se coupe, la part ouverte garde tout le reste (sa date
+   TOUT contenant encore fermé (J-C, 2026-10-09 : le sac de farine de 5 kg, ouvert, va sur la liste d'achats des mois d'avance — on
+   guette le solde; remplace « seulement ce qui raccourcit une fois ouvert »); jamais un paquet de plusieurs (« 12 x 100 g » : chaque
+   pot se mange d'un coup) — « 1 unité », c'est un contenant. Un contenant ouvert parmi plusieurs : la ligne se coupe, la part ouverte garde tout le reste (sa date
    d'entrée, son épicerie, son horloge). Instantané, par la file des gestes (deplacer : les lignes réécrites au complet). */
 function partsAOuvrir(prod, lot) {
-  if (!prod || !lot || lot.ouvert || !raccourcitOuvert(prod)) return [];
-  return partsDuLot(lot).filter(p => !p.unites);
+  if (!prod || !lot || lot.ouvert) return [];
+  return partsDuLot(lot).filter(p => !(p.unites && p.pack > 1));
 }
 function qteAOuvrir(prod, lots) { return (lots || []).reduce((s, l) => s + partsAOuvrir(prod, l).reduce((t, p) => t + p.qte, 0), 0); }
 function htmlPartsOuvrir(prod, l, i, scanne) {
