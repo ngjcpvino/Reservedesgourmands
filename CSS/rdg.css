@@ -191,9 +191,13 @@
   --retrait:           12px;   /* LE retrait du site, un seul partout (J-C, 2026-09-30) : chaque niveau recule d'autant */
   --fleche-deplacer:   18px;   /* la flèche à tige ↑↓ « déplacer », dessinée en CSS */
   --flocon-taille:     20px;   /* le flocon d'un meuble « Congélateur », collé à son nom (J-C, 2026-10-07, choix A sur aperçu) */
-  --fleche-trait:      0.55;   /* sa présence : discrète, comme le triangle */
-  --pastille-ouvrir:   30px;   /* Ouvrir : la pastille bleu pâle sur la ligne (J-C, 2026-10-09, choix C sur aperçu) */
-  --icone-ouvrir-ligne: 20px;  /*   et la conserve dedans */
+  --pastille-action:   30px;   /* LA PASTILLE d'une petite icône d'action (J-C, 2026-10-09 : « c'est plus intuitif que c'est une action ») */
+  --icone-ouvrir-ligne: 20px;  /* la conserve d'Ouvrir, dans sa pastille */
+  --action-consommer:  var(--menu-consommer);   /* chaque action, la couleur de son bouton au menu (J-C, 2026-10-09, choix A sur aperçu) */
+  --action-deplacer:   var(--menu-deplacer);
+  --action-ouvrir:     var(--menu-ouvrir);
+  --action-achats:     var(--menu-achats);
+  --action-base:       var(--couleur-201);      /* le crayon, les flèches, la poubelle : pas de bouton au menu, beige */
   --poubelle-taille:   24px;   /* la poubelle « retirer », un peu plus grosse que le crayon : elle tient tête à l'interrupteur (J-C, 2026-10-03, choix F sur aperçu parmi 22 / 24 / 26) */
   --icone-colonne:     28px;   /* Magasins : l'icône des circulaires au-dessus des interrupteurs, à la place du mot (J-C, 2026-10-03, choix A sur aperçu) */
   --interrupteur-large:  40px;   /* l'interrupteur « Circulaire » (Magasins) : sa piste */
@@ -201,7 +205,7 @@
   --interrupteur-rond:   14px;   /* le bouton rond qui glisse */
   --interrupteur-trait:  1.5px;  /* le contour de la piste */
   --interrupteur-eteint: 0.6;    /* éteint : pâli, la piste vide */
-  --fleche-eteinte:    0.15;   /* la 1re ne monte pas, la dernière ne descend pas */
+  --fleche-eteinte:    0.35;   /* la 1re ne monte pas, la dernière ne descend pas : sa pastille pâlit avec elle */
   /* ---- Les circulaires : le tri (J-C, 2026-10-01, sur aperçu) — les couleurs du feu de circulation, sur les barres et le feu ---- */
   --tri-oui:           var(--couleur-702);   /* vert */
   --tri-peutetre:      var(--couleur-606);   /* jaune (pâle : texte brun sur sa barre) */
@@ -227,6 +231,7 @@
   --point-couleur:     var(--couleur-401);
   --plan-collant:      10;     /* un bouton collé au bas de l'écran passe par-dessus la liste */
   --plan-fond:         -1;     /* la photo pâlie des pages de travail : sous tout le reste */
+  --plan-pastille:     -1;     /* la pastille d'une petite icône d'action : sous son dessin, dans son bouton */
   --plan-menu:         220;    /* le menu : par-dessus la page, sous le X */
   --plan-coin:         230;    /* le burger (le X) : par-dessus le menu */
   --plan-alerte:       235;    /* le bandeau « Réserve pas à jour » : par-dessus le menu et le X, sous un message */
@@ -676,10 +681,9 @@ select.champ {
 
 /* ------------------------------------------------------------
    LES FLÈCHES ↑↓ « DÉPLACER » — flèche à tige, jamais un triangle.
-   Dessinées ici (masque SVG), jamais écrites dans le HTML. Elles prennent
-   currentColor : crème sur une tête foncée, brun foncé sur une tête pâle
-   ou sur une ligne blanche. Chaque flèche occupe toute la hauteur de sa
-   ligne, pour être facile à toucher.
+   Dessinées ici (masque SVG), jamais écrites dans le HTML. Chacune sur sa
+   pastille beige (voir LA PASTILLE, plus bas), le dessin brun. Chaque flèche
+   occupe toute la hauteur de sa ligne, pour être facile à toucher.
 ------------------------------------------------------------ */
 .fleches { display: flex; align-self: stretch; margin-left: auto; margin-right: var(--espace-s); }
 .fleche {
@@ -697,15 +701,14 @@ select.champ {
   content: '';
   width: var(--fleche-deplacer);
   height: var(--fleche-deplacer);
-  background: currentColor;
+  background: var(--i);
   -webkit-mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Cpath d='M8 14V2M3 7l5-5 5 5' stroke='black' stroke-width='1.2' fill='none' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E") center / contain no-repeat;
           mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Cpath d='M8 14V2M3 7l5-5 5 5' stroke='black' stroke-width='1.2' fill='none' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E") center / contain no-repeat;
-  opacity: var(--fleche-trait);
 }
 .fleche-bas::before { transform: rotate(180deg); }
-.fleche-eteinte { cursor: default; }
+.fleche-eteinte { cursor: default; opacity: var(--fleche-eteinte); }
 
-/* LE CRAYON « corriger le nom » — collé au nom, dessiné ici, currentColor comme les flèches. */
+/* LE CRAYON « corriger le nom » — collé au nom, dessiné ici, sur sa pastille beige comme les flèches. */
 .crayon {
   display: flex;
   align-items: center;
@@ -807,12 +810,32 @@ select.champ {
 .accordeon-tete :is(.fleches, .crayon, .interrupteur, .retirer) { margin-top: calc(-1 * var(--espace-m)); margin-bottom: calc(-1 * var(--espace-m)); }
 .accordeon-item :is(.fleches, .crayon, .retirer) { margin-top: calc(-1 * var(--espace-s)); margin-bottom: calc(-1 * var(--espace-s)); }
 .accordeon-tete .retirer { margin-right: calc(-1 * var(--espace-s)); }
-.retirer::before, .crayon::before, .ranger::before, .remettre::before, .consommer::before {
+/* LA PASTILLE (J-C, 2026-10-09 : « les petites icônes devraient être de ce genre, c'est plus intuitif que c'est une action »; choix A
+   sur aperçu) : chaque petite icône d'action est posée sur une pastille de la couleur de son bouton au menu — Consommer rouge,
+   Déplacer vert, Ouvrir bleu pâle, la Liste d'achats brune; le crayon, les flèches et la poubelle (pas de bouton au menu) beiges.
+   Le dessin : crème sur une pastille foncée, brun sur une pâle. Le nombre, lui, n'a plus de pastille : il ne fait que dire combien. */
+:is(.retirer, .crayon, .fleche, .ranger, .remettre, .consommer, .entamer) { --p: var(--action-base); --i: var(--icone-trait-pale); position: relative; isolation: isolate; }
+.consommer { --p: var(--action-consommer); --i: var(--icone-trait); }
+.ranger    { --p: var(--action-deplacer); --i: var(--icone-trait); }
+.remettre  { --p: var(--action-achats); --i: var(--icone-trait); }
+.entamer   { --p: var(--action-ouvrir); }
+:is(.retirer, .crayon, .fleche, .ranger, .remettre, .consommer, .entamer)::after {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: var(--pastille-action);
+  height: var(--pastille-action);
+  border-radius: var(--rayon);
+  background: var(--p);
+  z-index: var(--plan-pastille);
+}
+.retirer::before, .crayon::before, .ranger::before, .remettre::before, .consommer::before, .entamer::before {
   content: '';
   width: var(--fleche-deplacer);
   height: var(--fleche-deplacer);
-  background: currentColor;
-  opacity: var(--fleche-trait);
+  background: var(--i);
 }
 .retirer::before {
   width: var(--poubelle-taille);
@@ -833,19 +856,11 @@ select.champ {
   -webkit-mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='1.8' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M5.5 2.5v4.5M8 2.5v4.5M10.5 2.5v4.5'/%3E%3Cpath d='M5.5 7c0 1.8 1.1 3 2.5 3s2.5-1.2 2.5-3'/%3E%3Cpath d='M8 10v11.5'/%3E%3Cpath d='M15.5 2.5c3 2.8 4 6.4 4 9.5h-4z'/%3E%3Cpath d='M17.5 12v9.5'/%3E%3C/svg%3E") center / contain no-repeat;
           mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='1.8' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M5.5 2.5v4.5M8 2.5v4.5M10.5 2.5v4.5'/%3E%3Cpath d='M5.5 7c0 1.8 1.1 3 2.5 3s2.5-1.2 2.5-3'/%3E%3Cpath d='M8 10v11.5'/%3E%3Cpath d='M15.5 2.5c3 2.8 4 6.4 4 9.5h-4z'/%3E%3Cpath d='M17.5 12v9.5'/%3E%3C/svg%3E") center / contain no-repeat;
 }
-/* LA CONSERVE OUVERTE « ouvrir » (Ouvrir — J-C, 2026-10-09, choix C sur aperçu) : le dessin du bouton du menu, dans une pastille de sa
-   couleur, avant la quantité; un toucher ouvre un contenant. */
-.entamer { position: relative; }
-.entamer::before { content: ''; width: var(--pastille-ouvrir); height: var(--pastille-ouvrir); border-radius: var(--rayon); background: var(--menu-ouvrir); }
-.entamer::after {
-  content: '';
-  position: absolute;
-  top: 50%;
-  left: 50%;
-  transform: translate(-50%, -50%);
+/* LA CONSERVE OUVERTE « ouvrir » (Ouvrir — J-C, 2026-10-09, choix C sur aperçu) : le dessin du bouton du menu, avant la quantité;
+   un toucher ouvre un contenant. */
+.entamer::before {
   width: var(--icone-ouvrir-ligne);
   height: var(--icone-ouvrir-ligne);
-  background: var(--icone-trait-pale);
   -webkit-mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='1.8' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M5 11v8.5c0 1.4 3.1 2.5 7 2.5s7-1.1 7-2.5V11'/%3E%3Cpath d='M5 15.5c0 1.4 3.1 2.5 7 2.5s7-1.1 7-2.5'/%3E%3Cellipse cx='12' cy='11' rx='7' ry='2.5'/%3E%3Cellipse cx='11.7' cy='10.4' rx='7' ry='2.3' transform='rotate(38 18.7 10.4)'/%3E%3C/svg%3E") center / contain no-repeat;
           mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='1.8' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M5 11v8.5c0 1.4 3.1 2.5 7 2.5s7-1.1 7-2.5V11'/%3E%3Cpath d='M5 15.5c0 1.4 3.1 2.5 7 2.5s7-1.1 7-2.5'/%3E%3Cellipse cx='12' cy='11' rx='7' ry='2.5'/%3E%3Cellipse cx='11.7' cy='10.4' rx='7' ry='2.3' transform='rotate(38 18.7 10.4)'/%3E%3C/svg%3E") center / contain no-repeat;
 }
@@ -855,7 +870,6 @@ select.champ {
 }
 /* le nom devenu champ, dans sa ligne */
 .champ-renommer { flex: 1; min-width: 0; min-height: auto; padding: var(--espace-xs) var(--espace-s); margin-right: var(--espace-s); font-weight: var(--poids-fort); }
-.fleche-eteinte::before { opacity: var(--fleche-eteinte); }
 
 /* ------------------------------------------------------------
    COULEURS — la pastille (choisir une couleur : pièces, meubles, catégories, épiceries) et le nuancier (Outils → Couleurs).
@@ -898,13 +912,11 @@ select.champ {
 .item-nom { font-size: var(--texte-moyen); font-weight: var(--poids-normal); color: var(--couleur-306); }
 .item-detail { font-size: var(--texte-petit); font-weight: var(--poids-normal); color: var(--couleur-305); }   /* marque, format… : brun 305, normal (J-C, 2026-10-01, choix C sur aperçu; avant : 302 léger, trop pâle) */
 .item-detail.date-passee { color: var(--couleur-402); font-weight: var(--poids-fort); }   /* À consommer bientôt : « Date passée », en rouge (J-C, 2026-10-06) */
-.item-quantite {
+.item-quantite {   /* informatif seulement : sans pastille (J-C, 2026-10-09 — la pastille dit « ça se touche ») */
   font-size: var(--texte-petit);
   font-weight: var(--poids-fort);
   color: var(--couleur-305);
-  background: var(--couleur-201);
-  padding: var(--espace-micro) var(--espace-s);
-  border-radius: var(--rayon);
+  padding: 0 var(--espace-s);
 }
 
 /* Une liste de lignes posée sur la photo pâlie (Rechercher : les suggestions, les voisins) */
@@ -1021,7 +1033,7 @@ select.champ {
 .achat .case { accent-color: var(--couleur-703); pointer-events: none; }   /* la ligne entière se touche : la case suit */
 /* En haut à droite, côte à côte (J-C, 2026-10-02, choix C sur aperçu) : la flèche « mettre de côté », puis la case « dans le panier ». */
 .achat-boutons { display: flex; align-items: center; gap: var(--espace-xs); }
-.achat-boutons .remettre { height: var(--case-taille); }
+.achat-boutons .remettre { height: var(--pastille-action); }
 .ecarter::before { transform: scaleX(-1); }   /* « mettre de côté » = la flèche « revenir » de « Mis de côté », inversée (plus de poubelle) */
 .achat-coche .item-nom, .achat-coche .item-detail { color: var(--couleur-205); text-decoration: line-through; }
 /* LES SOLDES (J-C, 2026-10-02 : « trop d'info ») : sous l'aliment, une ligne courte par magasin — « IGA · Québon · 2 L · 4,99 (6,49) »,
