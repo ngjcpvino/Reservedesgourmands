@@ -220,8 +220,6 @@
   --rond-tri:          48px;   /* les 3 boutons ronds de la page Circulaires : Oui, Peut-être, Jamais (J-C, 2026-10-05, sur aperçu : 48 parmi 32 / 40 / 48; 64 avant) */
   --ronds-ecart:       calc(var(--espace-xl) * 1.5);   /* entre deux ronds */
   --banniere-haut:     calc(var(--tactile) * 2);       /* une épicerie ouverte : son logo en bannière, aussi haute que deux barres */
-  --nombre-large:      calc(var(--tactile) * 0.75);    /* le nombre sur la bannière d'une épicerie (Liste d'achats, Par épicerie) */
-  --arrondi-pilule:    999px;                          /* un arrondi complet : le nombre en pastille allongée */
   --photo-tri:         56px;   /* au tri : la petite photo d'un produit (derrière un code, une proposition) — J-C, 2026-10-02, sur aperçu */
   --photo-grande-haut: 78vh;   /* la photo touchée, en grand : sa hauteur au plus (J-C, 2026-10-08, choix A sur aperçu : « sur iPhone, c'est beaucoup trop petit ») */
   --photo-vide:        color-mix(in srgb, var(--couleur-201) 60%, var(--couleur-101));   /* pas de photo : une case pâle */
@@ -1053,20 +1051,13 @@ select.champ {
 /* LA LISTE D'ACHATS PAR ÉPICERIE (J-C, 2026-10-07, sur aperçus; RdG-08) : comme la page Circulaires — les épiceries en tuiles, 2 colonnes,
    le nombre dans le coin (= ce qu'on va chercher là); touchée, elle seule en bannière, le nombre à droite, ses trois parties — Moins
    cher ici · Prix pareil ou inconnu · Moins cher ailleurs —, un bandeau par catégorie dans chacune. */
-.nombre {
+.nombre {   /* le compte d'une épicerie (Liste d'achats, Par épicerie) : sans pastille, il ne fait qu'informer (J-C, 2026-10-09 : « Enlève ») */
   flex-shrink: 0;
-  min-width: var(--nombre-large);
-  padding: var(--espace-micro) var(--espace-s);
-  border-radius: var(--arrondi-pilule);
-  background: var(--couleur-306);
-  color: var(--couleur-105);
   font-size: var(--texte-normal);
   font-weight: var(--poids-fort);
-  text-align: center;
 }
-.accordeon-tete:not(.banniere) > .nombre { background: var(--couleur-101); color: var(--couleur-306); }   /* sur une barre de couleur : une pastille claire */
-.tuile-nom > .nombre { background: var(--couleur-101); color: var(--couleur-306); }   /* idem, sur une tuile à sa couleur */
-.bouton-grand > .nombre { position: absolute; top: var(--point-marge); right: var(--point-marge); }   /* une tuile (comme la page Circulaires) : dans le coin, là où se pose le point rouge */
+.bouton-grand > .nombre { position: absolute; top: var(--point-marge); right: var(--point-marge); font-size: var(--texte-moyen); }   /* une tuile (comme la page Circulaires) : dans le coin, là où se pose le point rouge */
+:is(.tuile-logo, .banniere) > .nombre { color: var(--couleur-306); }   /* sur le blanc d'un logo : brun (le crème y disparaîtrait) */
 .partie { padding: var(--espace-s) var(--espace-l) var(--espace-xs); font-size: var(--texte-normal); font-weight: var(--poids-fort); color: var(--couleur-306); border-top: var(--filet) solid var(--champ-bord); }
 .partie:first-child { border-top: none; }
 
