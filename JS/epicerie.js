@@ -26,6 +26,7 @@ function montrerEpiceries() {
   EPI = null; EPI_CARTE = null; epiJeton++;
   $('epi-titre').textContent = "Toute l'épicerie";
   montrer('epi-choix', true); montrer('epi-scan', false);
+  $('epi-magasin-neuf').value = ''; $('epi-magasin-msg').className = 'message message-repli'; $('epi-magasin-msg').textContent = '';
   remplirEpiceries();
   window.scrollTo(0, 0);
 }
@@ -41,7 +42,29 @@ function remplirEpiceries() {
     const note = l ? (String(l[3]) === 'T' ? 'À compléter' : 'En cours') + ' (' + articles(nbArticles(l[0])) + ')' : '';
     return '<div class="accordeon" data-epi-magasin="' + esc(x.id) + '"><div class="accordeon-tete' + t.pale + '"' + t.style + '><span>' + esc(x.nom) + '</span></div>' +
       (note ? '<div class="note-barre">' + esc(note) + '</div>' : '') + '</div>';
-  }).join('') || '<div class="accordeon-item"><span class="texte-petit texte-pale">Aucun magasin : ajoute-les dans Gérer les bases → Magasins</span></div>';
+  }).join('') || '<div class="accordeon-item"><span class="texte-petit texte-pale">Aucun magasin.</span></div>';
+}
+/* « Nouveau magasin… » (J-C, 2026-10-09 : « dans les 2 sacs, faudrait pouvoir ajouter un magasin ») : créé comme dans Gérer les
+   bases → Magasins (sa circulaire à Oui), puis ouvert tout de suite pour scanner — on l'ajoute parce qu'on y est. Un nom déjà là : lui. */
+async function ajouterEpicerie() {
+  const champ = $('epi-magasin-neuf'), msg = $('epi-magasin-msg'), btn = $('btn-epi-magasin');
+  const nom = champ.value.trim();
+  msg.className = 'message message-repli'; msg.textContent = '';
+  if (!nom || btn.disabled) return;
+  const deja = LISTES.Magasins.find(m => cleNom(m.nom) === cleNom(nom));
+  let id = deja ? String(deja.id) : '';
+  if (!id) {
+    btn.disabled = true; montrerVoile(true);
+    try { id = await creerMagasin(nom); }
+    catch (e) {
+      msg.className = 'message message-repli message-erreur'; msg.textContent = 'Pas ajouté — réessaie.';
+      chargerReferences().then(() => { if (!$('vue-epicerie').hidden && !$('epi-choix').hidden) remplirEpiceries(); });   // créé quand même ? il paraît
+      return;
+    } finally { btn.disabled = false; montrerVoile(false); }
+  }
+  champ.value = '';
+  remplirEpiceries();
+  choisirEpicerie(id);
 }
 /* L'épicerie touchée : sa liste pas encore close, ou une nouvelle (instantanée : elle part dans la file); puis sa circulaire. */
 async function choisirEpicerie(mag) {
@@ -907,6 +930,8 @@ function initEpicerie() {
   $('completer-liste').addEventListener('input', ev => { if (ev.target.id === 'cp-texte') collerPage(ev.target.value); });
   $('completer-retour').addEventListener('click', () => { if (EPI_COMPLETER && EPI_COMPLETER.plusieurs) montrerCompleter(); else montrerChoixQuoi(); });
   $('epi-magasins').addEventListener('click', ev => { const b = ev.target.closest('[data-epi-magasin]'); if (b) choisirEpicerie(b.dataset.epiMagasin); });
+  $('btn-epi-magasin').addEventListener('click', ajouterEpicerie);
+  $('epi-magasin-neuf').addEventListener('keydown', e => { if (e.key === 'Enter') { e.preventDefault(); ajouterEpicerie(); } });
   $('epi-choix-retour').addEventListener('click', montrerChoixQuoi);            // Retour recule d'un pas : les deux sacs
   $('epi-retour').addEventListener('click', montrerEpiceries);                   // sort sans terminer : la liste reste ouverte
   $('epi-sans-code').addEventListener('click', () => modeSansCode(true));

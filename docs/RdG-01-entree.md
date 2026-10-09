@@ -310,6 +310,9 @@ Compléter ») — `api.gs` collé (le 2026-10-04 au soir), à essayer en ligne
 - **Le bouton des deux sacs** mène tout droit au **choix de l'épicerie** (une barre par magasin, comme la page Magasins; sous la
   barre d'une liste pas close : « En cours (12 articles) » ou « À compléter (12 articles) »). Le choix **Entrer / Compléter** viendra
   avec Compléter : d'ici là, il n'y a qu'Entrer.
+- **Un magasin qui n'est pas dans la liste** (J-C, 2026-10-09 : « dans les 2 sacs, faudrait pouvoir ajouter un magasin ») :
+  sous les barres, **« Nouveau magasin… » + Ajouter**, la même ligne qu'au bas de Gérer les bases → Magasins. Créé comme là
+  (sa circulaire à Oui), puis **ouvert tout de suite pour scanner**; un nom déjà dans la liste = lui, rien de créé.
 - **L'épicerie touchée** : sa liste pas close (reprise), sinon une neuve (onglet Epiceries, instantanée); **sa circulaire de la
   semaine est lue une fois** (un appel, le chariot; gardée pour la journée).
 - **L'écran du scan** : tel que les aperçus. La caméra reste ouverte entre deux articles; après OK, le même code encore sous la

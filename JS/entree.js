@@ -1813,38 +1813,43 @@ async function montrerPageNoms(cle) {
   }
   remplirPageNoms();
 }
-/* Ajouter (Magasins) : le nom, puis Ajouter (ou Entrée). Un nom déjà dans la liste ne crée rien; un nom retiré
-   revient (Actif = O) au lieu d'être doublé. Un échec relit la réserve : si le nom a été créé quand même,
-   il paraît, et le 2e essai ne le double pas. */
+/* Ajouter (Magasins) : le nom, puis Ajouter (ou Entrée). Un nom déjà dans la liste ne crée rien. Un échec relit la réserve :
+   si le nom a été créé quand même, il paraît, et le 2e essai ne le double pas. */
 async function ajouterNom() {
   if (pageNoms.unites) { ajouterUnite(); return; }
-  const champ = $('nom-nouveau'), msg = $('noms-msg'), btn = $('btn-nom-ajouter'), L = listeNoms();
+  const champ = $('nom-nouveau'), msg = $('noms-msg'), btn = $('btn-nom-ajouter');
   const nom = champ.value.trim();
   msg.className = 'message message-repli'; msg.textContent = '';
   if (!nom || btn.disabled || !pageNoms.gere) return;
-  const deja = LISTES[L].find(m => cleNom(m.nom) === cleNom(nom));
+  const deja = LISTES.Magasins.find(m => cleNom(m.nom) === cleNom(nom));
   if (deja) { msg.className = 'message message-repli message-erreur'; msg.textContent = '« ' + deja.nom + ' » existe déjà.'; return; }
-  const c = lireCache(), rows = c && c.listes && c.listes[L];
-  const ancien = rows && rows.find(r => String(r[2]) === 'N' && cleNom(r[1]) === cleNom(nom));
   btn.disabled = true; montrerVoile(true);
   try {
-    // Magasins : ID · Nom · Actif · Circulaire · Trouvee (· Couleur · Logo) — il part à Oui (J-C), même un magasin retiré qui revient (avec sa couleur et son logo)
-    const ligne = [ancien ? ancien[0] : '', nom, 'O', 'O', ''].concat(ancien ? [ancien[5] || '', ancien[6] || ''] : []);
-    const r = ancien ? await Coffre.modifier(L, ancien[0], ligne) : await Coffre.ajouter(L, ligne);
-    if (!r || !r.ok) throw new Error((r && r.erreur) || 'refus');
-    const id = ancien ? String(ancien[0]) : String(r.id);
-    ligne[0] = id;
-    LISTES[L].push({ id: id, nom: nom, circ: true, introuvable: false, couleur: String(ligne[5] || ''), logo: String(ligne[6] || '') }); NOMS_LISTES[id] = nom;
-    if (c) {
-      c.listes = c.listes || {}; c.listes[L] = (c.listes[L] || []).filter(x => String(x[0]) !== id).concat([ligne]);
-      ecrireCache(c);
-    }
+    await creerMagasin(nom);
     champ.value = '';
     remplirPageNoms();
   } catch (e) {
     msg.className = 'message message-repli message-erreur'; msg.textContent = 'Pas ajouté — réessaie.';
     chargerReferences().then(() => { if (!$('vue-noms').hidden) remplirPageNoms(); });
   } finally { btn.disabled = false; montrerVoile(false); }
+}
+/* Un magasin neuf (la page Magasins, les deux sacs), sous le chariot de l'appelant. Un magasin retiré du même nom revient
+   (Actif = O) au lieu d'être doublé. Rend son ID; un refus lève une erreur. */
+async function creerMagasin(nom) {
+  const L = 'Magasins', c = lireCache(), rows = c && c.listes && c.listes[L];
+  const ancien = rows && rows.find(r => String(r[2]) === 'N' && cleNom(r[1]) === cleNom(nom));
+  // Magasins : ID · Nom · Actif · Circulaire · Trouvee (· Couleur · Logo) — il part à Oui (J-C), même un magasin retiré qui revient (avec sa couleur et son logo)
+  const ligne = [ancien ? ancien[0] : '', nom, 'O', 'O', ''].concat(ancien ? [ancien[5] || '', ancien[6] || ''] : []);
+  const r = ancien ? await Coffre.modifier(L, ancien[0], ligne) : await Coffre.ajouter(L, ligne);
+  if (!r || !r.ok) throw new Error((r && r.erreur) || 'refus');
+  const id = ancien ? String(ancien[0]) : String(r.id);
+  ligne[0] = id;
+  LISTES[L].push({ id: id, nom: nom, circ: true, introuvable: false, couleur: String(ligne[5] || ''), logo: String(ligne[6] || '') }); NOMS_LISTES[id] = nom;
+  if (c) {
+    c.listes = c.listes || {}; c.listes[L] = (c.listes[L] || []).filter(x => String(x[0]) !== id).concat([ligne]);
+    ecrireCache(c);
+  }
+  return id;
 }
 /* La poubelle (Magasins) : la question à la place de sa barre. Rien ne bouge avant Oui. */
 function demanderRetraitNom(id) {
