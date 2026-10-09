@@ -213,6 +213,11 @@
   <div class="contenu">
     <div id="epi-choix">
       <div id="epi-magasins"></div>
+      <div class="accordeon-item accordeon-item-saisie">   <!-- la même ligne qu'au bas de Gérer les bases → Magasins -->
+        <input class="champ" id="epi-magasin-neuf" autocomplete="off" enterkeyhint="done" placeholder="Nouveau magasin…">
+        <button class="bouton bouton-petit bouton-vert" id="btn-epi-magasin" type="button">Ajouter</button>
+      </div>
+      <div class="message message-repli" id="epi-magasin-msg"></div>
       <button class="bouton bouton-or bouton-pleine bouton-detache" id="epi-choix-retour" type="button">Retour</button>
     </div>
     <div id="epi-scan" hidden>
@@ -521,10 +526,10 @@
 </div><!-- fin du conteneur -->
 
 <script src="JS/coffre.js?v=16"></script>
-<script src="JS/entree.js?v=179"></script>
+<script src="JS/entree.js?v=180"></script>
 <script src="JS/bientot.js?v=5"></script>
 <script src="JS/prix.js?v=6"></script>
-<script src="JS/epicerie.js?v=13"></script>
+<script src="JS/epicerie.js?v=14"></script>
 <script src="JS/scan.js?v=13"></script>
 </body>
 </html>
