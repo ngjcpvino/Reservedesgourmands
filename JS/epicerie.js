@@ -102,8 +102,7 @@ function modeSansCode(on) {
 }
 function fermerCarte() { EPI_CARTE = null; epiJeton++; $('epi-carte').innerHTML = ''; }
 
-/* Un code lu. Ses données d'abord (instantané); sinon UN appel au coffre-fort (les circulaires d'IGA, puis Open Food Facts) —
-   un coffre-fort pas encore à jour : Open Food Facts directement. */
+/* Un code lu. Ses données d'abord (instantané); sinon la recherche (identifierCode). */
 async function surCodeEpicerie(code) {
   code = String(code || '').trim();
   if (!code || !EPI) return;
@@ -112,15 +111,19 @@ async function surCodeEpicerie(code) {
   if (connu) { montrerCarte(connu); return; }
   $('epi-carte').innerHTML = '<div class="carte bloc-suite carte-scan"><div class="message">Recherche du produit…</div>' +
     '<button class="bouton bouton-pleine bouton-quitter" type="button" data-epi-annuler>Annuler</button></div>';
-  let r = null;
-  try { r = await Coffre.identifier(code); } catch (e) {}
-  if (!r || !r.ok) {
-    let d = null;
-    if (typeof window.chercherOFF === 'function') { try { d = await window.chercherOFF(code); } catch (e) {} }
-    r = d && d.trouve ? { source: 'off', texte: d.nom || d.nomAutre, marque: d.marque, format: d.format, photo: d.photo } : { source: '' };
-  }
+  const r = await identifierCode(code);
   if (jeton !== epiJeton || $('epi-scan').hidden) return;   // annulé, ou parti ailleurs entre-temps
   montrerCarte(articleNouveau(code, r));
+}
+/* Un code qui n'est pas à nous : UN appel au coffre-fort (les circulaires d'IGA, puis Open Food Facts) — un coffre-fort pas encore
+   à jour : Open Food Facts directement. La même recherche pour les deux sacs et pour Ajouter (J-C, 2026-10-09). */
+async function identifierCode(code) {
+  let r = null;
+  try { r = await Coffre.identifier(code); } catch (e) {}
+  if (r && r.ok) return r;
+  let d = null;
+  if (typeof window.chercherOFF === 'function') { try { d = await window.chercherOFF(code); } catch (e) {} }
+  return d && d.trouve ? { source: 'off', texte: d.nom || d.nomAutre, marque: d.marque, format: d.format, photo: d.photo } : { source: '' };
 }
 const produitActif = pid => PRODUITS.some(p => String(p.id) === String(pid));
 /* Déjà à nous (Stock : sa dernière entrée donne la marque, la saveur, le format), ou appris au tri. */

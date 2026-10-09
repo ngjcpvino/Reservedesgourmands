@@ -152,7 +152,7 @@ function preparerFiche(avecCode) {
   reinitFiche();
   montrer('bloc-code', !!avecCode);          // le champ code n'apparaît qu'au scan
   montrer('fiche-scan', !avecCode);          // à la main : le scan reste à côté de la catégorie (plus d'écran « scan ou à la main »)
-  $('codebarres').value = ''; codeScan = '';
+  $('codebarres').value = ''; codeScan = ''; $('msg-code').textContent = '';
 }
 
 /* Les mêmes blocs, dans l'ordre du chemin suivi :
@@ -174,10 +174,13 @@ function ouvrirFicheScan(code) {
 }
 
 /* Le code-barres est la clé : ses données d'abord — STOCK (déjà entré), puis le tri des circulaires (J-C, 2026-10-02 : un code appris
-   au tri remplit la fiche, sa marque et sa saveur comprises) —, un PLU tapé (4 ou 5 chiffres) : la liste officielle; sinon Open Food Facts. */
+   au tri remplit la fiche, sa marque et sa saveur comprises) —, un PLU tapé (4 ou 5 chiffres) : la liste officielle; sinon la même
+   recherche que les deux sacs (les circulaires d'IGA, puis Open Food Facts : identifierCode). Rien trouvé : « Inconnu » sous le code
+   (J-C, 2026-10-09 : avant, rien ne le disait — le code s'inscrivait, c'est tout). */
 async function surCode() {
   const code = $('codebarres').value.trim();
   codeScan = code;
+  $('msg-code').textContent = '';
   if (!code) return;
   const tri = !CODES[String(code)] && (CODES_TRI[formeCode(code)] || CODES_TRI[code]);
   const pid = CODES[String(code)] || (tri && tri[0]);
@@ -198,25 +201,31 @@ async function surCode() {
       return;
     }
   }
+  const ailleurs = () => $('vue-app').hidden || $('codebarres').value.trim() !== code;   // Annuler, ou un autre code entre-temps
   if (estPlu(code)) {                               // un fruit, un légume (J-C : « je vais taper les 4 chiffres »)
-    statut('Recherche du PLU…');
+    $('msg-code').textContent = 'Recherche du PLU…';
     await chargerPlu();
-    statut('');
+    if (ailleurs()) return;
+    $('msg-code').textContent = nomPlu(code) ? '' : 'Inconnu';
     if (nomPlu(code)) { $('nom').value = nomPlu(code); surNom(); }   // J-C confirme, ou choisit « Serait-ce plutôt celui-ci ? »
     return;
   }
-  statut('Recherche du produit…');
-  let d = null;
-  if (typeof window.chercherOFF === 'function') { try { d = await window.chercherOFF(code); } catch (e) {} }
-  statut('');
-  if (d && d.trouve) {                              // trouvé chez Open Food Facts -> nouveau produit
-    $('nom').value = d.nom || d.nomAutre || '';     // pas de nom français : l'anglais, que J-C corrige (2026-09-30)
-    surNom();
-    if (produitCourant === null) {                  // resté « nouveau » : on garde les infos OFF
-      if (d.marque) choisirParNom('marque', d.marque);   // retrouvée dans la liste, sinon elle y entre : choisie dans les deux cas
-      if (d.format) poserFormat(d.format);   // Open Food Facts donne « 2 L » : on le répartit dans les deux champs
-    }
-  }                                                 // sinon : on laisse; il remplit le nom à la main
+  $('msg-code').textContent = 'Recherche du produit…';
+  const nomAvant = $('nom').value;
+  const a = articleNouveau(code, await identifierCode(code));
+  if (ailleurs()) return;
+  if ($('nom').value !== nomAvant) { $('msg-code').textContent = ''; return; }   // il a écrit le nom pendant la recherche : le sien gagne
+  if (a.nouveau.inconnu) { $('msg-code').textContent = 'Inconnu'; return; }   // il écrit le nom à la main
+  $('msg-code').textContent = '';
+  const n = a.nouveau;
+  $('nom').value = n.nom;                           // pas de nom français : l'anglais, que J-C corrige (2026-09-30)
+  surNom();
+  if (produitCourant === null) {                    // resté « nouveau » : on garde ce qui a été trouvé
+    const marque = (n.marqueId && NOMS_LISTES[n.marqueId]) || n.marqueNom;
+    if (marque) choisirParNom('marque', marque);    // retrouvée dans la liste, sinon elle y entre : choisie dans les deux cas
+    if (n.saveurId && NOMS_LISTES[n.saveurId]) choisirParNom('saveur', NOMS_LISTES[n.saveurId]);
+    if (a.format) poserFormat(a.format);            // « 2 L » : réparti dans les deux champs
+  }
 }
 function revenirConnexion(msg) {
   toutCacher(); $('vue-connexion').hidden = false; $('entete-photo').hidden = false;
