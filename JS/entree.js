@@ -2908,35 +2908,17 @@ function qteAOuvrir(prod, lots) { return (lots || []).reduce((s, l) => s + parts
 function htmlPartsOuvrir(prod, l, i, scanne) {
   const nom = [nomListe(l.marque), nomListe(l.saveur)].filter(Boolean).join(' ') || prod.nom;
   return partsAOuvrir(prod, l).filter(p => !scanne || sorteColle(l.marque, l.saveur, p.format)).map(p =>
-    '<div class="item" data-entamer="' + esc(prod.id + '|' + i + '|' + p.cle) + '"><div class="item-info"><div class="item-nom">' + esc(nom) + '</div>' +
-    (p.format ? '<div class="item-detail">' + esc(p.format) + '</div>' : '') + '</div><span class="item-quantite">' + esc(p.qte) + '</span></div>').join('');
+    '<div class="item"><div class="item-info"><div class="item-nom">' + esc(nom) + '</div>' +
+    (p.format ? '<div class="item-detail">' + esc(p.format) + '</div>' : '') + '</div>' +
+    '<button class="entamer" type="button" data-entamer="' + esc(prod.id + '|' + i + '|' + p.cle) + '" aria-label="Ouvrir"></button>' +
+    '<span class="item-quantite">' + esc(p.qte) + '</span></div>').join('');
 }
-/* La ligne touchée ouvre sa carte, juste dessous : la quantité (1, − +), Ouvrir / Annuler. */
+/* L'icône de la ligne touchée (J-C, 2026-10-09, choix C sur aperçu : « pas besoin de la qte pour ouvrir ») : un contenant s'ouvre,
+   tout de suite — ni quantité ni confirmation; pour deux, on touche deux fois. */
 function ouvrirOuverture(cle) {
   const k = cle.split('|'), prod = PRODUITS.find(x => String(x.id) === k[0]), lot = (lotsParProduit()[k[0]] || [])[Number(k[1])];
   const p = partsAOuvrir(prod, lot).find(x => x.cle === k.slice(2).join('|'));
-  if (!p) return;
-  if ($('recherche-rayon').querySelector('.carte')) montrerRayon(lot.pid, true);   // une seule carte ouverte à la fois
-  const item = [...$('recherche-rayon').querySelectorAll('[data-entamer]')].find(x => x.dataset.entamer === cle);
-  if (!item) return;
-  const carte = document.createElement('div');
-  carte.className = 'endroit carte';
-  carte.innerHTML = htmlQuantite() + '<div class="message"></div>' +
-    '<div class="grille"><button class="bouton bouton-petit bouton-vert ouv-oui" type="button">Ouvrir</button>' +
-    '<button class="bouton bouton-petit ouv-non" type="button">Annuler</button></div>';
-  item.after(carte);
-  brancherPlusMoins(carte, p.qte);
-  const combien = () => parseInt(carte.querySelector('.qte').value, 10) || 0;
-  const verifier = () => {
-    const q = combien(), m = carte.querySelector('.message'), ok = q > 0 && q <= p.qte;
-    m.className = ok ? 'message' : 'message message-erreur';
-    m.textContent = ok || !q ? '' : 'Il y en a ' + p.qte + '.';
-    carte.querySelector('.ouv-oui').hidden = !ok;
-  };
-  carte.addEventListener('input', verifier);
-  carte.querySelector('.ouv-non').onclick = () => montrerRayon(lot.pid, true);
-  carte.querySelector('.ouv-oui').onclick = () => ouvrirPart(lot, p, combien());
-  verifier();
+  if (p) ouvrirPart(lot, p, 1);
 }
 function ouvrirPart(lot, part, q) {
   const rows = part.rows.slice().sort((a, b) => String(dateCourte(a[4]) || '').localeCompare(String(dateCourte(b[4]) || '')));   // le plus vieux d'abord
