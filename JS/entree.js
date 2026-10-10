@@ -2109,8 +2109,9 @@ function libelleEndroit(emp) {
 function detailLot(l) { return [[nomListe(l.marque), nomListe(l.saveur), l.formats.join(' + ')].filter(Boolean).join(' · '), l.ouvert ? '(ouvert)' : ''].filter(Boolean).join(' '); }
 function htmlLot(pid, i, l, titre, sorte) {
   const detail = detailLot(l);
-  const ranger = '<button class="consommer" type="button" data-inv="c" data-lots="' + esc([pid, '', l.marque, l.saveur, l.ouvert ? 'o' : 'f'].join('|')) + '" aria-label="Consommer"></button>' +
-    '<button class="ranger" type="button" data-lot="' + esc(pid) + '|' + i + '" aria-label="Ranger"></button>';   // AVANT la quantité (J-C) : les nombres restent au bout, sous le total
+  const cle = [pid, '', l.marque, l.saveur, l.ouvert ? 'o' : 'f'].join('|');   // déplacer (ranger), ouvrir, consommer (J-C, 2026-10-09)
+  const ranger = '<button class="ranger" type="button" data-lot="' + esc(pid) + '|' + i + '" aria-label="Ranger"></button>' + boutonOuvrir(cle) +
+    '<button class="consommer" type="button" data-inv="c" data-lots="' + esc(cle) + '" aria-label="Consommer"></button>';   // AVANT la quantité (J-C) : les nombres restent au bout, sous le total
   if (sorte) return '<div class="item sorte"><div class="item-info"><div class="item-detail">' + esc(detail || titre) + '</div></div>' +
     ranger + '<span class="sorte-quantite">' + esc(l.qte) + '</span></div>';
   return '<div class="item"><div class="item-info"><div class="item-nom">' + esc(titre) + '</div>' +
@@ -2327,9 +2328,28 @@ function remplirInventaire() {
    Déplacer : où (d'avance son autre endroit habituel). Par catégorie, un aliment à plusieurs endroits : « De » d'abord.
    Une ligne vise ses lots par « produit|endroit|marque|saveur » (endroit '*' = tous : Par catégorie; '' = l'Escale). */
 function outilsInventaire(pid, emp, marque, saveur, ouvert) {
-  const k = esc([pid, emp, marque, saveur].concat(ouvert === undefined ? [] : [ouvert ? 'o' : 'f']).join('|'));   // 5e : ouvert ou fermé (RdG-09)
-  return '<button class="consommer" type="button" data-inv="c" data-lots="' + k + '" aria-label="Consommer"></button>' +
-    '<button class="ranger" type="button" data-inv="d" data-lots="' + k + '" aria-label="Déplacer"></button>';
+  const cle = [pid, emp, marque, saveur].concat(ouvert === undefined ? [] : [ouvert ? 'o' : 'f']).join('|'), k = esc(cle);   // 5e : ouvert ou fermé (RdG-09)
+  return '<button class="ranger" type="button" data-inv="d" data-lots="' + k + '" aria-label="Déplacer"></button>' + boutonOuvrir(cle) +
+    '<button class="consommer" type="button" data-inv="c" data-lots="' + k + '" aria-label="Consommer"></button>';
+}
+/* LA CONSERVE sur une ligne (J-C, 2026-10-09, choix A sur aperçu : « déplacer, ouvrir, consommer ») : un toucher ouvre un contenant,
+   comme dans Ouvrir. Rien à ouvrir (déjà ouvert, un paquet de pots) : elle pâlit et ne fait rien. */
+function boutonOuvrir(cle) {
+  const prod = PRODUITS.find(p => String(p.id) === String(cle.split('|')[0]));
+  const rien = !lotsDeCle(cle).some(l => partsAOuvrir(prod, l).length);
+  return '<button class="entamer' + (rien ? ' entamer-eteinte' : '') + '" type="button" data-inv="o" data-lots="' + esc(cle) + '" aria-label="Ouvrir"></button>';
+}
+/* La conserve touchée : un contenant s'ouvre tout de suite. Plusieurs endroits (Par catégorie) : celui de son emplacement 1, sinon le
+   plus vieux; plusieurs formats : le plus vieux. fin : l'écran qui se redessine. */
+function ouvrirDeLaLigne(lots, fin) {
+  const pid = lots.length ? lots[0].pid : '', prod = PRODUITS.find(p => String(p.id) === String(pid));
+  const vieux = parts => parts.flatMap(p => p.rows).map(r => String(dateCourte(r[4]) || '')).sort()[0] || '';
+  const avec = lots.filter(l => partsAOuvrir(prod, l).length);
+  if (!avec.length) return;
+  const premier = endroitsHabituels(pid)[0];
+  const lot = avec.find(l => l.emp === premier) || avec.slice().sort((a, b) => vieux(partsAOuvrir(prod, a)).localeCompare(vieux(partsAOuvrir(prod, b))))[0];
+  const part = partsAOuvrir(prod, lot).sort((a, b) => vieux([a]).localeCompare(vieux([b])))[0];
+  ouvrirPart(lot, part, 1, fin);
 }
 function lotsDeCle(cle) {
   const k = String(cle).split('|');
@@ -2340,8 +2360,9 @@ function ouvrirActionInventaire(btn) {
   const conso = btn.dataset.inv === 'c', lots = lotsDeCle(btn.dataset.lots), item = btn.closest('.item');
   const zone = btn.closest('#liste-inventaire, #liste-bientot');   // l'Inventaire, ou À consommer bientôt (la même carte)
   const redessiner = zone && zone.id === 'liste-bientot' ? remplirBientot : remplirInventaire;
-  if (!zone) return;
+  if (!zone || btn.classList.contains('entamer-eteinte')) return;
   zone.querySelectorAll('.carte-inv').forEach(c => c.remove());   // une seule carte ouverte à la fois
+  if (btn.dataset.inv === 'o') { ouvrirDeLaLigne(lots, () => redessiner()); return; }   // la conserve : un toucher, pas de carte
   if (!lots.length || !item) return;
   const carte = document.createElement('div');
   carte.className = 'endroit carte carte-inv';
@@ -2920,9 +2941,9 @@ function ouvrirOuverture(cle) {
   const p = partsAOuvrir(prod, lot).find(x => x.cle === k.slice(2).join('|'));
   if (p) ouvrirPart(lot, p, 1);
 }
-function ouvrirPart(lot, part, q) {
+function ouvrirPart(lot, part, q, fin) {   // fin : qui reprend la main après (l'Inventaire, À consommer bientôt); sans : l'écran Ouvrir
   const rows = part.rows.slice().sort((a, b) => String(dateCourte(a[4]) || '').localeCompare(String(dateCourte(b[4]) || '')));   // le plus vieux d'abord
-  if (!(q > 0) || q > part.qte || rows.some(r => !r[0])) { avis('Pas ouvert — réessaie', 'erreur'); montrerRayon(lot.pid, true); return; }
+  if (!(q > 0) || q > part.qte || rows.some(r => !r[0])) { avis('Pas ouvert — réessaie', 'erreur'); if (fin) fin(); else montrerRayon(lot.pid, true); return; }
   const op = 'ouv-' + Date.now() + '-' + Math.random().toString(36).slice(2, 8), jour = dateDuJour(), modifs = [], ajouts = [];
   let reste = q;
   for (const row of rows) {
@@ -2943,6 +2964,7 @@ function ouvrirPart(lot, part, q) {
   }
   poserGeste({ action: 'deplacer', opId: op, modifs: modifs, ajouts: ajouts });
   avis('Ouvert', 'succes');
+  if (fin) { fin(); return; }
   $('recherche-texte').value = '';
   montrerRecherche(false);                             // le champ vide : on enchaîne avec le suivant
   $('recherche-texte').focus();
@@ -4691,7 +4713,7 @@ function initEntree() {
     if (tete) toggleAccordeon(tete);
   });
   $('liste-bientot').addEventListener('click', function (ev) {
-    const inv = ev.target.closest('[data-inv]');           // la fourchette (consommer, jeter) ou les deux flèches (déplacer) : la carte de l'Inventaire
+    const inv = ev.target.closest('[data-inv]');           // les deux flèches (déplacer), la conserve (ouvrir), la fourchette (consommer, jeter)
     if (inv) { ouvrirActionInventaire(inv); return; }
     if (ev.target.closest('.endroit')) return;             // toucher la carte ouverte ne plie pas l'accordéon
     const tete = ev.target.closest('.accordeon-tete');
@@ -4711,7 +4733,7 @@ function initEntree() {
   $('liste-inventaire').addEventListener('click', function (ev) {   // pièces et meubles de l'inventaire
     const vue = ev.target.closest('[data-vue]');           // « Par catégorie » / « Par meuble »
     if (vue) { if (vue.dataset.vue !== vueInventaire) { vueInventaire = vue.dataset.vue; remplirInventaire(); } return; }
-    const inv = ev.target.closest('[data-inv]');           // la fourchette (consommer) ou les deux flèches (déplacer) d'une ligne
+    const inv = ev.target.closest('[data-inv]');           // les deux flèches (déplacer), la conserve (ouvrir), la fourchette (consommer) d'une ligne
     if (inv) { ouvrirActionInventaire(inv); return; }
     const lot = ev.target.closest('.ranger[data-lot]');    // l'Escale : les deux flèches rangent
     if (lot) { ouvrirLot(lot); return; }

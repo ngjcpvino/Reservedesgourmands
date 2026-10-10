@@ -205,7 +205,7 @@
   --interrupteur-rond:   14px;   /* le bouton rond qui glisse */
   --interrupteur-trait:  1.5px;  /* le contour de la piste */
   --interrupteur-eteint: 0.6;    /* éteint : pâli, la piste vide */
-  --fleche-eteinte:    0.35;   /* la 1re ne monte pas, la dernière ne descend pas : sa pastille pâlit avec elle */
+  --fleche-eteinte:    0.35;   /* la 1re ne monte pas, la dernière ne descend pas; rien à ouvrir : sa pastille pâlit avec elle */
   /* ---- Les circulaires : le tri (J-C, 2026-10-01, sur aperçu) — les couleurs du feu de circulation, sur les barres et le feu ---- */
   --tri-oui:           var(--couleur-702);   /* vert */
   --tri-peutetre:      var(--couleur-606);   /* jaune (pâle : texte brun sur sa barre) */
@@ -704,7 +704,7 @@ select.champ {
           mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Cpath d='M8 14V2M3 7l5-5 5 5' stroke='black' stroke-width='1.2' fill='none' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E") center / contain no-repeat;
 }
 .fleche-bas::before { transform: rotate(180deg); }
-.fleche-eteinte { cursor: default; opacity: var(--fleche-eteinte); }
+.fleche-eteinte, .entamer-eteinte { cursor: default; opacity: var(--fleche-eteinte); }   /* la conserve d'une ligne sans rien à ouvrir pâlit aussi */
 
 /* LE CRAYON « corriger le nom » — collé au nom, dessiné ici, sur sa pastille beige comme les flèches. */
 .crayon {
