@@ -145,6 +145,13 @@ function montrerFormulaire(avecCode) {
   preparerFiche(avecCode);
   chargerReferences();                        // catégories + liste des produits
 }
+/* LE SAC SEUL (J-C, 2026-10-09 : « comme les deux sacs ») : la caméra d'abord; « Sans code » dessous : l'entonnoir (Catégorie →
+   Sous-catégorie → Produit…); Retour : le choix des sacs. Un article entré, avec ou sans code, et c'est fini (« c'est fait pour
+   entrer 1 produit ») : le menu (enregistrer). */
+function montrerScanProduit() {
+  if (typeof montrerScanner !== 'function') { montrerFormulaire(false); return; }
+  montrerScanner({ lu: ouvrirFicheScan, retour: montrerChoixQuoi, sansCode: () => montrerFormulaire(false) });
+}
 /* La fiche vierge, sur son chemin. Après une entrée, on revient à celle du départ (à la main) : un seul écran pour entrer. */
 function preparerFiche(avecCode) {
   modeManuel = !avecCode;                    // à la main : on descend l'entonnoir; au scan : le code donne l'identité
@@ -1139,9 +1146,8 @@ async function enregistrer() {
     }
     nettoyerAchats(produitId);                           // entré : il quitte la liste d'achats
     opCourant = null;                                      // succès : le prochain article aura un nouveau jeton
-    preparerFiche(false);                                  // le même écran qu'au départ, prêt pour le suivant (J-C : « 2 pages pour entrer un produit »)
-    window.scrollTo(0, 0);
-    avis('Ajouté', 'succes');                              // comme Consommé, Déplacé (le message de la fiche s'effaçait avec elle)
+    retourAuMenu();                                        // un produit entré, c'est fini (J-C, 2026-10-09 : « c'est fait pour entrer 1 produit »)
+    avis('Ajouté', 'succes');                              // comme Consommé, Déplacé : au centre, par-dessus le menu
   } catch (e) {
     statut('Échec : ' + e.message, 'erreur');
   } finally { $('btn-enregistrer').disabled = false; montrerVoile(false); }
@@ -4747,11 +4753,9 @@ function initEntree() {
     const ouverte = $('vue-listes').querySelector('.contenu > .accordeon > .accordeon-tete.ouvert');
     if (ouverte) { toggleAccordeon(ouverte); window.scrollTo(0, 0); } else retourAuMenu();
   });
-  $('choix-produit').addEventListener('click', () => montrerFormulaire(false));   // l'entonnoir, et le scan à côté
+  $('choix-produit').addEventListener('click', montrerScanProduit);    // le sac seul : la caméra d'abord, « Sans code » : l'entonnoir
   $('choix-epicerie').addEventListener('click', montrerEpiceries);      // toute l'épicerie : l'épicerie, puis le scan (JS/epicerie.js)
-  $('fiche-scan').addEventListener('click', () => {
-    if (typeof montrerScanner === 'function') montrerScanner({ lu: ouvrirFicheScan, retour: () => montrerFormulaire(false) });
-  });
+  $('fiche-scan').addEventListener('click', montrerScanProduit);        // à la main, le scan à côté de la catégorie : retour à la caméra
   $('btn-retour-quoi').addEventListener('click', retourAuMenu);         // retour : choix « quoi » → le menu
   // formulaire d'entrée
   $('codebarres').addEventListener('change', surCode);
@@ -4792,7 +4796,7 @@ function initEntree() {
   $('btn-transit').addEventListener('click', () => pasEncoreRange(true));
   $('btn-ranger').addEventListener('click', () => pasEncoreRange(false));
   $('btn-enregistrer').addEventListener('click', enregistrer);
-  $('btn-annuler').addEventListener('click', montrerChoixQuoi);
+  $('btn-annuler').addEventListener('click', montrerScanProduit);       // Annuler recule d'un pas : la caméra du sac seul
   // reste connecté → page d'ouverture, le chariot par-dessus jusqu'à ce que tout soit là
   if (Coffre.motDePasse()) { if (localStorage.getItem(QUI)) montrerAccueil(); else montrerQui(); chargerAvecChariot(); }
 }
