@@ -313,6 +313,10 @@ Compléter ») — `api.gs` collé (le 2026-10-04 au soir), à essayer en ligne
 - **Un magasin qui n'est pas dans la liste** (J-C, 2026-10-09 : « dans les 2 sacs, faudrait pouvoir ajouter un magasin ») :
   sous les barres, **« Nouveau magasin… » + Ajouter**, la même ligne qu'au bas de Gérer les bases → Magasins. Créé comme là
   (sa circulaire à Oui), puis **ouvert tout de suite pour scanner**; un nom déjà dans la liste = lui, rien de créé.
+- **Les listes vides** (J-C, 2026-10-09 : « 0 article… à quoi bon ») : sous une barre, « En cours (N) » dit ce qui est scanné,
+  « À compléter (N) » ce qui reste à compléter, et rien du tout à zéro. Une liste **d'un jour passé** qui n'a plus rien à compléter
+  (ouverte sans rien scanner, terminée vide, tout consommé) **se ferme toute seule** à l'ouverture des deux sacs; jamais une liste
+  d'aujourd'hui (l'autre appareil y scanne peut-être). L'épicerie touchée ensuite repart sur une liste neuve, datée du jour.
 - **L'épicerie touchée** : sa liste pas close (reprise), sinon une neuve (onglet Epiceries, instantanée); **sa circulaire de la
   semaine est lue une fois** (un appel, le chariot; gardée pour la journée).
 - **L'écran du scan** : tel que les aperçus. La caméra reste ouverte entre deux articles; après OK, le même code encore sous la

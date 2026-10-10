@@ -27,6 +27,7 @@ function montrerEpiceries() {
   $('epi-titre').textContent = "Toute l'épicerie";
   montrer('epi-choix', true); montrer('epi-scan', false);
   $('epi-magasin-neuf').value = ''; $('epi-magasin-msg').className = 'message message-repli'; $('epi-magasin-msg').textContent = '';
+  fermerListesVides();
   remplirEpiceries();
   window.scrollTo(0, 0);
 }
@@ -34,12 +35,26 @@ const listeOuverte = mag => EPICERIES.find(r => String(r[1]) === String(mag) && 
 const lignesEpicerie = id => STOCK.filter(r => String(r[13] || '') === String(id));
 const nbArticles = id => lignesEpicerie(id).reduce((s, r) => s + (Number(r[3]) || 0), 0);
 const articles = n => n + ' article' + (n > 1 ? 's' : '');
-/* Une barre par magasin, à SA couleur (comme la page Magasins). Une liste pas encore close : « En cours » ou « À compléter » (Terminé touché). */
+/* Une liste d'un jour passé qui n'a plus rien à compléter (vide : ouverte puis quittée sans rien scanner, ou terminée ainsi; tout
+   consommé) se ferme (Epiceries col. D = C), d'un geste (J-C, 2026-10-09 : « 0 article… à quoi bon »). Jamais une liste
+   d'aujourd'hui : l'autre appareil y scanne peut-être, ses articles pas encore arrivés ici. L'épicerie touchée ensuite repart sur une
+   liste neuve, datée du jour (la bonne circulaire). */
+function fermerListesVides() {
+  const auj = dateDuJour();
+  const vides = EPICERIES.filter(r => String(r[3]) !== 'C' && String(dateCourte(r[2]) || '').slice(0, 10) < auj && !lignesACompleter(r[0]).length);
+  if (!vides.length) return;
+  poserGeste({ action: 'lignes', table: 'Epiceries', opId: 'epiv-' + idLocal(),
+    lignes: vides.map(r => { const l = r.slice(); while (l.length < 5) l.push(''); l[3] = 'C'; return l; }) });
+  poserPoints();
+}
+/* Une barre par magasin, à SA couleur (comme la page Magasins). Une liste pas encore close : « En cours (3 articles) » (ce qui est
+   scanné) ou « À compléter (2 articles) » (Terminé touché : ce qui reste à compléter); rien du tout à zéro. */
 function remplirEpiceries() {
   const xs = LISTES.Magasins.slice().sort((a, b) => a.nom.localeCompare(b.nom, 'fr'));
   $('epi-magasins').innerHTML = xs.map(x => {
-    const l = listeOuverte(x.id), t = teinteMagasin(x.id);
-    const note = l ? (String(l[3]) === 'T' ? 'À compléter' : 'En cours') + ' (' + articles(nbArticles(l[0])) + ')' : '';
+    const l = listeOuverte(x.id), t = teinteMagasin(x.id), fini = l && String(l[3]) === 'T';
+    const n = !l ? 0 : fini ? nbACompleter(l[0]) : nbArticles(l[0]);
+    const note = n ? (fini ? 'À compléter' : 'En cours') + ' (' + articles(n) + ')' : '';
     return '<div class="accordeon" data-epi-magasin="' + esc(x.id) + '"><div class="accordeon-tete' + t.pale + '"' + t.style + '><span>' + esc(x.nom) + '</span></div>' +
       (note ? '<div class="note-barre">' + esc(note) + '</div>' : '') + '</div>';
   }).join('') || '<div class="accordeon-item"><span class="texte-petit texte-pale">Aucun magasin.</span></div>';
@@ -459,6 +474,7 @@ var EPI_COMPLETER = null;    // la liste ouverte : { id, magasin, nom, plusieurs
 var LOTS_COMPLETER = [];     // ses lots, comme l'Escale : { pid, emp, marque, saveur, formats, qte, lignes }
 var COMPLETER_OUVERT = '';   // le groupe ouvert ('escale' ou l'ID d'un meuble) : il le reste après un geste
 const lignesACompleter = id => STOCK.filter(r => String(r[13] || '') === String(id) && !String(r[14] || '') && Number(r[3]) > 0);
+const nbACompleter = id => lignesACompleter(id).reduce((s, l) => s + (Number(l[3]) || 0), 0);
 const aCategorie = pid => { const p = PRODUITS.find(x => String(x.id) === String(pid)); return !!(p && p.catId); };
 function montrerCompleter() {
   const xs = aCompleter();
@@ -470,7 +486,7 @@ function montrerCompleter() {
   montrer('epi-choix', false); montrer('epi-scan', false); montrer('epi-completer', true); montrer('completer-ok', false);
   $('completer-liste').innerHTML = '';
   $('completer-listes').innerHTML = xs.map(r => {
-    const n = lignesACompleter(r[0]).reduce((s, l) => s + (Number(l[3]) || 0), 0), t = teinteMagasin(r[1]);
+    const n = nbACompleter(r[0]), t = teinteMagasin(r[1]);
     return '<div class="accordeon" data-completer="' + esc(r[0]) + '"><div class="accordeon-tete' + t.pale + '"' + t.style + '><span>' + esc(nomListe(r[1])) + '</span></div>' +
       '<div class="note-barre">' + esc(jourLisible(r[2]) + ' (' + articles(n) + ')') + '</div></div>';
   }).join('');
