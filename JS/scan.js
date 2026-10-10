@@ -38,6 +38,7 @@
     var b = el('btn-burger'); if (b) b.hidden = false;
     el('scan-resultat').hidden = true;
     el('scan-code').textContent = '';
+    el('scan-sans-code').hidden = !(mode && typeof mode.sansCode === 'function');   // le sac seul : « Sans code » sous la caméra
     msg('Démarrage de la caméra…');
     await demarrer('scan-video');
   }
@@ -174,6 +175,12 @@
       arreter();
       if (mode && typeof mode.retour === 'function') { mode.retour(); return; }   // on revient d'où l'on vient
       if (typeof montrerChoixQuoi === 'function') montrerChoixQuoi();
+    });
+    var sans = el('scan-sans-code');                     // le sac seul : l'entonnoir, sans la caméra
+    if (sans) sans.addEventListener('click', function () {
+      var m = mode;
+      arreter();
+      if (m && typeof m.sansCode === 'function') m.sansCode();
     });
     var encore = el('scan-encore');
     if (encore) encore.addEventListener('click', function () { montrerScanner(mode); });
