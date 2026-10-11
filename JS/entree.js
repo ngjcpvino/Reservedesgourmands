@@ -163,13 +163,13 @@ function preparerFiche(avecCode) {
 }
 
 /* Les mêmes blocs, dans l'ordre du chemin suivi :
-   à la main -> Catégorie, Sous-catégorie, Produit, (Nom si nouveau), Marque/Format, Endroits
+   à la main -> Catégorie, Sous-catégorie, Produit (un nouveau : son nom à la place du menu), Marque/Format, Endroits
    au scan   -> Nom, Marque/Format, (Catégorie/Sous-catégorie si nouveau), Endroits */
 function ordonnerFiche() {
   const parent = $('vue-app').querySelector('.contenu');
   const ordre = modeManuel
-    ? ['bloc-code', 'bloc-cat', 'bloc-souscat', 'bloc-produit', 'bloc-plu', 'bloc-nom', 'bloc-details', 'bloc-achat', 'bloc-endroits']
-    : ['bloc-code', 'bloc-nom', 'bloc-details', 'bloc-achat', 'bloc-cat', 'bloc-souscat', 'bloc-produit', 'bloc-plu', 'bloc-endroits'];   // magasin + prix : juste sous le format
+    ? ['bloc-code', 'bloc-cat', 'bloc-souscat', 'bloc-produit', 'bloc-doublons', 'bloc-plu', 'bloc-nom', 'bloc-details', 'bloc-achat', 'bloc-endroits']
+    : ['bloc-code', 'bloc-nom', 'bloc-doublons', 'bloc-details', 'bloc-achat', 'bloc-cat', 'bloc-souscat', 'bloc-produit', 'bloc-plu', 'bloc-endroits'];   // magasin + prix : juste sous le format
   ordre.forEach(id => parent.insertBefore($(id), $('btn-enregistrer')));
 }
 
@@ -531,13 +531,14 @@ function reinitFiche() {
   poserFormat('');
   $('prix').value = '';
   $('cat').value = ''; $('souscat').innerHTML = ''; $('produit').innerHTML = ''; $('endroits').innerHTML = '';
+  montrer('produit-ligne', false); $('produit-nom').value = '';
   produitCourant = null;
   montrer('bloc-details', false); montrer('bloc-souscat', false); montrer('bloc-produit', false);
   montrer('bloc-doublons', false); montrer('bloc-achat', false);
   montrer('bloc-cat-neuve', false); montrer('bloc-souscat-neuve', false);
   $('cat-neuve').value = ''; $('souscat-neuve').value = '';
   montrer('bloc-endroits', false); montrer('btn-enregistrer', false);
-  montrer('bloc-plu', false); $('plu').innerHTML = ''; $('plu-tape').value = ''; montrer('plu-tape', false); $('plu-nom').textContent = '';
+  montrer('bloc-plu', false); $('plu').innerHTML = ''; $('plu-tape').value = ''; montrer('plu-ligne', false); $('plu-nom').textContent = '';
   pasEncoreRange(false);
   montrer('bloc-cat', modeManuel);      // à la main, l'entonnoir part de la catégorie
   montrer('bloc-nom', !modeManuel);     // le nom ne sert qu'au scan, ou à un nouveau produit
@@ -639,6 +640,7 @@ function remplirProduits(scid) {
   const liste = PRODUITS.filter(p => String(p.catId) === String(scid))
                         .sort((a, b) => String(a.nom).localeCompare(String(b.nom), 'fr'));
   $('produit').innerHTML = options(liste, '— Produit —') + '<option value="nouveau">Nouveau produit…</option>';
+  montrer('produit-ligne', false); $('produit-nom').value = '';
 }
 
 /* Un produit choisi dans la liste (ou « Nouveau produit… »). */
@@ -647,14 +649,16 @@ function surProduit() {
   $('endroits').innerHTML = '';
   montrer('bloc-endroits', false); montrer('btn-enregistrer', false);
   pasEncoreRange(false);
+  if (v !== 'nouveau') { montrer('produit-ligne', false); $('produit-nom').value = ''; }
   if (!v) { produitCourant = null; montrer('bloc-nom', false); montrer('bloc-details', false); majPlu(); return; }
-  if (v === 'nouveau') {                        // il le nomme; la catégorie, elle, est déjà choisie
+  if (v === 'nouveau') {                        // il le nomme, à la place du menu; la catégorie, elle, est déjà choisie
     produitCourant = null;
-    $('nom').value = '';
+    $('nom').value = $('produit-nom').value;    // « Nouveau produit… » rechoisi : le nom déjà tapé revient
     remplirVariantes(null);
-    montrer('bloc-nom', true); montrer('bloc-details', true);
+    majSaisie($('produit'), true);
+    montrer('bloc-details', true);
+    if ($('nom').value.trim()) surNom();
     majPlu();                                   // « Taper le code… » tout de suite; les propositions suivent le nom tapé
-    $('nom').focus();
     return;
   }
   const prod = PRODUITS.find(p => String(p.id) === String(v));
@@ -675,7 +679,7 @@ const estFruitLegume = rid => !!rid && cleNom((RAYONS.find(r => String(r.id) ===
 async function majPlu() {
   const voir = modeManuel && estFruitLegume($('cat').value) && !$('bloc-produit').hidden && !!$('produit').value;
   montrer('bloc-plu', voir);
-  if (!voir) { $('plu').innerHTML = ''; $('plu-tape').value = ''; montrer('plu-tape', false); $('plu-nom').textContent = ''; return; }
+  if (!voir) { $('plu').innerHTML = ''; $('plu-tape').value = ''; montrer('plu-ligne', false); $('plu-nom').textContent = ''; return; }
   const pid = produitCourant, nom = pid ? (PRODUITS.find(p => String(p.id) === String(pid)) || {}).nom : $('nom').value.trim();
   await chargerPlu();
   const avant = $('plu').value, dernier = pid ? dernierPlu(pid) : '';
@@ -685,6 +689,7 @@ async function majPlu() {
     props.map(p => '<option value="' + esc(p.code) + '">' + esc(p.code + (p.nom ? ' · ' + p.nom : '')) + '</option>').join('') +
     '<option value="tape">Taper le code…</option>';
   $('plu').value = avant === 'tape' || props.some(p => p.code === avant) ? avant : dernier;
+  reposerNeuf($('plu'));                        // un code déjà tapé et ajouté le reste
   surPlu();
 }
 /* Le dernier PLU entré pour ce produit (STOCK col. I) : la prochaine fois, déjà choisi. */
@@ -693,13 +698,11 @@ function dernierPlu(pid) {
   return '';
 }
 function surPlu() {
-  const tape = $('plu').value === 'tape';
-  montrer('plu-tape', tape);
-  if (tape && !$('plu-tape').value) $('plu-tape').focus();
+  majSaisie($('plu'), true);                    // « Taper le code… » : le champ à la place du menu
   surPluTape();
 }
 function surPluTape() {                                 // le nom officiel sous les chiffres tapés : on voit tout de suite si c'est le bon
-  const c = $('plu').value === 'tape' ? $('plu-tape').value.trim() : '';
+  const c = !$('plu-ligne').hidden ? $('plu-tape').value.trim() : '';   // ajouté, le code et son nom sont dans le menu
   $('plu-nom').textContent = !c ? '' : !estPlu(c) ? 'Un PLU a 4 ou 5 chiffres.' : (nomPlu(c) || 'Pas dans la liste officielle des PLU.');
 }
 /* Le PLU de l'entrée ('' : aucun) — le code tapé, ou celui du menu. */
@@ -793,13 +796,9 @@ function remplirChoix(champ, ids, choisi) {
   montrer('bloc-' + champ + '-neuve', false);
 }
 function idsProposes(champ) { return [...$(champ).options].map(o => o.value).filter(v => v && v !== 'neuve'); }
-/* « Nouvelle… » choisi : le champ pour la nommer apparaît. */
-function surChoix(champ) {
-  const neuve = $(champ).value === 'neuve';
-  montrer('bloc-' + champ + '-neuve', neuve);
-  if (neuve) $(champ + '-neuve').focus();
-}
-/* « Ajouter » : un nom déjà dans la liste (même ailleurs) est REPRIS, jamais doublé; sinon il naît ici. */
+/* « Nouvelle… » choisi : le champ pour la nommer prend la place du menu. */
+function surChoix(champ) { majSaisie($(champ), true); }
+/* Le + : un nom déjà dans la liste (même ailleurs) est REPRIS, jamais doublé; sinon il naît ici. */
 function ajouterChoix(champ) {
   const C = CHOIX_FICHE[champ], nom = $(champ + '-neuve').value.trim();
   if (!nom) { $(champ + '-neuve').focus(); return false; }
@@ -814,13 +813,102 @@ function ajouterChoix(champ) {
   return true;
 }
 /* Un nom venu d'ailleurs (Open Food Facts) : retrouvé dans la liste, sinon il y entre — choisi dans les deux cas, comme si on
-   avait touché Ajouter (J-C, 2026-09-30 : « Nouvelle marque… » avec la marque écrite dessous, c'était de trop).
+   avait touché le + (J-C, 2026-09-30 : « Nouvelle marque… » avec la marque écrite dessous, c'était de trop).
    Il n'est créé que si l'entrée le porte : changer d'idée ne laisse rien derrière (enregistrer). */
 function choisirParNom(champ, nom) {
   nom = String(nom || '').split(',')[0].trim();         // OFF donne parfois « Liberté, Danone » : la première
   if (!nom) return;
   $(champ + '-neuve').value = nom;
   ajouterChoix(champ);
+}
+/* ---------- « NOUVEAU… », PARTOUT (J-C, 2026-10-11 : « le champ choisi doit faire place au champ de saisie, avec le bouton
+   ajouter; je clique, le champ complété apparaît; on ne voit pas le champ et le champ de saisie en même temps »; puis « au lieu
+   d'avoir un Ajouter, il y aurait une poubelle et un + ») ----------
+   Un menu qui a un « Nouveau… » est suivi de sa ligne de saisie (.saisie-neuve : le champ, la poubelle, le +; data-ouvre = la valeur
+   de l'option qui l'ouvre). Tant qu'elle est là, le CSS cache le menu. Le + (ou Entrée) : un nom déjà au menu y est choisi; sinon
+   le menu le montre, choisi — une option à lui (data-neuf), de la MÊME valeur que « Nouveau… » : ce qui lit le menu lit encore le
+   champ, rien d'autre ne change. Certains ont leur façon (data-ajout : la catégorie se crée tout de suite, la marque de la fiche
+   entre dans sa liste…). La poubelle ramène le menu comme il était avant « Nouveau… », sans question : rien n'est perdu. */
+const AJOUTS_NEUFS = {
+  choix:   l => ajouterChoix(l.id.replace(/^bloc-/, '').replace(/-neuve$/, '')),   // marque, saveur, magasin de la fiche
+  cat:     () => ajouterCategorie(),
+  souscat: () => ajouterSousCategorie(),
+  plu:     (l, code) => {
+    if (!estPlu(code)) { $('plu-nom').textContent = 'Un PLU a 4 ou 5 chiffres.'; $('plu-tape').focus(); return; }
+    const x = [...$('plu').options].find(o => o.value === code && !o.dataset.neuf);
+    if (x) { $('plu-tape').value = ''; $('plu').value = code; surPlu(); return; }
+    poserNeuf($('plu'), l, code + (nomPlu(code) ? ' · ' + nomPlu(code) : ''));
+    surPluTape();
+  }
+};
+const AVANT_NEUF = new WeakMap();                    // le menu avant « Nouveau… » : l'option choisie, et le nom qu'avait le champ
+/* La ligne de saisie d'un menu (juste après lui, ou après la ligne du menu et de son bouton scanner); le menu d'une ligne. */
+function ligneDe(sel) {
+  const n = sel.nextElementSibling, p = sel.parentElement;
+  if (n && n.classList.contains('saisie-neuve')) return n;
+  const m = p && p.classList.contains('ligne-couleur') ? p.nextElementSibling : null;
+  return m && m.classList.contains('saisie-neuve') ? m : null;
+}
+function menuDe(l) {
+  const p = l.previousElementSibling;
+  return p && (p.tagName === 'SELECT' ? p : p.querySelector('select'));
+}
+/* La ligne paraît seulement quand « Nouveau… » lui-même est choisi (pas un nom neuf déjà posé). */
+function majSaisie(sel, focus) {
+  const l = sel && ligneDe(sel);
+  if (!l) return false;
+  const o = sel.options[sel.selectedIndex];
+  l.hidden = !(o && o.value === l.dataset.ouvre && !o.dataset.neuf);
+  const c = l.querySelector('input');
+  if (!l.hidden && focus && !c.value) c.focus();
+  return !l.hidden;
+}
+/* Le nom neuf, montré choisi dans le menu (un seul à la fois). */
+function poserNeuf(sel, l, texte) {
+  sel.querySelectorAll('option[data-neuf]').forEach(o => o.remove());
+  const o = new Option(texte, l.dataset.ouvre), sentinelle = [...sel.options].find(z => z.value === l.dataset.ouvre);
+  o.dataset.neuf = '1';
+  sel.insertBefore(o, sentinelle || null);
+  sel.selectedIndex = o.index;
+  l.hidden = true;
+}
+/* Après qu'on a refait les options d'un menu : un nom neuf déjà posé (la ligne cachée, son nom dans le champ) le reste. */
+function reposerNeuf(sel) {
+  const l = sel && ligneDe(sel), c = l && l.querySelector('input');
+  if (!l || !l.hidden || sel.value !== l.dataset.ouvre || !c.value.trim()) return false;
+  poserNeuf(sel, l, c.value.trim());
+  return true;
+}
+/* Un choix qui n'est pas (encore) dans le menu : il y entre, juste avant « Nouveau… », et il est choisi. */
+function choisirOption(sel, id, nom) {
+  id = String(id);
+  if (![...sel.options].some(o => o.value === id)) {
+    const l = ligneDe(sel), sentinelle = l && [...sel.options].find(z => z.value === l.dataset.ouvre);
+    sel.insertBefore(new Option(nom, id), sentinelle || null);
+  }
+  sel.value = id;
+}
+function noterAvant(sel) {
+  const l = ligneDe(sel);
+  if (l && l.hidden) AVANT_NEUF.set(sel, { i: sel.selectedIndex, nom: l.querySelector('input').value });
+}
+function ajouterNeuf(l) {
+  const c = l.querySelector('input'), nom = c.value.trim();
+  if (!nom) { c.focus(); return; }
+  const f = AJOUTS_NEUFS[l.dataset.ajout];
+  if (f) { f(l, nom); return; }
+  const sel = menuDe(l);
+  const x = [...sel.options].find(o => o.value && o.value !== l.dataset.ouvre && cleNom(o.textContent) === cleNom(nom));
+  if (x) { c.value = ''; sel.value = x.value; l.hidden = true; sel.dispatchEvent(new Event('change', { bubbles: true })); return; }   // déjà au menu : lui
+  poserNeuf(sel, l, nom);
+}
+function laisserNeuf(l) {
+  const sel = menuDe(l), c = l.querySelector('input'), a = AVANT_NEUF.get(sel), o = a ? sel.options[a.i] : null;
+  if (o && o.dataset.neuf) { c.value = a.nom; sel.selectedIndex = a.i; l.hidden = true; return; }   // c'était un nom neuf déjà posé : il revient
+  c.value = '';
+  if (o && o.value !== l.dataset.ouvre) sel.selectedIndex = a.i; else sel.value = '';
+  l.hidden = true;
+  sel.dispatchEvent(new Event('change', { bubbles: true }));      // ce qui suit le menu se remet comme avant
 }
 /* L'entrée est faite : un nom ajouté à la fiche qu'elle ne porte pas a été abandonné — on l'oublie. */
 function oublierNeuves() {
@@ -943,10 +1031,14 @@ function adopterProduit(pid) {
   produitCourant = prod.id;
   $('nom').value = prod.nom;
   montrer('bloc-doublons', false);
-  montrer('bloc-cat', false); montrer('bloc-souscat', false);
+  if (modeManuel) {                             // à la main : le menu revient, ce produit choisi (même d'une autre sous-catégorie)
+    $('produit-nom').value = ''; montrer('produit-ligne', false);
+    choisirOption($('produit'), prod.id, prod.nom);
+  } else { montrer('bloc-cat', false); montrer('bloc-souscat', false); }
   montrer('bloc-details', true);
   prefillProduit(prod.id);
   montrer('bloc-achat', true); montrer('bloc-endroits', true); montrer('btn-enregistrer', true);
+  if (modeManuel) majPlu();
 }
 
 /* ---------- Le format : un nombre + une unité ----------
@@ -974,6 +1066,7 @@ function remplirUnites() {
     unitesConnues().map(u => '<option value="' + esc(u) + '">' + esc(u) + '</option>').join('') +
     '<option value="autre">Autre…</option>';
   if (garde) $('format-unite').value = garde;
+  reposerNeuf($('format-unite'));               // une nouvelle unité déjà ajoutée le reste
 }
 /* Ce que valent les deux champs, mis ensemble : « 2 L ». */
 function formatSaisi() {
@@ -991,12 +1084,12 @@ function poserFormat(txt) {
   const m = String(txt || '').trim().match(/^([0-9]+(?:[.,][0-9]+)?)?\s*(.*)$/);
   $('format-nb').value = (m && m[1]) ? m[1].replace('.', ',') : '';
   const u = (m && m[2]) ? m[2].trim() : '';
+  montrer('bloc-unite-autre', false); $('unite-autre').value = '';   // avant de refaire le menu : aucune unité neuve à garder
   remplirUnites();
   if (u && !unitesConnues().includes(u)) {                       // une unité jamais vue : on l'ajoute au vol
     $('format-unite').insertAdjacentHTML('beforeend', '<option value="' + esc(u) + '">' + esc(u) + '</option>');
   }
   $('format-unite').value = u;
-  montrer('bloc-unite-autre', false); $('unite-autre').value = '';
 }
 
 /* ---------- Endroits ---------- */
@@ -1078,7 +1171,7 @@ async function enregistrer() {
   let scid = '';
   if (nouveau) {
     scid = $('souscat').value;
-    if (scid === 'neuve') { statut('Nomme la nouvelle sous-catégorie, puis touche Ajouter.', 'erreur'); return; }
+    if (scid === 'neuve') { statut('Nomme la nouvelle sous-catégorie, puis touche le +.', 'erreur'); return; }
     if (!scid) { statut('Choisis une catégorie et une sous-catégorie.', 'erreur'); return; }
   }
 
@@ -1097,7 +1190,7 @@ async function enregistrer() {
     if (!endroits.length) { statut('Mets une quantité sur au moins un endroit.', 'erreur'); return; }
   }
 
-  Object.keys(CHOIX_FICHE).forEach(ch => { if ($(ch).value === 'neuve' && !ajouterChoix(ch)) $(ch).value = ''; });   // un nom tapé sans toucher Ajouter compte quand même
+  Object.keys(CHOIX_FICHE).forEach(ch => { if ($(ch).value === 'neuve' && !ajouterChoix(ch)) $(ch).value = ''; });   // un nom tapé sans toucher le + compte quand même
   let marque = $('marque').value, saveur = $('saveur').value, magasin = $('magasin').value;   // des ID des listes gérées
   const plu = pluChoisi();
   if (plu && !estPlu(plu)) { statut('Un PLU a 4 ou 5 chiffres.', 'erreur'); $('plu-tape').focus(); return; }
@@ -1237,11 +1330,16 @@ function htmlMeuble(m, i, groupe) {
     '</div>' +
   '</div>';
 }
-/* Une ligne « Nouveau… » : le champ + Ajouter (Entrée fait pareil). */
+/* Une ligne « Nouveau… » : le champ + le + (Entrée fait pareil; J-C, 2026-10-11 : le + au lieu d'« Ajouter »). */
 function htmlAjout(classeChamp, invite, classeBouton, attr, id) {
   return '<div class="accordeon-item accordeon-item-saisie">' +
     '<input class="champ ' + classeChamp + '" autocomplete="off" enterkeyhint="done" placeholder="' + invite + '">' +
-    '<button class="bouton bouton-petit bouton-vert ' + classeBouton + '" ' + attr + '="' + esc(id) + '" type="button">Ajouter</button></div>';
+    '<button class="ajouter ' + classeBouton + '" ' + attr + '="' + esc(id) + '" type="button" aria-label="Ajouter"></button></div>';
+}
+/* La ligne de saisie d'un « Nouveau… » bâtie par le script (le tri, Compléter) : cachée, après son menu (voir « NOUVEAU… »). */
+function htmlSaisieNeuve(ouvre, id, invite) {
+  return '<div class="saisie-neuve" data-ouvre="' + ouvre + '" hidden><input class="champ" id="' + id + '" autocomplete="off" enterkeyhint="done" placeholder="' + esc(invite) + '">' +
+    '<button class="retirer" type="button" aria-label="Laisser tomber"></button><button class="ajouter" type="button" aria-label="Ajouter"></button></div>';
 }
 /* La barre d'une pièce ou d'un meuble prend sa couleur (une DONNÉE); sans couleur, elle reste brune.
    Posée sur la TÊTE seulement (--c) : jamais --meuble, qui descendrait jusqu'à ce qu'elle contient. */
@@ -3694,12 +3792,12 @@ function etapeTri(rep) {
 }
 function htmlEntonnoir(i) {
   const choix = (champ, nom) => '<div class="bloc"><div class="label">' + nom + '</div><select class="champ" id="tri-' + champ + '-' + i + '" data-champ="' + champ + '" data-i="' + i + '"></select>' +
-    '<input class="champ bloc-suite" id="tri-' + champ + '-neuve-' + i + '" autocomplete="off" enterkeyhint="done" placeholder="' + CHOIX_FICHE[champ].neuve + '" hidden></div>';
+    htmlSaisieNeuve('neuve', 'tri-' + champ + '-neuve-' + i, CHOIX_FICHE[champ].neuve) + '</div>';
   return (i ? '<div class="label label-fort">' + (i + 1) + 'e aliment</div>' : '') +
     '<div class="bloc"><div class="label">Catégorie</div><select class="champ" id="tri-cat-' + i + '" data-champ="cat" data-i="' + i + '"></select></div>' +
     '<div class="bloc" id="tri-bloc-souscat-' + i + '" hidden><div class="label">Sous-catégorie</div><select class="champ" id="tri-souscat-' + i + '" data-champ="souscat" data-i="' + i + '"></select></div>' +
     '<div class="bloc" id="tri-bloc-aliment-' + i + '" hidden><div class="label">Aliment</div><select class="champ champ-fort" id="tri-aliment-' + i + '" data-champ="aliment" data-i="' + i + '"></select>' +
-      '<input class="champ bloc-suite" id="tri-nom-' + i + '" autocomplete="off" enterkeyhint="done" placeholder="Nom du nouvel aliment" hidden></div>' +
+      htmlSaisieNeuve('neuf', 'tri-nom-' + i, 'Nouvel aliment…') + '</div>' +
     '<div id="tri-bloc-sorte-' + i + '" hidden>' + choix('marque', 'Marque') + choix('saveur', 'Saveur') + '</div>';
 }
 /* Un entonnoir rempli : l'aliment (sa catégorie, sa sous-catégorie), sa marque, sa saveur. x : l'article (le 1er entonnoir) —
@@ -3737,8 +3835,7 @@ function triSurSousCat(i, pid, marque, saveur) {
    Changer d'aliment garde la marque et la saveur choisies. */
 function triSurAliment(i, marque, saveur) {
   const pid = $('tri-aliment-' + i).value, vr = (pid && VARIANTES[pid]) || {};
-  montrer('tri-nom-' + i, pid === 'neuf');
-  if (pid === 'neuf' && !$('tri-nom-' + i).value) $('tri-nom-' + i).focus();
+  majSaisie($('tri-aliment-' + i), true);       // « Nouvel aliment… » : son nom à la place du menu
   montrer('tri-bloc-sorte-' + i, !!pid);
   [['marque', marque], ['saveur', saveur]].forEach(([champ, garde]) => {
     const el = $('tri-' + champ + '-' + i);
@@ -3746,7 +3843,7 @@ function triSurAliment(i, marque, saveur) {
     const v = garde !== undefined ? garde : el.value;
     el.innerHTML = optionsListe(champ, vr[champ + 's'], v === 'neuve' ? '' : v);
     el.value = v || '';
-    montrer('tri-' + champ + '-neuve-' + i, el.value === 'neuve');
+    if (!reposerNeuf(el)) majSaisie(el);          // une marque neuve déjà ajoutée le reste
   });
 }
 /* Une proposition touchée : l'entonnoir prend ses infos — et son code s'il a le même format (J-C : « tout sauf le code » sinon).
@@ -3941,11 +4038,7 @@ function surAchatSousCat() {
   if (scid && nomScanne) { $('achat-aliment').value = 'neuf'; $('achat-nom').value = nomScanne; }   // le nom lu au scan, prêt
   surAchatAliment();
 }
-function surAchatAliment() {
-  const neuf = $('achat-aliment').value === 'neuf';
-  montrer('bloc-achat-nom', neuf);
-  if (neuf && !$('achat-nom').value) $('achat-nom').focus();
-}
+function surAchatAliment() { majSaisie($('achat-aliment'), true); }   // « Nouvel aliment… » : son nom à la place du menu
 /* « Mettre sur la liste » : un aliment choisi, ou nouveau (créé dans sa sous-catégorie; un nom qui existe déjà est repris). */
 function validerAjoutAchat() {
   if ($('achat-ok').disabled) return;
@@ -4520,17 +4613,16 @@ function initEntree() {
   $('achat-souscat').addEventListener('change', surAchatSousCat);
   $('achat-aliment').addEventListener('change', surAchatAliment);
   $('achat-ok').addEventListener('click', validerAjoutAchat);
-  $('achat-nom').addEventListener('keydown', e => { if (e.key === 'Enter') { e.preventDefault(); validerAjoutAchat(); } });
   $('achat-scan').addEventListener('click', scannerPourAchat);
   // Outils → Couleurs
   $('liste-couleurs').addEventListener('input', ev => { if (ev.target.classList.contains('couleur-nouvelle')) ev.target.classList.remove('champ-erreur'); else surHex(ev); });
   $('liste-couleurs').addEventListener('click', function (ev) {
-    const b = ev.target.closest('.ajout-couleur');         // « Nouvelle couleur… » : Ajouter
+    const b = ev.target.closest('.ajout-couleur');         // « Nouvelle couleur… » : le +
     if (b) { ajouterCouleur(b.dataset.famille, b); return; }
     const tete = ev.target.closest('.accordeon-tete');
     if (tete) toggleAccordeon(tete);
   });
-  $('liste-couleurs').addEventListener('keydown', ev => {   // Entrée dans « Nouvelle couleur… » = Ajouter
+  $('liste-couleurs').addEventListener('keydown', ev => {   // Entrée dans « Nouvelle couleur… » = le +
     if (ev.key === 'Enter' && ev.target.classList.contains('couleur-nouvelle')) { ev.preventDefault(); const b = ev.target.parentElement.querySelector('.ajout-couleur'); ajouterCouleur(b.dataset.famille, b); }
   });
   $('btn-couleurs').addEventListener('click', envoyerCouleurs);
@@ -4669,14 +4761,7 @@ function initEntree() {
     if (champ === 'cat') triSurCat(i, '');
     else if (champ === 'souscat') triSurSousCat(i, '');
     else if (champ === 'aliment') triSurAliment(i);
-    else if (champ === 'marque' || champ === 'saveur') {
-      const nv = $('tri-' + champ + '-neuve-' + i);
-      montrer(nv.id, ev.target.value === 'neuve');
-      if (ev.target.value === 'neuve') nv.focus();
-    }
-  });
-  $('liste-tri').addEventListener('keydown', e => {          // Entrée dans un nom neuf = « C'est ça »
-    if (e.key === 'Enter' && e.target.tagName === 'INPUT' && e.target.closest('.tri-panneau')) { e.preventDefault(); validerTri(); }
+    else if (champ === 'marque' || champ === 'saveur') majSaisie(ev.target, true);
   });
   // Gérer les bases → Magasins, Marques, Saveurs (une seule page)
   $('noms-retour').addEventListener('click', () => { ouvrirMenu(); montrerGrilleMenu('bases'); });   // le menu, sur la grille des bases
@@ -4764,34 +4849,35 @@ function initEntree() {
   $('produit').addEventListener('change', surProduit);
   $('plu').addEventListener('change', surPlu);           // le PLU d'un fruit, d'un légume (à la main)
   $('plu-tape').addEventListener('input', surPluTape);
-  $('nom').addEventListener('change', () => { if (modeManuel && $('produit').value === 'nouveau') majPlu(); });   // un nouveau produit : les PLU suivent son nom
 
   // un produit proposé parce qu'il ressemble : on le prend
   $('liste-doublons').addEventListener('click', function (ev) {
     const b = ev.target.closest('[data-doublon]');
     if (b) adopterProduit(b.dataset.doublon);
   });
-  // le format : « Autre… » ouvre le champ d'une nouvelle unité
-  $('format-unite').addEventListener('change', function () {
-    const autre = $('format-unite').value === 'autre';
-    montrer('bloc-unite-autre', autre);
-    if (autre) $('unite-autre').focus();
-  });
+  // le format : « Autre… » — le champ d'une nouvelle unité prend la place du menu
+  $('format-unite').addEventListener('change', () => majSaisie($('format-unite'), true));
   // Outils -> qui entre les articles
   $('menu-qui').addEventListener('click', montrerQui);
   $('btn-qui-enr').addEventListener('click', enregistrerQui);
   $('qui-nom').addEventListener('keydown', e => { if (e.key === 'Enter') enregistrerQui(); });   // comme le mot de passe
   $('cat').addEventListener('change', surCategorie);
-  $('btn-cat-neuve').addEventListener('click', ajouterCategorie);
-  $('btn-souscat-neuve').addEventListener('click', ajouterSousCategorie);
-  $('cat-neuve').addEventListener('keydown', e => { if (e.key === 'Enter') { e.preventDefault(); ajouterCategorie(); } });
-  $('souscat-neuve').addEventListener('keydown', e => { if (e.key === 'Enter') { e.preventDefault(); ajouterSousCategorie(); } });
   $('souscat').addEventListener('change', surSousCategorie);
-  Object.keys(CHOIX_FICHE).forEach(ch => {             // marque, saveur, magasin : « Nouvelle… » puis Ajouter (ou Entrée)
-    $(ch).addEventListener('change', () => surChoix(ch));
-    $('btn-' + ch + '-neuve').addEventListener('click', () => ajouterChoix(ch));
-    $(ch + '-neuve').addEventListener('keydown', e => { if (e.key === 'Enter') { e.preventDefault(); ajouterChoix(ch); } });
+  Object.keys(CHOIX_FICHE).forEach(ch => $(ch).addEventListener('change', () => surChoix(ch)));   // marque, saveur, magasin : « Nouvelle… » puis le +
+  // « Nouveau… », partout : la poubelle ramène le menu, le + (ou Entrée) ajoute; le menu d'avant est noté pour la poubelle
+  document.addEventListener('click', ev => {
+    const b = ev.target.closest('.saisie-neuve > .retirer, .saisie-neuve > .ajouter');
+    if (b) { if (b.classList.contains('ajouter')) ajouterNeuf(b.parentElement); else laisserNeuf(b.parentElement); }
   });
+  document.addEventListener('keydown', ev => {
+    const l = ev.key === 'Enter' && ev.target.tagName === 'INPUT' && ev.target.closest('.saisie-neuve');
+    if (l) { ev.preventDefault(); ajouterNeuf(l); }
+  });
+  document.addEventListener('focusin', ev => { if (ev.target.tagName === 'SELECT') noterAvant(ev.target); });
+  document.addEventListener('change', ev => { if (ev.target.tagName === 'SELECT') noterAvant(ev.target); });
+  // à la main, le nom d'un nouveau produit (à la place du menu) nourrit le Nom de la fiche
+  $('produit-nom').addEventListener('input', () => { $('nom').value = $('produit-nom').value; surNom(); });
+  $('produit-nom').addEventListener('change', () => { $('nom').value = $('produit-nom').value; surNom(); majPlu(); });
   $('btn-endroit').addEventListener('click', () => ajouterEndroit());
   $('btn-transit').addEventListener('click', () => pasEncoreRange(true));
   $('btn-ranger').addEventListener('click', () => pasEncoreRange(false));

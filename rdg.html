@@ -10,7 +10,7 @@
   <!-- Ecran d'accueil iPad : le meme sac, en PNG (iOS n'accepte pas le SVG ici) -->
   <link rel="apple-touch-icon" href="apple-touch-icon.png?v=2">
 
-<link rel="stylesheet" href="CSS/rdg.css?v=147">
+<link rel="stylesheet" href="CSS/rdg.css?v=148">
 </head>
 <body>
 
@@ -143,10 +143,9 @@
       <div class="bloc" id="bloc-achat-aliment" hidden>
         <div class="label">Aliment</div>
         <select class="champ champ-fort" id="achat-aliment"></select>
-      </div>
-      <div class="bloc" id="bloc-achat-nom" hidden>
-        <div class="label">Nom du nouvel aliment</div>
-        <input class="champ" id="achat-nom" autocomplete="off" enterkeyhint="done">
+        <div class="saisie-neuve" id="bloc-achat-nom" data-ouvre="neuf" hidden>
+          <input class="champ" id="achat-nom" autocomplete="off" enterkeyhint="done" placeholder="Nouvel aliment…"><button class="retirer" type="button" aria-label="Laisser tomber"></button><button class="ajouter" type="button" aria-label="Ajouter"></button>
+        </div>
       </div>
       <div class="message message-repli" id="achats-msg"></div>
       <button class="bouton bouton-vert bouton-pleine bouton-suite" id="achat-ok" type="button">Mettre sur la liste</button>
@@ -216,7 +215,7 @@
       <div id="epi-magasins"></div>
       <div class="accordeon-item accordeon-item-saisie">   <!-- la même ligne qu'au bas de Gérer les bases → Magasins -->
         <input class="champ" id="epi-magasin-neuf" autocomplete="off" enterkeyhint="done" placeholder="Nouveau magasin…">
-        <button class="bouton bouton-petit bouton-vert" id="btn-epi-magasin" type="button">Ajouter</button>
+        <button class="ajouter" id="btn-epi-magasin" type="button" aria-label="Ajouter"></button>
       </div>
       <div class="message message-repli" id="epi-magasin-msg"></div>
       <button class="bouton bouton-or bouton-pleine bouton-detache" id="epi-choix-retour" type="button">Retour</button>
@@ -243,9 +242,8 @@
           <select class="champ" id="epi-cat"></select>
           <select class="champ bloc-suite" id="epi-souscat" hidden></select>
           <select class="champ champ-fort bloc-suite" id="epi-produit" hidden></select>
-          <div class="ligne-couleur bloc-suite" id="epi-neuf" hidden>
-            <input class="champ" id="epi-nom-neuf" autocomplete="off" enterkeyhint="done" placeholder="Nom du nouvel aliment">
-            <button class="bouton bouton-petit" id="epi-neuf-ok" type="button">Ajouter</button>
+          <div class="saisie-neuve bloc-suite" id="epi-neuf" data-ouvre="nouveau" data-ajout="epi" hidden>
+            <input class="champ" id="epi-nom-neuf" autocomplete="off" enterkeyhint="done" placeholder="Nouveau produit…"><button class="retirer" type="button" aria-label="Laisser tomber"></button><button class="ajouter" type="button" aria-label="Ajouter"></button>
           </div>
         </div>
       </div>
@@ -292,23 +290,15 @@
       <div class="bloc" id="bloc-marque">
         <div class="label">Marque</div>
         <select class="champ" id="marque"></select>
-      </div>
-      <div class="bloc" id="bloc-marque-neuve" hidden>
-        <div class="label">Nom de la nouvelle marque</div>
-        <div class="ligne-couleur">
-          <input class="champ" id="marque-neuve" autocomplete="off" placeholder="Ex. Liberté">
-          <button class="bouton bouton-petit" id="btn-marque-neuve" type="button">Ajouter</button>
+        <div class="saisie-neuve" id="bloc-marque-neuve" data-ouvre="neuve" data-ajout="choix" hidden>
+          <input class="champ" id="marque-neuve" autocomplete="off" enterkeyhint="done" placeholder="Nouvelle marque…"><button class="retirer" type="button" aria-label="Laisser tomber"></button><button class="ajouter" type="button" aria-label="Ajouter"></button>
         </div>
       </div>
       <div class="bloc" id="bloc-saveur">
         <div class="label">Saveur</div>
         <select class="champ" id="saveur"></select>
-      </div>
-      <div class="bloc" id="bloc-saveur-neuve" hidden>
-        <div class="label">Nom de la nouvelle saveur</div>
-        <div class="ligne-couleur">
-          <input class="champ" id="saveur-neuve" autocomplete="off" placeholder="Ex. fraise, miel et noix">
-          <button class="bouton bouton-petit" id="btn-saveur-neuve" type="button">Ajouter</button>
+        <div class="saisie-neuve" id="bloc-saveur-neuve" data-ouvre="neuve" data-ajout="choix" hidden>
+          <input class="champ" id="saveur-neuve" autocomplete="off" enterkeyhint="done" placeholder="Nouvelle saveur…"><button class="retirer" type="button" aria-label="Laisser tomber"></button><button class="ajouter" type="button" aria-label="Ajouter"></button>
         </div>
       </div>
       <div class="bloc" id="bloc-format">
@@ -316,11 +306,10 @@
         <div class="ligne-couleur">
           <input class="champ champ-nombre" id="format-nb" inputmode="decimal" autocomplete="off">
           <select class="champ" id="format-unite"></select>
+          <div class="saisie-neuve" id="bloc-unite-autre" data-ouvre="autre" hidden>
+            <input class="champ" id="unite-autre" autocomplete="off" enterkeyhint="done" placeholder="Nouvelle unité…"><button class="retirer" type="button" aria-label="Laisser tomber"></button><button class="ajouter" type="button" aria-label="Ajouter"></button>
+          </div>
         </div>
-      </div>
-      <div class="bloc" id="bloc-unite-autre" hidden>
-        <div class="label">Nouvelle unité</div>
-        <input class="champ" id="unite-autre" autocomplete="off" placeholder="douzaine, sac, boîte…">
       </div>
     </div>
 
@@ -328,6 +317,9 @@
     <div class="bloc" id="bloc-produit" hidden>
       <div class="label">Produit</div>
       <select class="champ champ-fort" id="produit"></select>
+      <div class="saisie-neuve" id="produit-ligne" data-ouvre="nouveau" hidden>   <!-- à la main : le nom d'un nouveau produit (il nourrit #nom) -->
+        <input class="champ champ-fort" id="produit-nom" list="dl-produits" autocomplete="off" enterkeyhint="done" placeholder="Nouveau produit…"><button class="retirer" type="button" aria-label="Laisser tomber"></button><button class="ajouter" type="button" aria-label="Ajouter"></button>
+      </div>
     </div>
 
     <!-- Un fruit, un légume (à la main) : son PLU — la liste officielle propose, ou on tape les chiffres de l'étiquette.
@@ -335,7 +327,9 @@
     <div class="bloc" id="bloc-plu" hidden>
       <div class="label">PLU</div>
       <select class="champ" id="plu"></select>
-      <input class="champ bloc-suite" id="plu-tape" type="text" inputmode="numeric" autocomplete="off" placeholder="Les chiffres de l'étiquette" hidden>
+      <div class="saisie-neuve" id="plu-ligne" data-ouvre="tape" data-ajout="plu" hidden>
+        <input class="champ" id="plu-tape" type="text" inputmode="numeric" autocomplete="off" enterkeyhint="done" placeholder="Les chiffres de l'étiquette"><button class="retirer" type="button" aria-label="Laisser tomber"></button><button class="ajouter" type="button" aria-label="Ajouter"></button>
+      </div>
       <div class="message message-repli" id="plu-nom"></div>
     </div>
 
@@ -352,23 +346,15 @@
         <select class="champ" id="cat"></select>
         <button class="bouton bouton-brun bouton-scanner" id="fiche-scan" type="button" aria-label="Scanner"><span class="icone icone-entrer"></span></button>
       </div>
-    </div>
-    <div class="bloc" id="bloc-cat-neuve" hidden>
-      <div class="label">Nom de la nouvelle catégorie</div>
-      <div class="ligne-couleur">
-        <input class="champ" id="cat-neuve" autocomplete="off" placeholder="Ex. Boulangerie">
-        <button class="bouton bouton-petit" id="btn-cat-neuve" type="button">Ajouter</button>
+      <div class="saisie-neuve" id="bloc-cat-neuve" data-ouvre="neuve" data-ajout="cat" hidden>
+        <input class="champ" id="cat-neuve" autocomplete="off" enterkeyhint="done" placeholder="Nouvelle catégorie…"><button class="retirer" type="button" aria-label="Laisser tomber"></button><button class="ajouter" id="btn-cat-neuve" type="button" aria-label="Ajouter"></button>
       </div>
     </div>
     <div class="bloc" id="bloc-souscat" hidden>
       <div class="label">Sous-catégorie</div>
       <select class="champ" id="souscat"></select>
-    </div>
-    <div class="bloc" id="bloc-souscat-neuve" hidden>
-      <div class="label">Nom de la nouvelle sous-catégorie</div>
-      <div class="ligne-couleur">
-        <input class="champ" id="souscat-neuve" autocomplete="off" placeholder="Ex. Pains">
-        <button class="bouton bouton-petit" id="btn-souscat-neuve" type="button">Ajouter</button>
+      <div class="saisie-neuve" id="bloc-souscat-neuve" data-ouvre="neuve" data-ajout="souscat" hidden>
+        <input class="champ" id="souscat-neuve" autocomplete="off" enterkeyhint="done" placeholder="Nouvelle sous-catégorie…"><button class="retirer" type="button" aria-label="Laisser tomber"></button><button class="ajouter" id="btn-souscat-neuve" type="button" aria-label="Ajouter"></button>
       </div>
     </div>
 
@@ -377,12 +363,8 @@
       <div class="bloc">
         <div class="label">Magasin</div>
         <select class="champ" id="magasin"></select>
-      </div>
-      <div class="bloc" id="bloc-magasin-neuve" hidden>
-        <div class="label">Nom du nouveau magasin</div>
-        <div class="ligne-couleur">
-          <input class="champ" id="magasin-neuve" autocomplete="off" placeholder="Ex. Pharmaprix">
-          <button class="bouton bouton-petit" id="btn-magasin-neuve" type="button">Ajouter</button>
+        <div class="saisie-neuve" id="bloc-magasin-neuve" data-ouvre="neuve" data-ajout="choix" hidden>
+          <input class="champ" id="magasin-neuve" autocomplete="off" enterkeyhint="done" placeholder="Nouveau magasin…"><button class="retirer" type="button" aria-label="Laisser tomber"></button><button class="ajouter" type="button" aria-label="Ajouter"></button>
         </div>
       </div>
       <div class="bloc">
@@ -426,7 +408,7 @@
     <div id="liste-pieces"></div>
     <div class="accordeon-item accordeon-item-saisie">
       <input class="champ" id="piece-nouvelle" autocomplete="off" enterkeyhint="done" placeholder="Nouvelle pièce…">
-      <button class="bouton bouton-petit bouton-vert" id="btn-piece-ajouter" type="button">Ajouter</button>
+      <button class="ajouter" id="btn-piece-ajouter" type="button" aria-label="Ajouter"></button>
     </div>
     <div class="message message-repli" id="pieces-msg"></div>
     <button class="bouton bouton-or bouton-pleine bouton-detache" id="pieces-retour" type="button">Retour</button>
@@ -480,7 +462,7 @@
     <div class="liste-suite" id="liste-noms"></div>
     <div class="accordeon-item accordeon-item-saisie" id="noms-ajout">
       <input class="champ" id="nom-nouveau" autocomplete="off" enterkeyhint="done">
-      <button class="bouton bouton-petit bouton-vert" id="btn-nom-ajouter" type="button">Ajouter</button>
+      <button class="ajouter" id="btn-nom-ajouter" type="button" aria-label="Ajouter"></button>
     </div>
     <div class="message message-repli" id="noms-msg"></div>
     <button class="bouton bouton-or bouton-pleine bouton-detache" id="noms-retour" type="button">Retour</button>
@@ -527,10 +509,10 @@
 </div><!-- fin du conteneur -->
 
 <script src="JS/coffre.js?v=16"></script>
-<script src="JS/entree.js?v=184"></script>
+<script src="JS/entree.js?v=185"></script>
 <script src="JS/bientot.js?v=6"></script>
 <script src="JS/prix.js?v=6"></script>
-<script src="JS/epicerie.js?v=15"></script>
+<script src="JS/epicerie.js?v=16"></script>
 <script src="JS/scan.js?v=14"></script>
 </body>
 </html>

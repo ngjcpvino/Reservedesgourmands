@@ -197,6 +197,7 @@
   --action-deplacer:   var(--menu-deplacer);
   --action-ouvrir:     var(--menu-ouvrir);
   --action-achats:     var(--menu-achats);
+  --action-ajouter:    var(--menu-ajouter);     /* le + d'un « Nouveau… » : le bleu du bouton Ajouter du menu (J-C, 2026-10-11) */
   --action-base:       var(--couleur-201);      /* le crayon, les flèches, la poubelle : pas de bouton au menu, beige */
   --poubelle-taille:   24px;   /* la poubelle « retirer », un peu plus grosse que le crayon : elle tient tête à l'interrupteur (J-C, 2026-10-03, choix F sur aperçu parmi 22 / 24 / 26) */
   --icone-colonne:     28px;   /* Magasins : l'icône des circulaires au-dessus des interrupteurs, à la place du mot (J-C, 2026-10-03, choix A sur aperçu) */
@@ -791,7 +792,7 @@ select.champ {
    LES DEUX FLÈCHES « ranger » (l'Escale — J-C, 2026-10-01, choix B sur aperçu) : le dessin de Déplacer, au bout de la ligne aussi;
    le crayon ne veut plus dire que « corriger un nom ».
    LA FLÈCHE « revenir » (Liste d'achats → Mis de côté — J-C, 2026-10-01, choix C sur aperçu) : remet sur la liste, au bout de la ligne. */
-.retirer, .ranger, .remettre, .consommer, .entamer {
+.retirer, .ranger, .remettre, .consommer, .entamer, .ajouter {
   display: flex;
   align-items: center;
   justify-content: center;
@@ -812,12 +813,13 @@ select.champ {
    sur aperçu) : chaque petite icône d'action est posée sur une pastille de la couleur de son bouton au menu — Consommer rouge,
    Déplacer vert, Ouvrir bleu pâle, la Liste d'achats brune; le crayon, les flèches et la poubelle (pas de bouton au menu) beiges.
    Le dessin : crème sur une pastille foncée, brun sur une pâle. Le nombre, lui, n'a plus de pastille : il ne fait que dire combien. */
-:is(.retirer, .crayon, .fleche, .ranger, .remettre, .consommer, .entamer) { --p: var(--action-base); --i: var(--icone-trait-pale); position: relative; isolation: isolate; }
+:is(.retirer, .crayon, .fleche, .ranger, .remettre, .consommer, .entamer, .ajouter) { --p: var(--action-base); --i: var(--icone-trait-pale); position: relative; isolation: isolate; flex-shrink: 0; }
 .consommer { --p: var(--action-consommer); --i: var(--icone-trait); }
 .ranger    { --p: var(--action-deplacer); --i: var(--icone-trait); }
 .remettre  { --p: var(--action-achats); --i: var(--icone-trait); }
 .entamer   { --p: var(--action-ouvrir); }
-:is(.retirer, .crayon, .fleche, .ranger, .remettre, .consommer, .entamer)::after {
+.ajouter   { --p: var(--action-ajouter); --i: var(--icone-trait); }
+:is(.retirer, .crayon, .fleche, .ranger, .remettre, .consommer, .entamer, .ajouter)::after {
   content: '';
   position: absolute;
   top: 50%;
@@ -829,7 +831,7 @@ select.champ {
   background: var(--p);
   z-index: var(--plan-pastille);
 }
-.retirer::before, .crayon::before, .ranger::before, .remettre::before, .consommer::before, .entamer::before {
+.retirer::before, .crayon::before, .ranger::before, .remettre::before, .consommer::before, .entamer::before, .ajouter::before {
   content: '';
   width: var(--fleche-deplacer);
   height: var(--fleche-deplacer);
@@ -866,6 +868,21 @@ select.champ {
   -webkit-mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='1.8' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M9 14L4 9l5-5'/%3E%3Cpath d='M4 9h10.5a5.5 5.5 0 0 1 0 11H11'/%3E%3C/svg%3E") center / contain no-repeat;
           mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='1.8' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M9 14L4 9l5-5'/%3E%3Cpath d='M4 9h10.5a5.5 5.5 0 0 1 0 11H11'/%3E%3C/svg%3E") center / contain no-repeat;
 }
+/* LE + « ajouter » (J-C, 2026-10-11 : « au lieu d'avoir un Ajouter, il y aurait une poubelle et un + ») : partout où l'on nomme
+   quelque chose de neuf — la ligne de saisie d'un « Nouveau… », et les lignes « Nouveau meuble… », « Nouvelle pièce… »… */
+.ajouter::before {
+  -webkit-mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='1.8' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M12 4v16M4 12h16'/%3E%3C/svg%3E") center / contain no-repeat;
+          mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='1.8' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M12 4v16M4 12h16'/%3E%3C/svg%3E") center / contain no-repeat;
+}
+/* « NOUVEAU… » (J-C, 2026-10-11 : « le champ choisi doit faire place au champ de saisie »; « on ne voit pas le champ et le champ
+   de saisie en même temps ») : le menu suivi de sa ligne de saisie — le champ, la poubelle (ramène le menu comme il était), le +.
+   Tant que la ligne est là, ce qui la précède (le menu, ou la ligne du menu et de son bouton scanner) se cache. */
+.saisie-neuve { display: flex; align-items: center; }
+.saisie-neuve > .champ { flex: 1; min-width: 0; }
+:has(+ .saisie-neuve:not([hidden])) { display: none; }
+.ligne-couleur > .saisie-neuve { flex: 1; min-width: 0; }   /* le format : le nombre, puis la nouvelle unité à la place du menu… */
+.ligne-couleur:has(> .saisie-neuve:not([hidden])) > .champ-nombre { flex: none; }   /* … le nombre se tasse à sa largeur : la place va au nom */
+.saisie-neuve > .retirer { margin: 0; }
 /* le nom devenu champ, dans sa ligne */
 .champ-renommer { flex: 1; min-width: 0; min-height: auto; padding: var(--espace-xs) var(--espace-s); margin-right: var(--espace-s); font-weight: var(--poids-fort); }
 

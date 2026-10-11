@@ -412,7 +412,7 @@ function alimentPourPlu(nom) {
   const c = PRODUITS.filter(p => { const m = motsTri(p.nom); return m.length && m[0] === mots[0] && m.every(w => mots.indexOf(w) !== -1); });
   return c.sort((a, b) => motsTri(b.nom).length - motsTri(a.nom).length)[0] || null;   // le plus précis
 }
-/* L'entonnoir : Catégorie → Sous-catégorie → Produit (« Nouveau produit… » au bout : un nom, Ajouter). */
+/* L'entonnoir : Catégorie → Sous-catégorie → Produit (« Nouveau produit… » au bout : son nom à la place du menu, le +). */
 function surEpiCat() {
   const rid = $('epi-cat').value;
   $('epi-souscat').innerHTML = options(SOUSCATS[rid] || [], '— Sous-catégorie —');
@@ -426,16 +426,18 @@ function surEpiSousCat() {
 }
 function surEpiProduit() {
   const v = $('epi-produit').value;
-  montrer('epi-neuf', v === 'nouveau');
-  if (v === 'nouveau') { fermerCarte(); $('epi-nom-neuf').focus(); return; }
+  if (majSaisie($('epi-produit'), true)) { fermerCarte(); return; }
   if (v) montrerCarte({ code: '', pid: v, marque: '', saveur: '', format: '', sansCode: true });
 }
+/* Le + de « Nouveau produit… » : l'aliment (retrouvé ou neuf) revient choisi dans le menu, et sa carte s'ouvre. */
 function ajouterEpiNeuf() {
   const nom = $('epi-nom-neuf').value.trim(), scid = $('epi-souscat').value;
   if (!nom || !scid) { $('epi-nom-neuf').focus(); return; }
   const deja = alimentDuNom(nom, scid);                  // déjà là (ici, ou ailleurs : né sans catégorie d'une épicerie) : lui, jamais un double
   const pid = deja ? String(deja.id) : creerAlimentInstant(nom, scid);
-  montrer('epi-neuf', false);
+  surEpiSousCat();                                       // le menu refait (l'aliment neuf y est), la ligne de saisie cachée
+  $('epi-nom-neuf').value = '';
+  choisirOption($('epi-produit'), pid, deja ? deja.nom : nom);
   montrerCarte({ code: '', pid: pid, marque: '', saveur: '', format: '', sansCode: true });
 }
 
@@ -662,9 +664,9 @@ function htmlPanneau(lot) {
     champ('Catégorie', '<select class="champ" id="cp-cat"></select>') +
     '<div class="bloc" id="cp-bloc-souscat"><div class="label">Sous-catégorie</div><select class="champ" id="cp-souscat"></select></div>' +
     '<div class="bloc" id="cp-bloc-aliment"><div class="label">Aliment</div><select class="champ champ-fort" id="cp-aliment"></select>' +
-    '<input class="champ bloc-suite" id="cp-nom" autocomplete="off" enterkeyhint="done" placeholder="Nom du nouvel aliment"><div class="message message-repli" id="cp-aliment-msg"></div></div>' +
-    champ('Marque', '<select class="champ" id="cp-marque"></select><input class="champ bloc-suite" id="cp-marque-neuve" autocomplete="off" placeholder="Nom de la marque" hidden>') +
-    champ('Saveur', '<select class="champ" id="cp-saveur"></select><input class="champ bloc-suite" id="cp-saveur-neuve" autocomplete="off" placeholder="Nom de la saveur" hidden>') +
+    htmlSaisieNeuve('nouveau', 'cp-nom', 'Nouvel aliment…') + '<div class="message message-repli" id="cp-aliment-msg"></div></div>' +
+    champ('Marque', '<select class="champ" id="cp-marque"></select>' + htmlSaisieNeuve('neuve', 'cp-marque-neuve', 'Nouvelle marque…')) +
+    champ('Saveur', '<select class="champ" id="cp-saveur"></select>' + htmlSaisieNeuve('neuve', 'cp-saveur-neuve', 'Nouvelle saveur…')) +
     champ('Format', '<div class="ligne-couleur"><input class="champ champ-nombre" id="cp-nb" inputmode="decimal" autocomplete="off"><select class="champ" id="cp-unite"></select></div>') +
     '<div id="cp-endroits"></div><button class="bouton bouton-petit bouton-suite" type="button" data-cp-endroit>+ un autre endroit</button>' +   // où il est rangé — un ou plusieurs endroits, comme la fiche (J-C : « la répartition doit pouvoir se faire là aussi »)
     '<div id="cp-circ"></div>' +
@@ -703,7 +705,7 @@ function remplirAlimentsPanneau(choisi, nom) {
 }
 function surAlimentPanneau() {
   const v = $('cp-aliment').value, m = $('cp-aliment-msg');
-  $('cp-nom').hidden = v !== 'nouveau';
+  majSaisie($('cp-aliment'));                         // « Nouvel aliment… » : son nom à la place du menu
   const autre = v && v !== 'nouveau' && v !== PANNEAU.lot.pid && PRODUITS.find(p => String(p.id) === v);
   m.textContent = autre ? 'Il devient du ' + autre.nom + ' (ton aliment) : tout ce qu\'il y en a passe à ' + autre.nom + '.' : '';
   const ou = document.querySelector('#cp-endroits .endroit');   // pas encore placé : la place habituelle de l'aliment choisi, s'il en a une
@@ -737,15 +739,15 @@ function idListeOuNeuve(liste, nom) {
   poserGeste({ action: 'creer', table: liste, opId: 'liste-' + id, ligne: [id, nom, 'O'] });   // Marques, Saveurs : ID · Nom · Actif
   return id;
 }
-/* Mettre un nom dans un menu de liste : retrouvé (choisi), sinon « Nouvelle… » avec le nom écrit dessous. */
+/* Mettre un nom dans un menu de liste : retrouvé (choisi), sinon posé comme un nom neuf (« Nouvelle… » le rouvre pour le corriger). */
 function choisirNomPanneau(champ, nom) {
   nom = String(nom || '').trim();
   if (!nom) return;
   const sel = $('cp-' + champ), x = LISTES[CHOIX_FICHE[champ].liste].find(y => cleNom(y.nom) === cleNom(nom)), neuve = $('cp-' + champ + '-neuve');
   if (x) {
     if (![...sel.options].some(o => o.value === x.id)) sel.insertAdjacentHTML('afterbegin', '<option value="' + esc(x.id) + '">' + esc(x.nom) + '</option>');
-    sel.value = x.id; neuve.hidden = true;
-  } else { sel.value = 'neuve'; neuve.value = nom; neuve.hidden = false; }
+    sel.value = x.id; majSaisie(sel);
+  } else { neuve.value = nom; poserNeuf(sel, ligneDe(sel), nom); }   // un nom neuf : choisi dans le menu, comme au + (il se corrige par « Nouvelle… »)
 }
 /* La circulaire de l'épicerie (la semaine de l'achat) : ce produit y est-il ? Sans prix seulement — un prix déjà là (le scan) gagne. */
 function majCirculairePanneau() {
@@ -941,7 +943,7 @@ function initEpicerie() {
     if (id === 'cp-cat') { remplirSousCatPanneau(''); remplirAlimentsPanneau(''); }
     else if (id === 'cp-souscat') remplirAlimentsPanneau('');
     else if (id === 'cp-aliment') surAlimentPanneau();
-    else if (id === 'cp-marque' || id === 'cp-saveur') { const n = $(id + '-neuve'); n.hidden = ev.target.value !== 'neuve'; if (!n.hidden) n.focus(); }
+    else if (id === 'cp-marque' || id === 'cp-saveur') majSaisie(ev.target, true);
   });
   $('completer-liste').addEventListener('input', ev => { if (ev.target.id === 'cp-texte') collerPage(ev.target.value); });
   $('completer-retour').addEventListener('click', () => { if (EPI_COMPLETER && EPI_COMPLETER.plusieurs) montrerCompleter(); else montrerChoixQuoi(); });
@@ -968,8 +970,7 @@ function initEpicerie() {
   $('epi-cat').addEventListener('change', surEpiCat);
   $('epi-souscat').addEventListener('change', surEpiSousCat);
   $('epi-produit').addEventListener('change', surEpiProduit);
-  $('epi-neuf-ok').addEventListener('click', ajouterEpiNeuf);
-  $('epi-nom-neuf').addEventListener('keydown', e => { if (e.key === 'Enter') { e.preventDefault(); ajouterEpiNeuf(); } });
+  AJOUTS_NEUFS.epi = ajouterEpiNeuf;                                             // le + de « Nouveau produit… » (Sans code)
   // l'app passe en arrière-plan pendant le scan : la caméra se ferme; au retour, elle se rouvre (sauf si un article attend son OK)
   document.addEventListener('visibilitychange', () => {
     if ($('vue-epicerie').hidden || $('epi-scan').hidden || $('epi-camera').hidden) return;
