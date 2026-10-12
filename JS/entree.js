@@ -851,7 +851,7 @@ function ligneDe(sel) {
 }
 function menuDe(l) {
   const p = l.previousElementSibling;
-  return p && (p.tagName === 'SELECT' ? p : p.querySelector('select'));
+  return p && (p.tagName === 'SELECT' ? p : p.querySelector('select'));   // null : la ligne prend la place d'un bouton, pas d'un menu
 }
 /* La ligne paraît seulement quand « Nouveau… » lui-même est choisi (pas un nom neuf déjà posé). */
 function majSaisie(sel, focus) {
@@ -903,7 +903,9 @@ function ajouterNeuf(l) {
   poserNeuf(sel, l, nom);
 }
 function laisserNeuf(l) {
-  const sel = menuDe(l), c = l.querySelector('input'), a = AVANT_NEUF.get(sel), o = a ? sel.options[a.i] : null;
+  const sel = menuDe(l), c = l.querySelector('input');
+  if (!sel) { c.value = ''; l.hidden = true; return; }               // pas de menu (« Taper le code ») : le bouton revient
+  const a = AVANT_NEUF.get(sel), o = a ? sel.options[a.i] : null;
   if (o && o.dataset.neuf) { c.value = a.nom; sel.selectedIndex = a.i; l.hidden = true; return; }   // c'était un nom neuf déjà posé : il revient
   c.value = '';
   if (o && o.value !== l.dataset.ouvre) sel.selectedIndex = a.i; else sel.value = '';

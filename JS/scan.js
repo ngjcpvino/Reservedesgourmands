@@ -39,6 +39,8 @@
     el('scan-resultat').hidden = true;
     el('scan-code').textContent = '';
     el('scan-sans-code').hidden = !(mode && typeof mode.sansCode === 'function');   // le sac seul : « Sans code » sous la caméra
+    el('scan-taper').hidden = el('scan-sans-code').hidden;                        // … et « Taper le code »
+    fermerTaper();
     msg('Démarrage de la caméra…');
     await demarrer('scan-video');
   }
@@ -48,6 +50,7 @@
   async function scanContinu(m) {
     arreter();
     continu = m; mode = null; dernierLu = ''; repriseA = 0;
+    fermerTaper();
     msg('Démarrage de la caméra…');
     await demarrer(m.video);
   }
@@ -154,6 +157,23 @@
     return { code: code, nom: '', nomAutre: '', marque: '', format: '', photo: '', trouve: false };
   }
 
+  /* « TAPER LE CODE » (J-C, 2026-10-12 : « des codes-barres illisibles par le scan, mais les chiffres sont lisibles »; le sac seul et
+     les deux sacs) : le champ prend la place du bouton (la ligne « .saisie-neuve » d'un « Nouveau… »); le + (ou Entrée) fait comme
+     un code lu par la caméra — la caméra du sac seul se ferme, celle des deux sacs attend l'article suivant. 4 ou 5 chiffres : un PLU. */
+  function fermerTaper() {
+    document.querySelectorAll('.saisie-neuve[data-ajout="code"]').forEach(function (l) { l.hidden = true; l.querySelector('input').value = ''; });
+  }
+  function codeTape(l, nom) {
+    var c = String(nom || '').replace(/[\s-]/g, '');
+    if (!/^[0-9]{4,14}$/.test(c)) {
+      var m = el(l.closest('#vue-epicerie') ? 'epi-msg' : 'scan-msg'); if (m) m.textContent = 'Un code, c’est 4 à 14 chiffres.';
+      l.querySelector('input').focus(); return;
+    }
+    fermerTaper();
+    if (!continu && l.closest('#vue-epicerie') && typeof surCodeEpicerie === 'function') { surCodeEpicerie(c); return; }   // les deux sacs, la caméra fermée (un article attendait son OK pendant que l'app dormait) : la carte quand même
+    trouve(c);
+  }
+
   function nettoyerFormat(q) { return String(q || '').replace(/\s*e\s*$/i, '').trim(); }
 
   function arreter() {
@@ -182,6 +202,13 @@
       arreter();
       if (m && typeof m.sansCode === 'function') m.sansCode();
     });
+    document.addEventListener('click', function (ev) {   // « Taper le code » : son champ prend sa place, le clavier à chiffres ouvert
+      var b = ev.target.closest('[data-taper]');
+      if (!b) return;
+      var l = b.nextElementSibling;
+      l.hidden = false; l.querySelector('input').focus();
+    });
+    if (typeof AJOUTS_NEUFS === 'object') AJOUTS_NEUFS.code = codeTape;   // le + de la ligne (et Entrée) : le mécanisme des « Nouveau… »
     var encore = el('scan-encore');
     if (encore) encore.addEventListener('click', function () { montrerScanner(mode); });
   }

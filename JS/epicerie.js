@@ -147,6 +147,12 @@ async function surCodeEpicerie(code) {
   const jeton = ++epiJeton;
   const connu = articleConnu(code);
   if (connu) { montrerCarte(connu); return; }
+  if (estPlu(code)) {                                    // 4 ou 5 chiffres tapés (« Taper le code ») : un PLU, comme dans Sans code
+    await chargerPlu();
+    if (jeton !== epiJeton || $('epi-scan').hidden) return;
+    const nom = nomPlu(code);
+    if (nom) { montrerCarte(articlePlu(code, nom, false)); return; }
+  }
   $('epi-carte').innerHTML = '<div class="carte bloc-suite carte-scan"><div class="message">Recherche du produit…</div>' +
     '<button class="bouton bouton-pleine bouton-quitter" type="button" data-epi-annuler>Annuler</button></div>';
   const r = await identifierCode(code);
@@ -401,10 +407,15 @@ async function surPluEpicerie() {
   msg.className = 'message message-repli' + (nom ? '' : ' message-erreur');
   msg.textContent = nom || 'PLU inconnu';
   if (!nom) { if (EPI_CARTE && EPI_CARTE.plu) fermerCarte(); return; }
+  montrerCarte(articlePlu(v, nom, true));
+}
+/* L'article d'un PLU : l'aliment à qui il a déjà servi, sinon celui qui porte le même nom, sinon un aliment neuf au nom officiel.
+   sansCode : tapé dans « Sans code » (après OK, on y reste); sinon sous la caméra (« Taper le code » : après OK, la caméra reprend). */
+function articlePlu(v, nom, sansCode) {
   const connu = articleConnu(v), alim = !connu && alimentPourPlu(nom);
   const a = connu || (alim ? { code: v, pid: String(alim.id), marque: '', saveur: '', format: '' } : { code: v, pid: null, nouveau: { nom: nom }, format: '' });
-  a.sansCode = true; a.plu = true;
-  montrerCarte(a);
+  a.sansCode = sansCode; a.plu = true;
+  return a;
 }
 function alimentPourPlu(nom) {
   const mots = motsTri(nom);
