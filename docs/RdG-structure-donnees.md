@@ -306,6 +306,23 @@ garde le TEXTE de l'unité, pas son ID.*
 | B | Nom | « boîte », « sachet »… en texte; deux noms qui ne diffèrent que par les accents ou les majuscules sont LE MÊME |
 | C | Actif | O / N — N = retirée (aucun aliment ne s'en servait) ou réunie à une autre au crayon |
 
+### ERREURS — le journal des erreurs (2026-10-12)
+*J-C : « un message d'erreur que je n'ai pas pu lire au complet… fais un onglet dans le Sheet où les erreurs s'inscrivent ». L'app
+écrit chaque erreur (un message rouge, la raison du bandeau « Réserve pas à jour », un plantage du script de la page) par l'action
+`ajouter`, avec son ID : un 2e envoi ne double rien. ⚠️ À créer dans `api.gs` (à l'ordi) : l'onglet doit être connu d'`ajouter`,
+créé tout seul avec ses en-têtes. D'ici là, l'app garde les 50 dernières sur l'appareil et les renvoie à chaque chargement.*
+
+| Col | Nom | Sens |
+|-----|-----|------|
+| A | ID | donné par l'app (`idLocal()`) |
+| B | Quand | « 2026-10-12 14:05:33 », heure du Québec (texte) |
+| C | Qui | Outils → Qui entre les articles, sur cet appareil |
+| D | Appareil | iPad, iPhone, Mac, Windows… |
+| E | Écran | la page à l'écran (`fiche` = « app », `epicerie`, `listes`…) |
+| F | Message | ce que J-C a vu (ou « Plantage : … ») |
+| G | Détail | pour un plantage : le fichier et la ligne |
+| H | Version | le `?v=` d'`entree.js` |
+
 ### CODES-BARRES — PAS de table séparée (décision 2026-09-20)
 
 Le code-barres vit sur **STOCK, colonne I** (ci-dessus), comme la marque et le

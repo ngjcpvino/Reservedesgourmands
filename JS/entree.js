@@ -340,12 +340,75 @@ function basculerMenu() {                // ouvrir, ou fermer par le seul chemin
 /* ---------- Toast « à venir » ---------- */
 function avis(txt, type) {                 // type : 'avis' (défaut) · 'succes' · 'erreur'
   let t = document.querySelector('.toast');
-  if (!t) { t = document.createElement('div'); document.body.appendChild(t); }
+  if (!t) {
+    t = document.createElement('div'); document.body.appendChild(t);
+    t.addEventListener('click', () => t.classList.remove('visible'));   // une erreur reste jusqu'à ce qu'on la touche
+  }
   t.className = 'toast toast-' + (type || 'avis');   // sans « visible » : un message qui arrive par-dessus l'autre repart de zéro
   t.textContent = txt;
   void t.offsetWidth;                                 // le navigateur prend acte de l'arrêt…
   t.classList.add('visible');                         // …puis le message paraît au centre, --toast-duree (au root), et s'efface seul
+  if (type === 'erreur') noterErreur(txt);            // (une erreur, elle, reste : J-C, 2026-10-12 — et elle va au journal)
 }
+
+/* ---------- LE JOURNAL DES ERREURS (J-C, 2026-10-12 : « un message d'erreur que je n'ai pas pu lire au complet… fais un onglet dans
+   le Sheet où les erreurs s'inscrivent ») ----------
+   Chaque erreur — un message rouge, la raison du bandeau « Réserve pas à jour », un plantage du script de la page — est gardée sur
+   l'appareil (les 50 dernières), puis envoyée en arrière-plan à l'onglet Erreurs du Sheet (Coffre.ajouter, l'ID donné ici : un
+   2e envoi ne double rien). Le réseau coupé, ou un coffre-fort qui ne connaît pas encore l'onglet : elle attend et repart au prochain
+   chargement. Un envoi raté ne dit rien (pas d'erreur sur l'erreur). Erreurs : A ID · B Quand · C Qui · D Appareil · E Écran ·
+   F Message · G Détail · H Version (le ?v= d'entree.js). */
+const ERREURS = 'rdg_erreurs_attente', ERREURS_MAX = 50;
+let envoiErreurs = false, derniereErreur = { texte: '', a: 0 };
+function lireErreurs() { try { return JSON.parse(localStorage.getItem(ERREURS) || '[]'); } catch (e) { return []; } }
+function ecrireErreurs(l) { try { localStorage.setItem(ERREURS, JSON.stringify(l.slice(-ERREURS_MAX))); } catch (e) {} }
+function noterErreur(message, detail) {
+  try {
+    message = String(message || '').trim();
+    if (!message) return;
+    if (message === derniereErreur.texte && Date.now() - derniereErreur.a < 5000) return;   // la même, répétée de suite : une fois
+    derniereErreur = { texte: message, a: Date.now() };
+    const vue = document.querySelector('[id^="vue-"]:not([hidden])'), s = document.querySelector('script[src*="entree.js"]');
+    ecrireErreurs(lireErreurs().concat([[idLocal(), quandQuebec(), localStorage.getItem(QUI) || '', appareil(),
+      vue ? vue.id.replace(/^vue-/, '') : '', message.slice(0, 500), String(detail || '').slice(0, 1000),
+      s ? ((s.src.match(/[?&]v=(\d+)/) || [])[1] || '') : '']]));
+    setTimeout(expedierErreurs, 0);
+  } catch (e) { /* le journal ne plante jamais l'app */ }
+}
+async function expedierErreurs() {
+  if (envoiErreurs || !Coffre.motDePasse()) return;
+  envoiErreurs = true;
+  try {
+    while (lireErreurs().length) {
+      const ligne = lireErreurs()[0];
+      let r = null;
+      try { r = await Coffre.ajouter('Erreurs', ligne); } catch (x) {}
+      if (!(r && r.ok)) break;                          // réseau, ou l'onglet pas encore connu du coffre-fort : tout reste, ça repartira
+      ecrireErreurs(lireErreurs().filter(l => l[0] !== ligne[0]));
+    }
+  } finally { envoiErreurs = false; }
+}
+/* « 2026-10-12 14:05:33 », à l'heure du Québec. */
+function quandQuebec() {
+  const p = new Intl.DateTimeFormat('en-CA', { timeZone: 'America/Toronto', year: 'numeric', month: '2-digit', day: '2-digit',
+    hour: '2-digit', minute: '2-digit', second: '2-digit', hourCycle: 'h23' }).formatToParts(new Date());
+  const v = t => (p.find(x => x.type === t) || {}).value || '';
+  return v('year') + '-' + v('month') + '-' + v('day') + ' ' + v('hour') + ':' + v('minute') + ':' + v('second');
+}
+function appareil() {
+  const u = navigator.userAgent || '';
+  return /iPad/.test(u) || (/Macintosh/.test(u) && navigator.maxTouchPoints > 1) ? 'iPad' : /iPhone/.test(u) ? 'iPhone'
+    : /Android/.test(u) ? 'Android' : /Windows/.test(u) ? 'Windows' : /Mac/.test(u) ? 'Mac' : 'autre';
+}
+// un plantage du script de la page, qui ne se voyait pas : au journal aussi
+window.addEventListener('error', e => {
+  if (!e.message || e.message === 'Script error.') return;   // une erreur d'ailleurs (sans détail) : rien à apprendre
+  noterErreur('Plantage : ' + e.message, String(e.filename || '').split('/').pop() + ':' + e.lineno + ':' + e.colno);
+});
+window.addEventListener('unhandledrejection', e => {
+  const r = e.reason || {};
+  noterErreur('Plantage : ' + (r.message || r), String(r.stack || '').split('\n').slice(0, 2).join(' · '));
+});
 
 /* ---------- Cache local des listes ---------- */
 function lireCache() { try { return JSON.parse(localStorage.getItem(CACHE) || 'null'); } catch (e) { return null; } }
@@ -450,6 +513,7 @@ async function chargerReferences() {
     expedierCouleurs();                           // idem pour les couleurs (sinon un appareil garde les siennes)
     expedierGestes();                             // idem pour les consommations
     expedierAchats();                             // idem pour la liste d'achats
+    expedierErreurs();                            // et le journal des erreurs (en dernier : rien ne l'attend)
     return true;
   } catch (e) {
     if (e.message === 'non autorisé') { marquerPasAJour(false); Coffre.oublier(); revenirConnexion('Mot de passe refusé.'); return false; }
@@ -463,6 +527,7 @@ async function chargerReferences() {
    tant que la réserve n'a pas été relue, il reste en haut — on consulte ce que l'app a gardé, en le sachant; ce qu'on change
    attend dans sa file et part dès que le réseau répond. « Réessayer » relit sous le chariot. Il pousse la page et le burger. */
 function marquerPasAJour(oui, raison) {
+  if (oui) noterErreur('Réserve pas à jour' + (raison ? ' (' + raison + ')' : ''));
   $('pas-a-jour').hidden = !oui;
   $('pas-a-jour-texte').textContent = 'Réserve pas à jour' + (raison ? ' (' + raison + ')' : '');
   caleBandeau();
@@ -1162,6 +1227,7 @@ function statut(txt, type) {
   const m = $('msg');
   m.className = 'message' + (type ? ' message-' + type : '');
   m.textContent = txt;
+  if (type === 'erreur') noterErreur(txt);
 }
 
 async function enregistrer() {

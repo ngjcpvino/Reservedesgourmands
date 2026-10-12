@@ -1151,7 +1151,8 @@ select.champ {
 
 /* ============================================================
    TOAST — petit avis flottant (confirmation / à venir / erreur)
-   Au CENTRE de l'écran, --toast-duree (J-C, 2026-09-30 : en bas et 1,6 s, on n'avait pas le temps de le lire).
+   Au CENTRE de l'écran, --toast-duree (J-C, 2026-09-30 : en bas et 1,6 s, on n'avait pas le temps de le lire); une erreur, elle,
+   reste jusqu'à ce qu'on la touche (2026-10-12).
    La durée vit ici : le script ne fait que relancer l'animation.
 ============================================================ */
 .toast {
@@ -1172,6 +1173,7 @@ select.champ {
   pointer-events: none;
 }
 .toast.visible { animation: toast-montre var(--toast-duree) ease forwards; }
+.toast-erreur.visible { animation: none; opacity: 1; pointer-events: auto; cursor: pointer; }   /* une erreur RESTE jusqu'à ce qu'on la touche (J-C, 2026-10-12 : « je n'ai pas pu le lire au complet ») */
 @keyframes toast-montre { 0% { opacity: 0; } 5%, 90% { opacity: 1; } 100% { opacity: 0; } }
 .toast-avis   { background: var(--couleur-306); }
 .toast-succes { background: var(--couleur-703); }
