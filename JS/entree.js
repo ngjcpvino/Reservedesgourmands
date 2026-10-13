@@ -217,9 +217,12 @@ async function surCode() {
     if (nomPlu(code)) { $('nom').value = nomPlu(code); surNom(); }   // J-C confirme, ou choisit « Serait-ce plutôt celui-ci ? »
     return;
   }
-  $('msg-code').textContent = 'Recherche du produit…';
+  const local = codeCirculaire(code);                 // dans une circulaire d'IGA : tout de suite, sans réseau
+  $('msg-code').textContent = local ? '' : 'Recherche du produit…';
   const nomAvant = $('nom').value;
-  const a = articleNouveau(code, await identifierCode(code));
+  const recherche = local || identifierCode(code);
+  if (!local) chariotPendant(recherche, 'Recherche du produit…');   // le chariot : on voit qu'elle travaille (5 s au plus, elle continue derrière)
+  const a = articleNouveau(code, await recherche);
   if (ailleurs()) return;
   if ($('nom').value !== nomAvant) { $('msg-code').textContent = ''; return; }   // il a écrit le nom pendant la recherche : le sien gagne
   if (a.nouveau.inconnu) { $('msg-code').textContent = 'Inconnu'; return; }   // il écrit le nom à la main
@@ -310,6 +313,17 @@ function surToucheFin(ev) {
   glisserDepart = null;
 }
 function montrerVoile(on){ $('voile').hidden = !on; $('voile-texte').textContent = ''; }   // voile bloquant + le chariot (et sa ligne : « 2e essai… »)
+/* Le chariot PENDANT une recherche (J-C, 2026-10-13 : « on ne sait pas s'il travaille ou pas »; « 12 secondes c'est trop long ») :
+   au plus CHARIOT_MAX; ensuite il part et la recherche continue derrière — sa réponse remplit encore, si rien n'a été tapé entre-temps. */
+const CHARIOT_MAX = 5000;
+let chariotJeton = 0;
+function chariotPendant(promesse, texte) {
+  const j = ++chariotJeton;
+  montrerVoile(true); $('voile-texte').textContent = texte || '';
+  const fin = () => { if (j === chariotJeton) { chariotJeton++; montrerVoile(false); } };   // une seule fois : la réponse, ou les 5 s
+  setTimeout(fin, CHARIOT_MAX);
+  Promise.resolve(promesse).catch(() => {}).then(fin);
+}
 
 /* Ouvre/ferme un accordéon — UN SEUL ouvert à la fois dans son groupe (ses frères). Partout. */
 function toggleAccordeon(tete) {
@@ -514,6 +528,7 @@ async function chargerReferences() {
     expedierGestes();                             // idem pour les consommations
     expedierAchats();                             // idem pour la liste d'achats
     expedierErreurs();                            // et le journal des erreurs (en dernier : rien ne l'attend)
+    if (typeof chargerCodesCirculaires === 'function') chargerCodesCirculaires();   // les codes des circulaires sur l'appareil (une fois par jour, en arrière-plan)
     return true;
   } catch (e) {
     if (e.message === 'non autorisé') { marquerPasAJour(false); Coffre.oublier(); revenirConnexion('Mot de passe refusé.'); return false; }

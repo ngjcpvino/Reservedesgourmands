@@ -153,9 +153,13 @@ async function surCodeEpicerie(code) {
     const nom = nomPlu(code);
     if (nom) { montrerCarte(articlePlu(code, nom, false)); return; }
   }
+  const local = codeCirculaire(code);                    // dans une circulaire d'IGA : tout de suite, sans réseau
+  if (local) { montrerCarte(articleNouveau(code, local)); return; }
   $('epi-carte').innerHTML = '<div class="carte bloc-suite carte-scan"><div class="message">Recherche du produit…</div>' +
     '<button class="bouton bouton-pleine bouton-quitter" type="button" data-epi-annuler>Annuler</button></div>';
-  const r = await identifierCode(code);
+  const recherche = identifierCode(code);
+  chariotPendant(recherche, 'Recherche du produit…');   // le chariot : on voit qu'elle travaille (5 s au plus, elle continue derrière)
+  const r = await recherche;
   if (jeton !== epiJeton || $('epi-scan').hidden) return;   // annulé, ou parti ailleurs entre-temps
   montrerCarte(articleNouveau(code, r));
 }
@@ -163,11 +167,50 @@ async function surCodeEpicerie(code) {
    à jour : Open Food Facts directement. La même recherche pour les deux sacs et pour Ajouter (J-C, 2026-10-09). */
 async function identifierCode(code) {
   let r = null;
-  try { r = await Coffre.identifier(code); } catch (e) {}
-  if (r && r.ok) return r;
+  if (!CODES_CIRC.complet) {                             // l'archive d'IGA pas encore sur l'appareil : le coffre-fort la lit
+    try { r = await Coffre.identifier(code); } catch (e) {}
+    if (r && r.ok) return r;
+  }
   let d = null;
   if (typeof window.chercherOFF === 'function') { try { d = await window.chercherOFF(code); } catch (e) {} }
   return d && d.trouve ? { source: 'off', texte: d.nom || d.nomAutre, marque: d.marque, format: d.format, photo: d.photo } : { source: '' };
+}
+/* ---------- LES CODES DES CIRCULAIRES, SUR L'APPAREIL (J-C, 2026-10-13 : « on ne sait pas s'il travaille »; « lire un Sheet, ça devrait
+   pas être si long, surtout si ça roule en arrière du temps que je fasse des choix d'action ») ----------
+   Chargés en arrière-plan à l'ouverture (sans chariot), gardés sur l'appareil, refaits une fois par jour : un produit qu'IGA a eu en
+   circulaire est reconnu TOUT DE SUITE au scan, sans réseau. Le coffre-fort les donne en une liste compacte (`codesCirculaires` : la
+   semaine et l'archive d'un an — `complet`); tant qu'il ne connaît pas cette action, la circulaire d'IGA de la semaine seulement
+   (`circulaireMagasin`) — et `identifier` lit encore l'archive. Ne reste au réseau qu'Open Food Facts (le chariot, 5 s au plus). */
+const CACHE_CODES_CIRC = 'rdg_codes_circ';
+var CODES_CIRC = (() => { try { return JSON.parse(localStorage.getItem(CACHE_CODES_CIRC) || 'null') || { codes: {} }; } catch (e) { return { codes: {} }; } })();
+let chargementCodesCirc = false;
+async function chargerCodesCirculaires() {
+  if (chargementCodesCirc || CODES_CIRC.jour === dateDuJour()) return;
+  chargementCodesCirc = true;
+  try {
+    let r = null, complet = true;
+    try { r = await Coffre.codesCirculaires(); } catch (e) {}
+    if (!(r && r.ok && r.codes)) {                       // le coffre-fort ne la connaît pas encore : la semaine d'IGA (TEMPORAIRE, jusqu'au collage)
+      complet = false;
+      const iga = LISTES.Magasins.find(m => cleNom(m.nom) === 'iga' && m.circ !== false);
+      if (!iga) return;
+      try { r = await Coffre.circulaireMagasin(String(iga.id)); } catch (e) { return; }
+      if (!(r && r.ok)) return;
+      const codes = {};
+      (r.lignes || []).forEach(l => {
+        const k = formeCode(l.code);
+        if (k) codes[k] = [l.texte || '', l.marque ? nomListe(l.marque) : (l.marqueFlipp || ''), String(l.format || '').split(' + ')[0], l.photo || ''];
+      });
+      r = { codes: codes };
+    }
+    CODES_CIRC = { jour: dateDuJour(), complet: complet, codes: r.codes };
+    try { localStorage.setItem(CACHE_CODES_CIRC, JSON.stringify(CODES_CIRC)); } catch (e) {}
+  } finally { chargementCodesCirc = false; }
+}
+/* Un code des circulaires, trouvé sur l'appareil : la même réponse qu'`identifier` (null : pas là). */
+function codeCirculaire(code) {
+  const c = CODES_CIRC.codes || {}, x = c[formeCode(code)] || c[String(code || '').trim()];
+  return x ? { ok: true, source: 'circulaire', texte: x[0], marque: x[1], format: x[2], photo: x[3] } : null;
 }
 const produitActif = pid => PRODUITS.some(p => String(p.id) === String(pid));
 /* Déjà à nous (Stock : sa dernière entrée donne la marque, la saveur, le format), ou appris au tri. */
