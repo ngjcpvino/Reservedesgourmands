@@ -945,6 +945,7 @@ const AJOUTS_NEUFS = {
   choix:   l => ajouterChoix(l.id.replace(/^bloc-/, '').replace(/-neuve$/, '')),   // marque, saveur, magasin de la fiche
   cat:     () => ajouterCategorie(),
   souscat: () => ajouterSousCategorie(),
+  categorie: l => ajouterCategorieAilleurs(l),          // le tri, Compléter, Sans code, Ajouter à la liste
   plu:     (l, code) => {
     if (!estPlu(code)) { $('plu-nom').textContent = 'Un PLU a 4 ou 5 chiffres.'; $('plu-tape').focus(); return; }
     const x = [...$('plu').options].find(o => o.value === code && !o.dataset.neuf);
@@ -1093,6 +1094,24 @@ async function ajouterSousCategorie() {
   $('souscat').value = neuve.id;
   montrer('bloc-souscat-neuve', false);
   surSousCategorie();
+}
+/* Ailleurs que la fiche — le tri, Compléter, Sans code des deux sacs, Ajouter à la liste (J-C, 2026-10-13 : « je ne peux pas
+   ajouter » une sous-catégorie au tri) : le même « Nouvelle catégorie… » / « Nouvelle sous-catégorie… » au bout du menu, sa ligne
+   (data-ajout="categorie") juste après. Le menu d'une sous-catégorie porte data-parent = l'id du menu de sa catégorie. */
+function optionsCats(rid) {                           // sans rid : les catégories; avec : les sous-catégories de rid
+  if (rid === undefined) return options(RAYONS, '— Catégorie —') + '<option value="neuve">Nouvelle catégorie…</option>';
+  return options(SOUSCATS[rid] || [], '— Sous-catégorie —') + (vraieCat(rid) ? '<option value="neuve">Nouvelle sous-catégorie…</option>' : '');
+}
+const vraieCat = v => !!v && v !== 'neuve';          // une catégorie choisie, pas « Nouvelle… »
+async function ajouterCategorieAilleurs(l) {
+  const sel = menuDe(l), parent = sel.dataset.parent ? $(sel.dataset.parent) : null, rid = parent ? parent.value : undefined;
+  if (parent && !vraieCat(rid)) return;
+  const neuve = await creerCategorie(parent ? rid : '', l.querySelector('input'), l.querySelector('.ajouter'));
+  if (!neuve) { avis('Pas ajoutée — réessaie', 'erreur'); return; }
+  sel.innerHTML = optionsCats(rid);
+  sel.value = String(neuve.id);
+  l.hidden = true;
+  sel.dispatchEvent(new Event('change', { bubbles: true }));   // la suite de l'entonnoir reprend son cours
 }
 
 /* ---------- Doublons : proposer, jamais deviner ---------- */
@@ -1452,8 +1471,8 @@ function htmlAjout(classeChamp, invite, classeBouton, attr, id) {
     '<button class="ajouter ' + classeBouton + '" ' + attr + '="' + esc(id) + '" type="button" aria-label="Ajouter"></button></div>';
 }
 /* La ligne de saisie d'un « Nouveau… » bâtie par le script (le tri, Compléter) : cachée, après son menu (voir « NOUVEAU… »). */
-function htmlSaisieNeuve(ouvre, id, invite) {
-  return '<div class="saisie-neuve" data-ouvre="' + ouvre + '" hidden><input class="champ" id="' + id + '" autocomplete="off" enterkeyhint="done" placeholder="' + esc(invite) + '">' +
+function htmlSaisieNeuve(ouvre, id, invite, ajout) {
+  return '<div class="saisie-neuve" data-ouvre="' + ouvre + '"' + (ajout ? ' data-ajout="' + ajout + '"' : '') + ' hidden><input class="champ" id="' + id + '" autocomplete="off" enterkeyhint="done" placeholder="' + esc(invite) + '">' +
     '<button class="retirer" type="button" aria-label="Laisser tomber"></button><button class="ajouter" type="button" aria-label="Ajouter"></button></div>';
 }
 /* La barre d'une pièce ou d'un meuble prend sa couleur (une DONNÉE); sans couleur, elle reste brune.
@@ -3910,8 +3929,10 @@ function htmlEntonnoir(i) {
   const choix = (champ, nom) => '<div class="bloc"><div class="label">' + nom + '</div><select class="champ" id="tri-' + champ + '-' + i + '" data-champ="' + champ + '" data-i="' + i + '"></select>' +
     htmlSaisieNeuve('neuve', 'tri-' + champ + '-neuve-' + i, CHOIX_FICHE[champ].neuve) + '</div>';
   return (i ? '<div class="label label-fort">' + (i + 1) + 'e aliment</div>' : '') +
-    '<div class="bloc"><div class="label">Catégorie</div><select class="champ" id="tri-cat-' + i + '" data-champ="cat" data-i="' + i + '"></select></div>' +
-    '<div class="bloc" id="tri-bloc-souscat-' + i + '" hidden><div class="label">Sous-catégorie</div><select class="champ" id="tri-souscat-' + i + '" data-champ="souscat" data-i="' + i + '"></select></div>' +
+    '<div class="bloc"><div class="label">Catégorie</div><select class="champ" id="tri-cat-' + i + '" data-champ="cat" data-i="' + i + '"></select>' +
+      htmlSaisieNeuve('neuve', 'tri-cat-neuve-' + i, 'Nouvelle catégorie…', 'categorie') + '</div>' +
+    '<div class="bloc" id="tri-bloc-souscat-' + i + '" hidden><div class="label">Sous-catégorie</div><select class="champ" id="tri-souscat-' + i + '" data-champ="souscat" data-i="' + i + '" data-parent="tri-cat-' + i + '"></select>' +
+      htmlSaisieNeuve('neuve', 'tri-souscat-neuve-' + i, 'Nouvelle sous-catégorie…', 'categorie') + '</div>' +
     '<div class="bloc" id="tri-bloc-aliment-' + i + '" hidden><div class="label">Aliment</div><select class="champ champ-fort" id="tri-aliment-' + i + '" data-champ="aliment" data-i="' + i + '"></select>' +
       htmlSaisieNeuve('neuf', 'tri-nom-' + i, 'Nouvel aliment…') + '</div>' +
     '<div id="tri-bloc-sorte-' + i + '" hidden>' + choix('marque', 'Marque') + choix('saveur', 'Saveur') + '</div>';
@@ -3921,7 +3942,7 @@ function htmlEntonnoir(i) {
 function remplirEntonnoir(i, pid, marque, saveur, x) {
   const prod = PRODUITS.find(q => String(q.id) === String(pid)), scid = prod ? String(prod.catId) : '';
   const rid = (scid && rayonDe(scid)) || (x && groupeTri(x.categorie) !== 'autres' ? String(x.categorie) : '');
-  $('tri-cat-' + i).innerHTML = options(RAYONS, '— Catégorie —');
+  $('tri-cat-' + i).innerHTML = optionsCats();
   $('tri-cat-' + i).value = rid;
   triSurCat(i, scid, prod ? String(prod.id) : '', idListe('Marques', marque), idListe('Saveurs', saveur));
 }
@@ -3933,18 +3954,21 @@ function ajouterEntonnoir() {
   remplirEntonnoir(i, '', '', '', null);
 }
 function triSurCat(i, scid, pid, marque, saveur) {
-  const rid = $('tri-cat-' + i).value;
-  $('tri-souscat-' + i).innerHTML = options(SOUSCATS[rid] || [], '— Sous-catégorie —');
+  const rid = $('tri-cat-' + i).value, ok = vraieCat(rid);
+  majSaisie($('tri-cat-' + i), true);             // « Nouvelle catégorie… » : son nom à la place du menu
+  $('tri-souscat-' + i).innerHTML = optionsCats(ok ? rid : '');
   $('tri-souscat-' + i).value = scid || '';
-  montrer('tri-bloc-souscat-' + i, !!rid);
+  majSaisie($('tri-souscat-' + i));
+  montrer('tri-bloc-souscat-' + i, ok);
   triSurSousCat(i, pid, marque, saveur);
 }
 function triSurSousCat(i, pid, marque, saveur) {
-  const scid = $('tri-souscat-' + i).value;
-  const ps = PRODUITS.filter(p => String(p.catId) === String(scid)).sort((a, b) => String(a.nom).localeCompare(String(b.nom), 'fr'));
+  const scid = $('tri-souscat-' + i).value, ok = vraieCat(scid);
+  majSaisie($('tri-souscat-' + i), true);
+  const ps = ok ? PRODUITS.filter(p => String(p.catId) === String(scid)).sort((a, b) => String(a.nom).localeCompare(String(b.nom), 'fr')) : [];
   $('tri-aliment-' + i).innerHTML = options(ps, '— Aliment —') + '<option value="neuf">Nouvel aliment…</option>';
   $('tri-aliment-' + i).value = pid || '';
-  montrer('tri-bloc-aliment-' + i, !!scid);
+  montrer('tri-bloc-aliment-' + i, ok);
   triSurAliment(i, marque, saveur);
 }
 /* L'aliment choisi : ses marques et saveurs déjà vues (comme la fiche), plus celle de la circulaire, et « Nouvelle… ».
@@ -3992,7 +4016,7 @@ function validerTri() {
   for (let i = 0; i < n; i++) {
     if (i > 0 && !$('tri-cat-' + i).value) continue;            // un aliment de plus laissé vide : ignoré
     const scid = $('tri-souscat-' + i).value, choix = $('tri-aliment-' + i).value, nom = $('tri-nom-' + i).value.trim();
-    if (!scid || !choix) { msg('Choisis la catégorie, la sous-catégorie et l\'aliment.'); return; }
+    if (!vraieCat(scid) || !choix) { msg('Choisis la catégorie, la sous-catégorie et l\'aliment.'); return; }
     if (choix === 'neuf' && !nom) { msg('Donne un nom au nouvel aliment.'); $('tri-nom-' + i).focus(); return; }
     for (const champ of ['marque', 'saveur']) {
       const el = $('tri-' + champ + '-' + i), nv = $('tri-' + champ + '-neuve-' + i);
@@ -4136,7 +4160,8 @@ function appliquerTri(e, T) {
    à la place de la liste. L'aliment seul (sans marque ni saveur). ---- */
 function ouvrirAjoutAchat() {
   montrer('achats-page', false); montrer('achats-ajout', true);
-  $('achat-cat').innerHTML = options(RAYONS, '— Catégorie —');
+  $('achat-cat').innerHTML = optionsCats();
+  majSaisie($('achat-cat'));
   montrer('bloc-achat-souscat', false); montrer('bloc-achat-aliment', false); montrer('bloc-achat-nom', false);
   $('achat-nom').value = '';
   msgAchat(nomScanne ? 'Nouveau : « ' + nomScanne + ' ». Choisis sa catégorie et sa sous-catégorie.' : '');
@@ -4144,15 +4169,19 @@ function ouvrirAjoutAchat() {
 function fermerAjoutAchat() { montrer('achats-ajout', false); montrer('achats-page', true); nomScanne = ''; msgAchat(''); }
 function msgAchat(txt, erreur) { $('achats-msg').className = 'message message-repli' + (erreur ? ' message-erreur' : ''); $('achats-msg').textContent = txt; }
 function surAchatCat() {
-  $('achat-souscat').innerHTML = options(SOUSCATS[$('achat-cat').value] || [], '— Sous-catégorie —');
-  montrer('bloc-achat-souscat', !!$('achat-cat').value); montrer('bloc-achat-aliment', false); montrer('bloc-achat-nom', false);
+  const rid = $('achat-cat').value, ok = vraieCat(rid);
+  majSaisie($('achat-cat'), true);                 // « Nouvelle catégorie… » : son nom à la place du menu
+  $('achat-souscat').innerHTML = optionsCats(ok ? rid : '');
+  majSaisie($('achat-souscat'));
+  montrer('bloc-achat-souscat', ok); montrer('bloc-achat-aliment', false); montrer('bloc-achat-nom', false);
 }
 function surAchatSousCat() {
-  const scid = $('achat-souscat').value;
-  const ps = PRODUITS.filter(p => String(p.catId) === String(scid)).sort((a, b) => String(a.nom).localeCompare(String(b.nom), 'fr'));
+  const scid = $('achat-souscat').value, ok = vraieCat(scid);
+  majSaisie($('achat-souscat'), true);
+  const ps = ok ? PRODUITS.filter(p => String(p.catId) === String(scid)).sort((a, b) => String(a.nom).localeCompare(String(b.nom), 'fr')) : [];
   $('achat-aliment').innerHTML = options(ps, '— Aliment —') + '<option value="neuf">Nouvel aliment…</option>';
-  montrer('bloc-achat-aliment', !!scid);
-  if (scid && nomScanne) { $('achat-aliment').value = 'neuf'; $('achat-nom').value = nomScanne; }   // le nom lu au scan, prêt
+  montrer('bloc-achat-aliment', ok);
+  if (ok && nomScanne) { $('achat-aliment').value = 'neuf'; $('achat-nom').value = nomScanne; }   // le nom lu au scan, prêt
   surAchatAliment();
 }
 function surAchatAliment() { majSaisie($('achat-aliment'), true); }   // « Nouvel aliment… » : son nom à la place du menu
@@ -4160,7 +4189,7 @@ function surAchatAliment() { majSaisie($('achat-aliment'), true); }   // « Nouv
 function validerAjoutAchat() {
   if ($('achat-ok').disabled) return;
   let pid = $('achat-aliment').value;
-  if (!pid || !$('achat-souscat').value) { msgAchat('Choisis une catégorie, une sous-catégorie et un aliment.', true); return; }
+  if (!pid || !vraieCat($('achat-souscat').value)) { msgAchat('Choisis une catégorie, une sous-catégorie et un aliment.', true); return; }
   if (pid === 'neuf') {
     const nom = $('achat-nom').value.trim(), scid = $('achat-souscat').value;
     if (!nom) { msgAchat('Donne un nom au nouvel aliment.', true); $('achat-nom').focus(); return; }
