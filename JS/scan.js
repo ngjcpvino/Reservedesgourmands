@@ -58,7 +58,7 @@
     if (!continu) { if (m) scanContinu(m); return; }   // la caméra a été fermée entre-temps (l'app en arrière-plan) : on la rouvre
     if (scanning) return;
     if (!stream) { scanContinu(continu); return; }   // la caméra s'est fermée (l'app est passée en arrière-plan) : on la rouvre
-    repriseA = Date.now(); msg('Vise un code-barres…');
+    repriseA = Date.now(); msg('');
     scanning = true;
     boucle();
   }
@@ -83,7 +83,7 @@
     try { await video.play(); } catch (e) {}
     if (!(await chargerLib())) return;
     if (!canvas) { canvas = document.createElement('canvas'); ctx = canvas.getContext('2d', { willReadFrequently: true }); }
-    msg('Vise un code-barres…');
+    msg('');                                     // la caméra est prête : rien à dire (J-C, 2026-10-13 : « Vise un code-barres… », pas utile)
     scanning = true;
     boucle();
   }
