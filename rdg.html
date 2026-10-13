@@ -10,7 +10,7 @@
   <!-- Ecran d'accueil iPad : le meme sac, en PNG (iOS n'accepte pas le SVG ici) -->
   <link rel="apple-touch-icon" href="apple-touch-icon.png?v=2">
 
-<link rel="stylesheet" href="CSS/rdg.css?v=149">
+<link rel="stylesheet" href="CSS/rdg.css?v=150">
 </head>
 <body>
 
@@ -194,11 +194,13 @@
   <div class="contenu">
     <video class="scan-video" id="scan-video" playsinline muted></video>
     <div class="message message-repli" id="scan-msg"></div>
-    <button class="bouton bouton-brun bouton-pleine bouton-suite" id="scan-taper" type="button" data-taper hidden>Taper le code</button>   <!-- un code que la caméra ne lit pas -->
-    <div class="saisie-neuve bloc-suite" data-ajout="code" hidden>   <!-- le champ prend la place du bouton; le + : comme un code scanné -->
+    <div class="grille grille-scan bloc-suite" id="scan-choix" hidden>   <!-- le sac seul : un code que la caméra ne lit pas, et l'entonnoir (comme les deux sacs) -->
+      <button class="bouton bouton-grand" id="scan-taper" type="button" data-taper aria-label="Taper le code"><span class="icone icone-taper"></span></button>
+      <button class="bouton bouton-grand" id="scan-sans-code" type="button" aria-label="Sans code"><span class="icone icone-sans-code"></span></button>
+    </div>
+    <div class="saisie-neuve bloc-suite" data-ajout="code" hidden>   <!-- le champ prend la place des deux icônes; le + : comme un code scanné -->
       <input class="champ" id="scan-code-tape" type="text" inputmode="numeric" pattern="[0-9]*" autocomplete="off" enterkeyhint="done" placeholder="Les chiffres sous les barres"><button class="retirer" type="button" aria-label="Laisser tomber"></button><button class="ajouter" type="button" aria-label="Ajouter"></button>
     </div>
-    <button class="bouton bouton-brun bouton-pleine bouton-suite" id="scan-sans-code" type="button" hidden>Sans code</button>   <!-- le sac seul : l'entonnoir, comme les deux sacs -->
     <div class="bloc-suite" id="scan-resultat" hidden>
       <div class="label">Code lu</div>
       <div class="champ champ-code" id="scan-code"></div>
@@ -228,11 +230,13 @@
       <div id="epi-camera">
         <video class="scan-video" id="epi-video" playsinline muted></video>
         <div class="message message-repli" id="epi-msg"></div>
-        <button class="bouton bouton-brun bouton-pleine bouton-suite" type="button" data-taper>Taper le code</button>
-        <div class="saisie-neuve bloc-suite" data-ajout="code" hidden>   <!-- le champ prend la place du bouton; le + : comme un code scanné -->
+        <div class="grille grille-scan bloc-suite">
+          <button class="bouton bouton-grand" type="button" data-taper aria-label="Taper le code"><span class="icone icone-taper"></span></button>
+          <button class="bouton bouton-grand" id="epi-sans-code" type="button" aria-label="Sans code"><span class="icone icone-sans-code"></span></button>
+        </div>
+        <div class="saisie-neuve bloc-suite" data-ajout="code" hidden>   <!-- le champ prend la place des deux icônes; le + : comme un code scanné -->
           <input class="champ" id="epi-code-tape" type="text" inputmode="numeric" pattern="[0-9]*" autocomplete="off" enterkeyhint="done" placeholder="Les chiffres sous les barres"><button class="retirer" type="button" aria-label="Laisser tomber"></button><button class="ajouter" type="button" aria-label="Ajouter"></button>
         </div>
-        <button class="bouton bouton-brun bouton-pleine bouton-suite" id="epi-sans-code" type="button">Sans code</button>
       </div>
       <div id="epi-sans" hidden>
         <button class="bouton bouton-brun bouton-pleine" id="epi-revenir" type="button">Revenir au scan</button>
@@ -521,6 +525,6 @@
 <script src="JS/bientot.js?v=6"></script>
 <script src="JS/prix.js?v=6"></script>
 <script src="JS/epicerie.js?v=18"></script>
-<script src="JS/scan.js?v=16"></script>
+<script src="JS/scan.js?v=17"></script>
 </body>
 </html>

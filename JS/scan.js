@@ -38,8 +38,7 @@
     var b = el('btn-burger'); if (b) b.hidden = false;
     el('scan-resultat').hidden = true;
     el('scan-code').textContent = '';
-    el('scan-sans-code').hidden = !(mode && typeof mode.sansCode === 'function');   // le sac seul : « Sans code » sous la caméra
-    el('scan-taper').hidden = el('scan-sans-code').hidden;                        // … et « Taper le code »
+    el('scan-choix').hidden = !(mode && typeof mode.sansCode === 'function');   // le sac seul : « Taper le code » et « Sans code » sous la caméra
     fermerTaper();
     msg('Démarrage de la caméra…');
     await demarrer('scan-video');
@@ -205,7 +204,7 @@
     document.addEventListener('click', function (ev) {   // « Taper le code » : son champ prend sa place, le clavier à chiffres ouvert
       var b = ev.target.closest('[data-taper]');
       if (!b) return;
-      var l = b.nextElementSibling;
+      var l = (b.closest('.grille') || b).nextElementSibling;   // la ligne de saisie suit les deux icônes
       l.hidden = false; l.querySelector('input').focus();
     });
     if (typeof AJOUTS_NEUFS === 'object') AJOUTS_NEUFS.code = codeTape;   // le + de la ligne (et Entrée) : le mécanisme des « Nouveau… »
