@@ -309,8 +309,8 @@ garde le TEXTE de l'unité, pas son ID.*
 ### ERREURS — le journal des erreurs (2026-10-12)
 *J-C : « un message d'erreur que je n'ai pas pu lire au complet… fais un onglet dans le Sheet où les erreurs s'inscrivent ». L'app
 écrit chaque erreur (un message rouge, la raison du bandeau « Réserve pas à jour », un plantage du script de la page) par l'action
-`ajouter`, avec son ID : un 2e envoi ne double rien. ⚠️ À créer dans `api.gs` (à l'ordi) : l'onglet doit être connu d'`ajouter`,
-créé tout seul avec ses en-têtes. D'ici là, l'app garde les 50 dernières sur l'appareil et les renvoie à chaque chargement.*
+`ajouter`, avec son ID : un 2e envoi ne double rien. ✅ Écrit dans `api.gs` le 2026-10-13 (à coller) : l'onglet est connu d'`ajouter`,
+créé tout seul avec ses en-têtes, chaque cellule écrite en texte. D'ici là, l'app garde les 50 dernières sur l'appareil et les renvoie à chaque chargement.*
 
 | Col | Nom | Sens |
 |-----|-----|------|
@@ -318,9 +318,9 @@ créé tout seul avec ses en-têtes. D'ici là, l'app garde les 50 dernières su
 | B | Quand | « 2026-10-12 14:05:33 », heure du Québec (texte) |
 | C | Qui | Outils → Qui entre les articles, sur cet appareil |
 | D | Appareil | iPad, iPhone, Mac, Windows… |
-| E | Écran | la page à l'écran (`fiche` = « app », `epicerie`, `listes`…) |
+| E | Ecran | la page à l'écran (`fiche` = « app », `epicerie`, `listes`…) |
 | F | Message | ce que J-C a vu (ou « Plantage : … ») |
-| G | Détail | pour un plantage : le fichier et la ligne |
+| G | Detail | pour un plantage : le fichier et la ligne |
 | H | Version | le `?v=` d'`entree.js` |
 
 ### CODES-BARRES — PAS de table séparée (décision 2026-09-20)
