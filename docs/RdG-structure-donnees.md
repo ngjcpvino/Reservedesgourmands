@@ -219,6 +219,8 @@ ligne (c'est aussi la correction). Écrit par l'action `trier`.*
 | M | Format | les quantités de la description (« 2 l », « 12x200 ml »), pour comparer : le code d'un article relié ne suit que le même format |
 | N | Magasin | l'épicerie de l'article (ID dans MAGASINS) |
 
+*Les marques et saveurs choisies au tri (C = O ou P, D E F) sont proposées ensuite pour leur aliment partout — le tri, la fiche, Compléter (2026-10-13, `sortesVues()`); `references.sortesTri` les donnera à l'autre appareil (à écrire dans `api.gs`).*
+
 *Pas dans l'onglet, mais lus comme des Oui (2026-10-02) : un article de la semaine dont le code a déjà été **entré** (STOCK col. I)
 est trié Oui tout seul, relié à l'entrée — `lireTri` le renvoie avec les réponses (ID « auto-… », Qui « entré »). Une correction
 écrit la vraie ligne, qui l'emporte.*

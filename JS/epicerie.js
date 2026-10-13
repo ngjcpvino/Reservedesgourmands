@@ -701,9 +701,8 @@ function ouvrirProduit(i) {
   $('cp-cat').innerHTML = options(RAYONS, '— Catégorie —'); $('cp-cat').value = rid;
   remplirSousCatPanneau(p.catId);
   remplirAlimentsPanneau(p.catId ? lot.pid : 'nouveau', p.nom);
-  const vr = VARIANTES[lot.pid] || {};
-  $('cp-marque').innerHTML = optionsListe('marque', vr.marques || [], lot.marque); $('cp-marque').value = lot.marque || '';
-  $('cp-saveur').innerHTML = optionsListe('saveur', vr.saveurs || [], lot.saveur); $('cp-saveur').value = lot.saveur || '';
+  $('cp-marque').innerHTML = optionsListe('marque', sortesVues(lot.pid, 'marque'), lot.marque); $('cp-marque').value = lot.marque || '';
+  $('cp-saveur').innerHTML = optionsListe('saveur', sortesVues(lot.pid, 'saveur'), lot.saveur); $('cp-saveur').value = lot.saveur || '';
   poserFormatPanneau(lot.formats[0] || '');
   ajouterEndroitPanneau(resoudreEmp(lot.emp || premierEndroit(lot.pid)), lot.qte);   // sa place (ou sa place habituelle) et toute la quantité
   const prix = prixDuLot(lot);
@@ -765,6 +764,13 @@ function surAlimentPanneau() {
   m.textContent = autre ? 'Il devient du ' + autre.nom + ' (ton aliment) : tout ce qu\'il y en a passe à ' + autre.nom + '.' : '';
   const ou = document.querySelector('#cp-endroits .endroit');   // pas encore placé : la place habituelle de l'aliment choisi, s'il en a une
   if (autre && ou && !PANNEAU.lot.emp && !ou.querySelector('.meuble').value) { const e = premierEndroit(autre.id); if (e) brancherEndroit(ou, resoudreEmp(e)); }
+  ['marque', 'saveur'].forEach(ch => {                // ses marques et saveurs (entrées, apprises au tri), avec celles du produit scanné; le choix reste
+    const el = $('cp-' + ch);
+    if (!el || el.value === 'neuve') return;          // un nom neuf en cours : on n'y touche pas
+    const v = el.value;
+    el.innerHTML = optionsListe(ch, sortesVues(autre ? autre.id : PANNEAU.lot.pid, ch).concat(sortesVues(PANNEAU.lot.pid, ch)), v);
+    el.value = v;
+  });
   majCirculairePanneau();
 }
 function poserFormatPanneau(f) {

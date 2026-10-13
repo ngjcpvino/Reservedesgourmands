@@ -484,6 +484,7 @@ function appliquer(d) {
   VARIANTES = d.variantes || {};                      // { produitId: { marques:[], formats:[] } }
   CODES = d.codes || {};                              // { codeBarres: produitId }
   CODES_TRI = d.codesTri || {};                       // { code: [produitId, marque, saveur] } (le tri des circulaires)
+  SORTES_TRI_SERVEUR = d.sortesTri || {};             // { produitId: [[marque, saveur], …] } (les marques et saveurs choisies au tri)
   STOCK = d.stock || [];
   COULEURS = d.couleurs || [];                        // [ID, SecteurID, Nom, Valeur]
   PAS_AIMES = d.pasAimes || [];
@@ -793,9 +794,8 @@ function pluChoisi() {
 
 /* Les choix de la fiche pour un produit : ses marques et ses saveurs déjà vues, tous les magasins, les unités. */
 function remplirVariantes(pid) {
-  const vr = (pid && VARIANTES[pid]) || { marques: [], formats: [], saveurs: [] };
-  remplirChoix('marque', vr.marques);
-  remplirChoix('saveur', vr.saveurs);
+  remplirChoix('marque', sortesVues(pid, 'marque'));      // déjà entrées, et apprises au tri
+  remplirChoix('saveur', sortesVues(pid, 'saveur'));
   remplirUnites();
   remplirChoix('magasin', LISTES.Magasins.map(x => x.id), $('magasin').value !== 'neuve' ? $('magasin').value : '');
 }
@@ -854,6 +854,38 @@ const CHOIX_FICHE = {
   saveur:  { liste: 'Saveurs',  vide: '— Aucune saveur —', neuve: 'Nouvelle saveur…' },
   magasin: { liste: 'Magasins', vide: '— Magasin —',       neuve: 'Nouveau magasin…' }
 };
+/* LES SORTES APPRISES AU TRI (J-C, 2026-10-13 : la saveur McIntosh choisie au tri d'une pomme ne revenait pas au tri suivant) :
+   une marque, une saveur choisies au tri (Oui, Peut-être) sont proposées ensuite partout pour cet aliment — le tri, la fiche,
+   Compléter —, avec celles déjà entrées (VARIANTES). D'où elles viennent : le tri lu (Tri col. C à F; gardé sur l'appareil, refait
+   à chaque lecture et à chaque tri), les codes appris au tri (references.codesTri) et references.sortesTri (le coffre-fort, quand il
+   la donne). Seulement des marques et saveurs actives (une réunie, une retirée ne revient pas). */
+const CACHE_SORTES_TRI = 'rdg_sortes_tri';
+var SORTES_TRI_LU = (() => { try { return JSON.parse(localStorage.getItem(CACHE_SORTES_TRI) || '{}') || {}; } catch (e) { return {}; } })();
+var SORTES_TRI_SERVEUR = {};                          // references.sortesTri : { produitId: [[marque, saveur], …] }
+/* Les lignes de Tri (ID · Cle · Reponse · ProduitID · Marque · Saveur…) -> { produitId: [[marque, saveur], …] }. Plusieurs aliments
+   sur une ligne : « p1,p2 » et leurs marques, saveurs au même rang. */
+function sortesDuTri(rangs) {
+  const m = {};
+  (rangs || []).forEach(r => {
+    if (r[2] !== 'O' && r[2] !== 'P') return;
+    const mq = String(r[4] || '').split(','), sv = String(r[5] || '').split(',');
+    String(r[3] || '').split(',').forEach((pid, k) => { pid = pid.trim(); if (pid) (m[pid] = m[pid] || []).push([(mq[k] || '').trim(), (sv[k] || '').trim()]); });
+  });
+  return m;
+}
+function retenirSortesTri(rangs) {
+  SORTES_TRI_LU = sortesDuTri(rangs);
+  try { localStorage.setItem(CACHE_SORTES_TRI, JSON.stringify(SORTES_TRI_LU)); } catch (e) {}
+}
+/* Les marques (les saveurs) à proposer pour un aliment : celles déjà entrées, puis celles apprises au tri. */
+function sortesVues(pid, champ) {
+  const vus = (((pid && VARIANTES[pid]) || {})[champ + 's'] || []).map(String), k = champ === 'marque' ? 0 : 1, liste = LISTES[CHOIX_FICHE[champ].liste];
+  if (!pid) return vus;
+  const ajoute = v => { v = String(v || '').trim(); if (v && vus.indexOf(v) === -1 && liste.some(x => String(x.id) === v)) vus.push(v); };
+  [SORTES_TRI_SERVEUR, SORTES_TRI_LU].forEach(m => (m[pid] || []).forEach(x => ajoute(x[k])));
+  Object.keys(CODES_TRI).forEach(c => { const t = CODES_TRI[c]; if (String(t[0]) === String(pid)) ajoute(t[k + 1]); });
+  return vus;
+}
 /* Ce que STOCK retient (un ID) -> ce qu'on lit. Une vieille valeur écrite en texte se lit telle quelle. */
 function nomListe(v) { let k = String(v == null ? '' : v).trim(); k = NUMEROS[k] || k; return NOMS_LISTES[k] || k; }   // un faux nom-numéro : le nom du vrai (TEMPORAIRE)
 /* Deux noms « pareils » : sans accent, sans majuscule, sans espace ni ponctuation (« Super C » = « SuperC »). Même règle que le coffre-fort. */
@@ -3562,6 +3594,7 @@ async function montrerCirculaires() {
   if (r && r.ok) {
     TRI = { aTrier: r.aTrier || [], tri: r.tri || [] }; TRI_ECHEC = '';
     lireAttenteGestes().forEach(e => { if (e.action === 'trier') appliquerTri(e, TRI); });   // un tri en route reste fait
+    retenirSortesTri(TRI.tri);                     // ses marques et saveurs, proposées ensuite pour l'aliment
     noterNbATrier(TRI.aTrier.length);
   } else {
     TRI_ECHEC = 'Circulaires pas lues : ' + (r && r.erreur ? r.erreur : raison || 'pas de réponse');   // la raison exacte, du coffre-fort ou du réseau
@@ -3917,14 +3950,14 @@ function triSurSousCat(i, pid, marque, saveur) {
 /* L'aliment choisi : ses marques et saveurs déjà vues (comme la fiche), plus celle de la circulaire, et « Nouvelle… ».
    Changer d'aliment garde la marque et la saveur choisies. */
 function triSurAliment(i, marque, saveur) {
-  const pid = $('tri-aliment-' + i).value, vr = (pid && VARIANTES[pid]) || {};
+  const pid = $('tri-aliment-' + i).value;
   majSaisie($('tri-aliment-' + i), true);       // « Nouvel aliment… » : son nom à la place du menu
   montrer('tri-bloc-sorte-' + i, !!pid);
   [['marque', marque], ['saveur', saveur]].forEach(([champ, garde]) => {
     const el = $('tri-' + champ + '-' + i);
     if (!el) return;
     const v = garde !== undefined ? garde : el.value;
-    el.innerHTML = optionsListe(champ, vr[champ + 's'], v === 'neuve' ? '' : v);
+    el.innerHTML = optionsListe(champ, sortesVues(pid, champ), v === 'neuve' ? '' : v);
     el.value = v || '';
     if (!reposerNeuf(el)) majSaisie(el);          // une marque neuve déjà ajoutée le reste
   });
@@ -4070,6 +4103,7 @@ function trier(xs, rep, quoi) {
   appliquerTri(e, TRI);
   e.neufs = avant - TRI.aTrier.length;               // ce qui quitte « À trier » — un Jamais : aussi le même genre ailleurs (le point rouge)
   poserGeste(e);
+  if (avec) retenirSortesTri(TRI.tri);               // la saveur choisie : proposée tout de suite au prochain tri, dans la fiche, Compléter
   noterNbATrier(TRI.aTrier.length);
   remplirTri();
 }
