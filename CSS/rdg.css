@@ -101,6 +101,9 @@
   --menu-outils:      var(--couleur-802);
   --menu-achats:      var(--couleur-303);
   --menu-rechercher:  var(--couleur-703);
+  /* Sous la caméra : chaque bouton SA couleur (J-C, 2026-10-13, choix B sur aperçu) */
+  --scan-taper:       var(--couleur-802);
+  --scan-sans-code:   var(--couleur-505);
 
   /* ---- Couleurs de service : DÉRIVÉES des couleurs ci-dessus, jamais écrites en dur.
      Change une couleur de base (écran Outils → Couleurs) : ses dérivées suivent. ---- */
@@ -495,8 +498,10 @@ body:has(.sur-photo:not([hidden]))::before { display: none; }
 .liste-suite > .accordeon:nth-child(10n+8) { --meuble: var(--suite-8); }
 .liste-suite > .accordeon:nth-child(10n+9) { --meuble: var(--suite-9); }
 .liste-suite > .accordeon:nth-child(10n+10) { --meuble: var(--suite-10); }
+/* Sous la caméra : « Taper le code » et « Sans code », chacun SA couleur (root, --scan-…). */
+.grille > .bouton-grand[data-scan="taper"]       { --c: var(--scan-taper); }
+.grille > .bouton-grand[data-scan="sans-code"]   { --c: var(--scan-sans-code); }
 /* Gérer les bases : chaque bouton SA couleur (root, --base-…), plus la suite par position. Pâle : le dessin passe au brun. */
-.grille.grille-scan > .bouton-grand { --c: var(--couleur-305); }   /* sous la caméra : « Taper le code » et « Sans code », bruns (comme vus à l'aperçu) */
 .grille > .bouton-grand[data-base="pieces"]      { --c: var(--base-pieces); --icone-trait: var(--icone-trait-pale); }
 .grille > .bouton-grand[data-base="meubles"]     { --c: var(--base-meubles); }
 .grille > .bouton-grand[data-base="categories"]  { --c: var(--base-categories); }
