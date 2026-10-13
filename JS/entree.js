@@ -3811,21 +3811,26 @@ const htmlFeu = () => '<div class="feu">' +
   '<button class="feu-jamais" type="button" data-reponse="J" aria-label="Jamais"></button></div>';
 const photoTri = src => src ? '<img class="tri-photo" src="' + esc(src) + '" alt="">' : '<span class="tri-photo tri-photo-vide"></span>';
 /* Toucher un article : il s'ouvre — le vrai produit derrière son code (derrière chacun, pour des doublons), s'il en a un, puis le
-   feu (un seul ouvert à la fois); le retoucher le referme. */
+   feu (un seul ouvert à la fois); le retoucher le referme. Ouvert, il est seul sous sa catégorie (J-C, 2026-10-13 : « les autres items
+   devraient être cachés, sinon je finis par vriller vers le haut ou vers le bas » — le CSS les cache), en haut de la page; refermé,
+   la liste revient et il reste sous les yeux. */
 function ouvrirArticleTri(el) {
   const deja = el.classList.contains('ouvert');
-  fermerArticleTri();
+  fermerArticleTri(deja);
   if (deja) return;
   el.classList.add('ouvert');
+  window.scrollTo(0, 0);
   const x = articleTri(el.dataset.art), codes = x ? ((x.codes || []).filter(Boolean).length ? x.codes.filter(Boolean) : [x.code].filter(Boolean)) : [];
   el.insertAdjacentHTML('afterend', '<div class="tri-panneau" data-art="' + esc(el.dataset.art) + '">' + codes.map(code => '<div class="item" data-code-produit="' + esc(code) + '">' +
     photoTri('') + '<div class="item-info"><div class="code-barres">' + esc(estPlu(code) ? 'PLU ' + code : code) + '</div></div></div>').join('') + htmlFeu() + '</div>');
   codes.forEach(montrerProduitCode);
 }
-function fermerArticleTri() {
-  const p = panneauTri(); if (p) p.remove();
+function fermerArticleTri(revoir) {
+  const p = panneauTri(), el = p && p.previousElementSibling;
+  if (p) p.remove();
   TRI_CODE = null;
   $('liste-tri').querySelectorAll('.tri-article.ouvert').forEach(x => x.classList.remove('ouvert'));
+  if (revoir && el && el.scrollIntoView) el.scrollIntoView({ block: 'center' });   // la liste revient : l'article refermé reste sous les yeux
 }
 /* Le vrai produit derrière un code (J-C, 2026-10-02, choix A — « Crème glacée Coaticook » d'IGA porte le code d'un sorbet) :
    un PLU → la liste officielle; un code-barres → Open Food Facts. Une fois par code : gardé en mémoire. */
@@ -4876,7 +4881,8 @@ function initEntree() {
     toggleAccordeon(tete);
   });
   // Gérer les bases → Circulaires : le tri
-  $('circulaires-retour').addEventListener('click', () => {   // Retour recule d'un pas : la catégorie ouverte se referme, puis l'épicerie (ou le rond); sinon, le menu
+  $('circulaires-retour').addEventListener('click', () => {   // Retour recule d'un pas : l'article ouvert se referme, puis la catégorie, puis l'épicerie (ou le rond); sinon, le menu
+    if (panneauTri()) { fermerArticleTri(true); return; }
     const ouvertes = $('liste-tri').querySelectorAll('[data-groupe] > .accordeon-tete.ouvert');
     if (ouvertes.length) { fermerArticleTri(); toggleAccordeon(ouvertes[ouvertes.length - 1]); window.scrollTo(0, 0); }
     else if (TRI_VUE) vueTri('');
