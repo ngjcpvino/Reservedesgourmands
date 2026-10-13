@@ -309,8 +309,8 @@ garde le TEXTE de l'unité, pas son ID.*
 ### ERREURS — le journal des erreurs (2026-10-12)
 *J-C : « un message d'erreur que je n'ai pas pu lire au complet… fais un onglet dans le Sheet où les erreurs s'inscrivent ». L'app
 écrit chaque erreur (un message rouge, la raison du bandeau « Réserve pas à jour », un plantage du script de la page) par l'action
-`ajouter`, avec son ID : un 2e envoi ne double rien. ✅ Écrit dans `api.gs` le 2026-10-13 (à coller) : l'onglet est connu d'`ajouter`,
-créé tout seul avec ses en-têtes, chaque cellule écrite en texte. D'ici là, l'app garde les 50 dernières sur l'appareil et les renvoie à chaque chargement.*
+`ajouter`, avec son ID : un 2e envoi ne double rien. ✅ Écrit dans `api.gs` et collé le 2026-10-13 : l'onglet est connu d'`ajouter`,
+créé tout seul avec ses en-têtes, chaque cellule écrite en texte. Un envoi raté : l'app garde les 50 dernières sur l'appareil et les renvoie à chaque chargement.*
 
 | Col | Nom | Sens |
 |-----|-----|------|

@@ -177,7 +177,8 @@ async function identifierCode(code) {
 }
 /* ---------- LES CODES DES CIRCULAIRES, SUR L'APPAREIL (J-C, 2026-10-13 : « on ne sait pas s'il travaille »; « lire un Sheet, ça devrait
    pas être si long, surtout si ça roule en arrière du temps que je fasse des choix d'action ») ----------
-   Chargés en arrière-plan à l'ouverture (sans chariot), gardés sur l'appareil, refaits une fois par jour : un produit qu'IGA a eu en
+   Chargés en arrière-plan à l'ouverture (sans chariot), gardés sur l'appareil, refaits une fois par jour (tant que seule la semaine
+   d'IGA est là, à chaque chargement : l'archive arrive dès que le coffre-fort la donne) : un produit qu'IGA a eu en
    circulaire est reconnu TOUT DE SUITE au scan, sans réseau. Le coffre-fort les donne en une liste compacte (`codesCirculaires` : la
    semaine et l'archive d'un an — `complet`); tant qu'il ne connaît pas cette action, la circulaire d'IGA de la semaine seulement
    (`circulaireMagasin`) — et `identifier` lit encore l'archive. Ne reste au réseau qu'Open Food Facts (le chariot, 5 s au plus). */
@@ -185,7 +186,7 @@ const CACHE_CODES_CIRC = 'rdg_codes_circ';
 var CODES_CIRC = (() => { try { return JSON.parse(localStorage.getItem(CACHE_CODES_CIRC) || 'null') || { codes: {} }; } catch (e) { return { codes: {} }; } })();
 let chargementCodesCirc = false;
 async function chargerCodesCirculaires() {
-  if (chargementCodesCirc || CODES_CIRC.jour === dateDuJour()) return;
+  if (chargementCodesCirc || (CODES_CIRC.complet && CODES_CIRC.jour === dateDuJour())) return;   // pas encore l'archive : on réessaie à chaque chargement
   chargementCodesCirc = true;
   try {
     let r = null, complet = true;

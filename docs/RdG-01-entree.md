@@ -325,7 +325,7 @@ Compléter ») — `api.gs` collé (le 2026-10-04 au soir), à essayer en ligne
   Food Facts) → rien. Un coffre-fort pas encore à jour : Open Food Facts directement.
   **Revu le 2026-10-13 (J-C : « lire un Sheet, ça devrait pas être si long, surtout si ça roule en arrière du temps que je fasse des
   choix d'action »)** : Stock → Tri → **les codes des circulaires, gardés sur l'appareil** (chargés en arrière-plan une fois par jour :
-  la semaine et l'archive d'un an par l'action `codesCirculaires`, écrite dans `api.gs` le 2026-10-13, à coller; d'ici là, la semaine d'IGA) → le réseau
+  la semaine et l'archive d'un an par l'action `codesCirculaires`, collée le 2026-10-13; en repli, la semaine d'IGA) → le réseau
   (Open Food Facts; le coffre-fort tant que l'archive n'est pas sur l'appareil), **sous le chariot, 5 s au plus**, la recherche
   continuant derrière → « Inconnu ».
 - **Chaque article entre tout de suite** dans STOCK (instantané, par la file des gestes : action `entrer`, l'ID donné par l'app,
