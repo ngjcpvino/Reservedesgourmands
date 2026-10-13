@@ -910,11 +910,13 @@ function collerPage(texte) {
   majCirculairePanneau();
 }
 /* « C'est ça » : l'aliment (catégorie, nom — ou réuni à l'aliment choisi), puis les lignes du lot (marque, saveur, format, prix). */
-function validerProduit() {
+async function validerProduit() {
   const P = PANNEAU, msg = $('cp-msg');
   if (!P) return;
+  if (!await poserCatsTapees($('epi-completer')) || PANNEAU !== P) return;   // une catégorie tapée sans le + : créée d'abord
   const lot = P.lot, scid = $('cp-souscat').value, v = $('cp-aliment').value, nom = $('cp-nom').value.trim();
-  if (!vraieCat(scid)) { msg.textContent = 'Choisis une catégorie et une sous-catégorie.'; return; }
+  const manque = manqueEntonnoir($('cp-cat').value, scid);
+  if (manque) { msg.textContent = manque; return; }
   if (!v || (v === 'nouveau' && !nom)) { msg.textContent = 'Choisis l\'aliment, ou nomme le nouveau.'; return; }
   const prixTxt = $('cp-prix').value.trim(), prixNb = Number(prixTxt.replace(/\s*\$\s*/, '').replace(',', '.'));
   if (prixTxt && !(isFinite(prixNb) && prixNb >= 0)) { msg.textContent = 'Le prix : un nombre (« 2,49 »).'; return; }
