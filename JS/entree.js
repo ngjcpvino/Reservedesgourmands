@@ -1113,6 +1113,27 @@ async function ajouterCategorieAilleurs(l) {
   l.hidden = true;
   sel.dispatchEvent(new Event('change', { bubbles: true }));   // la suite de l'entonnoir reprend son cours
 }
+/* « C'est ça », « Mettre sur la liste »… touché avec une catégorie ou une sous-catégorie tapée sans le + (J-C, 2026-10-13 : « Bologne »
+   écrite, « C'est ça » répondait « Choisis la catégorie, la sous-catégorie et l'aliment ») : un nom tapé compte quand même — le +
+   d'abord, puis la suite de l'entonnoir paraît et la vérification dit ce qui manque encore. Rend false si la création a échoué. */
+async function poserCatsTapees(racine) {
+  for (const l of [...racine.querySelectorAll('.saisie-neuve[data-ajout="categorie"]')]) {
+    const sel = menuDe(l), parent = sel && sel.dataset.parent ? $(sel.dataset.parent) : null;
+    if (l.hidden || !l.querySelector('input').value.trim() || (parent && !vraieCat(parent.value))) continue;
+    await ajouterCategorieAilleurs(l);
+    if (!l.hidden) return false;                     // pas ajoutée : le message rouge l'a dit
+  }
+  return true;
+}
+/* Ce qui manque à un entonnoir, dans l'ordre (l'aliment seulement s'il est demandé) — '' s'il est complet. */
+function manqueEntonnoir(cat, souscat, aliment) {
+  if (cat === 'neuve') return 'Donne un nom à la nouvelle catégorie.';
+  if (!vraieCat(cat)) return 'Choisis la catégorie.';
+  if (souscat === 'neuve') return 'Donne un nom à la nouvelle sous-catégorie.';
+  if (!vraieCat(souscat)) return 'Choisis la sous-catégorie.';
+  if (aliment !== undefined && !aliment) return 'Choisis l\'aliment.';
+  return '';
+}
 
 /* ---------- Doublons : proposer, jamais deviner ---------- */
 /* Un nom réduit à l'essentiel : sans accent, sans majuscule, sans ponctuation, sans pluriel. */
@@ -4013,15 +4034,17 @@ function oublierProposition() {
 }
 /* « C'est ça » : tout est vérifié d'abord, puis ce qui est neuf naît (aliment, marque, saveur). Avec un code (IGA, ou une proposition
    du même format), ou plusieurs aliments : la réponse part. Sinon : l'étape du code. */
-function validerTri() {
+async function validerTri() {
   const p = panneauTri(), x = p && articleTri(p.dataset.art), rep = p && p.dataset.etape;
   if (!x || (rep !== 'O' && rep !== 'P') || !$('tri-aliment-0')) return;
+  if (!await poserCatsTapees(p) || panneauTri() !== p) return;     // une catégorie tapée sans le + : créée d'abord
   const msg = t => { $('tri-msg').textContent = t; };
   const n = p.querySelectorAll('select[data-champ="cat"]').length, lus = [];
   for (let i = 0; i < n; i++) {
     if (i > 0 && !$('tri-cat-' + i).value) continue;            // un aliment de plus laissé vide : ignoré
     const scid = $('tri-souscat-' + i).value, choix = $('tri-aliment-' + i).value, nom = $('tri-nom-' + i).value.trim();
-    if (!vraieCat(scid) || !choix) { msg('Choisis la catégorie, la sous-catégorie et l\'aliment.'); return; }
+    const manque = manqueEntonnoir($('tri-cat-' + i).value, scid, choix);
+    if (manque) { msg(manque); return; }
     if (choix === 'neuf' && !nom) { msg('Donne un nom au nouvel aliment.'); $('tri-nom-' + i).focus(); return; }
     for (const champ of ['marque', 'saveur']) {
       const el = $('tri-' + champ + '-' + i), nv = $('tri-' + champ + '-neuve-' + i);
@@ -4191,10 +4214,12 @@ function surAchatSousCat() {
 }
 function surAchatAliment() { majSaisie($('achat-aliment'), true); }   // « Nouvel aliment… » : son nom à la place du menu
 /* « Mettre sur la liste » : un aliment choisi, ou nouveau (créé dans sa sous-catégorie; un nom qui existe déjà est repris). */
-function validerAjoutAchat() {
+async function validerAjoutAchat() {
   if ($('achat-ok').disabled) return;
+  if (!await poserCatsTapees($('achats-ajout'))) return;            // une catégorie tapée sans le + : créée d'abord
   let pid = $('achat-aliment').value;
-  if (!pid || !vraieCat($('achat-souscat').value)) { msgAchat('Choisis une catégorie, une sous-catégorie et un aliment.', true); return; }
+  const manque = manqueEntonnoir($('achat-cat').value, $('achat-souscat').value, pid);
+  if (manque) { msgAchat(manque, true); return; }
   if (pid === 'neuf') {
     const nom = $('achat-nom').value.trim(), scid = $('achat-souscat').value;
     if (!nom) { msgAchat('Donne un nom au nouvel aliment.', true); $('achat-nom').focus(); return; }
