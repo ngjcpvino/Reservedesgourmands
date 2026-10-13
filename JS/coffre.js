@@ -84,6 +84,7 @@ const Coffre = {
   chercherOFF(charge)       { return this.appel(Object.assign({}, charge, { action: 'chercherOFF' }), this.DELAI_LECTURE); },   // le tri : Open Food Facts par le nom et la marque (une lecture)
   identifier(code)          { return this.appel({ action: 'identifier', code: code }, this.DELAI_LECTURE); },                 // toute l'épicerie : un code inconnu → les circulaires d'IGA, puis Open Food Facts (une lecture)
   circulaireMagasin(mag)    { return this.appel({ action: 'circulaireMagasin', magasin: mag }, this.DELAI_LECTURE); },        // toute l'épicerie : la circulaire de la semaine d'une épicerie (une lecture)
+  codesCirculaires()        { return this.appel({ action: 'codesCirculaires' }, this.DELAI_LECTURE); },                      // tous les codes des circulaires (la semaine + l'archive d'un an), en une liste compacte (une lecture, en arrière-plan)
 
   // Enregistre le mot de passe et vérifie qu'il est bon.
   async connexion(m) {
