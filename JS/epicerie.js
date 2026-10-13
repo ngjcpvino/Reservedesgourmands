@@ -414,8 +414,9 @@ function remplirListeEpicerie() {
 function reinitSansCode() {
   $('epi-plu').value = ''; $('epi-plu-nom').textContent = ''; $('epi-plu-nom').className = 'message message-repli';
   remplirHabituels();
-  $('epi-cat').innerHTML = options(RAYONS, '— Catégorie —');
-  montrer('epi-souscat', false); montrer('epi-produit', false); montrer('epi-neuf', false); $('epi-nom-neuf').value = '';
+  $('epi-cat').innerHTML = optionsCats();
+  surEpiCat();                                           // tout ce qui suit la catégorie, caché
+  $('epi-nom-neuf').value = '';
 }
 /* Les habituels sans code : ce qu'on a déjà entré sans code-barres (ou avec un PLU), le plus fréquent en haut. */
 function remplirHabituels() {
@@ -469,15 +470,18 @@ function alimentPourPlu(nom) {
 }
 /* L'entonnoir : Catégorie → Sous-catégorie → Produit (« Nouveau produit… » au bout : son nom à la place du menu, le +). */
 function surEpiCat() {
-  const rid = $('epi-cat').value;
-  $('epi-souscat').innerHTML = options(SOUSCATS[rid] || [], '— Sous-catégorie —');
-  montrer('epi-souscat', !!rid); montrer('epi-produit', false); montrer('epi-neuf', false);
+  const rid = $('epi-cat').value, ok = vraieCat(rid);
+  majSaisie($('epi-cat'), true);                         // « Nouvelle catégorie… » : son nom à la place du menu
+  $('epi-souscat').innerHTML = optionsCats(ok ? rid : '');
+  majSaisie($('epi-souscat'));
+  montrer('epi-souscat', ok); montrer('epi-produit', false); montrer('epi-neuf', false);
 }
 function surEpiSousCat() {
-  const scid = $('epi-souscat').value;
-  const ps = PRODUITS.filter(p => String(p.catId) === String(scid)).sort((a, b) => a.nom.localeCompare(b.nom, 'fr'));
+  const scid = $('epi-souscat').value, ok = vraieCat(scid);
+  majSaisie($('epi-souscat'), true);
+  const ps = ok ? PRODUITS.filter(p => String(p.catId) === String(scid)).sort((a, b) => a.nom.localeCompare(b.nom, 'fr')) : [];
   $('epi-produit').innerHTML = options(ps, '— Produit —') + '<option value="nouveau">Nouveau produit…</option>';
-  montrer('epi-produit', !!scid); montrer('epi-neuf', false);
+  montrer('epi-produit', ok); montrer('epi-neuf', false);
 }
 function surEpiProduit() {
   const v = $('epi-produit').value;
@@ -698,7 +702,7 @@ function ouvrirProduit(i) {
   item.insertAdjacentHTML('afterend', htmlPanneau(lot));
   const p = PRODUITS.find(x => String(x.id) === lot.pid) || { nom: '', catId: '' };
   const rid = p.catId ? rayonDe(p.catId) : '';
-  $('cp-cat').innerHTML = options(RAYONS, '— Catégorie —'); $('cp-cat').value = rid;
+  $('cp-cat').innerHTML = optionsCats(); $('cp-cat').value = rid;
   remplirSousCatPanneau(p.catId);
   remplirAlimentsPanneau(p.catId ? lot.pid : 'nouveau', p.nom);
   $('cp-marque').innerHTML = optionsListe('marque', sortesVues(lot.pid, 'marque'), lot.marque); $('cp-marque').value = lot.marque || '';
@@ -715,8 +719,9 @@ function htmlPanneau(lot) {
   return '<div class="carte" data-panneau>' +
     (code.length >= 8 ? '<button class="bouton bouton-brun bouton-pleine" type="button" data-cp-voir>Voir chez Super C</button>' : '') +
     champ('Colle le texte de la page', '<textarea class="champ" id="cp-texte" placeholder="Du chemin du rayon jusqu\'au numéro de produit"></textarea><div class="message message-repli" id="cp-lu"></div>') +
-    champ('Catégorie', '<select class="champ" id="cp-cat"></select>') +
-    '<div class="bloc" id="cp-bloc-souscat"><div class="label">Sous-catégorie</div><select class="champ" id="cp-souscat"></select></div>' +
+    champ('Catégorie', '<select class="champ" id="cp-cat"></select>' + htmlSaisieNeuve('neuve', 'cp-cat-neuve', 'Nouvelle catégorie…', 'categorie')) +
+    '<div class="bloc" id="cp-bloc-souscat"><div class="label">Sous-catégorie</div><select class="champ" id="cp-souscat" data-parent="cp-cat"></select>' +
+    htmlSaisieNeuve('neuve', 'cp-souscat-neuve', 'Nouvelle sous-catégorie…', 'categorie') + '</div>' +
     '<div class="bloc" id="cp-bloc-aliment"><div class="label">Aliment</div><select class="champ champ-fort" id="cp-aliment"></select>' +
     htmlSaisieNeuve('nouveau', 'cp-nom', 'Nouvel aliment…') + '<div class="message message-repli" id="cp-aliment-msg"></div></div>' +
     champ('Marque', '<select class="champ" id="cp-marque"></select>' + htmlSaisieNeuve('neuve', 'cp-marque-neuve', 'Nouvelle marque…')) +
@@ -740,21 +745,24 @@ function ajouterEndroitPanneau(pref, qte) {
   brancherEndroit(row, pref);
 }
 function remplirSousCatPanneau(scid) {
-  const rid = $('cp-cat').value;
-  $('cp-souscat').innerHTML = options(SOUSCATS[rid] || [], '— Sous-catégorie —');
-  $('cp-souscat').value = scid && rayonDe(scid) === rid ? String(scid) : '';
-  montrer('cp-bloc-souscat', !!rid);
+  const rid = $('cp-cat').value, ok = vraieCat(rid);
+  majSaisie($('cp-cat'), true);                          // « Nouvelle catégorie… » : son nom à la place du menu
+  $('cp-souscat').innerHTML = optionsCats(ok ? rid : '');
+  $('cp-souscat').value = ok && scid && rayonDe(scid) === rid ? String(scid) : '';
+  majSaisie($('cp-souscat'));
+  montrer('cp-bloc-souscat', ok);
 }
 /* Les aliments de la sous-catégorie, « Nouvel aliment… » au bout (son nom dessous, celui du produit d'avance). */
 function remplirAlimentsPanneau(choisi, nom) {
-  const scid = $('cp-souscat').value;
-  const ps = PRODUITS.filter(p => String(p.catId) === String(scid)).sort((a, b) => a.nom.localeCompare(b.nom, 'fr'));
+  const scid = $('cp-souscat').value, ok = vraieCat(scid);
+  majSaisie($('cp-souscat'), true);
+  const ps = ok ? PRODUITS.filter(p => String(p.catId) === String(scid)).sort((a, b) => a.nom.localeCompare(b.nom, 'fr')) : [];
   $('cp-aliment').innerHTML = options(ps, '— Aliment —') + '<option value="nouveau">Nouvel aliment…</option>';
-  const v = choisi === 'nouveau' || ps.some(p => String(p.id) === String(choisi)) ? String(choisi) : (scid ? 'nouveau' : '');
+  const v = !ok ? '' : choisi === 'nouveau' || ps.some(p => String(p.id) === String(choisi)) ? String(choisi) : 'nouveau';
   $('cp-aliment').value = v;
   if (nom !== undefined) $('cp-nom').value = nom;
   else if (!$('cp-nom').value) $('cp-nom').value = (PRODUITS.find(p => String(p.id) === PANNEAU.lot.pid) || {}).nom || '';
-  montrer('cp-bloc-aliment', !!scid);
+  montrer('cp-bloc-aliment', ok);
   surAlimentPanneau();
 }
 function surAlimentPanneau() {
@@ -906,7 +914,7 @@ function validerProduit() {
   const P = PANNEAU, msg = $('cp-msg');
   if (!P) return;
   const lot = P.lot, scid = $('cp-souscat').value, v = $('cp-aliment').value, nom = $('cp-nom').value.trim();
-  if (!scid) { msg.textContent = 'Choisis une catégorie et une sous-catégorie.'; return; }
+  if (!vraieCat(scid)) { msg.textContent = 'Choisis une catégorie et une sous-catégorie.'; return; }
   if (!v || (v === 'nouveau' && !nom)) { msg.textContent = 'Choisis l\'aliment, ou nomme le nouveau.'; return; }
   const prixTxt = $('cp-prix').value.trim(), prixNb = Number(prixTxt.replace(/\s*\$\s*/, '').replace(',', '.'));
   if (prixTxt && !(isFinite(prixNb) && prixNb >= 0)) { msg.textContent = 'Le prix : un nombre (« 2,49 »).'; return; }

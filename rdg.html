@@ -135,10 +135,12 @@
           <select class="champ" id="achat-cat"></select>
           <button class="bouton bouton-brun bouton-scanner" id="achat-scan" type="button" aria-label="Scanner"><span class="icone icone-entrer"></span></button>
         </div>
+        <div class="saisie-neuve" data-ouvre="neuve" data-ajout="categorie" hidden><input class="champ" id="achat-cat-neuve" autocomplete="off" enterkeyhint="done" placeholder="Nouvelle catégorie…"><button class="retirer" type="button" aria-label="Laisser tomber"></button><button class="ajouter" type="button" aria-label="Ajouter"></button></div>
       </div>
       <div class="bloc" id="bloc-achat-souscat" hidden>
         <div class="label">Sous-catégorie</div>
-        <select class="champ" id="achat-souscat"></select>
+        <select class="champ" id="achat-souscat" data-parent="achat-cat"></select>
+        <div class="saisie-neuve" data-ouvre="neuve" data-ajout="categorie" hidden><input class="champ" id="achat-souscat-neuve" autocomplete="off" enterkeyhint="done" placeholder="Nouvelle sous-catégorie…"><button class="retirer" type="button" aria-label="Laisser tomber"></button><button class="ajouter" type="button" aria-label="Ajouter"></button></div>
       </div>
       <div class="bloc" id="bloc-achat-aliment" hidden>
         <div class="label">Aliment</div>
@@ -252,7 +254,9 @@
         <div class="bloc">
           <div class="label">Ou par l'entonnoir</div>
           <select class="champ" id="epi-cat"></select>
-          <select class="champ bloc-suite" id="epi-souscat" hidden></select>
+          <div class="saisie-neuve bloc-suite" data-ouvre="neuve" data-ajout="categorie" hidden><input class="champ" id="epi-cat-neuve" autocomplete="off" enterkeyhint="done" placeholder="Nouvelle catégorie…"><button class="retirer" type="button" aria-label="Laisser tomber"></button><button class="ajouter" type="button" aria-label="Ajouter"></button></div>
+          <select class="champ bloc-suite" id="epi-souscat" data-parent="epi-cat" hidden></select>
+          <div class="saisie-neuve bloc-suite" data-ouvre="neuve" data-ajout="categorie" hidden><input class="champ" id="epi-souscat-neuve" autocomplete="off" enterkeyhint="done" placeholder="Nouvelle sous-catégorie…"><button class="retirer" type="button" aria-label="Laisser tomber"></button><button class="ajouter" type="button" aria-label="Ajouter"></button></div>
           <select class="champ champ-fort bloc-suite" id="epi-produit" hidden></select>
           <div class="saisie-neuve bloc-suite" id="epi-neuf" data-ouvre="nouveau" data-ajout="epi" hidden>
             <input class="champ" id="epi-nom-neuf" autocomplete="off" enterkeyhint="done" placeholder="Nouveau produit…"><button class="retirer" type="button" aria-label="Laisser tomber"></button><button class="ajouter" type="button" aria-label="Ajouter"></button>
@@ -521,10 +525,10 @@
 </div><!-- fin du conteneur -->
 
 <script src="JS/coffre.js?v=17"></script>
-<script src="JS/entree.js?v=189"></script>
+<script src="JS/entree.js?v=190"></script>
 <script src="JS/bientot.js?v=6"></script>
 <script src="JS/prix.js?v=6"></script>
-<script src="JS/epicerie.js?v=20"></script>
+<script src="JS/epicerie.js?v=21"></script>
 <script src="JS/scan.js?v=17"></script>
 </body>
 </html>
