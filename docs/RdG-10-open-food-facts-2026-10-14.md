@@ -78,7 +78,10 @@ d'un code (un code déjà entré ici ne l'est plus, sauf s'il est déjà sur la 
   réessayer tout seul** (10, 20, 40 s, le chariot dit « Open Food Facts demande une pause… 18 s »), puis « reçoit trop de demandes en ce
   moment, réessaie dans quelques minutes ». **Une photo partie reste dans sa case, « (envoyée) »** (avant : une case blanche « (déjà
   là) »). La taille : déjà réduite sur l'appareil (1600 px au plus, l'iPhone en prend 4032) — un 429 compte les demandes, pas leur poids.
-- Essai dans le faux navigateur : 59 vérifications.
+- **Le merci (J-C, 2026-10-14 : « un message que j'ai pas eu le temps de lire », puis C sur aperçu, parmi A le merci en haut / B une bande
+  verte / C avec leur logo)** : quand tout est parti, l'écran reste — leur logo en grand, « Merci ! » en vert, « C'est sur Open Food Facts. »,
+  les photos « (envoyée) », et **Retour** (doré) au lieu d'Envoyer et Plus tard. Avant : 3 s de message, puis la liste (vide).
+- Essai dans le faux navigateur : 66 vérifications.
 
 ## 4. Pour le coffre-fort (`api.gs`, à l'ordi)
 

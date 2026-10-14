@@ -206,6 +206,8 @@
   --off-grand:  50%;                /* le logo dans une case vide : la moitié de la case */
   --off-colonnes: 3;                /* les trois photos côte à côte (B) */
   --off-choisi: var(--couleur-702); /* le logo touché sur une carte qui pose encore sa question : les photos suivront la réponse */
+  --off-merci-logo: 96px;           /* tout est parti : leur logo en grand… */
+  --off-merci-taille: 34px;         /* … et « Merci ! » dessous (J-C, 2026-10-14, C sur aperçu) */
   --action-consommer:  var(--menu-consommer);   /* chaque action, la couleur de son bouton au menu (J-C, 2026-10-09, choix A sur aperçu) */
   --action-deplacer:   var(--menu-deplacer);
   --action-ouvrir:     var(--menu-ouvrir);
@@ -916,6 +918,11 @@ select.champ {
 .off-grand { width: var(--off-grand); height: var(--off-grand); background: var(--off-logo) center / contain no-repeat; }
 .off-photo figcaption { text-align: center; font-size: var(--texte-petit); color: var(--couleur-305); margin-top: var(--espace-xs); }
 .off-merci { text-align: center; font-size: var(--texte-petit); color: var(--couleur-305); margin-top: var(--espace-m); }
+/* Tout est parti (C sur aperçu) : leur logo en grand, « Merci ! » en vert, « C'est sur Open Food Facts. », puis les photos « (envoyée) » et Retour. */
+.off-fini { display: flex; flex-direction: column; align-items: center; margin-bottom: var(--espace-l); }
+.off-fini-logo { width: var(--off-merci-logo); height: var(--off-merci-logo); margin-bottom: var(--espace-s); background: var(--off-logo) center / contain no-repeat; }
+.off-fini-merci { font-size: var(--off-merci-taille); font-weight: var(--poids-fort); color: var(--couleur-703); }
+.off-fini-texte { font-size: var(--texte-moyen); color: var(--couleur-305); margin-top: var(--espace-xs); }
 .fichier-cache { position: absolute; width: var(--filet); height: var(--filet); opacity: 0; overflow: hidden; pointer-events: none; }
 /* « NOUVEAU… » (J-C, 2026-10-11 : « le champ choisi doit faire place au champ de saisie »; « on ne voit pas le champ et le champ
    de saisie en même temps ») : le menu suivi de sa ligne de saisie — le champ, la poubelle (ramène le menu comme il était), le +.

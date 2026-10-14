@@ -205,7 +205,7 @@ async function montrerOff(code, retour) {
   toutCacher(); $('vue-off').hidden = false; $('btn-burger').hidden = false;
   window.scrollTo(0, 0);
   code = String(ligne[1]);
-  const v = OFF_VUE = { code: code, ligne: ligne.slice(), manque: manqueDe(ligne), etat: null, textes: textesDepart(ligne), retour: retour, prise: '' };
+  const v = OFF_VUE = { code: code, ligne: ligne.slice(), manque: manqueDe(ligne), etat: null, textes: textesDepart(ligne), retour: retour, prise: '', fini: false };
   messageOff('');
   remplirVueOff();
   const recherche = etatOff(code, true);          // ce qu'Open Food Facts a MAINTENANT (quelqu'un l'a peut-être complété entre-temps)
@@ -253,8 +253,9 @@ function remplirVueOff() {
       '<div class="item-nom">' + (val ? esc(val) : '<span class="texte-pale">(à écrire)</span>') + '</div></div>' +
       '<button class="crayon" type="button" data-off-texte="' + k + '" aria-label="Corriger"></button></div>';
   }).join('');
-  const pret = aEnvoyerOff().length > 0;           // rien de prêt : ni le merci ni Envoyer (on prend d'abord une photo)
+  const pret = aEnvoyerOff().length > 0 && !v.fini;   // rien de prêt : ni le merci ni Envoyer (on prend d'abord une photo)
   montrer('off-merci', pret); montrer('off-envoyer', pret);
+  montrer('off-fini', v.fini); montrer('off-retour', v.fini); montrer('off-plus-tard', !v.fini);   // tout est parti : leur logo, « Merci ! », Retour
 }
 /* Le crayon : la valeur devient un champ; Entrée ou toucher ailleurs la garde. */
 function corrigerTexteOff(k) {
@@ -356,7 +357,7 @@ async function envoyerOff() {
   if (v.ligne.join('|') !== avant) ecrireOff(v.ligne, false);
   if (OFF_VUE !== v) return;
   if (erreur) { messageOff(erreur); noterErreur(erreur); remplirVueOff(); return; }
-  if (!v.manque.length) { OFF_VUE = null; delete OFF_ENVOYEES[v.code]; avis('Envoyé à Open Food Facts. Merci !', 'succes'); v.retour(); return; }
+  if (!v.manque.length) { v.fini = true; remplirVueOff(); window.scrollTo(0, 0); return; }   // tout est parti : l'écran reste, le merci en gros (J-C, 2026-10-14, C sur aperçu : 3 s de message, c'était trop court)
   avis('Envoyé. Il reste ' + texteManque(v.manque) + '.', 'succes');
   remplirVueOff();
 }
@@ -370,7 +371,8 @@ async function patienterOff(ms) {
     await dormirOff(1000);
   }
 }
-function plusTardOff() {
+/* Plus tard, ou Retour une fois tout parti : d'où l'on vient. */
+function quitterOff() {
   const v = OFF_VUE;
   OFF_VUE = null;
   if (v) delete OFF_ENVOYEES[v.code];             // la prochaine visite relit Open Food Facts : ses photos y seront
@@ -387,7 +389,8 @@ function initOff() {
   $('off-textes').addEventListener('keydown', ev => { if (ev.key === 'Enter' && ev.target.dataset.offChamp) { ev.preventDefault(); ev.target.blur(); } });
   $('off-textes').addEventListener('focusout', ev => { if (ev.target.dataset.offChamp) garderTexteOff(ev.target); });
   $('off-envoyer').addEventListener('click', envoyerOff);
-  $('off-plus-tard').addEventListener('click', plusTardOff);
+  $('off-plus-tard').addEventListener('click', quitterOff);
+  $('off-retour').addEventListener('click', quitterOff);
   $('fiche-off').addEventListener('click', toucherOffFiche);
   $('liste-off').addEventListener('click', ev => { const b = ev.target.closest('[data-off]'); if (b) montrerOff(b.dataset.off, revenirListeOff); });
   $('liste-off').previousElementSibling.addEventListener('click', function () { if (this.classList.contains('ouvert')) remplirOff(); });
