@@ -65,6 +65,9 @@ var TRI = null;                                     // la page de tri, lue à l'
                                                     //   cles, codes (les doublons d'IGA réunis : chaque clé et son code) }],
                                                     //   tri: [lignes de l'onglet Tri : ID, Cle, Reponse, ProduitID, Marque, Saveur, CodeBarres, Date,
                                                     //   Qui, Texte, Categorie, Genre, Format, Magasin — D, E, F : un ou plusieurs aliments] }
+var TRI_LU = 0;                                     // quand TRI a été lu (lireTri) pour la dernière fois, sur cet appareil; 0 = pas encore depuis l'ouverture de l'app
+var TRI_RETOUR = null;                              // { cat, pid } : venu de Gérer les bases → Aliments corriger un tri — la réponse donnée (ou Retour), on y revient
+var TRI_ALIMENTS = {};                              // Gérer les bases → Aliments : { produitId: { lignes: [{ r, i, avert }], revoir } } (triParAliment)
 var nomScanne = '';                                 // un code inconnu scanné pour la liste : son nom (Open Food Facts), prêt pour « Nouvel aliment… »
 var couleursModif = { site: {}, meubles: {} };      // changées à l'écran, pas encore envoyées
 var envoiCouleurs = false;                          // un envoi de couleurs est en route
@@ -515,7 +518,7 @@ async function chargerReferences() {
     data.stock = data.stock || []; data.pasAimes = data.pasAimes || []; data.epiceries = data.epiceries || [];
     if (data.menage && data.menage !== localStorage.getItem(MENAGE)) {   // le grand ménage (api.gs viderReserve) : ce qui attendait d'avant ne repart pas
       ecrireAttenteGestes([]); ecrireAttenteAchats([]);
-      try { localStorage.setItem(MENAGE, data.menage); localStorage.removeItem('rdg_circ_epicerie'); } catch (e) {}   // + la circulaire du jour gardée par Entrer (ses tris sont effacés)
+      try { localStorage.setItem(MENAGE, data.menage); localStorage.removeItem('rdg_circ_epicerie'); localStorage.removeItem(CACHE_TRI); } catch (e) {}   // + la circulaire du jour gardée par Entrer, les tris gardés (effacés)
     }
     lireAttenteGestes().forEach(e => appliquerGeste(e, data));   // idem : un geste en route reste fait
     data.achats = data.achats || []; data.speciaux = data.speciaux || [];
@@ -1903,27 +1906,34 @@ function remplirPageAliments(garderOuverts, ouvrir) {
   const alpha = (a, b) => String(a.nom).localeCompare(String(b.nom), 'fr');
   const enReserve = {};                                 // un aliment dont il reste quelque chose (rangé ou pas) : pas de poubelle
   STOCK.forEach(l => { if ((Number(l[3]) || 0) > 0) enReserve[String(l[1])] = true; });
+  TRI_ALIMENTS = triParAliment();                       // ses articles de circulaire, et ceux reliés ailleurs aussi (à revoir)
+  const revoir = p => !!(TRI_ALIMENTS[p.id] && TRI_ALIMENTS[p.id].revoir);
   const aliment = p => {
     const o = String(p.id) === pid;
+    const nom = '<span class="item-nom">' + esc(p.nom) + '</span>';
     return '<div class="accordeon aliment" data-id="' + esc(p.id) + '">' +
-      '<div class="accordeon-item aliment-tete' + (o ? ' ouvert' : '') + '"><span class="item-nom">' + esc(p.nom) + '</span>' +
+      '<div class="accordeon-item aliment-tete' + (o ? ' ouvert' : '') + '">' +
+        (revoir(p) ? '<span class="item-info">' + nom + '<span class="item-detail note-revoir">relié ailleurs aussi</span></span>' : nom) +
         crayon('a:' + p.id) + (enReserve[p.id] ? '' : poubelle('a', p.id)) + '</div>' +
       '<div class="accordeon-corps"' + (o ? '' : ' hidden') + '>' + (o ? htmlCorpsAliment(p) : '') + '</div></div>';   // bâti à l'ouverture
   };
-  const groupe = (id, nom, corps) => { const t = teinteCategorie(id); return '<div class="accordeon" data-id="' + esc(id) + '"' + t.style + '>' +
-    '<div class="accordeon-tete' + t.pale + (String(id) === cat ? ' ouvert' : '') + '"><span>' + esc(nom) + '</span></div>' +
+  // une catégorie : combien de ses aliments sont à revoir, au bout de sa barre (J-C, 2026-10-14, B sur aperçu)
+  const groupe = (id, nom, corps, n) => { const t = teinteCategorie(id); return '<div class="accordeon" data-id="' + esc(id) + '"' + t.style + '>' +
+    '<div class="accordeon-tete' + t.pale + (String(id) === cat ? ' ouvert' : '') + '"><span>' + esc(nom) + '</span>' +
+      (n ? '<span class="a-revoir">' + n + ' à revoir</span>' : '') + '</div>' +
     '<div class="accordeon-corps"' + (String(id) === cat ? '' : ' hidden') + '>' + corps + '</div></div>'; };
   const classes = {};                                   // les aliments rangés sous une sous-catégorie qui existe
   const cats = RAYONS.map(r => {
+    let n = 0;
     const corps = (SOUSCATS[r.id] || []).map(sc => {
       const ps = PRODUITS.filter(p => String(p.catId) === String(sc.id)).sort(alpha);
-      ps.forEach(p => { classes[p.id] = true; });
+      ps.forEach(p => { classes[p.id] = true; if (revoir(p)) n++; });
       return ps.length ? '<div class="espace-bandeau">' + esc(sc.nom) + '</div>' + ps.map(aliment).join('') : '';
     }).join('');
-    return corps ? groupe(r.id, r.nom, corps) : '';
+    return corps ? groupe(r.id, r.nom, corps, n) : '';
   }).join('');
   const seuls = PRODUITS.filter(p => !classes[p.id]).sort(alpha);
-  const sans = seuls.length ? groupe('sans', 'Aliments sans catégorie (' + seuls.length + ')', seuls.map(aliment).join('')) : '';
+  const sans = seuls.length ? groupe('sans', 'Aliments sans catégorie (' + seuls.length + ')', seuls.map(aliment).join(''), seuls.filter(revoir).length) : '';
   liste.innerHTML = (sans + cats) || '<div class="accordeon-item"><span class="texte-petit texte-pale">Aucun aliment.</span></div>';
 }
 /* Ce que contient un aliment se bâtit quand on l'ouvre : des centaines d'aliments, la page reste légère. */
@@ -1941,12 +1951,84 @@ function htmlCorpsAliment(p) {
     return '<div class="accordeon-item"><span>' + esc([nomListe(m), nomListe(sv)].filter(Boolean).join(' ') || p.nom) + '</span>' +
       '<button class="bouton bouton-petit" type="button" data-pas-aime="' + esc(p.id + '|' + m + '|' + sv) + '">Enlever</button></div>';
   }).join('');
+  const tri = (TRI_ALIMENTS[p.id] || {}).lignes || [];
   return '<div class="bloc accordeon-bloc"><div class="label">Sous-catégorie</div>' +
       '<select class="champ choix-souscat" data-aliment="' + esc(p.id) + '">' + (ok ? '' : '<option value="">— Choisir —</option>') +
       groupesSousCats(p.catId, '') + '</select></div>' + htmlDureeAliment(p) + htmlDureeOuvertAliment(p) +   // sous « Durée » : « Une fois ouvert » (RdG-09)
-    (ends ? titre('Ses endroits') + ends : '') + (pas ? titre('Pas aimé') + pas : '');
+    (ends ? titre('Ses endroits') + ends : '') + (pas ? titre('Pas aimé') + pas : '') +
+    (tri.length ? titre('Au tri') + '<div class="liste-blanche">' + tri.map(ligneTriAliment).join('') + '</div>' : '');
 }
-async function montrerPageAliments() {
+/* REVOIR SES TRIS (J-C, 2026-10-14 : « je ne suis pas certain de mes choix… j'en ai peut-être mis à 2 places »; B avec les ronds de C
+   sur aperçu) : sous l'aliment ouvert, ses articles de circulaire triés Oui ou Peut-être (les Jamais ne sont reliés à aucun aliment).
+   Le même article — le même code, ou le même genre (Tri col. L : le même produit d'une épicerie à l'autre) — relié ailleurs à un
+   autre aliment : sa ligne le dit, l'aliment fermé aussi, et la barre de sa catégorie compte ses aliments à revoir. */
+function triParAliment() {
+  const rangs = reponsesTri().filter(r => (String(r[2]) === 'O' || String(r[2]) === 'P') && String(r[3] || '').trim());
+  const pidsDe = r => morceaux(r[3]).map(x => x.trim()).filter(Boolean);
+  const cles = r => { const k = [], g = String(r[11] || '').trim(), c = String(r[6] || '').trim().replace(/^0+/, ''); if (g) k.push('g:' + g); if (c) k.push('c:' + c); return k; };
+  const parCle = {};
+  rangs.forEach(r => cles(r).forEach(k => (parCle[k] = parCle[k] || []).push(r)));
+  const out = {}, vus = {};
+  rangs.forEach(r => {
+    const pids = pidsDe(r), avert = [];
+    cles(r).forEach(k => parCle[k].forEach(s => {        // le même article, ailleurs : relié à un aliment que celui-ci n'a pas
+      if (s === r) return;
+      pidsDe(s).forEach(q => {
+        const p = pids.indexOf(q) === -1 && PRODUITS.find(x => String(x.id) === q);
+        const t = p && 'Aussi relié à « ' + p.nom + ' » chez ' + nomListe(s[13]);
+        if (t && avert.indexOf(t) === -1) avert.push(t);
+      });
+    }));
+    pids.forEach((pid, i) => {
+      const o = out[pid] = out[pid] || { lignes: [], revoir: false };
+      if (avert.length) o.revoir = true;
+      const kd = pid + '|' + cleDoublon(r);              // des doublons d'IGA (même nom, même format, deux codes) : une seule ligne
+      if (vus[kd]) { avert.forEach(t => { if (vus[kd].avert.indexOf(t) === -1) vus[kd].avert.push(t); }); return; }
+      vus[kd] = { r: r, i: i, avert: avert.slice() };
+      o.lignes.push(vus[kd]);
+    });
+  });
+  const ordre = x => [String(x.r[2]) === 'P' ? 1 : 0, nomListe(x.r[13]), adoucir(x.r[9] || x.r[1])];   // les Oui, puis les Peut-être; par épicerie
+  Object.keys(out).forEach(pid => out[pid].lignes.sort((a, b) => { const A = ordre(a), B = ordre(b); return A[0] - B[0] || A[1].localeCompare(B[1], 'fr') || A[2].localeCompare(B[2], 'fr'); }));
+  return out;
+}
+/* Un article sous son aliment : son nom; dessous le rond du feu (vert Oui, jaune Peut-être), l'épicerie, la marque, la saveur; puis,
+   en rouge, l'aliment auquel il est relié ailleurs. Un Peut-être, plus pâle (comme En solde). Le toucher : le feu (Circulaires). */
+function ligneTriAliment(x) {
+  const r = x.r, pe = String(r[2]) === 'P';
+  const detail = [nomListe(r[13]), nomListe(morceaux(r[4])[x.i]), nomListe(morceaux(r[5])[x.i])].filter(Boolean).join(' · ');
+  return '<div class="item tri-article' + (pe ? ' peut-etre' : '') + '" data-tri-aliment="' + esc(r[0]) + '"><div class="item-info">' +
+    '<div class="item-nom">' + esc(adoucir(r[9] || r[1])) + '</div>' +
+    '<div class="item-detail"><span class="feu-point ' + (pe ? 'feu-point-peutetre' : 'feu-point-oui') + '" role="img" aria-label="' + (pe ? 'Peut-être' : 'Oui') + '"></span>' + esc(detail) + '</div>' +
+    x.avert.map(t => '<div class="item-detail avertir">' + esc(t) + '</div>').join('') + '</div></div>';
+}
+/* Toucher un article sous son aliment : Circulaires, l'article ouvert sur son feu; la réponse donnée (ou Retour), on revient ici. */
+function corrigerTri(id, pid) {
+  const p = PRODUITS.find(x => String(x.id) === String(pid));
+  TRI_RETOUR = { cat: (p && rayonDe(p.catId)) || 'sans', pid: String(pid) };
+  montrerCirculaires(String(id));
+}
+/* Deux aliments réunis : leurs tris suivent (Tri col. D) — sinon les articles reliés à l'aliment perdu ne seraient plus à personne
+   (le code au scan, la marque et la saveur proposées). Chaque réponse connue sur l'appareil est redonnée telle quelle, l'aliment perdu
+   remplacé par celui qu'on garde (le geste trier, par la file : rejouable). Les Oui « déjà entrés » (auto-…) suivent STOCK tout seuls. */
+function suivreTriReunion(garde, perdu) {
+  garde = String(garde); perdu = String(perdu);
+  reponsesTri().filter(r => (String(r[2]) === 'O' || String(r[2]) === 'P') && String(r[0]).indexOf('auto-') !== 0 &&
+    morceaux(r[3]).some(x => x.trim() === perdu)).forEach(r => {
+    const mqs = morceaux(r[4]), svs = morceaux(r[5]), produits = [];
+    morceaux(r[3]).forEach((q, i) => {
+      q = q.trim() === perdu ? garde : q.trim();
+      if (q && !produits.some(y => y.produitId === q)) produits.push({ produitId: q, marque: (mqs[i] || '').trim(), saveur: (svs[i] || '').trim() });
+    });
+    const e = { action: 'trier', opId: 'tri-' + idLocal(), cles: [String(r[1])], reponse: String(r[2]), produits: produits,
+                code: String(r[6] || ''), qui: localStorage.getItem(QUI) || '', neufs: 0 };
+    if (TRI) appliquerTri(e, TRI);
+    poserGeste(e);
+  });
+  garderTri();
+}
+async function montrerPageAliments(ouvrir) {
+  ouvrir = ouvrir && ouvrir.pid ? ouvrir : null;   // (le bouton du menu passe son événement) — de Circulaires : l'aliment d'où l'on venait
   toutCacher(); $('vue-aliments').hidden = false; $('btn-burger').hidden = false;
   $('liste-aliments').innerHTML = '';              // on arrive : tout fermé
   if (!RAYONS.length) {                            // pas encore chargé → on charge (même patron que les bases)
@@ -1954,8 +2036,13 @@ async function montrerPageAliments() {
     await chargerReferences();
     $('liste-aliments').innerHTML = '';
   }
-  remplirPageAliments();
+  remplirPageAliments(false, ouvrir);
+  if (ouvrir) {                                    // l'aliment rouvert, sous les yeux
+    const a = [...$('liste-aliments').querySelectorAll('.aliment')].find(x => x.dataset.id === ouvrir.pid);
+    if (a && a.scrollIntoView) a.scrollIntoView({ block: 'start' });
+  }
   expedierOrdre();                                 // un ordre d'endroits resté en attente repart
+  lireTriEnFond();                                 // les tris de l'autre appareil : les signaux suivent
 }
 /* Un aliment reçoit une sous-catégorie : instantané (la file des gestes, Produits col. C). false = rien à faire. */
 function classerAliment(pid, scid) {
@@ -2267,7 +2354,7 @@ function planifierOrdre() { clearTimeout(minuterieOrdre); minuterieOrdre = setTi
 function ouvrirRenommer(btn) {
   let avant = btn.previousElementSibling;
   if (avant && avant.classList.contains('flocon')) avant = avant.previousElementSibling;   // un congélateur : le nom est avant son flocon
-  const span = avant.classList.contains('nom-duree') ? avant.firstElementChild : avant;   // une sous-catégorie : le nom, au-dessus de sa durée
+  const span = avant.classList.contains('nom-duree') || avant.classList.contains('item-info') ? avant.firstElementChild : avant;   // une sous-catégorie : le nom, au-dessus de sa durée; un aliment à revoir : au-dessus de « relié ailleurs aussi »
   const input = document.createElement('input');
   input.className = 'champ champ-renommer';
   input.value = span.textContent;
@@ -2325,6 +2412,7 @@ async function reunirNoms(val) {
     const r = cle.charAt(0) === 'a' ? await Coffre.reunirProduits({ garde: garde, perdu: perdu })   // ses lots, ses sorties, ses « Pas aimé »
                                     : await Coffre.reunir({ liste: T[0], garde: garde, perdu: perdu });
     if (!r || !r.ok) throw new Error((r && r.erreur) || 'refus');
+    if (cle.charAt(0) === 'a') suivreTriReunion(garde, perdu);   // ses articles de circulaire aussi
     await chargerReferences();                          // l'inventaire, les « Pas aimé », les listes : on relit, c'est plus sûr
     avis('Réunis', 'succes');
   } catch (e) {
@@ -3612,10 +3700,14 @@ function noterNbATrier(n) {                            // le point suit, et le c
   NB_A_TRIER = Math.max(0, n); poserPoints();
   const c = lireCache(); if (c) { c.nbATrier = NB_A_TRIER; ecrireCache(c); }
 }
-async function montrerCirculaires() {
+async function montrerCirculaires(article) {
+  article = typeof article === 'string' ? article : '';   // (le bouton du menu passe son événement)
+  if (!article) TRI_RETOUR = null;                 // une visite ordinaire : Retour mène au menu
+  montrerVoile(true);                              // le chariot jusqu'à ce que tout soit là
+  if (article && lectureTri) { $('voile-texte').textContent = 'Lecture des circulaires…'; await lectureTri; }   // la lecture des Aliments, déjà en route
   toutCacher(); $('vue-circulaires').hidden = false; $('btn-burger').hidden = false;
   $('liste-tri').innerHTML = ''; TRI_VUE = '';     // une nouvelle visite : les épiceries et les ronds, tout fermé
-  montrerVoile(true);                              // le chariot jusqu'à ce que tout soit là
+  if (article && TRI_LU) { montrerVoile(false); ouvrirTriArticle(article); return; }   // déjà lues : tout de suite
   if (!RAYONS.length) await chargerReferences();   // l'entonnoir a besoin des catégories et des aliments
   // Comme la réserve (chargerData) : jusqu'à 5 essais, chaque essai plus patient, et sous le chariot ce qu'il fait — une seule lecture
   // de 12 s ne suffisait plus (J-C, 2026-10-07, capture à l'appui : « Circulaires pas lues », deux fois de suite, sans raison).
@@ -3631,16 +3723,65 @@ async function montrerCirculaires() {
   }
   montrerVoile(false);
   if ($('vue-circulaires').hidden) return;          // parti ailleurs entre-temps
-  if (r && r.ok) {
-    TRI = { aTrier: r.aTrier || [], tri: r.tri || [] }; TRI_ECHEC = '';
-    lireAttenteGestes().forEach(e => { if (e.action === 'trier') appliquerTri(e, TRI); });   // un tri en route reste fait
-    retenirSortesTri(TRI.tri);                     // ses marques et saveurs, proposées ensuite pour l'aliment
-    noterNbATrier(TRI.aTrier.length);
-  } else {
+  if (r && r.ok) poserTriLu(r);
+  else {
     TRI_ECHEC = 'Circulaires pas lues : ' + (r && r.erreur ? r.erreur : raison || 'pas de réponse');   // la raison exacte, du coffre-fort ou du réseau
     avis('Circulaires pas lues', 'erreur');
   }
-  remplirTri();                                    // (pas relues : ce qu'on avait, s'il y a lieu, sous la raison)
+  if (article && r && r.ok) ouvrirTriArticle(article);
+  else remplirTri();                               // (pas relues : ce qu'on avait, s'il y a lieu, sous la raison)
+}
+/* Ce que lireTri a rendu devient TRI : les tris en route y sont reposés, ses marques et saveurs retenues, le point rouge suit, et
+   les réponses sont gardées sur l'appareil (Gérer les bases → Aliments les montre sans attendre). */
+function poserTriLu(r) {
+  TRI = { aTrier: r.aTrier || [], tri: r.tri || [] }; TRI_ECHEC = ''; TRI_LU = Date.now();
+  lireAttenteGestes().forEach(e => { if (e.action === 'trier') appliquerTri(e, TRI); });   // un tri en route reste fait
+  retenirSortesTri(TRI.tri);                       // ses marques et saveurs, proposées ensuite pour l'aliment
+  noterNbATrier(TRI.aTrier.length);
+  garderTri();
+}
+/* LES RÉPONSES DU TRI, GARDÉES SUR L'APPAREIL (les lignes de l'onglet Tri, pas ce qui reste à trier) : Gérer les bases → Aliments
+   les montre dès l'ouverture, puis les relit en arrière-plan. */
+const CACHE_TRI = 'rdg_tri';
+function garderTri() { try { if (TRI) localStorage.setItem(CACHE_TRI, JSON.stringify(TRI.tri)); } catch (e) {} }
+function reponsesTri() {
+  if (TRI) return TRI.tri;
+  let rangs = [];
+  try { rangs = JSON.parse(localStorage.getItem(CACHE_TRI) || '[]') || []; } catch (e) {}
+  const T = { aTrier: [], tri: rangs };
+  lireAttenteGestes().forEach(e => { if (e.action === 'trier') appliquerTri(e, T); });   // un tri en route reste fait
+  return T.tri;
+}
+/* Relire le tri en arrière-plan, sans chariot (Gérer les bases → Aliments) — pas plus d'une fois en 5 minutes : un tri fait ici
+   est déjà en mémoire, la relecture n'apporte que ceux de l'autre appareil. Lu, la page Aliments se redessine. */
+var lectureTri = null;
+const FRAICHEUR_TRI = 300000;
+function lireTriEnFond() {
+  if (lectureTri || (TRI_LU && Date.now() - TRI_LU < FRAICHEUR_TRI)) return;
+  lectureTri = Coffre.lireTri(ESSAIS_LECTURE[2])
+    .then(r => { if (r && r.ok) { poserTriLu(r); redessinerAliments(); } })
+    .catch(() => {})                               // pas relu : ce qu'on avait (la page Circulaires, elle, dit pourquoi)
+    .finally(() => { lectureTri = null; });
+}
+/* Rouvrir un article déjà trié (venu de Gérer les bases → Aliments) : son rond (Oui, Peut-être), sa catégorie, l'article seul et
+   son feu — comme si on l'avait touché dans Circulaires. */
+function ouvrirTriArticle(id) {
+  const r = TRI && TRI.tri.find(y => String(y[0]) === String(id));
+  if (!r) { remplirTri(); return; }                // plus là (corrigé sur l'autre appareil) : les épiceries
+  TRI_VUE = 'b:' + (String(r[2]) === 'P' ? 'P' : 'O');
+  remplirTri();
+  const grp = groupeTri(categorieLigneTri(r)), acc = [...$('liste-tri').querySelectorAll('[data-groupe]')].find(a => a.dataset.groupe === grp);
+  if (acc && !acc.firstElementChild.classList.contains('ouvert')) toggleAccordeon(acc.firstElementChild);
+  const arts = TRI.tri.filter(y => cleDoublon(y) === cleDoublon(r)).map(y => 'r:' + y[0]);   // des doublons d'IGA : une seule ligne, peut-être l'autre
+  const el = [...$('liste-tri').querySelectorAll('.tri-article')].find(x => arts.indexOf(x.dataset.art) !== -1);
+  if (el) ouvrirArticleTri(el);
+}
+/* Venu des Aliments : la réponse donnée (ou Retour), on y revient, l'aliment ouvert. */
+function revenirAuxAliments() {
+  const o = TRI_RETOUR;
+  TRI_RETOUR = null;
+  fermerArticleTri();
+  montrerPageAliments(o);
 }
 var TRI_ECHEC = '';                                  // la dernière lecture des circulaires a raté : pourquoi (écrit en tête de la page)
 var GESTE_ECHEC = '';                                // le dernier envoi d'un geste a raté : pourquoi (en tête de la page Circulaires, jusqu'à ce que la file passe)
@@ -4157,6 +4298,8 @@ function trier(xs, rep, quoi) {
   poserGeste(e);
   if (avec) retenirSortesTri(TRI.tri);               // la saveur choisie : proposée tout de suite au prochain tri, dans la fiche, Compléter
   noterNbATrier(TRI.aTrier.length);
+  garderTri();
+  if (TRI_RETOUR) { revenirAuxAliments(); return; }   // venu des Aliments corriger : on y revient
   remplirTri();
 }
 /* Pose une réponse sur la page (à l'écran, ou sur une relecture tant qu'elle n'est pas confirmée). Une seule réponse par article :
@@ -4894,6 +5037,8 @@ function initEntree() {
     if (ev.target.closest('[data-retirer-non], [data-reunir-non]')) { remplirPageAliments(true); return; }
     const pas = ev.target.closest('[data-pas-aime]');      // « Pas aimé » : Enlever
     if (pas) { enleverPasAime(pas); return; }
+    const ta = ev.target.closest('[data-tri-aliment]');    // un article de circulaire : son feu, dans Circulaires
+    if (ta) { corrigerTri(ta.dataset.triAliment, ta.closest('.aliment').dataset.id); return; }
     const pb = ev.target.closest('.retirer');              // avant la tête : la poubelle, le crayon et les flèches n'ouvrent ni ne ferment rien
     if (pb) { demanderRetraitAliment(pb.dataset.retirer.split('|')[1]); return; }
     const cr = ev.target.closest('.crayon');
@@ -4907,6 +5052,7 @@ function initEntree() {
   });
   // Gérer les bases → Circulaires : le tri
   $('circulaires-retour').addEventListener('click', () => {   // Retour recule d'un pas : l'article ouvert se referme, puis la catégorie, puis l'épicerie (ou le rond); sinon, le menu
+    if (TRI_RETOUR) { revenirAuxAliments(); return; }     // venu des Aliments corriger un tri : le pas d'avant, c'est l'aliment
     if (panneauTri()) { fermerArticleTri(true); return; }
     const ouvertes = $('liste-tri').querySelectorAll('[data-groupe] > .accordeon-tete.ouvert');
     if (ouvertes.length) { fermerArticleTri(); toggleAccordeon(ouvertes[ouvertes.length - 1]); window.scrollTo(0, 0); }
@@ -5074,6 +5220,11 @@ async function retourDansApp() {
   redessinerApresLecture();
 }
 /* Après une relecture : l'écran affiché suit, sauf pendant une saisie ou une question. */
+/* La page Aliments, redessinée (une relecture) — pas pendant un nom, une question, un menu ouvert ni des flèches pas encore envoyées. */
+function redessinerAliments() {
+  const saisie = $('liste-aliments').querySelector('.champ-renommer, [data-confirme]') || $('liste-aliments').contains(document.activeElement);
+  if (!$('vue-aliments').hidden && !Object.keys(ordreModifie).length && !saisie) remplirPageAliments(true);
+}
 function redessinerApresLecture() {
   if (!$('vue-listes').hidden && !document.querySelector('#liste-inventaire .endroit')) remplirInventaire();   // pas pendant un rangement
   if (!$('vue-listes').hidden && !document.querySelector('#liste-bientot .endroit')) remplirBientot();          // ni pendant un geste
@@ -5083,8 +5234,7 @@ function redessinerApresLecture() {
   if (!$('vue-meubles').hidden && !Object.keys(ordreModifie).length && !saisieMeubles) remplirMeubles(true);   // pas pendant une saisie ni une question
   const saisieCats = [...$('liste-categories').querySelectorAll('input')].some(i => i.value) || $('liste-categories').querySelector('.champ-renommer, [data-confirme]');
   if (!$('vue-categories').hidden && !Object.keys(ordreModifie).length && !saisieCats) remplirPageCategories(true);
-  const saisieAliments = $('liste-aliments').querySelector('.champ-renommer, [data-confirme]');
-  if (!$('vue-aliments').hidden && !Object.keys(ordreModifie).length && !saisieAliments) remplirPageAliments(true);   // pas pendant un nom ni une question
+  redessinerAliments();
   const saisieNoms = $('nom-nouveau').value || $('liste-noms').querySelector('.champ-renommer, [data-confirme]') || (document.activeElement && document.activeElement.classList.contains('champ-logo'));   // (un logo qu'on colle)
   if (!$('vue-noms').hidden && !saisieNoms) remplirPageNoms();
   if (!$('vue-achats').hidden && $('achats-ajout').hidden) remplirAchats();   // pas pendant « Ajouter à la liste »

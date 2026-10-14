@@ -213,6 +213,7 @@
   /* ---- Les circulaires : le tri (J-C, 2026-10-01, sur aperçu) — les couleurs du feu de circulation, sur les barres et le feu ---- */
   --tri-oui:           var(--couleur-702);   /* vert */
   --tri-peutetre:      var(--couleur-606);   /* jaune (pâle : texte brun sur sa barre) */
+  --feu-point:         12px;                 /* le rond du feu devant un article trié, sous son aliment (Gérer les bases → Aliments) */
   --tri-jamais:        var(--couleur-401);   /* rouge */
   --feu-boitier:       var(--couleur-902);   /* le boîtier foncé du feu */
   --feu-rond:          22px;   /* une lumière (J-C, 2026-10-02, choix D sur aperçu : 32 px avant, trop gros) */
@@ -1073,6 +1074,24 @@ select.champ {
 /* La liste « En solde » (J-C, 2026-10-07, choix B) : les Peut-être sous les Oui, plus pâles. */
 .peut-etre .item-nom, .peut-etre .item-detail { color: var(--couleur-302); }
 .peut-etre .solde { opacity: var(--peut-etre-opacite); }
+/* REVOIR SES TRIS (Gérer les bases → Aliments; J-C, 2026-10-14, B avec les ronds de C sur aperçu) : au bout de la barre de la
+   catégorie, combien de ses aliments sont à revoir; sous l'aliment fermé, « relié ailleurs aussi », en rouge; ouvert, ses articles :
+   le rond du feu (vert Oui, jaune Peut-être — une information, jamais une pastille), et en rouge l'aliment auquel il est relié ailleurs. */
+.a-revoir { font-size: var(--texte-petit); font-weight: var(--poids-normal); }
+.aliment-tete .item-info { display: flex; flex-direction: column; }
+.note-revoir { color: var(--couleur-402); }
+.tri-article .item-detail.avertir { color: var(--couleur-402); font-weight: var(--poids-fort); }   /* plus fort que .peut-etre .item-detail */
+.feu-point {
+  display: inline-block;
+  width: var(--feu-point);
+  height: var(--feu-point);
+  border-radius: 50%;
+  margin-right: var(--espace-s);
+  vertical-align: middle;
+  box-shadow: 0 0 0 var(--filet) var(--couleur-306);
+}
+.feu-point-oui { background: var(--tri-oui); }
+.feu-point-peutetre { background: var(--tri-peutetre); }
 /* LA LISTE D'ACHATS PAR ÉPICERIE (J-C, 2026-10-07, sur aperçus; RdG-08) : comme la page Circulaires — les épiceries en tuiles, 2 colonnes,
    le nombre dans le coin (= ce qu'on va chercher là); touchée, elle seule en bannière, le nombre à droite, ses trois parties — Moins
    cher ici · Prix pareil ou inconnu · Moins cher ailleurs —, un bandeau par catégorie dans chacune. */
