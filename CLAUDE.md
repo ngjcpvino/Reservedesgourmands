@@ -65,7 +65,7 @@ Principes structurels non négociables (détail dans `RdG-00`) : rien de fixe (l
 > - **Le tour des listes** : 3. Liste d'achats repris aujourd'hui (c'est J-C qui dira si c'est fini); restent 4. Rechercher · 5. l'écran de rayon · 6. Déplacer · 7. Consommer · 8. Gérer les bases → Aliments.
 
 > 🗂 **CE QUI RESTE — LA LISTE NUMÉROTÉE (tous les documents relus EN ENTIER le 2026-10-07, à la demande de J-C : « Numérote afin de ne rien perdre encore ! »)**
-> **Règle : un numéro ne change jamais.** Un point fait est **barré** (~~…~~ ✅ la date), jamais retiré ni renuméroté; un point nouveau prend **le numéro suivant** (le prochain : **55**). C'est J-C qui choisit l'ordre. **Avant de dire à J-C ce qui reste : relire cette liste ET les documents** (une première réponse, faite sans les avoir lus, était fausse).
+> **Règle : un numéro ne change jamais.** Un point fait est **barré** (~~…~~ ✅ la date), jamais retiré ni renuméroté; un point nouveau prend **le numéro suivant** (le prochain : **56**). C'est J-C qui choisit l'ordre. **Avant de dire à J-C ce qui reste : relire cette liste ET les documents** (une première réponse, faite sans les avoir lus, était fausse).
 >
 > **Les actions du départ jamais bâties** (`RdG-01` §2)
 > 1. **Cuisiner** : ai-je tout pour cette recette ? (action 6)
@@ -144,6 +144,8 @@ Principes structurels non négociables (détail dans `RdG-00`) : rien de fixe (l
 > 53. **Appliquer la règle des Retour partout : la maison mène au menu, la flèche « revenir » recule d'un pas** (la règle adoptée par J-C le 2026-10-14 : « oui »; faite sur tout le + le même jour : Ajouter, la page du scan, les deux sacs, Compléter, la fin de l'écran Open Food Facts). Restent : la Liste d'achats, Listes quand rien n'est ouvert… (un Retour qui recule d'abord, puis mène au menu : la flèche, puis la maison ?). J-C : « pas rendu là » — attendre qu'il le reprenne.
 >
 > 54. ~~**Une nouvelle épicerie au même magasin rejoint la liste pas encore complétée**~~ ✅ 2026-10-14, bâti le même jour (J-C : « après une journée les listes devraient se fermer, et la date d'entrée devient une nouvelle liste ») : `listeDuJour()` remplace `listeOuverte()` — seule la liste d'aujourd'hui reçoit les articles; une d'un jour passé attend Compléter. Pas encore testé en ligne (T66).
+>
+> 55. **La page « Sans code » des deux sacs, à retravailler** (J-C, 2026-10-14, 19 h 43, capture à l'appui — Metro : « Revenir au scan », le PLU, les habituels en cases, l'entonnoir, « Déjà scanné (2) », la flèche : « Faut retravailler, ça fait biz. Je te reviens »). **C'est J-C qui revient** : ne pas relancer.
 >
 > ⚠️ `docs/collection territoire.md` n'est **pas** de la Réserve (une collection de savons, Univers Caresse) : rangé là par erreur, n'y rien toucher.
 
