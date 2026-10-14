@@ -177,7 +177,6 @@
   --toast-duree:      3s;        /* un message reste 3 s au centre de l'écran (J-C, 2026-09-30, choix A sur aperçu parmi 3 / 4 / 5 — avant : 1,6 s en bas) */
   --toast-large:      calc(min(100vw, var(--largeur-max)) - 2 * (var(--espace-l) + var(--espace-xl)));   /* un message : aussi large que le Retour sous une grille (J-C, 2026-10-14, C sur aperçu) */
   --toast-haut:       max(var(--bouton-grand-haut), calc(var(--toast-large) * var(--bouton-forme-h) / (2 * var(--bouton-forme-l))));   /* …et aussi haut : un long message s'étire */
-  --texte-toast:      26px;      /* son texte (J-C, 2026-10-14, C sur aperçu parmi 22 / 26 / 30 — avant : 17, « perdu au milieu de l'écran ») */
   --spinner-lueur:    drop-shadow(0 0 10px color-mix(in srgb, var(--couleur-101) 28%, transparent));
   --scan-haut:        25vh;      /* la hauteur de la fenêtre du scan : pleine largeur et basse, comme un code-barres */
   --lettrage-large:   0.04em;    /* l'espacement des lettres du code lu */
@@ -1246,7 +1245,7 @@ select.champ {
   border-radius: var(--rayon);
   color: var(--couleur-101);
   box-shadow: var(--ombre-forte);
-  font-size: var(--texte-toast);
+  font-size: var(--texte-grand);                       /* 22 (J-C, 2026-10-14, sur aperçu à la vraie grandeur parmi 20 / 22 / 24 / 26 — 26 : « trop gros »; avant : 17, « perdu au milieu de l'écran ») */
   line-height: var(--interligne-toast);
   z-index: var(--plan-toast);                          /* par-dessus le menu et le X (un message touché depuis la grille), sous le voile */
   opacity: 0;
