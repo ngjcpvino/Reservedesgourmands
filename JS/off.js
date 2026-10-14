@@ -21,8 +21,12 @@ const OFF_TEXTES_CLES = [['nom', 'Nom'], ['marque', 'Marque'], ['format', 'Forma
 const OFF_MOTS = { devant: 'le devant', ingredients: 'les ingrédients', nutrition: 'la valeur nutritive', nom: 'le nom', marque: 'la marque', format: 'le format' };
 const OFF_LOCAL = 'rdg_off', OFF_ATTENTE = 'rdg_off_attente';
 const OFF_PHOTO_MAX = 1600, OFF_QUALITE = 0.85;   // la photo réduite sur l'appareil avant l'envoi (le VPN) : assez fine pour lire les ingrédients
+/* Open Food Facts compte les demandes : trop d'un coup, il répond « 429 » (J-C, 2026-10-14 : deux photos parties, la 3e refusée). Une pause
+   entre deux envois; un 429 : on attend et on réessaie, de plus en plus patients, le chariot dit combien de temps encore. */
+const OFF_PAUSE = 3000, OFF_REESSAIS = [10000, 20000, 40000];
 var OFF_LISTE = (() => { try { return JSON.parse(localStorage.getItem(OFF_LOCAL) || '[]'); } catch (e) { return []; } })();
 var OFF_PHOTOS = {};      // { code: { devant: 'data:image/jpeg;base64,…' } } : les photos prises, pas encore envoyées
+var OFF_ENVOYEES = {};    // { code: { devant: … } } : les photos parties pendant la visite — montrées « (envoyée) » dans leur case, pas une case vide
 var OFF_VUE = null;       // l'écran des photos : { code, ligne, manque, etat, textes, retour, prise }
 var OFF_FICHE = null;     // le sac seul : { code, manque, surListe, photos } — ce que la fiche sait d'Open Food Facts
 let envoiOff = false, expeditionOff = false;
@@ -229,9 +233,11 @@ function remplirVueOff() {
   if (!v) return;
   const prises = OFF_PHOTOS[v.code] || {}, chezEux = (v.etat && v.etat.photos) || {};
   $('off-photos').innerHTML = OFF_PHOTOS_CLES.map(([k, nom]) => {
-    if (v.manque.indexOf(k) === -1)                // Open Food Facts l'a déjà : rien à prendre
-      return '<figure class="off-photo"><span class="off-cadre">' + (chezEux[k] ? '<img src="' + esc(chezEux[k]) + '" alt="">' : '') + '</span>' +
-        '<figcaption>' + nom + ' (déjà là)</figcaption></figure>';
+    if (v.manque.indexOf(k) === -1) {              // Open Food Facts l'a : partie pendant la visite (la nôtre), ou déjà là (la leur)
+      const partie = (OFF_ENVOYEES[v.code] || {})[k], src = partie || chezEux[k];
+      return '<figure class="off-photo"><span class="off-cadre">' + (src ? '<img src="' + esc(src) + '" alt="">' : '') + '</span>' +
+        '<figcaption>' + nom + (partie ? ' (envoyée)' : ' (déjà là)') + '</figcaption></figure>';
+    }
     if (prises[k])                                 // prise : la petite pastille, pour la reprendre
       return '<figure class="off-photo"><span class="off-cadre"><img src="' + prises[k] + '" alt="">' +
         '<label class="off off-coin" for="off-fichier" data-off-photo="' + k + '" aria-label="Reprendre la photo"></label></span>' +
@@ -314,20 +320,32 @@ async function envoyerOff() {
     await expedierOff();                             // la ligne d'abord, si elle attendait encore (le coffre-fort la crée de toute façon)
     const nbPhotos = envois.filter(x => x.photo).length;
     let n = 0;
-    for (const x of envois) {
-      $('voile-texte').textContent = x.photo ? 'Photo ' + (++n) + ' de ' + nbPhotos + '…' : 'Le texte…';
+    for (let i = 0; i < envois.length; i++) {
+      const x = envois[i], quoi = x.photo ? 'Photo ' + (++n) + ' de ' + nbPhotos + '…' : 'Le texte…';
+      $('voile-texte').textContent = quoi;
+      if (i) await dormirOff(OFF_PAUSE);              // une pause entre deux envois : Open Food Facts compte les demandes
       const charge = { code: v.code, ligne: v.ligne.slice() };
       if (x.photo) { charge.photo = x.photo; charge.image = OFF_PHOTOS[v.code][x.photo].split(',')[1]; }
       else charge.champs = x.champs;
-      const r = await Coffre.envoyerOFF(charge);
+      let r = null;
+      for (let essai = 0; ; essai++) {
+        $('voile-texte').textContent = quoi;
+        r = await Coffre.envoyerOFF(charge);
+        if ((r && r.ok) || !tropDeDemandes(r) || essai >= OFF_REESSAIS.length) break;
+        await patienterOff(OFF_REESSAIS[essai]);         // « 429 » : trop de demandes — on attend, puis on réessaie
+      }
       if (!(r && r.ok)) {
         erreur = r && r.erreur === 'action inconnue' ? 'Pas envoyé : le coffre-fort ne sait pas encore parler à Open Food Facts (api.gs, à l\'ordi).'
+          : tropDeDemandes(r) ? 'Pas envoyé : Open Food Facts reçoit trop de demandes en ce moment. Réessaie dans quelques minutes.'
           : 'Pas envoyé' + (r && r.erreur ? ' (' + r.erreur + ')' : '') + ' — réessaie.';
         break;
       }
       const faits = x.photo ? [x.photo] : Object.keys(x.champs);
       v.manque = v.manque.filter(k => faits.indexOf(k) === -1);
-      if (x.photo) delete OFF_PHOTOS[v.code][x.photo];   // partie : plus besoin de la garder
+      if (x.photo) {                                    // partie : elle quitte les photos à envoyer, et reste dans sa case, « (envoyée) »
+        (OFF_ENVOYEES[v.code] = OFF_ENVOYEES[v.code] || {})[x.photo] = OFF_PHOTOS[v.code][x.photo];
+        delete OFF_PHOTOS[v.code][x.photo];
+      }
       v.ligne[3] = v.manque.join(',');
     }
   } catch (e) { erreur = 'Pas envoyé (' + e.message + ') — réessaie.'; }
@@ -338,13 +356,24 @@ async function envoyerOff() {
   if (v.ligne.join('|') !== avant) ecrireOff(v.ligne, false);
   if (OFF_VUE !== v) return;
   if (erreur) { messageOff(erreur); noterErreur(erreur); remplirVueOff(); return; }
-  if (!v.manque.length) { OFF_VUE = null; avis('Envoyé à Open Food Facts. Merci !', 'succes'); v.retour(); return; }
+  if (!v.manque.length) { OFF_VUE = null; delete OFF_ENVOYEES[v.code]; avis('Envoyé à Open Food Facts. Merci !', 'succes'); v.retour(); return; }
   avis('Envoyé. Il reste ' + texteManque(v.manque) + '.', 'succes');
   remplirVueOff();
+}
+/* Un refus pour trop de demandes (« erreur 429 »). */
+const tropDeDemandes = r => !!r && !r.ok && /\b429\b/.test(String(r.erreur || ''));
+const dormirOff = ms => new Promise(ok => setTimeout(ok, ms));
+/* L'attente après un 429, seconde par seconde sous le chariot : « Open Food Facts demande une pause… 18 s ». */
+async function patienterOff(ms) {
+  for (let s = Math.ceil(ms / 1000); s > 0; s--) {
+    $('voile-texte').textContent = 'Open Food Facts demande une pause… ' + s + ' s';
+    await dormirOff(1000);
+  }
 }
 function plusTardOff() {
   const v = OFF_VUE;
   OFF_VUE = null;
+  if (v) delete OFF_ENVOYEES[v.code];             // la prochaine visite relit Open Food Facts : ses photos y seront
   if (v) v.retour(); else retourAuMenu();
 }
 

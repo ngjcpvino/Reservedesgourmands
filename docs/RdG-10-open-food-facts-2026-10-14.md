@@ -73,7 +73,12 @@ d'un code (un code déjà entré ici ne l'est plus, sauf s'il est déjà sur la 
   l'ID de l'app, `modifier` ensuite) — jamais la file des gestes : un coffre-fort qui ne connaît pas encore l'onglet n'y bloque rien.
   D'ici le collage, la liste vit sur l'appareil (`rdg_off`), et **Envoyer répond « Pas envoyé : le coffre-fort ne sait pas encore
   parler à Open Food Facts (api.gs, à l'ordi) »** (les photos restent prises).
-- Essai dans le faux navigateur : 53 vérifications.
+- **Le 1er envoi pour vrai (J-C, 2026-10-14, 11 h 29)** : deux photos parties, la 3e refusée — « erreur 429 », Open Food Facts compte les
+  demandes et en reçoit trop d'un coup. Corrigé le même jour : **une pause de 3 s entre deux envois**, et **un 429 = attendre et
+  réessayer tout seul** (10, 20, 40 s, le chariot dit « Open Food Facts demande une pause… 18 s »), puis « reçoit trop de demandes en ce
+  moment, réessaie dans quelques minutes ». **Une photo partie reste dans sa case, « (envoyée) »** (avant : une case blanche « (déjà
+  là) »). La taille : déjà réduite sur l'appareil (1600 px au plus, l'iPhone en prend 4032) — un 429 compte les demandes, pas leur poids.
+- Essai dans le faux navigateur : 59 vérifications.
 
 ## 4. Pour le coffre-fort (`api.gs`, à l'ordi)
 
