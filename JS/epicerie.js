@@ -36,10 +36,9 @@ function montrerEpiceries() {
    liste d'un jour passé ne reçoit plus rien (elle attend Compléter), l'épicerie touchée repart sur une liste neuve, datée du jour. */
 const listeDuJour = mag => EPICERIES.find(r => String(r[1]) === String(mag) && String(r[3]) !== 'C' && String(dateCourte(r[2]) || '').slice(0, 10) === dateDuJour());
 const lignesEpicerie = id => STOCK.filter(r => String(r[13] || '') === String(id));
-const nbArticles = id => lignesEpicerie(id).reduce((s, r) => s + (Number(r[3]) || 0), 0);
 const articles = n => n + ' article' + (n > 1 ? 's' : '');
-/* Une liste d'un jour passé qui n'a plus rien à compléter (vide : ouverte puis quittée sans rien scanner, ou terminée ainsi; tout
-   consommé) se ferme (Epiceries col. D = C), d'un geste (J-C, 2026-10-09 : « 0 article… à quoi bon »). Jamais une liste
+/* Une liste d'un jour passé qui n'a plus rien à compléter (vide : ouverte puis quittée sans rien scanner; tout consommé)
+   se ferme (Epiceries col. D = C), d'un geste (J-C, 2026-10-09 : « 0 article… à quoi bon »). Jamais une liste
    d'aujourd'hui : l'autre appareil y scanne peut-être, ses articles pas encore arrivés ici. L'épicerie touchée ensuite repart sur une
    liste neuve, datée du jour (la bonne circulaire). */
 function fermerListesVides() {
@@ -121,7 +120,7 @@ function montrerScanEpicerie() {
   toutCacher(); $('vue-epicerie').hidden = false; $('btn-burger').hidden = false;
   $('epi-titre').textContent = EPI.nom;
   montrer('epi-choix', false); montrer('epi-scan', true); montrer('epi-completer', false);
-  remplirListeEpicerie(); afficherTerminer();
+  remplirListeEpicerie();
   modeSansCode(false);
   window.scrollTo(0, 0);
 }
@@ -513,32 +512,7 @@ function ajouterEpiNeuf() {
   montrerCarte({ code: '', pid: pid, marque: '', saveur: '', format: '', sansCode: true });
 }
 
-/* ---------- 4. Terminé (au bas, choix E) : une confirmation, dont le Oui n'est pas là où l'on touche pendant le scan ---------- */
-function afficherTerminer() {
-  $('epi-fin').innerHTML = '<button class="bouton bouton-brun bouton-pleine bouton-detache" type="button" data-epi-terminer>Terminé</button>';
-}
-function demanderTerminer() {
-  if (!EPI) return;
-  $('epi-fin').innerHTML = '<div class="liste-blanche bouton-detache"><div class="accordeon-item accordeon-item-saisie" data-confirme><span>' +
-    esc('Terminer ' + EPI.nom + ' ? (' + articles(nbArticles(EPI.id)) + ')') + '</span>' +
-    '<button class="bouton bouton-petit bouton-vert" type="button" data-epi-terminer-oui>Oui</button>' +
-    '<button class="bouton bouton-petit" type="button" data-epi-terminer-non>Non</button></div></div>';
-}
-/* Oui : la liste passe à « terminée » (Epiceries col. D = T, par la file) et attend Compléter. Elle reste ouverte : un article
-   oublié de la même épicerie s'y ajoute encore. On revient au choix de l'épicerie (une autre épicerie : Terminé, puis Entrer). */
-function terminerEpicerie() {
-  if (!EPI) return;
-  const row = EPICERIES.find(r => String(r[0]) === EPI.id);
-  if (row && String(row[3]) === 'O') {
-    const l = row.slice(); while (l.length < 5) l.push('');
-    l[3] = 'T';
-    poserGeste({ action: 'lignes', table: 'Epiceries', opId: 'epit-' + idLocal(), lignes: [l] });
-  }
-  avis(EPI.nom + ' : terminé', 'succes');
-  montrerEpiceries();
-}
-
-/* ---------- 5. Compléter (le + : la feuille cochée — J-C, 2026-10-04, sur aperçu) ----------
+/* ---------- 4. Compléter (le + : la feuille cochée — J-C, 2026-10-04, sur aperçu) ----------
    L'épicerie, groupée par meuble comme l'Inventaire par meuble : « À placer » d'abord (ce qui n'a pas de place : l'Escale), puis
    les meubles, chacun avec ses espaces en bandeaux. Les deux flèches d'un article ouvrent la carte de l'Escale (placer, corriger,
    répartir : une partie seulement). OK : ce qui est placé et a sa catégorie quitte la liste (STOCK col. O = le jour, par la file
@@ -685,7 +659,7 @@ function validerCompleter() {
   remplirCompleter();
 }
 
-/* ---------- 6. Compléter pour vrai : le produit et son prix (J-C, 2026-10-04 : « quand je complète, je complète pour vrai »;
+/* ---------- 5. Compléter pour vrai : le produit et son prix (J-C, 2026-10-04 : « quand je complète, je complète pour vrai »;
    « le prix doit suivre aussi quand c'est en circulaire »; aperçu « ça semble intéressant ») ----------
    Toucher le nom d'un article ouvre son produit dessous : « Voir chez Super C » (sa page, par son code), le texte de la page collé
    (tout se remplit : le rayon → la catégorie et la sous-catégorie, la marque, le nom, le format, le prix — RdG-01, 3 bis), puis la
@@ -1033,7 +1007,7 @@ function initEpicerie() {
   $('btn-epi-magasin').addEventListener('click', ajouterEpicerie);
   $('epi-magasin-neuf').addEventListener('keydown', e => { if (e.key === 'Enter') { e.preventDefault(); ajouterEpicerie(); } });
   $('epi-choix-retour').addEventListener('click', montrerChoixQuoi);            // Retour recule d'un pas : les deux sacs
-  $('epi-retour').addEventListener('click', montrerEpiceries);                   // sort sans terminer : la liste reste ouverte
+  $('epi-retour').addEventListener('click', montrerEpiceries);                   // la liste du jour reste ouverte : retouchée, l'épicerie y revient; demain, elle attend Compléter
   $('epi-sans-code').addEventListener('click', () => modeSansCode(true));
   $('epi-revenir').addEventListener('click', () => modeSansCode(false));
   $('epi-carte').addEventListener('click', ev => {
@@ -1042,11 +1016,6 @@ function initEpicerie() {
     const ok = ev.target.closest('[data-epi-ok]');
     if (ok) { validerCarte(ok.dataset.epiOk); return; }
     if (ev.target.closest('[data-epi-annuler]')) annulerCarte();
-  });
-  $('epi-fin').addEventListener('click', ev => {
-    if (ev.target.closest('[data-epi-terminer]')) { demanderTerminer(); return; }
-    if (ev.target.closest('[data-epi-terminer-oui]')) { terminerEpicerie(); return; }
-    if (ev.target.closest('[data-epi-terminer-non]')) afficherTerminer();
   });
   $('epi-plu').addEventListener('input', surPluEpicerie);
   $('epi-habituels-tete').addEventListener('click', () => toggleAccordeon($('epi-habituels-tete')));
