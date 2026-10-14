@@ -63,7 +63,7 @@ Principes structurels non négociables (détail dans `RdG-00`) : rien de fixe (l
 > - **Le tour des listes** : 3. Liste d'achats repris aujourd'hui (c'est J-C qui dira si c'est fini); restent 4. Rechercher · 5. l'écran de rayon · 6. Déplacer · 7. Consommer · 8. Gérer les bases → Aliments.
 
 > 🗂 **CE QUI RESTE — LA LISTE NUMÉROTÉE (tous les documents relus EN ENTIER le 2026-10-07, à la demande de J-C : « Numérote afin de ne rien perdre encore ! »)**
-> **Règle : un numéro ne change jamais.** Un point fait est **barré** (~~…~~ ✅ la date), jamais retiré ni renuméroté; un point nouveau prend **le numéro suivant** (le prochain : **48**). C'est J-C qui choisit l'ordre. **Avant de dire à J-C ce qui reste : relire cette liste ET les documents** (une première réponse, faite sans les avoir lus, était fausse).
+> **Règle : un numéro ne change jamais.** Un point fait est **barré** (~~…~~ ✅ la date), jamais retiré ni renuméroté; un point nouveau prend **le numéro suivant** (le prochain : **49**). C'est J-C qui choisit l'ordre. **Avant de dire à J-C ce qui reste : relire cette liste ET les documents** (une première réponse, faite sans les avoir lus, était fausse).
 >
 > **Les actions du départ jamais bâties** (`RdG-01` §2)
 > 1. **Cuisiner** : ai-je tout pour cette recette ? (action 6)
@@ -131,6 +131,7 @@ Principes structurels non négociables (détail dans `RdG-00`) : rien de fixe (l
 > 45. **Retirer les bouts temporaires des noms-numéros** (`NUMEROS`, `RE_NUMERO` dans `entree.js`; `fauxNumeros` / `numerosUtilises` / `reparerNumeros` dans `api.gs`) quand J-C ne voit plus aucun numéro au tri ni dans Gérer les bases → Marques, quelques semaines après le collage (un appareil en retard peut encore en envoyer un).
 > 46. **« Taper le code » dans Rechercher, Consommer, Déplacer, Ouvrir ?** (noté le 2026-10-12 : bâti dans le sac seul et les deux sacs seulement; ailleurs, le champ à taper ne cherche que les noms).
 > 47. **Retirer le repli « la semaine d'IGA »** de `chargerCodesCirculaires()` (`epicerie.js` : le magasin nommé IGA, `circulaireMagasin`) quand `api.gs` connaîtra `codesCirculaires` (noté le 2026-10-13; à faire après le collage, quand J-C voit un produit de l'archive reconnu tout de suite).
+> 48. **Une page « tout sur un aliment » pour revoir ses tris** (J-C, 2026-10-14 : « je ne suis pas certain de mes choix… j'en ai peut-être mis à 2 places »; un premier choix pas judicieux) : voir d'un coup chaque article de circulaire relié à un aliment (l'épicerie, Oui / Peut-être, la marque, la saveur) et corriger. **EN RÉFLEXION, zéro code.** Proposé par Claude : dans Gérer les bases → Aliments, l'aliment ouvert (pas une page de plus) — en attente de la réponse de J-C.
 >
 > ⚠️ `docs/collection territoire.md` n'est **pas** de la Réserve (une collection de savons, Univers Caresse) : rangé là par erreur, n'y rien toucher.
 
