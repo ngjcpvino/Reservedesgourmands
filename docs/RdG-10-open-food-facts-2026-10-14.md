@@ -3,7 +3,7 @@
 > Le point 50 de la liste numérotée de `CLAUDE.md`. J-C : « Je peux contribuer. Et j'aimerais le faire. » — « aider le plus
 > possible, tant qu'à entrer des codes-barres lors d'un achat ». **Réflexion finie le 2026-10-14** (seize décisions, section 2,
 > aperçus vus et tranchés). **✅ L'app BÂTIE le même jour** (J-C : « Bâtis l'app, je ferai api.gs à l'ordi »), **pas encore
-> testée en ligne** (tests T55 à T60 de `RdG-tests-2026-10-07.md`). **Le coffre-fort : section 4, À ÉCRIRE À L'ORDI.**
+> testée en ligne** (tests T55 à T60 de `RdG-tests-2026-10-07.md`). **Le coffre-fort : section 4, ✅ ÉCRIT À L'ORDI le 2026-10-14, à coller.**
 
 ## 1. Ce qui était déjà dit
 
@@ -125,6 +125,8 @@ sa file reposé par-dessus.) **Aucun appel de plus au Sheet si `references` lit 
    `off` / `off`), puis la vraie adresse. **Un envoi pèse 300 à 500 Ko** (une photo de 1600 px en base64) : `doPost` le reçoit.
 
 Une fois écrit et essayé : l'inscrire ici et dans `CLAUDE.md` (« écrit, à coller »); J-C colle → **Nouvelle version** (même URL).
+
+**✅ ÉCRIT À L'ORDI le 2026-10-14 — à coller par J-C, puis ses deux Propriétés du script.** **`envoyerOFF`** (dispatché AVANT le verrou de `doPost` : la ligne s'écrit sous verrou, `sousVerrou()`, l'appel à Open Food Facts hors verrou), **`references.off`** (`lignesOff()` : G vide, en texte; pas d'onglet = `[]`; 3 appels au Sheet de plus) et **l'onglet `OFF`** (`ENTETES.OFF`, `TOUT_TEXTE` : le 0 d'un code reste). **Lu dans leur code** (`cgi/product_image_upload.pl`, `cgi/product_jqm_multilingual.pl`) **et sondé sur leur serveur d'essai sans compte** (rien ne s'y écrit : refusé avant) : une photo réussie = « status ok »; **la même photo déjà reçue = imgid −3**, réussi aussi; un texte sans compte valable = status 0 « no user credentials » (→ « Open Food Facts a refusé le compte (le nom ou le mot de passe ?) », comme leur page de connexion en HTML); **le même texte déjà là = « not modified »**, réussi aussi. **Changé de la consigne** : **`lc: 'fr'` et `cc: 'ca'` au lieu de `lang: 'fr'`** (`lang` changerait la langue principale d'un produit qu'ils ont déjà; sans `cc`, un produit neuf créé depuis les serveurs de Google serait dit vendu aux États-Unis). **Leur serveur d'essai** : la Propriété `OFF_ESSAI` = O (world.openfoodfacts.net, off / off) — il demande un compte à lui, pas celui de J-C. Essai à blanc : 39 vérifications (un faux Open Food Facts qui répond comme leur code).
 
 ## 5. À voir à l'usage
 
