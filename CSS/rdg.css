@@ -165,6 +165,7 @@
   --burger-fond:      transparent;   /* les trois traits seuls, sans fond (J-C, 2026-09-25) */
   --bandeau-teinte:   18%;       /* la force de la couleur du meuble dans le bandeau d'un espace, mêlée au blanc : opaque (J-C, 2026-10-01, choix B sur aperçu; avant : 22 %, transparent) */
   --bandeau-haut:     var(--tactile);   /* un bandeau (l'espace, l'endroit, l'aliment) aussi haut que la barre du meuble (J-C, 2026-09-30) */
+  --cases-colonnes:   3;   /* une liste en cases (les habituels sans code des deux sacs : J-C, 2026-10-14, « sur 3 colonnes ») */
   --coin-taille:      52px;      /* la zone à toucher du burger */
 
 
@@ -1001,6 +1002,12 @@ select.champ {
 .liste-blanche { background: var(--fond-liste); border-radius: var(--rayon); margin-top: var(--espace-m); }
 .liste-blanche > .item:first-child { border-top: none; }
 .liste-blanche > [data-pid] { cursor: pointer; }
+/* Une liste en cases (les habituels sans code des deux sacs, J-C, 2026-10-14) : --cases-colonnes par rangée, chaque aliment sa case;
+   le bandeau d'une catégorie prend toute la largeur. */
+.liste-blanche.liste-cases { display: grid; grid-template-columns: repeat(var(--cases-colonnes), minmax(0, 1fr)); gap: var(--espace-s); padding: var(--espace-s); }
+.liste-cases > .espace-bandeau { grid-column: 1 / -1; margin: var(--espace-xs) 0 0; }
+.liste-blanche.liste-cases > .item { border: var(--filet) solid var(--separateur); border-radius: var(--rayon); padding: var(--espace-s); align-items: flex-start; }
+.liste-cases .item-nom { overflow-wrap: break-word; hyphens: auto; }
 .item-eteint .item-nom { color: var(--couleur-302); }   /* un aliment qu'on n'a plus */
 
 /* ============================================================

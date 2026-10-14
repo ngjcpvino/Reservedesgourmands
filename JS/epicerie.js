@@ -420,24 +420,35 @@ function reinitSansCode() {
   surEpiCat();                                           // tout ce qui suit la catégorie, caché
   $('epi-nom-neuf').value = '';
 }
-/* Les habituels sans code : ce qu'on a déjà entré sans code-barres (ou avec un PLU), le plus fréquent en haut. */
+/* Les habituels sans code : ce qu'on a déjà entré sans code-barres (ou avec un PLU). TOUS (J-C, 2026-10-14 : « les 12 me semble petit…
+   les légumes et fruits, les vracs »), en cases sur 3 colonnes, un bandeau par catégorie, dans son ordre, chacune en ordre alphabétique
+   (on cherche un nom, pas un rang); « Sans catégorie » au bout. Une case = une sorte : le nom, dessous la marque · la saveur — ni le PLU
+   ni le format (J-C : « la qte est dans la suite »); touchée, la carte prend le PLU et le format de sa dernière entrée. */
 function remplirHabituels() {
   const par = {}, xs = [];
   STOCK.forEach(r => {
-    const code = String(r[8] || '').trim(), pid = String(r[1] || '');
+    const code = String(r[8] || '').trim(), pid = String(r[1] || ''), marque = String(r[5] || ''), saveur = String(r[9] || '');
     if ((code && !estPlu(code)) || !produitActif(pid) || estReste(r)) return;   // un vrai code-barres : il se scanne; le reste d'un pack entamé n'est pas une entrée
-    const k = pid + '|' + code;
+    const k = pid + '|' + marque + '|' + saveur;
     let x = par[k];
-    if (!x) { x = par[k] = { pid: pid, code: code, n: 0 }; xs.push(x); }
-    x.n++; x.marque = String(r[5] || ''); x.saveur = String(r[9] || ''); x.format = String(r[6] || '');   // la plus récente
+    if (!x) { x = par[k] = { pid: pid, marque: marque, saveur: saveur }; xs.push(x); }
+    x.code = code; x.format = String(r[6] || '');   // la plus récente
   });
-  EPI_HABITUELS = xs.sort((a, b) => b.n - a.n).slice(0, 12);
-  $('epi-habituels').innerHTML = '<div class="liste-blanche">' + (EPI_HABITUELS.map((x, i) => {
+  xs.forEach(x => {
     const p = PRODUITS.find(y => String(y.id) === x.pid);
-    const det = estPlu(x.code) ? 'PLU ' + x.code : [nomListe(x.marque), nomListe(x.saveur), x.format].filter(Boolean).join(' · ');
-    return '<div class="item" data-epi-hab="' + i + '"><div class="item-info"><div class="item-nom">' + esc(p ? p.nom : '') + '</div>' +
-      (det ? '<div class="item-detail">' + esc(det) + '</div>' : '') + '</div></div>';
-  }).join('') || '<div class="item"><div class="item-info"><div class="texte-petit texte-pale">Rien encore : ils viendront au fil des épiceries</div></div></div>') + '</div>';
+    x.nom = p ? p.nom : ''; x.rid = p ? rayonDe(p.catId) : '';
+    x.det = [nomListe(x.marque), nomListe(x.saveur)].filter(Boolean).join(' · ');
+  });
+  const rang = rid => { const i = rid ? RAYONS.findIndex(r => String(r.id) === rid) : -1; return i === -1 ? RAYONS.length : i; };
+  EPI_HABITUELS = xs.sort((a, b) => rang(a.rid) - rang(b.rid) || a.nom.localeCompare(b.nom, 'fr') || a.det.localeCompare(b.det, 'fr'));
+  let h = '', rid = null;
+  EPI_HABITUELS.forEach((x, i) => {
+    if (x.rid !== rid) { rid = x.rid; const ry = RAYONS.find(r => String(r.id) === rid); h += '<div class="espace-bandeau"' + teinteCategorie(rid).style + '>' + esc(ry ? ry.nom : 'Sans catégorie') + '</div>'; }
+    h += '<div class="item" data-epi-hab="' + i + '"><div class="item-info"><div class="item-nom">' + esc(x.nom) + '</div>' +
+      (x.det ? '<div class="item-detail">' + esc(x.det) + '</div>' : '') + '</div></div>';
+  });
+  $('epi-habituels').innerHTML = h ? '<div class="liste-blanche liste-cases">' + h + '</div>'
+    : '<div class="liste-blanche"><div class="item"><div class="item-info"><div class="texte-petit texte-pale">Rien encore : ils viendront au fil des épiceries</div></div></div></div>';
 }
 function choisirHabituel(i) {
   const x = EPI_HABITUELS[i];
