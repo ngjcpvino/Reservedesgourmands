@@ -531,37 +531,35 @@ function terminerEpicerie() {
    L'épicerie, groupée par meuble comme l'Inventaire par meuble : « À placer » d'abord (ce qui n'a pas de place : l'Escale), puis
    les meubles, chacun avec ses espaces en bandeaux. Les deux flèches d'un article ouvrent la carte de l'Escale (placer, corriger,
    répartir : une partie seulement). OK : ce qui est placé et a sa catégorie quitte la liste (STOCK col. O = le jour, par la file
-   des gestes); le reste attend, avec le point rouge. Plus rien : la liste est close (Epiceries col. D = C). Plusieurs épiceries à
-   compléter : on choisit laquelle. Donner une catégorie à un produit neuf : pas encore ici (Gérer les bases → Aliments). */
-var EPI_COMPLETER = null;    // la liste ouverte : { id, magasin, nom, plusieurs }
+   des gestes); le reste attend, avec le point rouge. Plus rien : la liste est close (Epiceries col. D = C). Le + → Compléter : les
+   épiceries qui attendent, en tuiles avec leur point rouge (J-C, 2026-10-14 : « le même genre de page en icône, avec juste un point
+   rouge comme partout »). */
+var EPI_COMPLETER = null;    // la liste ouverte : { id, magasin, nom }; null = les tuiles
 var LOTS_COMPLETER = [];     // ses lots, comme l'Escale : { pid, emp, marque, saveur, formats, qte, lignes }
 var COMPLETER_OUVERT = '';   // le groupe ouvert ('escale' ou l'ID d'un meuble) : il le reste après un geste
 const lignesACompleter = id => STOCK.filter(r => String(r[13] || '') === String(id) && !String(r[14] || '') && Number(r[3]) > 0);
-const nbACompleter = id => lignesACompleter(id).reduce((s, l) => s + (Number(l[3]) || 0), 0);
 const aCategorie = pid => { const p = PRODUITS.find(x => String(x.id) === String(pid)); return !!(p && p.catId); };
+/* Les épiceries où il y a du travail, en tuiles (A sur aperçu : seulement celles-là), le point rouge sur chacune; rien d'écrit. */
 function montrerCompleter() {
   const xs = aCompleter();
   if (!xs.length) { avis('Rien à compléter'); return; }
-  if (xs.length === 1) { ouvrirCompleter(xs[0], false); return; }
   toutCacher(); $('vue-epicerie').hidden = false; $('btn-burger').hidden = false;
   EPI_COMPLETER = null;
   $('epi-titre').textContent = 'Compléter';
   montrer('epi-choix', false); montrer('epi-scan', false); montrer('epi-completer', true); montrer('completer-ok', false);
   $('completer-liste').innerHTML = '';
-  $('completer-listes').innerHTML = xs.map(r => {
-    const n = nbACompleter(r[0]), t = teinteMagasin(r[1]);
-    return '<div class="accordeon" data-completer="' + esc(r[0]) + '"><div class="accordeon-tete' + t.pale + '"' + t.style + '><span>' + esc(nomListe(r[1])) + '</span></div>' +
-      '<div class="note-barre">' + esc(jourLisible(r[2]) + ' (' + articles(n) + ')') + '</div></div>';
-  }).join('');
+  const mags = [...new Set(xs.map(r => String(r[1])))].sort((a, b) => nomListe(a).localeCompare(nomListe(b), 'fr'));
+  $('completer-listes').innerHTML = '<div class="grille">' + mags.map(m => tuileMagasin(m, 'data-completer="' + esc(m) + '"', 'point-rouge')).join('') + '</div>';
   window.scrollTo(0, 0);
 }
-/* « 4 octobre » (une date AAAA-MM-JJ du Sheet). */
-function jourLisible(v) {
-  const t = String(dateCourte(v) || '').slice(0, 10);
-  return /^\d{4}-\d{2}-\d{2}$/.test(t) ? new Date(t + 'T12:00:00').toLocaleDateString('fr-CA', { day: 'numeric', month: 'long' }) : t;
+/* Une épicerie touchée : sa plus vieille liste qui attend (une liste par jour : deux jours chez Metro = deux listes; la suivante
+   attend sous la même tuile, qui garde son point). */
+function ouvrirCompleterMagasin(m) {
+  const row = aCompleter().filter(r => String(r[1]) === String(m)).sort((a, b) => String(dateCourte(a[2]) || '').localeCompare(String(dateCourte(b[2]) || '')))[0];
+  if (row) ouvrirCompleter(row);
 }
-function ouvrirCompleter(row, plusieurs) {
-  EPI_COMPLETER = { id: String(row[0]), magasin: String(row[1]), nom: nomListe(row[1]), plusieurs: !!plusieurs };
+function ouvrirCompleter(row) {
+  EPI_COMPLETER = { id: String(row[0]), magasin: String(row[1]), nom: nomListe(row[1]) };
   toutCacher(); $('vue-epicerie').hidden = false; $('btn-burger').hidden = false;
   $('epi-titre').textContent = EPI_COMPLETER.nom;
   montrer('epi-choix', false); montrer('epi-scan', false); montrer('epi-completer', true); montrer('completer-ok', true);
@@ -668,7 +666,7 @@ function validerCompleter() {
     if (row) { const l = row.slice(); while (l.length < 5) l.push(''); l[3] = 'C'; poserGeste({ action: 'lignes', table: 'Epiceries', opId: 'epic-' + idLocal(), lignes: [l] }); }
     poserPoints();
     avis(E.nom + ' : complété', 'succes');
-    montrerChoixQuoi();
+    if (aCompleter().length) montrerCompleter(); else montrerChoixQuoi();   // une autre attend : les tuiles; sinon, l'écran du +
     return;
   }
   poserPoints();
@@ -988,8 +986,7 @@ function initEpicerie() {
   $('choix-completer').addEventListener('click', montrerCompleter);
   $('completer-listes').addEventListener('click', ev => {
     const b = ev.target.closest('[data-completer]');
-    const row = b && EPICERIES.find(r => String(r[0]) === b.dataset.completer);
-    if (row) ouvrirCompleter(row, true);
+    if (b) ouvrirCompleterMagasin(b.dataset.completer);
   });
   $('completer-liste').addEventListener('click', ev => {
     const r = ev.target.closest('.ranger[data-completer-lot]');
@@ -1020,7 +1017,7 @@ function initEpicerie() {
     else if (id === 'cp-marque' || id === 'cp-saveur') majSaisie(ev.target, true);
   });
   $('completer-liste').addEventListener('input', ev => { if (ev.target.id === 'cp-texte') collerPage(ev.target.value); });
-  $('completer-retour').addEventListener('click', () => { if (EPI_COMPLETER && EPI_COMPLETER.plusieurs) montrerCompleter(); else montrerChoixQuoi(); });
+  $('completer-retour').addEventListener('click', () => { if (EPI_COMPLETER && aCompleter().length) montrerCompleter(); else montrerChoixQuoi(); });   // la liste → les tuiles → l'écran du + : un pas à la fois
   $('epi-magasins').addEventListener('click', ev => { const b = ev.target.closest('[data-epi-magasin]'); if (b) choisirEpicerie(b.dataset.epiMagasin); });
   $('btn-epi-magasin').addEventListener('click', ajouterEpicerie);
   $('epi-magasin-neuf').addEventListener('keydown', e => { if (e.key === 'Enter') { e.preventDefault(); ajouterEpicerie(); } });
