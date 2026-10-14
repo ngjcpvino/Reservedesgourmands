@@ -25,7 +25,7 @@ function montrerEpiceries() {
   toutCacher(); $('vue-epicerie').hidden = false; $('btn-burger').hidden = false;
   EPI = null; EPI_CARTE = null; epiJeton++;
   $('epi-titre').textContent = "Toute l'épicerie";
-  montrer('epi-choix', true); montrer('epi-scan', false);
+  montrer('epi-choix', true); montrer('epi-scan', false); montrer('epi-completer', false);   // Compléter vu juste avant (le + → Compléter → Retour → les deux sacs) ne reste pas dessous
   $('epi-magasin-neuf').value = ''; $('epi-magasin-msg').className = 'message message-repli'; $('epi-magasin-msg').textContent = '';
   fermerListesVides();
   remplirEpiceries();
@@ -120,7 +120,7 @@ function garderCirculaire() {
 function montrerScanEpicerie() {
   toutCacher(); $('vue-epicerie').hidden = false; $('btn-burger').hidden = false;
   $('epi-titre').textContent = EPI.nom;
-  montrer('epi-choix', false); montrer('epi-scan', true);
+  montrer('epi-choix', false); montrer('epi-scan', true); montrer('epi-completer', false);
   remplirListeEpicerie(); afficherTerminer();
   modeSansCode(false);
   window.scrollTo(0, 0);
