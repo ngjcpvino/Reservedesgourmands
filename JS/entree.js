@@ -3906,6 +3906,13 @@ function urlLogo(u) {
   return u.replace(/^(https:\/\/res\.cloudinary\.com\/[^/]+\/image\/upload\/)(?![a-z]{1,2}_[^/]*\/)/, '$1w_400,f_auto,q_auto/');
 }
 const styleLogo = m => { const x = LISTES.Magasins.find(y => String(y.id) === String(m)), u = urlLogo(x && x.logo); return u ? ' style="--logo:url(&quot;' + esc(u) + '&quot;)"' : ''; };
+/* Une épicerie en tuile, dans une .grille (la page Circulaires, la Liste d'achats Par épicerie, les deux sacs) : son logo sur une carte
+   blanche, sinon son nom sur sa couleur. attr : ce que la page y lit (data-…, déjà échappé); classe : en plus (point-rouge); dedans : le nombre. */
+function tuileMagasin(m, attr, classe, dedans) {
+  const logo = styleLogo(m), t = teinteMagasin(m), c = classe ? ' ' + classe : '';
+  return logo ? '<button class="bouton bouton-grand tuile-logo' + c + '" type="button" ' + attr + ' aria-label="' + esc(nomListe(m)) + '"><span class="logo"' + logo + '></span>' + (dedans || '') + '</button>'
+              : '<button class="bouton bouton-grand tuile-nom' + c + (t.pale ? ' tuile-pale' : '') + '" type="button" ' + attr + t.style + '>' + esc(nomListe(m)) + (dedans || '') + '</button>';
+}
 /* LA PAGE VISUELLE (J-C, 2026-10-05, sur aperçu : A, les ronds en 48) : en arrivant, les épiceries en 2 colonnes — leur logo, sinon leur
    nom sur leur couleur; le point rouge = il y a quelque chose à trier chez elle —, puis 3 boutons ronds sur une ligne : Oui, Peut-être,
    Jamais (ce qui est déjà trié). Une épicerie touchée : les autres et les ronds se cachent; elle en bannière, ses catégories dessous,
@@ -3940,11 +3947,8 @@ function remplirTri() {
   } else {
     // les épiceries dont la circulaire est lue : celles qui ont quelque chose à trier d'abord (IGA, qui donne ses codes, en tête), puis les autres
     const avec = ordreMagasins(aTrier), sans = LISTES.Magasins.filter(x => x.circ !== false && !x.introuvable && avec.indexOf(String(x.id)) === -1).map(x => String(x.id));
-    cible.innerHTML = echec + '<div class="grille">' + avec.concat(sans).map(m => {
-      const logo = styleLogo(m), t = teinteMagasin(m), point = avec.indexOf(m) !== -1 ? ' point-rouge' : '';
-      return logo ? '<button class="bouton bouton-grand tuile-logo' + point + '" type="button" data-ouvrir="m:' + esc(m) + '" aria-label="' + esc(nomListe(m)) + '"><span class="logo"' + logo + '></span></button>'
-                  : '<button class="bouton bouton-grand tuile-nom' + point + (t.pale ? ' tuile-pale' : '') + '" type="button" data-ouvrir="m:' + esc(m) + '"' + t.style + '>' + esc(nomListe(m)) + '</button>';
-    }).join('') + '</div>' +
+    cible.innerHTML = echec + '<div class="grille">' +
+      avec.concat(sans).map(m => tuileMagasin(m, 'data-ouvrir="m:' + esc(m) + '"', avec.indexOf(m) !== -1 ? 'point-rouge' : '')).join('') + '</div>' +
       '<div class="ronds">' + RONDS_TRI.map(r => '<button class="bouton rond ' + r[2] + '" type="button" data-ouvrir="b:' + r[0] + '" aria-label="' + r[1] + '"></button>').join('') + '</div>';
     return;
   }

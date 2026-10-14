@@ -31,7 +31,10 @@ function montrerEpiceries() {
   remplirEpiceries();
   window.scrollTo(0, 0);
 }
-const listeOuverte = mag => EPICERIES.find(r => String(r[1]) === String(mag) && String(r[3]) !== 'C');
+/* La liste où entrent les articles : celle de CE magasin, d'AUJOURD'HUI, pas close (J-C, 2026-10-14 : « après une journée les listes
+   devraient se fermer, et la date d'entrée devient une nouvelle liste »). Les deux appareils d'un même jour scannent dans la même; une
+   liste d'un jour passé ne reçoit plus rien (elle attend Compléter), l'épicerie touchée repart sur une liste neuve, datée du jour. */
+const listeDuJour = mag => EPICERIES.find(r => String(r[1]) === String(mag) && String(r[3]) !== 'C' && String(dateCourte(r[2]) || '').slice(0, 10) === dateDuJour());
 const lignesEpicerie = id => STOCK.filter(r => String(r[13] || '') === String(id));
 const nbArticles = id => lignesEpicerie(id).reduce((s, r) => s + (Number(r[3]) || 0), 0);
 const articles = n => n + ' article' + (n > 1 ? 's' : '');
@@ -47,17 +50,13 @@ function fermerListesVides() {
     lignes: vides.map(r => { const l = r.slice(); while (l.length < 5) l.push(''); l[3] = 'C'; return l; }) });
   poserPoints();
 }
-/* Une barre par magasin, à SA couleur (comme la page Magasins). Une liste pas encore close : « En cours (3 articles) » (ce qui est
-   scanné) ou « À compléter (2 articles) » (Terminé touché : ce qui reste à compléter); rien du tout à zéro. */
+/* Les épiceries en tuiles, sur 2 colonnes, comme la page Circulaires (J-C, 2026-10-14) : leur logo, sinon leur nom sur leur couleur.
+   Rien n'y dit qu'une liste attend (J-C : « pourquoi ? » — toucher l'épicerie entre dans la liste du jour de toute façon; Compléter a
+   son point rouge). */
 function remplirEpiceries() {
   const xs = LISTES.Magasins.slice().sort((a, b) => a.nom.localeCompare(b.nom, 'fr'));
-  $('epi-magasins').innerHTML = xs.map(x => {
-    const l = listeOuverte(x.id), t = teinteMagasin(x.id), fini = l && String(l[3]) === 'T';
-    const n = !l ? 0 : fini ? nbACompleter(l[0]) : nbArticles(l[0]);
-    const note = n ? (fini ? 'À compléter' : 'En cours') + ' (' + articles(n) + ')' : '';
-    return '<div class="accordeon" data-epi-magasin="' + esc(x.id) + '"><div class="accordeon-tete' + t.pale + '"' + t.style + '><span>' + esc(x.nom) + '</span></div>' +
-      (note ? '<div class="note-barre">' + esc(note) + '</div>' : '') + '</div>';
-  }).join('') || '<div class="accordeon-item"><span class="texte-petit texte-pale">Aucun magasin.</span></div>';
+  $('epi-magasins').innerHTML = xs.length ? '<div class="grille">' + xs.map(x => tuileMagasin(x.id, 'data-epi-magasin="' + esc(x.id) + '"')).join('') + '</div>'
+    : '<div class="accordeon-item"><span class="texte-petit texte-pale">Aucun magasin.</span></div>';
 }
 /* « Nouveau magasin… » (J-C, 2026-10-09 : « dans les 2 sacs, faudrait pouvoir ajouter un magasin ») : créé comme dans Gérer les
    bases → Magasins (sa circulaire à Oui), puis ouvert tout de suite pour scanner — on l'ajoute parce qu'on y est. Un nom déjà là : lui. */
@@ -85,7 +84,7 @@ async function ajouterEpicerie() {
 async function choisirEpicerie(mag) {
   const m = LISTES.Magasins.find(x => String(x.id) === String(mag));
   if (!m) return;
-  let l = listeOuverte(mag);
+  let l = listeDuJour(mag);
   if (!l) {
     l = [idLocal(), String(mag), dateDuJour(), 'O', localStorage.getItem(QUI) || ''];   // Epiceries : ID · Magasin · Date · Etat · Qui
     poserGeste({ action: 'creer', table: 'Epiceries', opId: 'epi-' + l[0], ligne: l });  // EPICERIES la reçoit tout de suite

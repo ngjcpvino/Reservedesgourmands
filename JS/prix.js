@@ -163,11 +163,7 @@ function htmlParEpicerie(items, ouverte) {
                   partie('Moins cher ailleurs', items.filter(it => gagne[it.pid] && gagne[it.pid] !== m), m);
     return '<div class="accordeon" data-epicerie-ouverte>' + tete + '<div class="liste-blanche achats-groupe">' + corps + '</div></div>';
   }
-  return '<div class="grille">' + mags.map(m => {     // les tuiles : celles de la page Circulaires (remplirTri), le nombre en plus
-    const logo = styleLogo(m), t = teinteMagasin(m);
-    return logo ? '<button class="bouton bouton-grand tuile-logo" type="button" data-epicerie="' + esc(m) + '" aria-label="' + esc(nomListe(m)) + '"><span class="logo"' + logo + '></span>' + n(m) + '</button>'
-                : '<button class="bouton bouton-grand tuile-nom' + (t.pale ? ' tuile-pale' : '') + '" type="button" data-epicerie="' + esc(m) + '"' + t.style + '>' + esc(nomListe(m)) + n(m) + '</button>';
-  }).join('') + '</div>';
+  return '<div class="grille">' + mags.map(m => tuileMagasin(m, 'data-epicerie="' + esc(m) + '"', '', n(m))).join('') + '</div>';   // les tuiles de la page Circulaires, le nombre en plus
 }
 
 /* ---------- Listes → « En solde du 8 au 14 octobre 2026 » (décisions 2, 6, 20 à 23, 33) ----------
