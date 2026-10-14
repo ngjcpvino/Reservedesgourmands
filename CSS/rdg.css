@@ -178,7 +178,7 @@
   --toast-large:      calc(min(100vw, var(--largeur-max)) - 2 * (var(--espace-l) + var(--espace-xl)));   /* un message : aussi large que le Retour sous une grille (J-C, 2026-10-14, C sur aperçu) */
   --toast-haut:       max(var(--bouton-grand-haut), calc(var(--toast-large) * var(--bouton-forme-h) / (2 * var(--bouton-forme-l))));   /* …et aussi haut : un long message s'étire */
   --spinner-lueur:    drop-shadow(0 0 10px color-mix(in srgb, var(--couleur-101) 28%, transparent));
-  --scan-haut:        25vh;      /* la hauteur de la fenêtre du scan : pleine largeur et basse, comme un code-barres */
+  --scan-forme:       9 / 4;     /* la fenêtre du scan : pleine largeur et basse, comme un code-barres — sa forme suit la largeur, toujours la même (J-C, 2026-10-14 : « jamais de la même grosseur »; avant : 25vh, le quart de la fenêtre) */
   --lettrage-large:   0.04em;    /* l'espacement des lettres du code lu */
   --tactile:          44px;
   --case-taille:      24px;   /* une case à cocher (« Ne pas racheter ») */
@@ -482,12 +482,13 @@ body:has(.sur-photo:not([hidden]))::before { display: none; }
   flex-direction: column;
   padding: var(--espace-xs);
 }
-.bouton-grand .icone, .grille + .bouton .icone { height: var(--icone-part); width: auto; aspect-ratio: 1; }   /* le dessin grandit avec le bouton (la maison du Retour d'Ajouter aussi) */
+.bouton-grand .icone, .grille + .bouton .icone, .bouton-large .icone { height: var(--icone-part); width: auto; aspect-ratio: 1; }   /* le dessin grandit avec le bouton (la maison du Retour d'Ajouter, la flèche du scan aussi) */
 .bouton-grand .icone-epicerie { aspect-ratio: var(--icone-deux-forme); }   /* deux sacs : l'icône s'élargit plutôt que de rapetisser */
 /* Une grille = toujours des demi-boutons, même impaire : le dernier reste seul, à gauche (J-C, 2026-10-01 : « toujours des demis
    sauf le Retour en bas »; avant : il prenait toute la largeur). Le bouton qui suit une grille (Retour) : toute la largeur,
    la même hauteur que ceux de la grille, pour que rien ne bouge. */
-.grille + .bouton { aspect-ratio: var(--bouton-large-forme); min-height: var(--bouton-grand-haut); width: 100%; min-width: 0; }
+.grille + .bouton, .bouton-large { aspect-ratio: var(--bouton-large-forme); min-height: var(--bouton-grand-haut); width: 100%; min-width: 0; padding: var(--espace-xs); }   /* le rembourrage d'un gros bouton : son dessin a la même taille que ceux de la grille */
+/* .bouton-large : la même chose quand la grille n'est pas juste au-dessus (le scan : la ligne « Taper le code » se glisse entre les deux). */
 
 /* LA SUITE : un groupe de frères se colore selon la position — les grilles d'icônes, les accordéons de Listes et les listes
    « .liste-suite » (Magasins — juste en dessous). Le HTML ne porte aucune couleur : ajouter un frère le colore tout seul. Au-delà de 10, la suite recommence.
@@ -580,7 +581,8 @@ select.champ {
 .scan-video {
   display: block;             /* sinon un jour sous la video s'ajoute a l'ecart */
   width: 100%;
-  height: var(--scan-haut);   /* hauteur FIXE : sinon iOS garde la forme debout de la caméra */
+  height: auto;
+  aspect-ratio: var(--scan-forme);   /* sa forme à elle : sinon iOS garde la forme debout de la caméra */
   background: var(--couleur-903);
   border-radius: var(--rayon-video);
   object-fit: cover;
@@ -1077,6 +1079,7 @@ select.champ {
 .icone-epicerie { --dessin: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 835 600' fill='none' stroke='black' stroke-linecap='round' stroke-linejoin='round'%3E%3Cg transform='translate(211.2,300) scale(0.9) translate(-281.5,-312.25)' stroke-width='22.2'%3E%3Cpath d='M80 180H483V548a24 24 0 0 1-24 24H104a24 24 0 0 1-24-24Z'/%3E%3Cpath d='M205 258V130a77.5 77.5 0 0 1 155 0V258'/%3E%3C/g%3E%3Cg transform='translate(623.9,300) scale(0.9) translate(-281.5,-312.25)' stroke-width='22.2'%3E%3Cpath d='M80 180H483V548a24 24 0 0 1-24 24H104a24 24 0 0 1-24-24Z'/%3E%3Cpath d='M205 258V130a77.5 77.5 0 0 1 155 0V258'/%3E%3C/g%3E%3C/svg%3E"); }   /* toute l'épicerie : deux sacs côte à côte, chacun aussi haut que le sac seul */
 .icone-completer { --dessin: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='0.8' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M6 2.5h8l5 5v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2v-17a2 2 0 0 1 2-2z'/%3E%3Cpath d='M14 2.5v5h5'/%3E%3Cpath d='M7 12.5l1.5 1.5 3-3M7.8 16.5h3v3h-3zM13.5 13h3M13.5 18h3'/%3E%3C/svg%3E"); }   /* compléter l'épicerie : la feuille, une ligne cochée, l'autre à faire — sa case vide (J-C, 2026-10-14, B sur aperçu : « des cochers sur toutes les lignes… il faudrait en enlever un pour indiquer que c'est à faire »; 2026-10-04, choix D : la feuille cochée; rejetés : le sac coché, les deux sacs, le sac au crayon) */
 .icone-plus { --dessin: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='0.8' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M12 5v14M5 12h14'/%3E%3C/svg%3E"); }   /* entrer un article : le + , pas le scan */
+.icone-revenir { --dessin: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='0.8' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M9 14L4 9l5-5'/%3E%3Cpath d='M4 9h10.5a5.5 5.5 0 0 1 0 11H11'/%3E%3C/svg%3E"); }   /* Retour d'un pas : la flèche « revenir » (le scan — J-C, 2026-10-14, C sur aperçu parmi le + / cette flèche / ←; la maison, elle, mène au menu) */
 .icone-deplacer { --dessin: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23f5efe6' stroke-width='0.8' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M3 8h17M16 4l4 4-4 4'/%3E%3Cpath d='M21 16H4M8 12l-4 4 4 4'/%3E%3C/svg%3E") }   /* deux flèches opposées : d'un endroit à l'autre, dans les deux sens (J-C, choix A sur aperçu, 2026-09-29) */
 .icone-accueil { --dessin: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='0.8' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M3 11.5 12 3.5l9 8'/%3E%3Cpath d='M5.5 9.5v11h13v-11'/%3E%3Cpath d='M10 20.5v-5.5h4v5.5'/%3E%3C/svg%3E"); }   /* Accueil : la maison (J-C, 2026-09-27) */
 .icone-chariot { --dessin: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='0.8' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M1.5 4.5h3l3.2 11.5h13.3'/%3E%3Cpath d='M5.6 9H21.5V14H7.2'/%3E%3Cpath d='M10 9v5M13.5 9v5M17 9v5'/%3E%3Ccircle cx='9.5' cy='19.3' r='1.4'/%3E%3Ccircle cx='19' cy='19.3' r='1.4'/%3E%3C/svg%3E"); }   /* la Liste d'achats : le chariot du chargement, vide (J-C, 2026-09-30, choix B sur aperçu) */

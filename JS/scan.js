@@ -10,7 +10,7 @@
   var readBarcodes = null;
   var stream = null, timer = null, scanning = false;
   var video = null, canvas = null, ctx = null;
-  var mode = null;   // { lu(code), retour() } : la recherche s'en sert; sans mode, le code va à la fiche d'entrée
+  var mode = null;   // { lu(code), retour(), titre } : la recherche s'en sert; sans mode, le code va à la fiche d'entrée
   var continu = null;   // toute l'épicerie : { video, msg, lu(code) } — la caméra reste ouverte entre deux articles (scanContinu, reprendreScan)
   var dernierLu = '', repriseA = 0;
   var MEME_CODE_MS = 2500;   // après « OK », le même code encore sous la caméra ne compte pas tout de suite (sinon : +1 de trop)
@@ -35,6 +35,7 @@
     mode = (m && typeof m.lu === 'function') ? m : null;
     if (typeof toutCacher === 'function') toutCacher();
     el('vue-scan').hidden = false;
+    el('scan-titre').textContent = (mode && mode.titre) || 'Entrer un article';   // on sait où l'on est : le titre de la page d'où l'on vient (J-C, 2026-10-14)
     var b = el('btn-burger'); if (b) b.hidden = false;
     el('scan-resultat').hidden = true;
     el('scan-code').textContent = '';
