@@ -325,6 +325,21 @@ créé tout seul avec ses en-têtes, chaque cellule écrite en texte. Un envoi r
 | G | Detail | pour un plantage : le fichier et la ligne |
 | H | Version | le `?v=` d'`entree.js` |
 
+### OFF — « Pour Open Food Facts » : ce qui manque encore à leur fiche (2026-10-14, RdG-10)
+*J-C : « aider le plus possible, tant qu'à entrer des codes-barres lors d'un achat ». Une ligne par code-barres, écrite par l'app
+(`ajouter` avec son ID, puis `modifier`), réécrite par l'action `envoyerOFF` à chaque envoi réussi. Chaque cellule en texte (le 0
+du début d'un code). `references` renvoie les lignes pas encore envoyées (G vide). ⏳ À écrire dans `api.gs` à l'ordi (RdG-10 section 4).*
+
+| Col | Nom | Sens |
+|-----|-----|------|
+| A | ID | donné par l'app (`idLocal()`) |
+| B | Code | le code-barres scanné (8 à 14 chiffres) |
+| C | ProduitID | l'aliment |
+| D | Manque | `devant`, `ingredients`, `nutrition`, `nom`, `marque`, `format`, séparés par des virgules |
+| E | Date | le jour de l'entrée |
+| F | Qui | Outils → Qui entre les articles |
+| G | Envoye | le jour où tout est parti (vide = encore sur la liste) |
+
 ### CODES-BARRES — PAS de table séparée (décision 2026-09-20)
 
 Le code-barres vit sur **STOCK, colonne I** (ci-dessus), comme la marque et le

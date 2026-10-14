@@ -196,6 +196,16 @@
   --flocon-taille:     20px;   /* le flocon d'un meuble « Congélateur », collé à son nom (J-C, 2026-10-07, choix A sur aperçu) */
   --pastille-action:   30px;   /* LA PASTILLE d'une petite icône d'action (J-C, 2026-10-09 : « c'est plus intuitif que c'est une action ») */
   --icone-ouvrir-ligne: 20px;  /* la conserve d'Ouvrir, dans sa pastille */
+  /* OPEN FOOD FACTS (J-C, 2026-10-14, sur aperçu) : leur logo en couleurs sur une pastille blanche (L1) — sur la carte des deux sacs,
+     la fiche, les lignes de la liste, de Consommer et d'Ouvrir, et en grand dans une case vide de l'écran des photos; sa forme seule,
+     brune sur la pastille beige, sur la barre de Listes (L2). Les deux tirés de l'image envoyée par J-C. */
+  --off-logo:   url("data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAMAAAADACAMAAABlApw1AAAASFBMVEX////9jBb9/fsCAgIDYx8Dkx73z5mdoJ5dXV3tp1yQOgGh0qtZoGevTgN0PBPXcRI0k0momSMyc0ZTjRO648V4sIl5xojjuZPT4AgeAAAAGHRSTlMA///////////////////////////////p3EQ2AAAFD0lEQVR42u2d7XbaMAyGHTmJDQ5LCrS9/ztdAnSjYBtIJFlqoz8769nI+/iV5A+KMWaNXxgAxxCcCyEA6BN/dN1Q/4+gTP57V38Pp0l9uFWvygEIQ10rBjh2dTSOWnI/Lr/e62hDkBj+uu6kNPbsQIZ9Sn/9Xlx5+Oi+IjUvhTodoXxuNFcxdO8BXtFfvATG4mxuYvj4xgA5/QJKIAzNXQzdFUJWv4BZALomFt1Xe4d9LTmDphGOAjTD2YR0/xSzEIIhTtB0E4GrpRuQtGAywUAt3oBkFUwROgUGZCxomlp4C7pY8DGPQMgyKFfHWQIvaB16nEMgaieTKYNGg/4ZBOJ2ki+2IidvI/YSgcizlDA8S7AXehKRnpJv+r/Yffx08vOYwEk+h0iZcDX8ws+BIHQ5gE7BOdyIMCQIuqDkMH1kONzqN2rUn065WmPeDoczxfjn4e3NtC1oeDdj1N5uNpvqHG+nuPylGn8+UUhWP4mv8iEXYlJfPRkbeQzweOzlIkxF+5r8Sy6BnLKtZoUIhGn0q7khwIUl8k/xWbQWFssvW86Aob9gKSDJL0aAp39C4E8jTPkFTABk/dwE+PpPaaRbP+OUQKSfLY3I9DNlEbSLdfb9ru9LEWDo3223210hAgT91aR/JCiSRRj6LwDbvgQBSv1mHagqylYEKP3nAQAhASD1z0wRn6cDyQVw6aN9gemAcAJjSSIANv00awq8BHqKgKCDVpyBXwaMCXQuA+FbSHYLuA3AtgBabv3IFhAb0O929zNzq8iAXWxxhGkBsQGX1V1PZgGLAfcbBDwLcA24T/jUDqcVOQnv7sX2iQ0ClgWoBvSx7cz0w8gGQSbANjrc8Q0C0qIUNYMSAJSTGXIP7bf5DSX+qhqwp92n9SP1If5lEHIOaQfgX0jj5hBoByiaQTg5pBygbAYh5NAKUBqgLQywuAjKNqEVwJjNClAWoHQTWtyGBADAbwcoS7BZvqv88z1MSxubm+f9WQpgb8IDbXzePlAbQHv7wMXraWYAhw3gVwBhAJYYwGMDuB8H4GgB7rre4i3ljwPwvDW8/LPflrUICAB42xB6DXNX8Z3fBh/Ac2aQXw4AnEXg8UsgUgSOMYOAAsDzZRAKgOPLIU9QArEicGwZhHOFieeywJNkUCyHHJMBKBkUyyHLVMJYl+B4HgssUQZxWeCpMihqgWdIIIv3W3+RF3f0CYRnQGRTgJ5E3pKVcMICT51AmAZELXC0CWRxLxJztASe2oCoBZZSv8W+yS1mgacrAHQDYnMBFoGLuosOEKszFIKofoqrAB0NQfRlraEIT0EQ10/0UT5r0XtRdFAs1V2S8dFaMh/E9XtDFfHnzU6jxIBYwg8UJwjmmZB8MTr9qTKYY0Jq+C3tZarJx75ogvPJoTCmEMErCEn55PqzBE8ipEefQ3+ewHo3O/e59D8gyDK4R//VGAkEo5AIhMtlDq/+JwguGCPIqHuM5/694Quw+MF7mTZ43fozq4qZUeCmOYcov8yXKeClUbG75J3i4cczofBV/ktNKH+VvNrsQXBAxBe5eN3yZ68pvJRv4fDz1Iu5NBtUq0+8ie+Sq+fTNsGIitSpLHzbB5w3BhLvvHfSptXlJazrG6uh6K6QxACn3ACry4C1hMUZ4FcD1h76i0p47aFrCa/LoNWAtYRRt5KgzAGvO4PM3bk0GH1x/Y67NzrjH4IzWuOSSUZzjDY4ozu0619jUfwF1kyPlWKEWZQAAAAASUVORK5CYII=");
+  --off-forme:  url("data:image/png;base64,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");
+  --off-fond:   var(--couleur-101);   /* la pastille du logo : blanche (une ombre la détache du blanc d'une liste) */
+  --off-logo-taille: 22px;          /* le logo dans sa pastille */
+  --off-grand:  50%;                /* le logo dans une case vide : la moitié de la case */
+  --off-colonnes: 3;                /* les trois photos côte à côte (B) */
+  --off-choisi: var(--couleur-702); /* le logo touché sur une carte qui pose encore sa question : les photos suivront la réponse */
   --action-consommer:  var(--menu-consommer);   /* chaque action, la couleur de son bouton au menu (J-C, 2026-10-09, choix A sur aperçu) */
   --action-deplacer:   var(--menu-deplacer);
   --action-ouvrir:     var(--menu-ouvrir);
@@ -799,7 +809,7 @@ select.champ {
    LES DEUX FLÈCHES « ranger » (l'Escale — J-C, 2026-10-01, choix B sur aperçu) : le dessin de Déplacer, au bout de la ligne aussi;
    le crayon ne veut plus dire que « corriger un nom ».
    LA FLÈCHE « revenir » (Liste d'achats → Mis de côté — J-C, 2026-10-01, choix C sur aperçu) : remet sur la liste, au bout de la ligne. */
-.retirer, .ranger, .remettre, .consommer, .entamer, .ajouter {
+.retirer, .ranger, .remettre, .consommer, .entamer, .ajouter, .off {
   display: flex;
   align-items: center;
   justify-content: center;
@@ -820,13 +830,14 @@ select.champ {
    sur aperçu) : chaque petite icône d'action est posée sur une pastille de la couleur de son bouton au menu — Consommer rouge,
    Déplacer vert, Ouvrir bleu pâle, la Liste d'achats brune; le crayon, les flèches et la poubelle (pas de bouton au menu) beiges.
    Le dessin : crème sur une pastille foncée, brun sur une pâle. Le nombre, lui, n'a plus de pastille : il ne fait que dire combien. */
-:is(.retirer, .crayon, .fleche, .ranger, .remettre, .consommer, .entamer, .ajouter) { --p: var(--action-base); --i: var(--icone-trait-pale); position: relative; isolation: isolate; flex-shrink: 0; }
+:is(.retirer, .crayon, .fleche, .ranger, .remettre, .consommer, .entamer, .ajouter, .off) { --p: var(--action-base); --i: var(--icone-trait-pale); position: relative; isolation: isolate; flex-shrink: 0; }
 .consommer { --p: var(--action-consommer); --i: var(--icone-trait); }
 .ranger    { --p: var(--action-deplacer); --i: var(--icone-trait); }
 .remettre  { --p: var(--action-achats); --i: var(--icone-trait); }
 .entamer   { --p: var(--action-ouvrir); }
 .ajouter   { --p: var(--action-ajouter); --i: var(--icone-trait); }
-:is(.retirer, .crayon, .fleche, .ranger, .remettre, .consommer, .entamer, .ajouter)::after {
+.off       { --p: var(--off-fond); }
+:is(.retirer, .crayon, .fleche, .ranger, .remettre, .consommer, .entamer, .ajouter, .off)::after {
   content: '';
   position: absolute;
   top: 50%;
@@ -881,6 +892,31 @@ select.champ {
   -webkit-mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='1.8' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M12 4v16M4 12h16'/%3E%3C/svg%3E") center / contain no-repeat;
           mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='1.8' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M12 4v16M4 12h16'/%3E%3C/svg%3E") center / contain no-repeat;
 }
+/* LE LOGO D'OPEN FOOD FACTS (L1) : une image en couleurs, pas un dessin à teindre; sa pastille blanche a son ombre.
+   Sur une photo prise (l'écran des photos) : dans le coin, pour la reprendre. Touché sur une carte qui pose sa question : un anneau vert. */
+.off::after { box-shadow: var(--bouton-ombre); }
+.off::before { content: ''; width: var(--off-logo-taille); height: var(--off-logo-taille); background: var(--off-logo) center / contain no-repeat; }
+.off[aria-pressed="true"]::after { box-shadow: 0 0 0 var(--halo) var(--off-choisi); }
+.off.off-coin { position: absolute; right: 0; bottom: 0; height: var(--tactile); }
+/* SA FORME (L2), sur la barre « Pour Open Food Facts » de Listes : brune sur la pastille beige, à gauche du nom, sans grandir la barre. */
+.off-forme { flex-shrink: 0; display: flex; align-items: center; justify-content: center; width: var(--pastille-action); height: var(--pastille-action);
+  margin: calc(-1 * var(--espace-xs)) var(--espace-s) calc(-1 * var(--espace-xs)) 0; border-radius: var(--rayon); background: var(--action-base); }
+.off-forme::before { content: ''; width: var(--fleche-deplacer); height: var(--fleche-deplacer); background: var(--icone-trait-pale);
+  -webkit-mask: var(--off-forme) center / contain no-repeat; mask: var(--off-forme) center / contain no-repeat; }
+.accordeon-tete:has(> .off-forme) { justify-content: flex-start; }
+/* L'ÉCRAN DES PHOTOS (B — J-C, 2026-10-14, sur aperçu) : les trois photos côte à côte, leur nom dessous; une case vide (pointillée,
+   le logo en grand) se touche pour prendre la photo; le texte qui manque, dans une liste blanche; le merci, Envoyer, Plus tard.
+   Le champ de la photo est caché (les cases sont ses étiquettes) : pas « hidden », l'iPhone n'ouvrirait pas l'appareil. */
+.off-trois { display: grid; grid-template-columns: repeat(var(--off-colonnes), minmax(0, 1fr)); gap: var(--espace-s); }
+.off-photo { margin: 0; }
+.off-cadre { position: relative; display: flex; align-items: center; justify-content: center; aspect-ratio: 1; border-radius: var(--rayon);
+  overflow: hidden; background: var(--couleur-101); box-shadow: var(--bouton-ombre); }
+.off-cadre img { display: block; width: 100%; height: 100%; object-fit: cover; }
+.off-vide { border: var(--filet) dashed var(--couleur-302); box-shadow: none; cursor: pointer; }
+.off-grand { width: var(--off-grand); height: var(--off-grand); background: var(--off-logo) center / contain no-repeat; }
+.off-photo figcaption { text-align: center; font-size: var(--texte-petit); color: var(--couleur-305); margin-top: var(--espace-xs); }
+.off-merci { text-align: center; font-size: var(--texte-petit); color: var(--couleur-305); margin-top: var(--espace-m); }
+.fichier-cache { position: absolute; width: var(--filet); height: var(--filet); opacity: 0; overflow: hidden; pointer-events: none; }
 /* « NOUVEAU… » (J-C, 2026-10-11 : « le champ choisi doit faire place au champ de saisie »; « on ne voit pas le champ et le champ
    de saisie en même temps ») : le menu suivi de sa ligne de saisie — le champ, la poubelle (ramène le menu comme il était), le +.
    Tant que la ligne est là, ce qui la précède (le menu, ou la ligne du menu et de son bouton scanner) se cache. */

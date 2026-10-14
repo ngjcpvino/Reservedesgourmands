@@ -258,7 +258,8 @@ function montrerCarte(a) {
   const detail = [marqueNom, a.saveur ? nomListe(a.saveur) : '', a.format].filter(Boolean).join(' · ') || (estPlu(a.code) ? 'PLU ' + a.code : '');
   let h = '<div class="item">' + (a.photo ? '<img class="tri-photo" src="' + esc(a.photo) + '" alt="">' : '') +
     '<div class="item-info"><div class="item-nom">' + esc(nom) + '</div>' + (detail ? '<div class="item-detail">' + esc(detail) + '</div>' : '') +
-    (a.nouveau && a.nouveau.inconnu ? '<div class="code-barres">' + esc(a.code) + '</div>' : '') + '</div></div>';
+    (a.nouveau && a.nouveau.inconnu ? '<div class="code-barres">' + esc(a.code) + '</div>' : '') + '</div>' +
+    '<button class="off" type="button" data-off-carte hidden aria-label="Photos pour Open Food Facts"></button></div>';   // le logo d'Open Food Facts : quand il lui manque quelque chose (offCarte)
   if (a.ligne && a.auto) h += '<div class="message message-succes">En circulaire : ' + esc(textePrixLigne(a.ligne)) + '</div>';
   if (a.ligne && !a.auto) h += '<div class="bloc-suite"><div class="label">Dans la circulaire de ' + esc(EPI.nom) + '</div>' + htmlLigneCirc(a.ligne) + '</div>';
   h += htmlQuantite();
@@ -270,6 +271,7 @@ function montrerCarte(a) {
   h += '<button class="bouton bouton-pleine bouton-quitter" type="button" data-epi-annuler>Annuler</button>';
   $('epi-carte').innerHTML = '<div class="carte bloc-suite carte-scan">' + h + '</div>';
   brancherPlusMoins($('epi-carte').firstElementChild, 99);
+  offCarte(a);                                           // ce qui manque à Open Food Facts (JS/off.js) : son logo, s'il y a lieu
 }
 /* Une ligne de la circulaire, au complet (J-C : « sinon je peux pas répondre ») : sa photo, son nom, son format, son prix (le régulier). */
 function htmlLigneCirc(l) {
@@ -364,6 +366,7 @@ function validerCarte(rep) {
   fermerCarte();
   remplirListeEpicerie();
   poserPoints();                                         // le point rouge de Compléter : il y a du nouveau à placer
+  if (offApresCarte(a, pid)) return;                     // Open Food Facts : sur sa liste; son logo touché : l'écran des photos, puis on revient scanner
   if (a.sansCode) reinitSansCode(); else reprendreCamera();
 }
 function annulerCarte() {
@@ -1027,6 +1030,8 @@ function initEpicerie() {
   $('epi-sans-code').addEventListener('click', () => modeSansCode(true));
   $('epi-revenir').addEventListener('click', () => modeSansCode(false));
   $('epi-carte').addEventListener('click', ev => {
+    const off = ev.target.closest('[data-off-carte]');
+    if (off) { toucherOffCarte(off); return; }
     const ok = ev.target.closest('[data-epi-ok]');
     if (ok) { validerCarte(ok.dataset.epiOk); return; }
     if (ev.target.closest('[data-epi-annuler]')) annulerCarte();

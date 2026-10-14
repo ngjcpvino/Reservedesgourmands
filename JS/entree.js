@@ -96,6 +96,7 @@ function toutCacher() {
   $('vue-circulaires').hidden = true;
   const vs = $('vue-scan'); if (vs) vs.hidden = true;
   const ve = $('vue-epicerie'); if (ve) ve.hidden = true;   // toute l'épicerie (JS/epicerie.js)
+  const vo = $('vue-off'); if (vo) vo.hidden = true;        // l'écran des photos pour Open Food Facts (JS/off.js)
   if (window.stopScanner) window.stopScanner();   // coupe la caméra en quittant la vue scan
   $('btn-burger').hidden = true;   // burger caché par défaut ; ré-affiché sur accueil + choix + bases
   $('entete-photo').hidden = true; // l'en-tête photo est écrit UNE fois dans le HTML ; on le montre écran par écran
@@ -136,9 +137,9 @@ async function montrerListes() {
   $('vue-listes').querySelectorAll('.contenu > .accordeon > .accordeon-tete').forEach(t => { t.classList.remove('ouvert'); t.nextElementSibling.hidden = true; });
   vueInventaire = '';
   $('liste-bientot').innerHTML = ''; $('liste-special').innerHTML = '';   // À consommer bientôt, En spécial : leurs catégories repartent fermées
-  remplirInventaire(); remplirBientot(); remplirSpecial();   // instantané : ce qu'on a déjà en mémoire
+  remplirInventaire(); remplirBientot(); remplirSpecial(); remplirOff();   // instantané : ce qu'on a déjà en mémoire
   if (!MEUBLES.length) await chargerReferences();
-  remplirInventaire(); remplirBientot(); remplirSpecial();   // puis la version fraîche, quand elle arrive
+  remplirInventaire(); remplirBientot(); remplirSpecial(); remplirOff();   // puis la version fraîche, quand elle arrive
 }
 function montrerAccueil()    { toutCacher(); $('vue-accueil').hidden = false; $('btn-burger').hidden = false; $('entete-photo').hidden = false; }
 /* Le Retour final (J-C, 2026-10-01) : pas l'accueil nu, l'accueil avec le menu ouvert — la prochaine action est là. */
@@ -163,6 +164,7 @@ function preparerFiche(avecCode) {
   montrer('bloc-code', !!avecCode);          // le champ code n'apparaît qu'au scan
   montrer('fiche-scan', !avecCode);          // à la main : le scan reste à côté de la catégorie (plus d'écran « scan ou à la main »)
   $('codebarres').value = ''; codeScan = ''; $('msg-code').textContent = '';
+  offFicheRaz();                             // le logo d'Open Food Facts : rien tant qu'un code n'a pas parlé (JS/off.js)
 }
 
 /* Les mêmes blocs, dans l'ordre du chemin suivi :
@@ -191,6 +193,7 @@ async function surCode() {
   const code = $('codebarres').value.trim();
   codeScan = code;
   $('msg-code').textContent = '';
+  offFicheRaz();
   if (!code) return;
   const tri = !CODES[String(code)] && (CODES_TRI[formeCode(code)] || CODES_TRI[code]);
   const pid = CODES[String(code)] || (tri && tri[0]);
@@ -208,6 +211,7 @@ async function surCode() {
         if (nomListe(l[9])) choisirParNom('saveur', nomListe(l[9]));   // comme toute l'épicerie
         if (String(l[6] || '').trim()) poserFormat(String(l[6]).trim());
       }
+      offFiche(code);                               // déjà sur la liste « Pour Open Food Facts » : son logo
       return;
     }
   }
@@ -227,6 +231,7 @@ async function surCode() {
   if (!local) chariotPendant(recherche, 'Recherche du produit…');   // le chariot : on voit qu'elle travaille (5 s au plus, elle continue derrière)
   const a = articleNouveau(code, await recherche);
   if (ailleurs()) return;
+  offFiche(code);                                   // la recherche finie : ce qui manque à Open Food Facts (JS/off.js)
   if ($('nom').value !== nomAvant) { $('msg-code').textContent = ''; return; }   // il a écrit le nom pendant la recherche : le sien gagne
   if (a.nouveau.inconnu) { $('msg-code').textContent = 'Inconnu'; return; }   // il écrit le nom à la main
   $('msg-code').textContent = '';
@@ -495,6 +500,7 @@ function appliquer(d) {
   SPECIAUX = d.speciaux || [];
   PRIX_REGULIERS = d.prixReguliers || [];
   EPICERIES = d.epiceries || [];
+  if (typeof poserListeOff === 'function') poserListeOff(d.off);   // « Pour Open Food Facts » (JS/off.js, chargé après : pas encore là au tout premier appel); absent du coffre-fort : celle de l'appareil
   NB_A_TRIER = Number(d.nbATrier) || 0; poserPoints();
   // une couleur pas encore confirmée (attente) ou en cours d'essai (écran) l'emporte sur le Sheet
   const cm = Object.assign({}, lireAttenteCouleurs().meubles, couleursModif.meubles);
@@ -531,6 +537,7 @@ async function chargerReferences() {
     expedierCouleurs();                           // idem pour les couleurs (sinon un appareil garde les siennes)
     expedierGestes();                             // idem pour les consommations
     expedierAchats();                             // idem pour la liste d'achats
+    expedierOff();                                // la liste « Pour Open Food Facts » (sa propre file)
     expedierErreurs();                            // et le journal des erreurs (en dernier : rien ne l'attend)
     if (typeof chargerCodesCirculaires === 'function') chargerCodesCirculaires();   // les codes des circulaires sur l'appareil (une fois par jour, en arrière-plan)
     return true;
@@ -571,7 +578,7 @@ async function chargerData(suivi) {
     if (suivi) suivi(i);
     try {
       const r = await Coffre.references(ESSAIS_LECTURE[i]);
-      if (r && r.ok && r.categories !== undefined) return { cats: r.categories, emps: r.emplacements, prods: r.produits, stock: r.stock, variantes: r.variantes, codes: r.codes, codesTri: r.codesTri, couleurs: r.couleurs, listes: r.listes, pasAimes: r.pasAimes, achats: r.achats, speciaux: r.speciaux, prixReguliers: r.prixReguliers, nbATrier: r.nbATrier, epiceries: r.epiceries, menage: r.menage };   // tout ce que l'app lit : un oubli ici = une donnée qui n'arrive jamais
+      if (r && r.ok && r.categories !== undefined) return { cats: r.categories, emps: r.emplacements, prods: r.produits, stock: r.stock, variantes: r.variantes, codes: r.codes, codesTri: r.codesTri, couleurs: r.couleurs, listes: r.listes, pasAimes: r.pasAimes, achats: r.achats, speciaux: r.speciaux, prixReguliers: r.prixReguliers, nbATrier: r.nbATrier, epiceries: r.epiceries, menage: r.menage, off: r.off };   // tout ce que l'app lit : un oubli ici = une donnée qui n'arrive jamais
       if (r && r.erreur === 'non autorisé') throw new Error('non autorisé');   // inutile de réessayer
       err = new Error((r && r.erreur) || 'refus'); err.refus = true;          // le coffre-fort a répondu, mais pas oui
     } catch (e) { if (e.message === 'non autorisé') throw e; err = e; }
@@ -1397,7 +1404,7 @@ async function enregistrer() {
     }
     nettoyerAchats(produitId);                           // entré : il quitte la liste d'achats
     opCourant = null;                                      // succès : le prochain article aura un nouveau jeton
-    retourAuMenu();                                        // un produit entré, c'est fini (J-C, 2026-10-09 : « c'est fait pour entrer 1 produit »)
+    if (!offApresFiche(code, produitId)) retourAuMenu();   // un produit entré, c'est fini (J-C, 2026-10-09 : « c'est fait pour entrer 1 produit »); les photos pour Open Food Facts d'abord, si on les a demandées
     avis('Ajouté', 'succes');                              // comme Consommé, Déplacé : au centre, par-dessus le menu
   } catch (e) {
     statut('Échec : ' + e.message, 'erreur');
@@ -3175,7 +3182,7 @@ function htmlPartsConsommer(prod, l, i, scanne) {
   return partsDuLot(l).filter(p => !scanne || sorteColle(l.marque, l.saveur, p.format)).map(p => {
     const detail = [libellePart(p), l.ouvert ? '(ouvert)' : '', pas ? '(pas aimé)' : ''].filter(Boolean).join(' ');
     return '<div class="item" data-consommer="' + esc(prod.id + '|' + i + '|' + p.cle) + '"><div class="item-info"><div class="item-nom">' + esc(nom) + '</div>' +
-      (detail ? '<div class="item-detail">' + esc(detail) + '</div>' : '') + '</div><span class="item-quantite">' + esc(p.qte) + '</span></div>';
+      (detail ? '<div class="item-detail">' + esc(detail) + '</div>' : '') + '</div>' + boutonOff(p.rows, prod.id) + '<span class="item-quantite">' + esc(p.qte) + '</span></div>';
   }).join('');
 }
 /* Rechercher : ce qu'on n'a pas aimé de cet aliment (pour la maison), sous ce qu'on a. */
@@ -3280,7 +3287,7 @@ function htmlPartsOuvrir(prod, l, i, scanne) {
   const nom = [nomListe(l.marque), nomListe(l.saveur)].filter(Boolean).join(' ') || prod.nom;
   return partsAOuvrir(prod, l).filter(p => !scanne || sorteColle(l.marque, l.saveur, p.format)).map(p =>
     '<div class="item"><div class="item-info"><div class="item-nom">' + esc(nom) + '</div>' +
-    (p.format ? '<div class="item-detail">' + esc(p.format) + '</div>' : '') + '</div>' +
+    (p.format ? '<div class="item-detail">' + esc(p.format) + '</div>' : '') + '</div>' + boutonOff(p.rows, prod.id) +
     '<button class="entamer" type="button" data-entamer="' + esc(prod.id + '|' + i + '|' + p.cle) + '" aria-label="Ouvrir"></button>' +
     '<span class="item-quantite">' + esc(p.qte) + '</span></div>').join('');
 }
@@ -4494,8 +4501,9 @@ function ouvrirFicheNom(nom) {
   surNom();
 }
 function surClicRecherche(ev) {
-  const b = ev.target.closest('[data-ajouter-code], [data-ajouter-nom], [data-ajouter-produit], [data-pid], [data-bouger], [data-consommer], [data-entamer]');
+  const b = ev.target.closest('[data-off], [data-ajouter-code], [data-ajouter-nom], [data-ajouter-produit], [data-pid], [data-bouger], [data-consommer], [data-entamer]');
   if (!b) return;
+  if (b.hasAttribute('data-off')) { const pid = b.dataset.offPid; montrerOff(b.dataset.off, () => montrerRayon(pid, true)); return; }   // le logo d'Open Food Facts (R1) : ses photos, puis on revient ici
   if (b.hasAttribute('data-bouger')) { ouvrirDeplacement(b.dataset.bouger); return; }
   if (b.hasAttribute('data-entamer')) { ouvrirOuverture(b.dataset.entamer); return; }   // Ouvrir (RdG-09)
   if (b.hasAttribute('data-consommer')) { ouvrirConsommation(b.dataset.consommer); return; }
@@ -5231,7 +5239,7 @@ function redessinerAliments() {
 function redessinerApresLecture() {
   if (!$('vue-listes').hidden && !document.querySelector('#liste-inventaire .endroit')) remplirInventaire();   // pas pendant un rangement
   if (!$('vue-listes').hidden && !document.querySelector('#liste-bientot .endroit')) remplirBientot();          // ni pendant un geste
-  if (!$('vue-listes').hidden) remplirSpecial();
+  if (!$('vue-listes').hidden) { remplirSpecial(); remplirOff(); }
   if (!$('vue-pieces').hidden && !Object.keys(ordreModifie).length && !document.querySelector('.champ-renommer')) remplirPieces();
   const saisieMeubles = [...$('liste-meubles').querySelectorAll('input')].some(i => i.value) || $('liste-meubles').querySelector('.champ-renommer, [data-confirme]');
   if (!$('vue-meubles').hidden && !Object.keys(ordreModifie).length && !saisieMeubles) remplirMeubles(true);   // pas pendant une saisie ni une question

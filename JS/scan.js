@@ -135,10 +135,19 @@
     msg('Code lu');
   }
 
-  /* Open Food Facts : code -> { code, nom, marque, format, trouve }. */
-  async function chercherOFF(code) {
+  /* Open Food Facts : code -> { code, nom, marque, format, photo, trouve, manque, photos, erreur }.
+     manque : ce qui lui manque, pour l'aider (JS/off.js — devant, ingredients, nutrition : les photos; nom : le nom français; marque,
+     format); photos : les siennes, petites. erreur : pas de réponse (le réseau) — on ne sait rien, ce n'est pas « inconnu ».
+     La même réponse sert 2 minutes (l'entrée la demande deux fois : le nom, puis ce qui manque); frais : sans cette mémoire. */
+  var MEMO_OFF_MS = 120000, memoOFF = {};
+  var TOUT_MANQUE = ['devant', 'ingredients', 'nutrition', 'nom', 'marque', 'format'];
+  async function chercherOFF(code, frais) {
+    var m = memoOFF[code];
+    if (!frais && m && Date.now() - m.a < MEMO_OFF_MS) return m.d;
     var url = 'https://world.openfoodfacts.org/api/v2/product/' + encodeURIComponent(code)
-            + '.json?fields=code,product_name_fr,generic_name_fr,brands,quantity,image_front_small_url,image_front_url,product_name_en,product_name';
+            + '.json?fields=code,product_name_fr,generic_name_fr,brands,quantity,image_front_small_url,image_front_url,product_name_en,product_name'
+            + ',image_ingredients_url,image_ingredients_small_url,image_nutrition_url,image_nutrition_small_url';
+    var d;
     try {
       var r = await fetch(url, { headers: { 'Accept': 'application/json' } });
       var j = await r.json();
@@ -150,10 +159,20 @@
         // sinon, le nom PRINCIPAL du produit — celui que le site montre — avant l'anglais : bien des produits d'ici ont leur nom
         // français rangé là, pas dans le champ français (Rouleaux impériaux Wong Wing, 2026-09-30). La fiche le prend, J-C le corrige.
         var nomAutre = (p.product_name || p.product_name_en || '').trim();
-        return { code: code, nom: nom, nomAutre: nomAutre, marque: marque, format: nettoyerFormat(p.quantity), photo: photo, trouve: true };
-      }
-    } catch (e) { /* réseau / inconnu : on retombe sur « non trouvé » */ }
-    return { code: code, nom: '', nomAutre: '', marque: '', format: '', photo: '', trouve: false };
+        var manque = [];
+        if (!p.image_front_url) manque.push('devant');
+        if (!p.image_ingredients_url) manque.push('ingredients');
+        if (!p.image_nutrition_url) manque.push('nutrition');
+        if (!(p.product_name_fr || '').trim()) manque.push('nom');
+        if (!(p.brands || '').trim()) manque.push('marque');
+        if (!(p.quantity || '').trim()) manque.push('format');
+        d = { code: code, nom: nom, nomAutre: nomAutre, marque: marque, format: nettoyerFormat(p.quantity), photo: photo, trouve: true, manque: manque,
+              photos: { devant: photo, ingredients: p.image_ingredients_small_url || p.image_ingredients_url || '', nutrition: p.image_nutrition_small_url || p.image_nutrition_url || '' } };
+      } else d = { code: code, nom: '', nomAutre: '', marque: '', format: '', photo: '', trouve: false, manque: TOUT_MANQUE.slice(), photos: {} };   // inconnu : tout lui manque
+      memoOFF[code] = { a: Date.now(), d: d };
+      return d;
+    } catch (e) { /* réseau : on retombe sur « non trouvé », sans rien en conclure */ }
+    return { code: code, nom: '', nomAutre: '', marque: '', format: '', photo: '', trouve: false, erreur: true, manque: [], photos: {} };
   }
 
   /* « TAPER LE CODE » (J-C, 2026-10-12 : « des codes-barres illisibles par le scan, mais les chiffres sont lisibles »; le sac seul et
