@@ -154,7 +154,7 @@ function montrerFormulaire(avecCode) {
    entrer 1 produit ») : le menu (enregistrer). */
 function montrerScanProduit() {
   if (typeof montrerScanner !== 'function') { montrerFormulaire(false); return; }
-  montrerScanner({ lu: ouvrirFicheScan, retour: montrerChoixQuoi, sansCode: () => montrerFormulaire(false) });
+  montrerScanner({ lu: ouvrirFicheScan, retour: montrerChoixQuoi, sansCode: () => montrerFormulaire(false), titre: 'Entrer un article' });
 }
 /* La fiche vierge, sur son chemin. Après une entrée, on revient à celle du départ (à la main) : un seul écran pour entrer. */
 function preparerFiche(avecCode) {
@@ -4420,7 +4420,7 @@ function mettreSurListe(pid) {
 /* Le scan : un code à nous -> sur la liste; sinon le nom d'Open Food Facts, pour « Nouvel aliment… » (sa catégorie à choisir). */
 function scannerPourAchat() {
   if (typeof montrerScanner !== 'function') return;
-  montrerScanner({ lu: achatParCode, retour: montrerPageAchatsAjout });
+  montrerScanner({ lu: achatParCode, retour: montrerPageAchatsAjout, titre: 'Liste d\'achats' });
 }
 function montrerPageAchatsAjout() {                    // revenir du scan sur l'entonnoir, tel quel
   toutCacher(); $('vue-achats').hidden = false; $('btn-burger').hidden = false;
@@ -4465,7 +4465,7 @@ async function enleverPasAime(btn) {
 /* Le scan de la recherche : un code à nous -> son écran de rayon; sinon « Tu n'en as pas », avec le nom d'Open Food Facts. */
 function scannerPourChercher() {
   if (typeof montrerScanner !== 'function') return;
-  montrerScanner({ lu: chercherParCode, retour: () => montrerRecherche(false) });
+  montrerScanner({ lu: chercherParCode, retour: () => montrerRecherche(false), titre: $('recherche-titre').textContent });
 }
 async function chercherParCode(code) {
   code = String(code || '').trim();
