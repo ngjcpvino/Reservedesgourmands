@@ -111,7 +111,7 @@
   --champ-bord:       var(--couleur-205);
   --champ-focus:      var(--couleur-305);
   --champ-focus-halo: color-mix(in srgb, var(--couleur-305) 12%, transparent);
-  --placeholder:      var(--couleur-302);
+  --placeholder:      var(--couleur-305);   /* l'invite d'un champ vide (J-C, 2026-10-14, C sur aperçu : « en plus foncé »; avant : 302 pâli) */
 
   /* ---- Tailles de texte (échelle neutre : change la valeur, tout suit) ---- */
   --texte-petit:      17px;   /* J-C, 2026-09-29, choix D sur aperçu (14 : trop petit) */
@@ -258,7 +258,7 @@
   --interligne-titre:  1.2;    /* le titre du site, sur la photo */
   --interligne-texte:  1.4;    /* un paragraphe (.texte) */
   --interligne-toast:  1.25;   /* un message sur deux lignes */
-  --placeholder-opacite: 0.6;  /* l'invite d'un champ vide, pâlie */
+  --placeholder-opacite: 1;    /* l'invite d'un champ vide, pleine (sans ça, certains navigateurs la pâlissent d'office) */
   --pli-opacite:       0.55;   /* le petit triangle d'un aliment à plusieurs sortes */
   --peut-etre-opacite: 0.7;    /* les soldes d'un Peut-être (la liste En solde) : plus pâles */
   --chevron-place:     calc(var(--espace-m) * 2.5);   /* la place du chevron, à droite d'un menu déroulant */
