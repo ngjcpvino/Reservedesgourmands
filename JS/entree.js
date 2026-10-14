@@ -1960,8 +1960,9 @@ function htmlCorpsAliment(p) {
 }
 /* REVOIR SES TRIS (J-C, 2026-10-14 : « je ne suis pas certain de mes choix… j'en ai peut-être mis à 2 places »; B avec les ronds de C
    sur aperçu) : sous l'aliment ouvert, ses articles de circulaire triés Oui ou Peut-être (les Jamais ne sont reliés à aucun aliment).
-   Le même article — le même code, ou le même genre (Tri col. L : le même produit d'une épicerie à l'autre) — relié ailleurs à un
-   autre aliment : sa ligne le dit, l'aliment fermé aussi, et la barre de sa catégorie compte ses aliments à revoir. */
+   Le même article — le même code, ou le même genre (Tri col. L : le même produit d'une épicerie à l'autre; jamais deux lignes d'une
+   même épicerie, qui sont deux produits) — relié ailleurs à un autre aliment : sa ligne le dit, en nommant l'autre article, l'aliment
+   fermé aussi, et la barre de sa catégorie compte ses aliments à revoir. */
 function triParAliment() {
   const rangs = reponsesTri().filter(r => (String(r[2]) === 'O' || String(r[2]) === 'P') && String(r[3] || '').trim());
   const pidsDe = r => morceaux(r[3]).map(x => x.trim()).filter(Boolean);
@@ -1973,9 +1974,11 @@ function triParAliment() {
     const pids = pidsDe(r), avert = [];
     cles(r).forEach(k => parCle[k].forEach(s => {        // le même article, ailleurs : relié à un aliment que celui-ci n'a pas
       if (s === r) return;
+      if (k.charAt(0) === 'g' && String(s[13]) === String(r[13])) return;   // deux lignes d'une même circulaire = deux produits (J-C, 2026-10-14 :
+                                                         //   deux pains Première Moisson chez Metro), sauf le même code
       pidsDe(s).forEach(q => {
         const p = pids.indexOf(q) === -1 && PRODUITS.find(x => String(x.id) === q);
-        const t = p && 'Aussi relié à « ' + p.nom + ' » chez ' + nomListe(s[13]);
+        const t = p && 'Aussi relié à « ' + p.nom + ' » : ' + adoucir(s[9] || s[1]) + ' (' + nomListe(s[13]) + ')';   // l'autre article, pour juger
         if (t && avert.indexOf(t) === -1) avert.push(t);
       });
     }));
