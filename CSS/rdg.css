@@ -305,6 +305,11 @@
 ============================================================ */
 * { box-sizing: border-box; margin: 0; padding: 0; }
 
+/* LA PAGE NE GLISSE JAMAIS DE CÔTÉ (J-C, 2026-10-14, le scan sur l'iPad : « je peux bouger vers les 2 bords ») : rien ne défile de
+   gauche à droite dans l'app — le doigt ne fait monter et descendre la page (le pincement pour grossir reste); ce qui dépasserait
+   est coupé (clip : la page reste son propre défilement; un navigateur qui ne connaît pas clip garde le hidden du body). */
+html { overflow-x: clip; touch-action: pan-y pinch-zoom; }
+
 body {
   font-family: var(--police);
   font-size: var(--texte-normal);
@@ -313,6 +318,7 @@ body {
   background: var(--couleur-101);   /* autour du cadre, sur un grand écran (la 102, un double de la 101, retirée le 2026-10-05) */
   min-height: var(--plein-ecran);
   overflow-x: hidden;
+  overflow-x: clip;
 }
 
 /* Aucune barre de défilement, NULLE PART (J-C) : elle ne prend plus de place, donc rien ne glisse
