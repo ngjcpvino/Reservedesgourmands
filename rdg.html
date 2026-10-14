@@ -268,7 +268,7 @@
       <div id="epi-carte"></div>
       <div id="epi-liste"></div>
       <div id="epi-fin"></div>
-      <button class="bouton bouton-or bouton-pleine bouton-suite" id="epi-retour" type="button">Retour</button>
+      <button class="bouton bouton-or bouton-pleine bouton-suite bouton-large" id="epi-retour" type="button" aria-label="Retour"><span class="icone icone-revenir"></span></button>   <!-- un pas en arrière (le choix de l'épicerie) : la flèche « revenir » -->
     </div>
     <!-- Compléter (le + : la feuille cochée) : l'épicerie groupée par meuble, « À placer » d'abord; OK retire ce qui est placé et a sa catégorie -->
     <div id="epi-completer" hidden>
@@ -295,7 +295,7 @@
     <p class="off-merci" id="off-merci" hidden>Tout est beau ? Merci pour ton aide !</p>
     <button class="bouton bouton-vert bouton-pleine bouton-suite" id="off-envoyer" type="button" hidden>Envoyer à Open Food Facts</button>
     <button class="bouton bouton-brun bouton-pleine bouton-suite" id="off-plus-tard" type="button">Plus tard</button>
-    <button class="bouton bouton-or bouton-pleine bouton-detache" id="off-retour" type="button" hidden>Retour</button>
+    <button class="bouton bouton-or bouton-pleine bouton-detache bouton-large" id="off-retour" type="button" aria-label="Retour" hidden><span class="icone icone-revenir"></span></button>   <!-- la maison s'il mène au menu (le sac seul), sinon la flèche : off.js -->
   </div>
 </div>
 
@@ -553,7 +553,7 @@
 <script src="JS/bientot.js?v=6"></script>
 <script src="JS/prix.js?v=7"></script>
 <script src="JS/epicerie.js?v=27"></script>
-<script src="JS/off.js?v=3"></script>
+<script src="JS/off.js?v=4"></script>
 <script src="JS/scan.js?v=19"></script>
 </body>
 </html>

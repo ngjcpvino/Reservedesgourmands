@@ -256,6 +256,7 @@ function remplirVueOff() {
   const pret = aEnvoyerOff().length > 0 && !v.fini;   // rien de prêt : ni le merci ni Envoyer (on prend d'abord une photo)
   montrer('off-merci', pret); montrer('off-envoyer', pret);
   montrer('off-fini', v.fini); montrer('off-retour', v.fini); montrer('off-plus-tard', !v.fini);   // tout est parti : leur logo, « Merci ! », Retour
+  $('off-retour').firstElementChild.className = 'icone ' + (v.retour === retourAuMenu ? 'icone-accueil' : 'icone-revenir');   // la maison mène au menu, la flèche recule d'un pas
 }
 /* Le crayon : la valeur devient un champ; Entrée ou toucher ailleurs la garde. */
 function corrigerTexteOff(k) {
