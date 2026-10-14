@@ -972,6 +972,7 @@ async function validerProduit() {
    reunirProduits d'api.gs par la file des gestes (ses lots, ses sorties, ses « Pas aimé »; rejouable). */
 function reunirProduitsInstant(garde, perdu) {
   poserGeste({ action: 'reunirProduits', opId: 'reun-' + idLocal(), garde: String(garde), perdu: String(perdu) });   // STOCK et le cache suivent (appliquerGeste)
+  suivreTriReunion(garde, perdu);                        // ses articles de circulaire aussi (« L'associer ? » au scan) — ceux que l'appareil connaît
   PRODUITS = PRODUITS.filter(x => String(x.id) !== String(perdu));
   Object.keys(CODES).forEach(k => { if (String(CODES[k]) === String(perdu)) CODES[k] = String(garde); });
   const vp = VARIANTES[perdu];
