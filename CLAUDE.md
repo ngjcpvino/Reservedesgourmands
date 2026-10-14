@@ -65,7 +65,7 @@ Principes structurels non négociables (détail dans `RdG-00`) : rien de fixe (l
 > - **Le tour des listes** : 3. Liste d'achats repris aujourd'hui (c'est J-C qui dira si c'est fini); restent 4. Rechercher · 5. l'écran de rayon · 6. Déplacer · 7. Consommer · 8. Gérer les bases → Aliments.
 
 > 🗂 **CE QUI RESTE — LA LISTE NUMÉROTÉE (tous les documents relus EN ENTIER le 2026-10-07, à la demande de J-C : « Numérote afin de ne rien perdre encore ! »)**
-> **Règle : un numéro ne change jamais.** Un point fait est **barré** (~~…~~ ✅ la date), jamais retiré ni renuméroté; un point nouveau prend **le numéro suivant** (le prochain : **54**). C'est J-C qui choisit l'ordre. **Avant de dire à J-C ce qui reste : relire cette liste ET les documents** (une première réponse, faite sans les avoir lus, était fausse).
+> **Règle : un numéro ne change jamais.** Un point fait est **barré** (~~…~~ ✅ la date), jamais retiré ni renuméroté; un point nouveau prend **le numéro suivant** (le prochain : **55**). C'est J-C qui choisit l'ordre. **Avant de dire à J-C ce qui reste : relire cette liste ET les documents** (une première réponse, faite sans les avoir lus, était fausse).
 >
 > **Les actions du départ jamais bâties** (`RdG-01` §2)
 > 1. **Cuisiner** : ai-je tout pour cette recette ? (action 6)
@@ -142,6 +142,8 @@ Principes structurels non négociables (détail dans `RdG-00`) : rien de fixe (l
 > 52. **Une icône sur chaque barre de Listes** (J-C, 2026-10-14 : « On va ajouter des icônes sur chaque action de cette liste pour peut-être en arriver qu'à des icônes comme partout ») — Inventaire, À consommer bientôt, En solde, comme la forme d'OFF sur « Pour Open Food Facts » (L2); peut-être, au bout, Listes en icônes seulement, comme le menu. **Noté, pas creusé** : aperçu d'abord, quand J-C le reprendra.
 >
 > 53. **Appliquer la règle des Retour partout : la maison mène au menu, la flèche « revenir » recule d'un pas** (la règle adoptée par J-C le 2026-10-14 : « oui »; faite sur Ajouter et la page du scan). Restent : la Liste d'achats, Listes quand rien n'est ouvert, le choix de l'épicerie des deux sacs… (un Retour qui recule d'abord, puis mène au menu : la flèche, puis la maison ?). J-C : « pas rendu là » — attendre qu'il le reprenne.
+>
+> 54. **Une nouvelle épicerie au même magasin rejoint la liste pas encore complétée** (noté le 2026-10-14, en parlant des tuiles des deux sacs) : toucher IGA quand la liste d'IGA de la semaine passée est « À compléter » y ajoute les nouveaux articles (`choisirEpicerie()` : `listeOuverte()` = toute liste pas close, O ou T); la nouvelle liste ne part qu'une fois l'ancienne close. Voulu ? À réfléchir avec J-C.
 >
 > ⚠️ `docs/collection territoire.md` n'est **pas** de la Réserve (une collection de savons, Univers Caresse) : rangé là par erreur, n'y rien toucher.
 
