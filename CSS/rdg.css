@@ -234,6 +234,11 @@
   --tri-peutetre:      var(--couleur-606);   /* jaune (pâle : texte brun sur sa barre) */
   --feu-point:         12px;                 /* le rond du feu devant un article trié, sous son aliment (Gérer les bases → Aliments) */
   --tri-jamais:        var(--couleur-401);   /* rouge */
+  /* ---- Compléter en quatre étapes (J-C, 2026-10-15, sur aperçu : « Go ») : les points qui disent où l'on est rendu ---- */
+  --etape-point:       10px;
+  --etape-faite:       var(--couleur-702);   /* vert : fait */
+  --etape-ici:         var(--couleur-305);   /* brun : ici */
+  --etape-a-venir:     var(--couleur-202);   /* beige : à venir */
   --feu-boitier:       var(--couleur-902);   /* le boîtier foncé du feu */
   --feu-rond:          22px;   /* une lumière (J-C, 2026-10-02, choix D sur aperçu : 32 px avant, trop gros) */
   --feu-ecart:         40px;   /* entre deux lumières (choix D : 10 px avant, trop rapprochées) */
@@ -1167,6 +1172,11 @@ select.champ {
   box-shadow: 0 0 0 var(--filet) var(--couleur-306);
 }
 .feu-point-oui { background: var(--tri-oui); }
+.etapes { display: flex; gap: var(--espace-xs); margin-bottom: var(--espace-s); }   /* Compléter : une étape à la fois, ses quatre points */
+.etape-point { width: var(--etape-point); height: var(--etape-point); border-radius: 50%; background: var(--etape-a-venir); }
+.etape-point.faite { background: var(--etape-faite); }
+.etape-point.ici { background: var(--etape-ici); }
+.etape-num { font-size: var(--texte-petit); color: var(--couleur-302); letter-spacing: var(--lettrage-label); }
 .feu-point-peutetre { background: var(--tri-peutetre); }
 /* LA LISTE D'ACHATS PAR ÉPICERIE (J-C, 2026-10-07, sur aperçus; RdG-08) : comme la page Circulaires — les épiceries en tuiles, 2 colonnes,
    le nombre dans le coin (= ce qu'on va chercher là); touchée, elle seule en bannière, le nombre à droite, ses trois parties — Moins

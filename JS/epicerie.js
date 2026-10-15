@@ -588,7 +588,8 @@ function montrerCompleter() {
   toutCacher(); $('vue-epicerie').hidden = false; $('btn-burger').hidden = false;
   EPI_COMPLETER = null;
   $('epi-titre').textContent = 'Compléter';
-  montrer('epi-choix', false); montrer('epi-scan', false); montrer('epi-completer', true); montrer('completer-ok', false);
+  montrer('epi-choix', false); montrer('epi-scan', false); montrer('epi-completer', true);
+  PANNEAU = null; $('completer-produit').innerHTML = ''; majVueCompleter(); montrer('completer-ok', false);   // une carte restée ouverte (le menu, une autre page) : fermée
   $('completer-liste').innerHTML = '';
   const mags = [...new Set(xs.map(r => String(r[1])))].sort((a, b) => nomListe(a).localeCompare(nomListe(b), 'fr'));
   $('completer-listes').innerHTML = '<div class="grille">' + mags.map(m => tuileMagasin(m, 'data-completer="' + esc(m) + '"', 'point-rouge')).join('') + '</div>';
@@ -604,10 +605,12 @@ function ouvrirCompleter(row) {
   EPI_COMPLETER = { id: String(row[0]), magasin: String(row[1]), nom: nomListe(row[1]) };
   toutCacher(); $('vue-epicerie').hidden = false; $('btn-burger').hidden = false;
   $('epi-titre').textContent = EPI_COMPLETER.nom;
-  montrer('epi-choix', false); montrer('epi-scan', false); montrer('epi-completer', true); montrer('completer-ok', true);
+  montrer('epi-choix', false); montrer('epi-scan', false); montrer('epi-completer', true);
   $('completer-listes').innerHTML = '';
   COMPLETER_OUVERT = 'escale';                           // « À placer » ouvert d'abord : c'est là qu'il y a quelque chose à faire
+  PANNEAU = null; $('completer-produit').innerHTML = '';
   remplirCompleter();
+  majVueCompleter();
   window.scrollTo(0, 0);
   const m = LISTES.Magasins.find(x => String(x.id) === EPI_COMPLETER.magasin) || { id: EPI_COMPLETER.magasin, circ: true };
   EPI_CIRC = [];
@@ -651,7 +654,7 @@ function remplirCompleter() {
     h += groupe(String(m.id), m.nom, teinte ? ' style="--meuble:' + esc(teinte) + '"' : '', teinte && couleurPale(teinte) ? ' tete-pale' : '', corps, floconDe(m));   // la couleur du meuble est une DONNÉE; un congélateur, son flocon
   });
   $('completer-liste').innerHTML = h || '<div class="vide"><div class="vide-titre">Tout est complété</div></div>';
-  montrer('completer-ok', !!h);
+  montrer('completer-ok', !!h && !PANNEAU);              // une carte ouverte : la liste attend derrière
 }
 /* Les deux flèches d'un article : la carte de l'Escale (la pièce, le meuble, l'espace, la quantité — le total d'avance). Une partie
    seulement = répartir : le reste reste où il est. Oui fait le geste (instantané, deplacerLot); Non laisse tout tel quel. */
@@ -735,13 +738,19 @@ function jeudiPasse(achat, auj) {
   for (let x = new Date(d.getTime() + 864e5); x <= t; x = new Date(x.getTime() + 864e5)) if (x.getDay() === 4) return true;
   return false;
 }
+/* COMPLÉTER EN QUATRE ÉTAPES (J-C, 2026-10-15 : « Oh que c'est pas convivial, les étapes devraient être séparées, la lecture de ce que je
+   colle du site de Super C devrait être approuvée, le code-barres devrait être écrit quelque part, le nom français devrait être
+   suggéré »; l'aperçu : « Go ») — une carte à la place de la liste (le reste se cache, comme au tri), une étape à la fois :
+   1 le produit (son nom, son code-barres; Voir chez Super C, Coller la page — le texte du raccourci « Copier pour la Réserve »);
+   2 ce que l'app a lu (Oui, c'est ça / Corriger — sans la page : la marque, le format, le prix à remplir);
+   3 ton aliment (le rayon lu, le nom français proposé; la circulaire, s'il y a lieu); 4 où il est rangé, C'est fait.
+   Tous les champs vivent dans la carte du début à la fin : « C'est fait » les lit comme avant (validerProduit). */
 function ouvrirProduit(i) {
-  PANNEAU = null;
-  remplirCompleter();                                    // un seul produit (ou une seule carte) ouvert à la fois
-  const lot = LOTS_COMPLETER[i], item = $('completer-liste').querySelector('[data-completer-item="' + i + '"]');
-  if (!lot || !item) return;
-  PANNEAU = { i: i, lot: lot, ligne: null, assoc: '', auto: false };
-  item.insertAdjacentHTML('afterend', htmlPanneau(lot));
+  const lot = LOTS_COMPLETER[i];
+  if (!lot) return;
+  PANNEAU = { i: i, lot: lot, ligne: null, assoc: '', auto: false, etape: 1, lu: null, corriger: false };
+  $('completer-produit').innerHTML = htmlPanneau(lot);
+  majVueCompleter();
   const p = PRODUITS.find(x => String(x.id) === lot.pid) || { nom: '', catId: '' };
   const rid = p.catId ? rayonDe(p.catId) : '';
   $('cp-cat').innerHTML = optionsCats(); $('cp-cat').value = rid;
@@ -753,28 +762,170 @@ function ouvrirProduit(i) {
   ajouterEndroitPanneau(resoudreEmp(lot.emp || premierEndroit(lot.pid)), lot.qte);   // sa place (ou sa place habituelle) et toute la quantité
   const prix = prixDuLot(lot);
   $('cp-prix').value = prix !== '' ? textePrix(prix) : '';
-  majCirculairePanneau();
+  allerEtape(1);
+  photoProduitPanneau();
+}
+/* La carte ouverte, ou la liste : jamais les deux (le reste de la liste se cache, comme au tri). */
+function majVueCompleter() {
+  const ouvert = !!PANNEAU;
+  montrer('completer-produit', ouvert);
+  montrer('completer-liste', !ouvert);
+  montrer('completer-retour', !ouvert);
+  montrer('completer-ok', !ouvert && !!LOTS_COMPLETER.length);
+}
+function fermerProduit() {
+  PANNEAU = null;
+  $('completer-produit').innerHTML = '';
+  remplirCompleter();
+  majVueCompleter();
 }
 function htmlPanneau(lot) {
-  const code = formeCode(codeDuLot(lot));
+  const code = formeCode(codeDuLot(lot)), page = code.length >= 8 && !estPese(code);   // une page à chercher : un vrai code-barres
+  const p = PRODUITS.find(x => String(x.id) === lot.pid) || { nom: '' };
   const champ = (label, html) => '<div class="bloc"><div class="label">' + label + '</div>' + html + '</div>';
-  return '<div class="carte" data-panneau>' +
-    (code.length >= 8 ? '<button class="bouton bouton-brun bouton-pleine" type="button" data-cp-voir>Voir chez Super C</button>' : '') +
-    champ('Colle le texte de la page', '<textarea class="champ" id="cp-texte" placeholder="Du chemin du rayon jusqu\'au numéro de produit"></textarea><div class="message message-repli" id="cp-lu"></div>') +
-    champ('Catégorie', '<select class="champ" id="cp-cat"></select>' + htmlSaisieNeuve('neuve', 'cp-cat-neuve', 'Nouvelle catégorie…', 'categorie')) +
-    '<div class="bloc" id="cp-bloc-souscat"><div class="label">Sous-catégorie</div><select class="champ" id="cp-souscat" data-parent="cp-cat"></select>' +
-    htmlSaisieNeuve('neuve', 'cp-souscat-neuve', 'Nouvelle sous-catégorie…', 'categorie') + '</div>' +
-    '<div class="bloc" id="cp-bloc-aliment"><div class="label">Aliment</div><select class="champ champ-fort" id="cp-aliment"></select>' +
-    htmlSaisieNeuve('nouveau', 'cp-nom', 'Nouvel aliment…') + '<div class="message message-repli" id="cp-aliment-msg"></div></div>' +
-    champ('Marque', '<select class="champ" id="cp-marque"></select>' + htmlSaisieNeuve('neuve', 'cp-marque-neuve', 'Nouvelle marque…')) +
-    champ('Saveur', '<select class="champ" id="cp-saveur"></select>' + htmlSaisieNeuve('neuve', 'cp-saveur-neuve', 'Nouvelle saveur…')) +
-    champ('Format', '<div class="ligne-couleur"><input class="champ champ-nombre" id="cp-nb" inputmode="decimal" autocomplete="off"><select class="champ" id="cp-unite"></select></div>') +
-    '<div id="cp-endroits"></div><button class="bouton bouton-petit bouton-suite" type="button" data-cp-endroit>+ un autre endroit</button>' +   // où il est rangé — un ou plusieurs endroits, comme la fiche (J-C : « la répartition doit pouvoir se faire là aussi »)
-    '<div id="cp-circ"></div>' +
-    champ('Prix payé', '<input class="champ" id="cp-prix" inputmode="decimal" autocomplete="off"><div class="message message-repli" id="cp-prix-msg"></div>') +
-    '<div class="message message-repli message-erreur" id="cp-msg"></div>' +
-    '<div class="grille bloc-suite"><button class="bouton bouton-petit bouton-vert" type="button" data-cp-ok>C\'est ça</button>' +
-    '<button class="bouton bouton-petit" type="button" data-cp-annuler>Annuler</button></div></div>';
+  const tete = (n, titre, id) => '<div class="etapes">' + [1, 2, 3, 4].map(k => '<span class="etape-point' + (k < n ? ' faite' : k === n ? ' ici' : '') + '"></span>').join('') +
+    '</div><div class="etape-num">Étape ' + n + ' de 4</div><div class="label-fort"' + (id ? ' id="' + id + '"' : '') + '>' + titre + '</div>';
+  const fleche = '<button class="bouton bouton-or" type="button" data-cp-recul aria-label="Revenir"><span class="icone icone-revenir"></span></button>';
+  const annuler = '<button class="bouton" type="button" data-cp-annuler>Annuler</button>';
+  const bas = (texte, attr, second) => '<div class="cp-msg-place"></div><button class="bouton bouton-vert bouton-pleine bouton-detache" type="button" ' + attr + '>' + texte + '</button>' +
+    '<div class="grille bloc-suite">' + second + '</div>';
+  const detail = detailLot(lot);
+  return '<div class="carte">' +
+    '<div data-etape="1">' + tete(1, 'Le produit') +
+      '<div class="liste-blanche bloc-suite"><div class="item" id="cp-produit"><div class="item-info"><div class="item-nom">' + esc(p.nom) + '</div>' +
+        (detail ? '<div class="item-detail">' + esc(detail) + '</div>' : '') + (code ? '<div class="code-barres">' + esc(code) + '</div>' : '') + '</div></div></div>' +
+      (page ? '<button class="bouton bouton-brun bouton-pleine bouton-detache" type="button" data-cp-voir>Voir chez Super C</button>' +
+              '<div class="message">Sur sa page : Partager → Copier pour la Réserve, puis reviens ici.</div>' +
+              '<textarea class="champ bloc-suite" id="cp-texte" placeholder="Colle le texte de la page ici" hidden></textarea>' +
+              '<div class="cp-msg-place"></div><button class="bouton bouton-vert bouton-pleine bouton-suite" type="button" data-cp-coller>Coller la page</button>' +
+              '<div class="grille bloc-suite"><button class="bouton" type="button" data-cp-sans>Sans la page</button>' + annuler + '</div>'
+            : bas('Suivant', 'data-cp-sans', annuler)) +
+    '</div>' +
+    '<div data-etape="2" hidden>' + tete(2, 'Ce que l\'app a lu', 'cp-titre-2') +
+      '<div class="liste-blanche bloc-suite" id="cp-lu"></div>' +
+      '<div class="bloc-suite" id="cp-champs">' +
+        champ('Marque', '<select class="champ" id="cp-marque"></select>' + htmlSaisieNeuve('neuve', 'cp-marque-neuve', 'Nouvelle marque…')) +
+        champ('Format', '<div class="ligne-couleur"><input class="champ champ-nombre" id="cp-nb" inputmode="decimal" autocomplete="off"><select class="champ" id="cp-unite"></select></div>') +
+        champ('Prix payé', '<input class="champ" id="cp-prix" inputmode="decimal" autocomplete="off"><div class="message message-repli" id="cp-prix-msg"></div>') +
+      '</div>' +
+      '<div id="cp-bas-lu">' + bas('Oui, c\'est ça', 'data-cp-suivant', fleche + '<button class="bouton bouton-brun" type="button" data-cp-corriger>Corriger</button>') + '</div>' +
+      '<div id="cp-bas-champs">' + bas('Suivant', 'data-cp-suivant', fleche + annuler) + '</div>' +
+    '</div>' +
+    '<div data-etape="3" hidden>' + tete(3, 'Ton aliment') + '<div class="bloc-suite">' +
+      champ('Catégorie', '<select class="champ" id="cp-cat"></select>' + htmlSaisieNeuve('neuve', 'cp-cat-neuve', 'Nouvelle catégorie…', 'categorie')) +
+      '<div class="bloc" id="cp-bloc-souscat"><div class="label">Sous-catégorie</div><select class="champ" id="cp-souscat" data-parent="cp-cat"></select>' +
+      htmlSaisieNeuve('neuve', 'cp-souscat-neuve', 'Nouvelle sous-catégorie…', 'categorie') + '</div>' +
+      '<div class="bloc" id="cp-bloc-aliment"><div class="label">Aliment</div><select class="champ champ-fort" id="cp-aliment"></select>' +
+      htmlSaisieNeuve('nouveau', 'cp-nom', 'Nouvel aliment…') + '<div class="message message-repli" id="cp-aliment-msg"></div></div>' +
+      champ('Saveur', '<select class="champ" id="cp-saveur"></select>' + htmlSaisieNeuve('neuve', 'cp-saveur-neuve', 'Nouvelle saveur…')) +
+      '<div id="cp-circ"></div></div>' + bas('Suivant', 'data-cp-suivant', fleche + annuler) +
+    '</div>' +
+    '<div data-etape="4" hidden>' + tete(4, 'Où il est rangé') +
+      '<div class="bloc-suite" id="cp-endroits"></div><button class="bouton bouton-petit bouton-suite" type="button" data-cp-endroit>+ un autre endroit</button>' +   // un ou plusieurs endroits, comme la fiche (J-C : « la répartition doit pouvoir se faire là aussi »)
+      bas('C\'est fait', 'data-cp-ok', fleche + annuler) +
+    '</div>' +
+    '<div class="message message-repli message-erreur" id="cp-msg"></div></div>';
+}
+/* Une étape à la fois; le message d'erreur se pose au-dessus de ses boutons. */
+function allerEtape(n) {
+  const P = PANNEAU, carte = $('completer-produit');
+  if (!P) return;
+  P.etape = n;
+  carte.querySelectorAll('[data-etape]').forEach(e => { e.hidden = Number(e.dataset.etape) !== n; });
+  $('cp-msg').textContent = '';
+  if (n === 2) montrerEtape2();
+  if (n === 3) majCirculairePanneau();
+  const place = [...carte.querySelectorAll('[data-etape="' + n + '"] .cp-msg-place')].find(x => !x.closest('[hidden]'));
+  if (place) place.appendChild($('cp-msg'));
+  window.scrollTo(0, 0);
+}
+/* L'étape 2 : ce qui a été lu (la page collée), Oui / Corriger — ou, sans la page (ou pour corriger), la marque, le format, le prix. */
+function montrerEtape2() {
+  const P = PANNEAU, lu = !!P.lu && !P.corriger;
+  montrer('cp-lu', lu); montrer('cp-bas-lu', lu);
+  montrer('cp-champs', !lu); montrer('cp-bas-champs', !lu);
+  $('cp-titre-2').textContent = P.lu ? 'Ce que l\'app a lu' : 'Marque, format, prix';
+  if (lu) remplirLu();
+  const place = [...$('completer-produit').querySelectorAll('[data-etape="2"] .cp-msg-place')].find(x => !x.closest('[hidden]'));
+  if (place) place.appendChild($('cp-msg'));
+}
+/* Ce que l'app a lu, tel que ce sera enregistré (les champs remplis par la page) : le nom français et la photo de Super C, la marque,
+   le format, le rayon, le prix, le numéro de produit — le bon (vert) ou pas celui scanné (rouge). */
+function remplirLu() {
+  const P = PANNEAU, r = P.lu;
+  const ligne = (label, val, cls, sous) => '<div class="item"><div class="item-info"><div class="item-detail">' + esc(label) + '</div><div class="item-nom' + (cls ? ' ' + cls : '') + '">' +
+    esc(val) + '</div>' + (sous ? '<div class="item-detail">' + esc(sous) + '</div>' : '') + '</div></div>';
+  const rid = $('cp-cat').value, scid = $('cp-souscat').value;
+  const ry = RAYONS.find(x => String(x.id) === rid), sc = (SOUSCATS[rid] || []).find(x => String(x.id) === scid);
+  const code = r.code ? formeCode(r.code) : '', bon = !!code && codeNu(code) === codeNu(codeDuLot(P.lot));
+  let h = r.nom ? '<div class="item">' + (r.photo ? '<img class="tri-photo" src="' + esc(r.photo) + '" alt="">' : '') +
+    '<div class="item-info"><div class="item-nom">' + esc(r.nom) + '</div><div class="item-detail">La page de Super C</div></div></div>' : '';
+  const marque = nomChoixPanneau('marque'), format = formatPanneau();
+  if (marque) h += ligne('Marque', marque);
+  if (format) h += ligne('Format', format);
+  h += ligne('Rayon', ry ? ry.nom + (sc ? ' › ' + sc.nom : '') : 'Pas trouvé : tu le choisiras à l\'étape 3');
+  h += ligne('Prix', $('cp-prix').value.trim() || '—', '', $('cp-prix-msg').textContent);
+  h += ligne('Numéro de produit', code ? code + (bon ? ' · le bon' : ' · pas celui scanné') : 'Pas dans la page', code ? (bon ? 'message-succes' : 'message-erreur') : '');
+  $('cp-lu').innerHTML = h;
+}
+const nomChoixPanneau = ch => { const v = $('cp-' + ch).value; return v === 'neuve' ? $('cp-' + ch + '-neuve').value.trim() : nomListe(v); };
+/* La photo du produit à l'étape 1 : celle d'Open Food Facts, si elle vient (sans attendre : la carte est déjà là). */
+async function photoProduitPanneau() {
+  const P = PANNEAU, code = formeCode(codeDuLot(P.lot));
+  if (code.length < 8 || estPese(code) || typeof window.chercherOFF !== 'function') return;
+  let d = null;
+  try { d = await window.chercherOFF(code); } catch (e) {}
+  const it = $('cp-produit');
+  if (PANNEAU !== P || !it || !d || !d.photo || it.querySelector('.tri-photo')) return;
+  const img = document.createElement('img');
+  img.className = 'tri-photo'; img.alt = ''; img.src = d.photo;
+  it.insertBefore(img, it.firstChild);
+}
+/* « Coller la page » : le presse-papiers lu d'un toucher (le raccourci vient de copier la page); refusé par l'appareil : une case où
+   coller, comme avant. */
+async function collerDuPressePapiers() {
+  let t = null;
+  try { t = await navigator.clipboard.readText(); } catch (e) {}
+  if (!PANNEAU) return;
+  if (t == null) {
+    montrer('cp-texte', true); $('cp-texte').focus();
+    $('cp-msg').textContent = 'Colle le texte de la page dans la case.';
+    return;
+  }
+  lireLaPage(t);
+}
+function lireLaPage(t) {
+  if (!PANNEAU || !String(t || '').trim()) return;
+  const r = collerPage(t);
+  if (!r) { $('cp-msg').textContent = 'Rien de lisible : as-tu copié la page avec « Copier pour la Réserve » ?'; return; }
+  PANNEAU.lu = r; PANNEAU.corriger = false;
+  allerEtape(2);
+}
+/* La flèche : une étape en arrière (Corriger → ce qui a été lu, d'abord). */
+function reculerEtape() {
+  const P = PANNEAU;
+  if (!P) return;
+  if (P.etape === 2 && P.corriger && P.lu) { P.corriger = false; montrerEtape2(); return; }
+  if (P.etape > 1) allerEtape(P.etape - 1);
+}
+/* Suivant (ou Oui, c'est ça) : ce que l'étape demande, puis la suivante. */
+async function suivantEtape() {
+  const P = PANNEAU, msg = $('cp-msg');
+  if (!P) return;
+  if (P.etape === 2) {
+    const t = $('cp-prix').value.trim(), n = Number(t.replace(/\s*\$\s*/, '').replace(',', '.'));
+    if (t && !(isFinite(n) && n >= 0)) { P.corriger = true; montrerEtape2(); msg.textContent = 'Le prix : un nombre (« 2,49 »).'; return; }
+    allerEtape(3);
+    return;
+  }
+  if (P.etape === 3) {
+    if (!await poserCatsTapees($('completer-produit')) || PANNEAU !== P) return;   // une catégorie tapée sans le + : créée d'abord
+    const manque = manqueEntonnoir($('cp-cat').value, $('cp-souscat').value);
+    if (manque) { msg.textContent = manque; return; }
+    const v = $('cp-aliment').value;
+    if (!v || (v === 'nouveau' && !$('cp-nom').value.trim())) { msg.textContent = 'Choisis l\'aliment, ou nomme le nouveau.'; return; }
+    allerEtape(4);
+  }
 }
 /* Un endroit du produit ouvert : la carte de la fiche (pièce, meuble, espace, quantité, « Retirer » s'il y en a plus d'un). */
 function ajouterEndroitPanneau(pref, qte) {
@@ -883,65 +1034,104 @@ function voirChezSuperC() {
   const code = PANNEAU && formeCode(codeDuLot(PANNEAU.lot));
   if (code) window.open('https://www.superc.ca/allees/produit/p/' + encodeURIComponent(code), '_blank');
 }
-/* Le texte d'une page de Super C (ou de Metro), collé : ce qu'on y lit. Essayé sur les deux pages collées par J-C le 2026-10-03
-   (Tarte à la citrouille Irrésistible; Sucre granulé spécial fin Redpath). */
+/* Le texte d'une page de Super C (ou de Metro), collé : ce qu'on y lit. Deux formes (essayées sur les pages collées par J-C) :
+   · le raccourci « Copier pour la Réserve » (2026-10-15, les biscuits Leclerc) : toute la page — le code du site, les menus, puis UNE
+     ligne de données sûre, « <la photo> <la marque> <le code> <l'adresse du produit> », dont le chemin est le rayon (…/allees/collations/
+     collations-sucrees-et-bonbons/…). Le reste se lit entre cette ligne et « Fréquemment achetés » (d'autres produits, plus bas);
+   · une page copiée au doigt (2026-10-03 : la tarte à la citrouille Irrésistible, le sucre Redpath) : le chemin du rayon en tête, la
+     marque en majuscules, le nom, le format.
+   Rend { code, rid, scid, marque, nom, format, prix, regulier, special, photo } — ce qui a été trouvé. Le tri s'en sert aussi. */
+const DONNEES_PAGE = /(https:\/\/product-images\.metro\.ca\/\S+)\s+(?:(.*?)\s+)?(\d{8,14})\s+(https:\/\/(?:www\.)?(?:superc|metro)\.ca\/\S*?\/p\/\d{8,14})/;
+const cleChemin = s => cleNom(String(s || '').replace(/œ/gi, 'oe').replace(/æ/gi, 'ae'));   // « œufs » = « oeufs » (l'adresse d'une page)
 function lirePage(texte) {
-  const t = String(texte || ''), lignes = t.split(/\r?\n/).map(s => s.replace(/\s+/g, ' ').trim()).filter(Boolean), r = {};
+  const t = String(texte || ''), toutes = t.split(/\r?\n/).map(s => s.replace(/\s+/g, ' ').trim()).filter(Boolean), r = {};
   const code = (t.match(/Num[ée]ro de produit\s*:?\s*(\d{6,14})/i) || [])[1];
   if (code) r.code = code;
-  for (let i = 0; i < Math.min(lignes.length, 8) && !r.rid; i++) {       // le chemin du rayon : SES catégories (taillées sur Super C)
-    const rr = RAYONS.find(x => cleNom(x.nom) === cleNom(lignes[i]));
-    if (!rr) continue;
-    r.rid = String(rr.id);
-    const sc = (SOUSCATS[rr.id] || []).find(x => cleNom(x.nom) === cleNom(lignes[i + 1] || ''));
-    if (sc) r.scid = String(sc.id);
-  }
-  const k = lignes.findIndex(l => /\p{L}{2}/u.test(l) && l === l.toUpperCase() && !/[$\d]/.test(l));   // la marque, en majuscules (« REDPATH »)
-  if (k !== -1) {
-    r.marque = adoucir(lignes[k]);
-    if (lignes[k + 1] && !/[$]/.test(lignes[k + 1])) r.nom = lignes[k + 1];
-    if (lignes[k + 2] && formatCle(lignes[k + 2])) r.format = formatStock(lignes[k + 2]);
+  const d = t.match(DONNEES_PAGE);
+  let lignes = toutes;
+  if (d) {                                               // le raccourci
+    r.photo = d[1]; r.code = r.code || d[3];
+    if (d[2] && /\p{L}/u.test(d[2])) r.marque = adoucir(d[2].trim());
+    rayonDuChemin(d[4], r);
+    const i = toutes.findIndex(l => l.indexOf(d[4]) !== -1);
+    const fin = toutes.findIndex((l, j) => j > i && /^(Fr[ée]quemment achet|Description du produit)/i.test(l));
+    lignes = toutes.slice(i + 1, fin === -1 ? undefined : fin);   // ce produit-ci seulement
+    const k = d[2] ? lignes.findIndex(l => cleNom(l) === cleNom(d[2])) : -1;   // la marque seule, puis le nom, puis le format
+    if (k !== -1) {
+      if (lignes[k + 1] && !/[$]/.test(lignes[k + 1])) r.nom = lignes[k + 1];
+      if (lignes[k + 2] && formatCle(lignes[k + 2])) r.format = formatStock(lignes[k + 2]);
+    }
+    if (!r.nom) {                                        // sinon : la ligne avant les prix « 4.49 CAD »
+      const c = toutes.findIndex(l => /^\d+\.\d{2} CAD/.test(l));
+      if (c > 0 && c < i) r.nom = toutes[c - 1];
+    }
+  } else {                                               // copiée au doigt
+    for (let i = 0; i < Math.min(lignes.length, 8) && !r.rid; i++) {       // le chemin du rayon : SES catégories (taillées sur Super C)
+      const rr = RAYONS.find(x => cleChemin(x.nom) === cleChemin(lignes[i]));
+      if (!rr) continue;
+      r.rid = String(rr.id);
+      const sc = (SOUSCATS[rr.id] || []).find(x => cleChemin(x.nom) === cleChemin(lignes[i + 1] || ''));
+      if (sc) r.scid = String(sc.id);
+    }
+    const k = lignes.findIndex(l => /\p{L}{2}/u.test(l) && l === l.toUpperCase() && !/[$\d]/.test(l));   // la marque, en majuscules (« REDPATH »)
+    if (k !== -1) {
+      r.marque = adoucir(lignes[k]);
+      if (lignes[k + 1] && !/[$]/.test(lignes[k + 1])) r.nom = lignes[k + 1];
+      if (lignes[k + 2] && formatCle(lignes[k + 2])) r.format = formatStock(lignes[k + 2]);
+    }
   }
   if (!r.format) { const f = lignes.find(l => /^\d+(?:[.,]\d+)?\s*(?:kg|g|ml|l)\b/i.test(l)); if (f) r.format = formatStock(f); }
-  const reg = (t.match(/Prix r[ée]gulier\s*(\d+[.,]\d{2})/i) || [])[1];
+  const zone = lignes.join('\n');
+  const reg = (zone.match(/Prix r[ée]gulier\s*(\d+[.,]\d{2})/i) || [])[1];
   if (reg) r.regulier = reg;
   const p = lignes.find(l => /^\d+[.,]\d{2}\s*\$/.test(l) && !/\//.test(l) && !/r[ée]gulier/i.test(l));   // le prix payé, pas celui au 100 g
   if (p) r.prix = p.match(/^(\d+[.,]\d{2})/)[1];
-  const fin = (t.match(/En sp[ée]cial jusqu.au ([^\n]+)/i) || [])[1];
+  const fin = (zone.match(/En sp[ée]cial jusqu.au ([^\n]+)/i) || [])[1];
   if (fin) r.special = fin.trim();
   return r;
 }
+/* L'adresse d'un produit (…/allees/collations/collations-sucrees-et-bonbons/biscuits-et-gateaux/<nom>/p/<code>) : le 1er morceau qui
+   est une de ses catégories, puis une de ses sous-catégories parmi les suivants (leurs noms viennent de Super C). */
+function rayonDuChemin(url, r) {
+  const morceaux = String(url || '').replace(/^https?:\/\/[^/]+\//, '').split('/');
+  const i = morceaux.findIndex(m => RAYONS.some(x => cleChemin(x.nom) === cleChemin(m)));
+  if (i === -1) return;
+  const rr = RAYONS.find(x => cleChemin(x.nom) === cleChemin(morceaux[i]));
+  r.rid = String(rr.id);
+  const sc = (SOUSCATS[rr.id] || []).find(x => morceaux.slice(i + 1).some(m => cleChemin(x.nom) === cleChemin(m)));
+  if (sc) r.scid = String(sc.id);
+}
+/* La page lue, dans les champs de la carte : le rayon, l'aliment (le sien dont tous les mots sont dans le nom de la page, le plus précis;
+   sinon un nouveau, au NOM FRANÇAIS de la page — avant la virgule : « Biscuits au beurre garnis de chocolat noir, Célébration »), la
+   marque, le format, le prix (pas si un jeudi est passé depuis l'achat). Rend ce qui a été lu, ou null (rien de lisible). */
 function collerPage(texte) {
   const P = PANNEAU;
-  if (!P) return;
-  const r = lirePage(texte), lu = [], m = $('cp-lu');
-  if (!Object.keys(r).length) { m.textContent = texte.trim() ? 'Rien de lisible : as-tu copié le texte de la page ?' : ''; return; }
-  if (r.rid) { $('cp-cat').value = r.rid; remplirSousCatPanneau(r.scid || ''); lu.push('le rayon'); }
+  if (!P) return null;
+  const r = lirePage(texte);
+  if (!Object.keys(r).length) return null;
+  if (r.rid) { $('cp-cat').value = r.rid; remplirSousCatPanneau(r.scid || ''); }
   const scid = $('cp-souscat').value;
-  if (r.nom) {                                           // l'aliment : le sien dont tous les mots sont dans le nom (le plus précis), sinon un nouveau
-    const mots = motsTri(r.nom);
+  if (r.nom) {
+    const mots = motsTri(r.nom), nomFr = r.nom.split(',')[0].trim();
     const ps = PRODUITS.filter(p => (!scid || String(p.catId) === String(scid)) && motsTri(p.nom).length && motsTri(p.nom).every(w => mots.indexOf(w) !== -1))
       .sort((a, b) => motsTri(b.nom).length - motsTri(a.nom).length);
-    if (scid) remplirAlimentsPanneau(ps[0] ? String(ps[0].id) : 'nouveau', ps[0] ? undefined : r.nom);
+    if (!ps[0]) $('cp-nom').value = nomFr;               // pas un des siens : le nom français attend « Nouvel aliment… » (aussi quand le rayon vient plus tard)
+    if (scid) remplirAlimentsPanneau(ps[0] ? String(ps[0].id) : 'nouveau', ps[0] ? undefined : nomFr);
     if (ps[0]) {                                         // ce qui reste du nom devient la saveur (« Sucre granulé spécial fin » → « Granulé spécial fin »)
-      const aMots = motsTri(ps[0].nom), reste = r.nom.split(' ').filter(w => !motsTri(w).length || aMots.indexOf(motsTri(w)[0]) === -1).join(' ').trim();
+      const aMots = motsTri(ps[0].nom), reste = nomFr.split(' ').filter(w => !motsTri(w).length || aMots.indexOf(motsTri(w)[0]) === -1).join(' ').trim();
       if (reste && motsTri(reste).length) choisirNomPanneau('saveur', reste.charAt(0).toUpperCase() + reste.slice(1));
     }
-    lu.push('le nom');
   }
-  if (r.marque) { choisirNomPanneau('marque', r.marque); lu.push('la marque'); }
-  if (r.format) { poserFormatPanneau(r.format); lu.push('le format'); }
+  if (r.marque) choisirNomPanneau('marque', r.marque);
+  if (r.format) poserFormatPanneau(r.format);
   const pm = $('cp-prix-msg');
   if (r.prix) {
     if (P.ligne && P.assoc === 'O') pm.textContent = 'Le prix de la circulaire reste (associé).';
     else if (jeudiPasse(dateDuLot(P.lot), dateDuJour())) pm.textContent = 'Prix de la page pas pris : un jeudi est passé depuis l\'achat.';
-    else { $('cp-prix').value = textePrix(r.prix); pm.textContent = 'Le prix de la page' + (r.special ? ' : en spécial jusqu\'au ' + r.special : '') + (r.regulier ? ' (rég. ' + textePrix(r.regulier) + ')' : '') + '.'; }
-    lu.push('le prix');
+    else { $('cp-prix').value = textePrix(r.prix); pm.textContent = (r.special ? 'En spécial jusqu\'au ' + r.special : 'Le prix de la page') + (r.regulier ? ' (rég. ' + textePrix(r.regulier) + ')' : '') + '.'; }
   }
-  const bon = !r.code || codeNu(r.code) === codeNu(codeDuLot(P.lot));
-  m.className = 'message message-repli' + (bon ? '' : ' message-erreur');
-  m.textContent = 'Lu : ' + lu.join(', ') + '.' + (r.code ? (bon ? ' Numéro de produit : le bon.' : ' Attention : le numéro de produit n\'est pas celui scanné.') : '');
   majCirculairePanneau();
+  return r;
 }
 /* « C'est ça » : l'aliment (catégorie, nom — ou réuni à l'aliment choisi), puis les lignes du lot (marque, saveur, format, prix). */
 async function validerProduit() {
@@ -997,8 +1187,7 @@ async function validerProduit() {
   if (P.ligne && P.assoc === 'O' && !P.auto) relierCirculaire(P.ligne, cible, marque, saveur, codeDuLot(lot));
   memoriserVariante(cible, marque, format, ventes.length ? ventes.map(e => ({ emp: e.emp })) : (lot.emp ? [{ emp: lot.emp }] : []), saveur);   // ses places deviennent connues
   const fait = (PRODUITS.find(x => String(x.id) === cible) || {}).nom || '';
-  PANNEAU = null;
-  remplirCompleter();
+  fermerProduit();
   poserPoints();
   avis('Complété : ' + fait, 'succes');
 }
@@ -1025,15 +1214,7 @@ function initEpicerie() {
   $('completer-liste').addEventListener('click', ev => {
     const r = ev.target.closest('.ranger[data-completer-lot]');
     if (r) { ouvrirLotCompleter(r); return; }
-    if (ev.target.closest('[data-cp-voir]')) { voirChezSuperC(); return; }
-    if (ev.target.closest('[data-cp-endroit]')) { ajouterEndroitPanneau(null, ''); return; }
-    const re = ev.target.closest('#cp-endroits .endroit-retirer');
-    if (re) { if ($('cp-endroits').children.length > 1) re.closest('.endroit').remove(); return; }
-    const ass = ev.target.closest('[data-cp-assoc]');
-    if (ass) { associerPanneau(ass.dataset.cpAssoc); return; }
-    if (ev.target.closest('[data-cp-ok]')) { validerProduit(); return; }
-    if (ev.target.closest('[data-cp-annuler]')) { PANNEAU = null; remplirCompleter(); return; }
-    if (ev.target.closest('.endroit, [data-panneau]')) return;   // toucher la carte ou le produit ouvert ne plie rien
+    if (ev.target.closest('.endroit')) return;           // toucher la carte d'un endroit ne plie rien
     const it = ev.target.closest('[data-completer-item]');
     if (it) { ouvrirProduit(Number(it.dataset.completerItem)); return; }
     const tete = ev.target.closest('.accordeon-tete');
@@ -1043,14 +1224,29 @@ function initEpicerie() {
     toggleAccordeon(tete);
   });
   $('completer-ok').addEventListener('click', validerCompleter);
-  $('completer-liste').addEventListener('change', ev => {
+  $('completer-produit').addEventListener('click', ev => {   // la carte du produit, en quatre étapes
+    if (ev.target.closest('[data-cp-voir]')) { voirChezSuperC(); return; }
+    if (ev.target.closest('[data-cp-coller]')) { collerDuPressePapiers(); return; }
+    if (ev.target.closest('[data-cp-sans]')) { if (PANNEAU) { PANNEAU.corriger = true; allerEtape(2); } return; }
+    if (ev.target.closest('[data-cp-corriger]')) { if (PANNEAU) { PANNEAU.corriger = true; montrerEtape2(); } return; }
+    if (ev.target.closest('[data-cp-suivant]')) { suivantEtape(); return; }
+    if (ev.target.closest('[data-cp-recul]')) { reculerEtape(); return; }
+    if (ev.target.closest('[data-cp-endroit]')) { ajouterEndroitPanneau(null, ''); return; }
+    const re = ev.target.closest('#cp-endroits .endroit-retirer');
+    if (re) { if ($('cp-endroits').children.length > 1) re.closest('.endroit').remove(); return; }
+    const ass = ev.target.closest('[data-cp-assoc]');
+    if (ass) { associerPanneau(ass.dataset.cpAssoc); return; }
+    if (ev.target.closest('[data-cp-ok]')) { validerProduit(); return; }
+    if (ev.target.closest('[data-cp-annuler]')) fermerProduit();
+  });
+  $('completer-produit').addEventListener('change', ev => {
     const id = ev.target.id;
     if (id === 'cp-cat') { remplirSousCatPanneau(''); remplirAlimentsPanneau(''); }
     else if (id === 'cp-souscat') remplirAlimentsPanneau('');
     else if (id === 'cp-aliment') surAlimentPanneau();
     else if (id === 'cp-marque' || id === 'cp-saveur') majSaisie(ev.target, true);
   });
-  $('completer-liste').addEventListener('input', ev => { if (ev.target.id === 'cp-texte') collerPage(ev.target.value); });
+  $('completer-produit').addEventListener('input', ev => { if (ev.target.id === 'cp-texte') lireLaPage(ev.target.value); });   // l'appareil a refusé le presse-papiers : collé dans la case
   $('completer-retour').addEventListener('click', () => { if (EPI_COMPLETER && aCompleter().length) montrerCompleter(); else montrerChoixQuoi(); });   // la liste → les tuiles → l'écran du + : un pas à la fois
   $('epi-magasins').addEventListener('click', ev => { const b = ev.target.closest('[data-epi-magasin]'); if (b) choisirEpicerie(b.dataset.epiMagasin); });
   $('btn-epi-magasin').addEventListener('click', ajouterEpicerie);

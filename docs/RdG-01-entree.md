@@ -368,6 +368,11 @@ Compléter ») — `api.gs` collé (le 2026-10-04 au soir), à essayer en ligne
 
 ### ✅ COMPLÉTER — BÂTI le 2026-10-04 (J-C : « Je mettrais ce bouton dans le bouton + »; aperçu : icône D, la feuille cochée; la page :
 « je vais voir à l'usage »)
+- **✅ LE PRODUIT EN QUATRE ÉTAPES (2026-10-15, J-C : « Oh que c'est pas convivial »; l'aperçu : « Go »)** — remplace le long panneau du
+  produit, décrit plus bas : 1 le produit (son code-barres écrit; Voir chez Super C; **Coller la page**, le texte du raccourci iPad
+  « Copier pour la Réserve ») · 2 ce que l'app a lu (le nom français, la marque, le format, le rayon, le prix, le numéro « le bon ») :
+  Oui / Corriger · 3 ton aliment (le nom français proposé) · 4 où il est rangé. Pas d'Open Food Facts dans ces étapes (J-C : « Non »).
+  Détail : `CLAUDE.md`, « ⭐ COMPLÉTER EN QUATRE ÉTAPES ».
 - **Son bouton est dans le +** (le 3e, à côté des deux sacs) — remplace « le bouton des deux sacs a deux choix, Entrer / Compléter » :
   les deux sacs mènent tout droit à Entrer. **Le point rouge** sur le + et sur Compléter tant qu'une épicerie a un article à compléter.
 - Une seule épicerie à compléter : elle s'ouvre tout de suite; plusieurs : une barre par épicerie (« 4 octobre (12 articles) »).

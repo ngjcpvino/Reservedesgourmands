@@ -10,7 +10,7 @@
   <!-- Ecran d'accueil iPad : le meme sac, en PNG (iOS n'accepte pas le SVG ici) -->
   <link rel="apple-touch-icon" href="apple-touch-icon.png?v=2">
 
-<link rel="stylesheet" href="CSS/rdg.css?v=166">
+<link rel="stylesheet" href="CSS/rdg.css?v=167">
 </head>
 <body>
 
@@ -273,6 +273,7 @@
     <!-- Compléter (le + : la feuille cochée) : l'épicerie groupée par meuble, « À placer » d'abord; OK retire ce qui est placé et a sa catégorie -->
     <div id="epi-completer" hidden>
       <div id="completer-listes"></div>
+      <div id="completer-produit" hidden></div>   <!-- le produit touché, en quatre étapes (JS/epicerie.js) : à la place de la liste, qui se cache -->
       <div id="completer-liste"></div>
       <button class="bouton bouton-vert bouton-pleine bouton-detache" id="completer-ok" type="button">OK</button>
       <button class="bouton bouton-or bouton-pleine bouton-suite bouton-large" id="completer-retour" type="button" aria-label="Retour"><span class="icone icone-revenir"></span></button>   <!-- un pas en arrière : la flèche « revenir » -->
@@ -552,7 +553,7 @@
 <script src="JS/entree.js?v=203"></script>
 <script src="JS/bientot.js?v=6"></script>
 <script src="JS/prix.js?v=8"></script>
-<script src="JS/epicerie.js?v=34"></script>
+<script src="JS/epicerie.js?v=35"></script>
 <script src="JS/off.js?v=6"></script>
 <script src="JS/scan.js?v=21"></script>
 </body>
