@@ -65,7 +65,7 @@ Principes structurels non négociables (détail dans `RdG-00`) : rien de fixe (l
 > - **Le tour des listes** : 3. Liste d'achats repris aujourd'hui (c'est J-C qui dira si c'est fini); restent 4. Rechercher · 5. l'écran de rayon · 6. Déplacer · 7. Consommer · 8. Gérer les bases → Aliments.
 
 > 🗂 **CE QUI RESTE — LA LISTE NUMÉROTÉE (tous les documents relus EN ENTIER le 2026-10-07, à la demande de J-C : « Numérote afin de ne rien perdre encore ! »)**
-> **Règle : un numéro ne change jamais.** Un point fait est **barré** (~~…~~ ✅ la date), jamais retiré ni renuméroté; un point nouveau prend **le numéro suivant** (le prochain : **56**). C'est J-C qui choisit l'ordre. **Avant de dire à J-C ce qui reste : relire cette liste ET les documents** (une première réponse, faite sans les avoir lus, était fausse).
+> **Règle : un numéro ne change jamais.** Un point fait est **barré** (~~…~~ ✅ la date), jamais retiré ni renuméroté; un point nouveau prend **le numéro suivant** (le prochain : **57**). C'est J-C qui choisit l'ordre. **Avant de dire à J-C ce qui reste : relire cette liste ET les documents** (une première réponse, faite sans les avoir lus, était fausse).
 >
 > **Les actions du départ jamais bâties** (`RdG-01` §2)
 > 1. **Cuisiner** : ai-je tout pour cette recette ? (action 6)
@@ -146,6 +146,8 @@ Principes structurels non négociables (détail dans `RdG-00`) : rien de fixe (l
 > 54. ~~**Une nouvelle épicerie au même magasin rejoint la liste pas encore complétée**~~ ✅ 2026-10-14, bâti le même jour (J-C : « après une journée les listes devraient se fermer, et la date d'entrée devient une nouvelle liste ») : `listeDuJour()` remplace `listeOuverte()` — seule la liste d'aujourd'hui reçoit les articles; une d'un jour passé attend Compléter. Pas encore testé en ligne (T66).
 >
 > 55. ~~**La page « Sans code » des deux sacs, à retravailler**~~ ✅ 2026-10-15 (les deux boutons, le bandeau foncé : T72) (J-C, 2026-10-14, 19 h 43, capture à l'appui — Metro : « Revenir au scan », le PLU, les habituels en cases, l'entonnoir, « Déjà scanné (2) », la flèche : « Faut retravailler, ça fait biz. Je te reviens »). **Repris par J-C le 2026-10-15** : ✅ fait le même jour (« On commence par ça ») — « Déjà scanné » devient « Épicerie du 14 octobre », « Revenir au scan » retiré (la flèche du bas recule d'un pas), le champ PLU retiré (« Taper le code » le fait déjà); ~~reste : le trop d'info~~ ✅ le même jour : deux boutons, le cœur et l'entonnoir, l'un à la fois; la liste du jour à part, sous un bandeau foncé (C sur aperçu, le bandeau 3).
+>
+> 56. **Le bandeau « Réserve pas à jour » au milieu de la page** (J-C, 2026-10-15, 8 h 08, capture à l'appui : « l'avertissement devrait être au milieu de la page »; en haut, il passait sous la barre de l'iPad). **Aperçu envoyé le même matin** (`scratchpad/apercu-bandeau/fait.py`, la photo tirée de sa capture) : A la bande d'aujourd'hui au milieu · B aussi grosse qu'un message, Réessayer à droite · C aussi grosse qu'un message, Réessayer dessous — **son choix à venir**. À penser ensuite : au milieu, il cache le milieu d'une page de travail (l'Inventaire…), et le chariot de Réessayer se pose au même endroit.
 >
 > ⚠️ `docs/collection territoire.md` n'est **pas** de la Réserve (une collection de savons, Univers Caresse) : rangé là par erreur, n'y rien toucher.
 
