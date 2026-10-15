@@ -52,7 +52,12 @@ const Coffre = {
                                     : this._echec('communication coupée après ' + s + ' s (' + e.message + ')', 'reseau');
     } finally { if (minuterie) clearTimeout(minuterie); }
     try { return JSON.parse(texte); }
-    catch (e) { throw this._echec('le coffre-fort a planté : ' + this._extrait(texte), 'plante'); }
+    catch (e) { throw this._echec(this._google(texte) || 'le coffre-fort a planté : ' + this._extrait(texte), 'plante'); }
+  },
+  // La page « Sorry, unable to open the file at this time » (J-C, 2026-10-15, au tri) : Google n'a même pas ouvert le script —
+  // rien à voir avec l'app ni le coffre-fort. En français, sans l'anglais de Google.
+  _google(html) {
+    return /unable to open the file|impossible d.ouvrir le fichier/i.test(String(html || '')) ? 'Google n\'arrive pas à ouvrir le coffre-fort en ce moment' : '';
   },
   _echec(message, genre) { const e = new Error(message); e[genre] = true; return e; },
   // La page d'erreur de Google n'est pas du JSON : on en garde la phrase qui dit pourquoi (« TypeError: … (ligne 812, fichier api) »).

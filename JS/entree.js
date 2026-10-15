@@ -3441,8 +3441,9 @@ async function expedierGestes() {
       else if (!(r && r.ok)) {
         // CHAQUE ÉCHEC DIT POURQUOI (J-C, 2026-10-08, au tri : « ça dit souvent pas encore enregistré », sans raison) : dans le message,
         // et écrit en tête de la page Circulaires tant que la file ne passe pas (3 s, c'est trop court pour lire une raison)
+        const deja = !!GESTE_ECHEC;                        // un échec déjà dit : le message rouge (qui reste jusqu'au toucher) ne revient pas à chaque geste
         poserEchecGeste('Pas encore enregistré (' + (raison || (r && r.erreur) || 'pas de réponse') + ') — ça repartira tout seul');
-        avis(GESTE_ECHEC, 'erreur');
+        if (!deja) avis(GESTE_ECHEC, 'erreur');            // (J-C, 2026-10-15 : au tri, il revenait à chaque article; la raison reste écrite en tête de Circulaires)
         break;
       }
       file = lireAttenteGestes();
