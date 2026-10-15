@@ -46,7 +46,7 @@
         <button class="bouton bouton-grand" id="menu-qui" type="button" aria-label="Qui entre les articles"><span class="icone icone-qui"></span></button>
         <button class="bouton bouton-grand" id="menu-deco" type="button" aria-label="Se déconnecter"><span class="icone icone-deco"></span></button>
       </div>
-      <button class="bouton bouton-or bouton-pleine bouton-suite" id="menu-outils-retour" type="button">Retour</button>
+      <button class="bouton bouton-or bouton-pleine bouton-suite" id="menu-outils-retour" type="button" aria-label="Retour"><span class="icone icone-revenir"></span></button>   <!-- un pas en arrière : la grille du menu -->
     </div>
     <!-- Gérer les bases : ses 9 icônes prennent la place des 4 d'Outils; Retour ramène à Outils -->
     <div id="menu-bases-grille" hidden>
@@ -61,7 +61,7 @@
         <button class="bouton bouton-grand" data-base="saveurs" type="button" aria-label="Saveurs"><span class="icone icone-saveurs"></span></button>
         <button class="bouton bouton-grand" data-base="unites" type="button" aria-label="Unités"><span class="icone icone-unites"></span></button>
       </div>
-      <button class="bouton bouton-or bouton-pleine bouton-suite" id="menu-bases-retour" type="button">Retour</button>
+      <button class="bouton bouton-or bouton-pleine bouton-suite" id="menu-bases-retour" type="button" aria-label="Retour"><span class="icone icone-revenir"></span></button>   <!-- un pas en arrière : Outils -->
     </div>
   </div>
 </div>
@@ -113,7 +113,7 @@
     <div class="accordeon"><div class="accordeon-tete" data-toggle>À consommer bientôt</div><div class="accordeon-corps" id="liste-bientot" hidden></div></div>
     <div class="accordeon"><div class="accordeon-tete" data-toggle>En solde</div><div class="accordeon-corps" id="liste-special" hidden></div></div>
     <div class="accordeon"><div class="accordeon-tete" data-toggle><span class="off-forme"></span>Pour Open Food Facts</div><div class="accordeon-corps" id="liste-off" hidden></div></div>
-    <button class="bouton bouton-or bouton-pleine bouton-suite" id="btn-retour-listes" type="button">Retour</button>
+    <button class="bouton bouton-or bouton-pleine bouton-suite bouton-large" id="btn-retour-listes" type="button" aria-label="Retour"><span class="icone icone-accueil"></span></button>   <!-- rien d'ouvert : la maison; une liste ouverte : la flèche (majRetourListes) -->
   </div>
 </div>
 
@@ -127,7 +127,7 @@
     <div id="achats-page">
       <div id="liste-achats"></div>
       <button class="bouton bouton-vert bouton-pleine bouton-detache" id="btn-achat-ajouter" type="button">Ajouter à la liste</button>
-      <button class="bouton bouton-or bouton-pleine bouton-suite" id="achats-retour" type="button">Retour</button>
+      <button class="bouton bouton-or bouton-pleine bouton-suite bouton-large" id="achats-retour" type="button" aria-label="Retour"><span class="icone icone-accueil"></span></button>   <!-- la maison; une épicerie touchée : la flèche (remplirAchats) -->
     </div>
     <div id="achats-ajout" hidden>
       <div class="bloc">
@@ -172,7 +172,7 @@
       <div id="recherche-resultats"></div>
     </div>
     <div id="recherche-rayon" hidden></div>
-    <button class="bouton bouton-or bouton-pleine bouton-detache" id="recherche-retour" type="button">Retour</button>
+    <button class="bouton bouton-or bouton-pleine bouton-detache bouton-large" id="recherche-retour" type="button" aria-label="Retour"><span class="icone icone-accueil"></span></button>   <!-- vers le menu : la maison; l'écran de rayon, ou venu d'une autre page : la flèche -->
   </div>
 </div>
 
@@ -451,7 +451,7 @@
       <button class="ajouter" id="btn-piece-ajouter" type="button" aria-label="Ajouter"></button>
     </div>
     <div class="message message-repli" id="pieces-msg"></div>
-    <button class="bouton bouton-or bouton-pleine bouton-detache" id="pieces-retour" type="button">Retour</button>
+    <button class="bouton bouton-or bouton-pleine bouton-detache bouton-large" id="pieces-retour" type="button" aria-label="Retour"><span class="icone icone-revenir"></span></button>   <!-- un pas en arrière : la grille des bases -->
   </div>
 </div>
 
@@ -463,7 +463,7 @@
   <div class="entete"><div class="titre">Meubles</div></div>
   <div class="contenu">
     <div id="liste-meubles"></div>
-    <button class="bouton bouton-or bouton-pleine bouton-detache" id="meubles-retour" type="button">Retour</button>
+    <button class="bouton bouton-or bouton-pleine bouton-detache bouton-large" id="meubles-retour" type="button" aria-label="Retour"><span class="icone icone-revenir"></span></button>   <!-- un pas en arrière : la grille des bases -->
   </div>
 </div>
 
@@ -475,7 +475,7 @@
   <div class="entete"><div class="titre">Catégories</div></div>
   <div class="contenu">
     <div id="liste-categories"></div>
-    <button class="bouton bouton-or bouton-pleine bouton-detache" id="categories-retour" type="button">Retour</button>
+    <button class="bouton bouton-or bouton-pleine bouton-detache bouton-large" id="categories-retour" type="button" aria-label="Retour"><span class="icone icone-revenir"></span></button>   <!-- un pas en arrière : la grille des bases -->
   </div>
 </div>
 
@@ -487,7 +487,7 @@
   <div class="entete"><div class="titre">Aliments</div></div>
   <div class="contenu">
     <div id="liste-aliments"></div>
-    <button class="bouton bouton-or bouton-pleine bouton-detache" id="aliments-retour" type="button">Retour</button>
+    <button class="bouton bouton-or bouton-pleine bouton-detache bouton-large" id="aliments-retour" type="button" aria-label="Retour"><span class="icone icone-revenir"></span></button>   <!-- un pas en arrière : la grille des bases -->
   </div>
 </div>
 
@@ -505,7 +505,7 @@
       <button class="ajouter" id="btn-nom-ajouter" type="button" aria-label="Ajouter"></button>
     </div>
     <div class="message message-repli" id="noms-msg"></div>
-    <button class="bouton bouton-or bouton-pleine bouton-detache" id="noms-retour" type="button">Retour</button>
+    <button class="bouton bouton-or bouton-pleine bouton-detache bouton-large" id="noms-retour" type="button" aria-label="Retour"><span class="icone icone-revenir"></span></button>   <!-- un pas en arrière : la grille des bases -->
   </div>
 </div>
 
@@ -517,7 +517,7 @@
   <div class="entete"><div class="titre">Circulaires</div></div>
   <div class="contenu">
     <div class="une-a-la-fois" id="liste-tri"></div>
-    <button class="bouton bouton-or bouton-pleine bouton-detache" id="circulaires-retour" type="button">Retour</button>
+    <button class="bouton bouton-or bouton-pleine bouton-detache bouton-large" id="circulaires-retour" type="button" aria-label="Retour"><span class="icone icone-revenir"></span></button>   <!-- un pas en arrière : l'article, la catégorie, l'épicerie, puis la grille des bases -->
   </div>
 </div>
 
@@ -549,11 +549,11 @@
 </div><!-- fin du conteneur -->
 
 <script src="JS/coffre.js?v=20"></script>
-<script src="JS/entree.js?v=200"></script>
+<script src="JS/entree.js?v=201"></script>
 <script src="JS/bientot.js?v=6"></script>
 <script src="JS/prix.js?v=8"></script>
 <script src="JS/epicerie.js?v=32"></script>
-<script src="JS/off.js?v=4"></script>
+<script src="JS/off.js?v=5"></script>
 <script src="JS/scan.js?v=20"></script>
 </body>
 </html>
