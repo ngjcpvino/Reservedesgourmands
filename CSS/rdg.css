@@ -104,6 +104,8 @@
   /* Sous la caméra : chaque bouton SA couleur (J-C, 2026-10-13, choix B sur aperçu) */
   --scan-taper:       var(--couleur-802);
   --scan-sans-code:   var(--couleur-505);
+  --sans-habituels:   var(--couleur-702);   /* Sans code des deux sacs : les habituels (le cœur), vert — J-C, 2026-10-15, C sur aperçu */
+  --sans-entonnoir:   var(--couleur-304);   /* … et l'entonnoir, brun roux */
 
   /* ---- Couleurs de service : DÉRIVÉES des couleurs ci-dessus, jamais écrites en dur.
      Change une couleur de base (écran Outils → Couleurs) : ses dérivées suivent. ---- */
@@ -164,6 +166,8 @@
   --burger-trait-haut:  3.5px;
   --burger-fond:      transparent;   /* les trois traits seuls, sans fond (J-C, 2026-09-25) */
   --bandeau-teinte:   18%;       /* la force de la couleur du meuble dans le bandeau d'un espace, mêlée au blanc : opaque (J-C, 2026-10-01, choix B sur aperçu; avant : 22 %, transparent) */
+  --bandeau-fonce:    var(--couleur-305);   /* le bandeau foncé : la liste du jour des deux sacs, « Épicerie du 15 octobre » (J-C, 2026-10-15, 3 sur aperçu : brun plein) */
+  --bandeau-fonce-texte: var(--couleur-105);   /* son texte, crème comme un bouton brun */
   --bandeau-haut:     var(--tactile);   /* un bandeau (l'espace, l'endroit, l'aliment) aussi haut que la barre du meuble (J-C, 2026-09-30) */
   --cases-colonnes:   3;   /* une liste en cases (les habituels sans code des deux sacs : J-C, 2026-10-14, « sur 3 colonnes ») */
   --coin-taille:      52px;      /* la zone à toucher du burger */
@@ -367,6 +371,7 @@ body:has(.sur-photo:not([hidden]))::before { display: none; }
 /* espaceur vertical réutilisable entre deux champs/blocs */
 .bloc { margin-bottom: var(--espace-m); }
 .bloc-suite { margin-top: var(--espace-s); }   /* suit immediatement ce qui precede, au meme ecart que les boutons */
+.bloc-detache { margin-top: var(--espace-xl); }   /* posé à part, loin des actions : la liste du jour des deux sacs (J-C, 2026-10-15) */
 
 /* ============================================================
    EN-TÊTE PHOTO (le grand visuel d'accueil)
@@ -525,6 +530,8 @@ body:has(.sur-photo:not([hidden]))::before { display: none; }
 /* Sous la caméra : « Taper le code » et « Sans code », chacun SA couleur (root, --scan-…). */
 .grille > .bouton-grand[data-scan="taper"]       { --c: var(--scan-taper); }
 .grille > .bouton-grand[data-scan="sans-code"]   { --c: var(--scan-sans-code); }
+.grille > .bouton-grand[data-scan="habituels"]   { --c: var(--sans-habituels); }
+.grille > .bouton-grand[data-scan="entonnoir"]   { --c: var(--sans-entonnoir); }
 /* Gérer les bases : chaque bouton SA couleur (root, --base-…), plus la suite par position. Pâle : le dessin passe au brun. */
 .grille > .bouton-grand[data-base="pieces"]      { --c: var(--base-pieces); --icone-trait: var(--icone-trait-pale); }
 .grille > .bouton-grand[data-base="meubles"]     { --c: var(--base-meubles); }
@@ -685,6 +692,7 @@ select.champ {
   font-weight: var(--poids-fort);
   color: var(--couleur-306);
 }
+.espace-bandeau.bandeau-fonce { background: var(--bandeau-fonce); color: var(--bandeau-fonce-texte); }   /* foncé : un titre de liste, à part des actions (« Épicerie du 15 octobre ») */
 .espace-bandeau + .item { border-top: none; }   /* le bandeau sépare déjà : pas de trait dessous */
 
 /* Un aliment à plusieurs sortes (Inventaire, choix C de J-C) : une ligne — le nom et le total —
@@ -1084,6 +1092,8 @@ select.champ {
 .icone-entrer { --dessin: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23f5efe6' stroke-width='0.8' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M3 8V5a2 2 0 0 1 2-2h3M16 3h3a2 2 0 0 1 2 2v3M21 16v3a2 2 0 0 1-2 2h-3M8 21H5a2 2 0 0 1-2-2v-3'/%3E%3Cpath d='M7 8.5v7M10 8.5v7M12.5 8.5v7M15 8.5v7M17.5 8.5v7'/%3E%3C/svg%3E") }   /* le code-barres dans son cadre de visee */
 .icone-taper { --dessin: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='0.8' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M3 8V5a2 2 0 0 1 2-2h3M16 3h3a2 2 0 0 1 2 2v3M21 16v3a2 2 0 0 1-2 2h-3M8 21H5a2 2 0 0 1-2-2v-3'/%3E%3Cpath d='M7 8.5v4.9M10 8.5v3.5M10 14.2v1.3M12.5 8.5v2.3M12.5 13v2.5M15 8.5v1.1M15 11.8v3.7M17.5 10.6v4.9'/%3E%3C/svg%3E") }   /* « Taper le code » : le code-barres essuyé en biais — la caméra ne le lit pas, les chiffres, oui (J-C, 2026-10-13, 2D sur aperçu) */
 .icone-sans-code { --dessin: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='0.8' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M3 8V5a2 2 0 0 1 2-2h3M16 3h3a2 2 0 0 1 2 2v3M21 16v3a2 2 0 0 1-2 2h-3M8 21H5a2 2 0 0 1-2-2v-3'/%3E%3Cpath d='M7 8.5v7M10 8.5v7M12.5 8.5v7M15 8.5v7M17.5 8.5v7'/%3E%3Cpath d='M4.5 19.5l15-15'/%3E%3C/svg%3E") }   /* « Sans code » : le code-barres et sa barre oblique (J-C, 2026-10-13, A sur aperçu) */
+.icone-habituels { --dessin: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='0.8' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M12 20s-7.5-4.6-7.5-10A4.2 4.2 0 0 1 12 7.6 4.2 4.2 0 0 1 19.5 10c0 5.4-7.5 10-7.5 10z'/%3E%3C/svg%3E") }   /* « Les habituels sans code » : le cœur — ce qu'on rachète toujours (J-C, 2026-10-15, C sur aperçu) */
+.icone-entonnoir { --dessin: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='0.8' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M3.5 4.5h17l-6.5 8v6.5l-4 2v-8.5z'/%3E%3C/svg%3E") }   /* « Par l'entonnoir » : catégorie, sous-catégorie, produit (J-C, 2026-10-15, C sur aperçu) */
 .icone-trouver { --dessin: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23f5efe6' stroke-width='0.8' stroke-linecap='round' stroke-linejoin='round'%3E%3Ccircle cx='10.5' cy='10.5' r='7'/%3E%3Cpath d='M15.6 15.6 21 21'/%3E%3C/svg%3E") }   /* la loupe, sans code-barres dedans */
 .icone-consommer { --dessin: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23f5efe6' stroke-width='0.8' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M5.5 2.5v4.5M8 2.5v4.5M10.5 2.5v4.5'/%3E%3Cpath d='M5.5 7c0 1.8 1.1 3 2.5 3s2.5-1.2 2.5-3'/%3E%3Cpath d='M8 10v11.5'/%3E%3Cpath d='M15.5 2.5c3 2.8 4 6.4 4 9.5h-4z'/%3E%3Cpath d='M17.5 12v9.5'/%3E%3C/svg%3E") }   /* la fourchette et le couteau */
 .icone-ouvrir { --dessin: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23f5efe6' stroke-width='0.8' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M5 11v8.5c0 1.4 3.1 2.5 7 2.5s7-1.1 7-2.5V11'/%3E%3Cpath d='M5 15.5c0 1.4 3.1 2.5 7 2.5s7-1.1 7-2.5'/%3E%3Cellipse cx='12' cy='11' rx='7' ry='2.5'/%3E%3Cellipse cx='11.7' cy='10.4' rx='7' ry='2.3' transform='rotate(38 18.7 10.4)'/%3E%3C/svg%3E") }   /* la conserve au couvercle soulevé : Ouvrir (RdG-09, choix A sur aperçu) */

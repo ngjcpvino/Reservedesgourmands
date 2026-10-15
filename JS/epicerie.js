@@ -16,6 +16,7 @@ var EPI_CIRC = [];           // la circulaire de la semaine de cette épicerie (
 var EPI_CARTE = null;        // l'article à l'écran : { code, pid, nouveau, marque, saveur, format, photo, ligne, auto, sansCode }
 var EPI_REFUS = {};          // « Non » à une ligne de la circulaire, pour ce produit : on ne la repropose plus pendant cette épicerie
 var EPI_HABITUELS = [];      // les habituels sans code affichés (Sans code)
+var EPI_SANS = '';           // Sans code : 'habituels', 'entonnoir', ou '' (les deux boutons)
 var epiJeton = 0;            // un code qui cherche encore quand on passe à autre chose : sa réponse ne compte plus
 const EPI_CACHE_CIRC = 'rdg_circ_epicerie';   // { magasin, jour, lignes } : rouvrir la même épicerie le même jour = instantané
 const EPI_CAMERA = { video: 'epi-video', msg: 'epi-msg', lu: c => surCodeEpicerie(c) };
@@ -126,16 +127,24 @@ function montrerScanEpicerie() {
 }
 function demarrerCamera() { if (window.scanContinu) window.scanContinu(EPI_CAMERA); }
 function reprendreCamera() { if (window.reprendreScan) window.reprendreScan(EPI_CAMERA); }
-/* « Sans code » : la caméra laisse sa place aux habituels (la barre fermée, J-C) et à l'entonnoir; la flèche du bas ramène au scan.
-   Le PLU d'un fruit : « Taper le code », sous la caméra (J-C, 2026-10-15 : le champ PLU d'ici faisait double emploi). */
+/* « Sans code » : la caméra laisse sa place à deux boutons, les habituels (le cœur) et l'entonnoir (J-C, 2026-10-15, C sur aperçu :
+   « trop d'info en même temps »). L'un touché, l'autre disparaît et son contenu paraît; la flèche ramène aux deux, puis au scan.
+   Le PLU d'un fruit : « Taper le code », sous la caméra (le champ PLU d'ici faisait double emploi). */
 function modeSansCode(on) {
   montrer('epi-camera', !on); montrer('epi-sans', on);
   fermerCarte();
   if (on) {
     if (window.stopScanner) window.stopScanner();
     reinitSansCode();
-    const t = $('epi-habituels-tete'); if (t.classList.contains('ouvert')) toggleAccordeon(t);
+    choisirSans('');
   } else demarrerCamera();
+}
+/* Les habituels ou l'entonnoir ('' : les deux boutons, rien d'ouvert). */
+function choisirSans(quoi) {
+  EPI_SANS = quoi;
+  $('epi-sans-choix').querySelectorAll('[data-sans]').forEach(b => { b.hidden = !!quoi && b.dataset.sans !== quoi; });
+  montrer('epi-habituels', quoi === 'habituels'); montrer('epi-entonnoir', quoi === 'entonnoir');
+  if (!quoi) fermerCarte();
 }
 function fermerCarte() { EPI_CARTE = null; epiJeton++; $('epi-carte').innerHTML = ''; }
 
@@ -390,8 +399,9 @@ function relierCirculaire(l, pid, marque, saveur, code) {
   garderCirculaire();
 }
 
-/* « Épicerie du 14 octobre » (J-C, 2026-10-15 : à la place de « Déjà scanné (13) ») : les lignes de STOCK de cette liste, une par
-   produit (même aliment, marque, saveur, format, code), le dernier scanné en haut; rescanner le même article fait monter sa quantité. */
+/* « Épicerie du 14 octobre » (J-C, 2026-10-15 : à la place de « Déjà scanné (13) »; à part des actions, sous un bandeau foncé — 3 sur
+   aperçu) : les lignes de STOCK de cette liste, une par produit (même aliment, marque, saveur, format, code), le dernier scanné en haut;
+   rescanner le même article fait monter sa quantité. */
 function remplirListeEpicerie() {
   const groupes = [], par = {};
   lignesEpicerie(EPI.id).forEach(r => {
@@ -403,7 +413,7 @@ function remplirListeEpicerie() {
     g.qte += Number(r[3]) || 0;
   });
   const r = EPICERIES.find(x => String(x[0]) === EPI.id), jour = jourLong(r ? r[2] : dateDuJour());
-  $('epi-liste').innerHTML = !groupes.length ? '' : '<div class="bloc-suite"><div class="label">' + esc(jour ? 'Épicerie du ' + jour : 'Épicerie') + '</div><div class="liste-blanche">' +
+  $('epi-liste').innerHTML = !groupes.length ? '' : '<div class="bloc-detache"><div class="espace-bandeau bandeau-fonce">' + esc(jour ? 'Épicerie du ' + jour : 'Épicerie') + '</div><div class="liste-blanche">' +
     groupes.reverse().map(g => {
       const p = PRODUITS.find(x => String(x.id) === g.pid);
       const det = [nomListe(g.marque), nomListe(g.saveur), g.format].filter(Boolean).join(' · ') || (estPlu(g.code) ? 'PLU ' + g.code : '');
@@ -992,8 +1002,8 @@ function initEpicerie() {
   $('btn-epi-magasin').addEventListener('click', ajouterEpicerie);
   $('epi-magasin-neuf').addEventListener('keydown', e => { if (e.key === 'Enter') { e.preventDefault(); ajouterEpicerie(); } });
   $('epi-choix-retour').addEventListener('click', montrerChoixQuoi);            // Retour recule d'un pas : les deux sacs
-  $('epi-retour').addEventListener('click', () => {   // la flèche recule d'un pas : de Sans code au scan, du scan au choix de l'épicerie
-    if (!$('epi-sans').hidden) modeSansCode(false);
+  $('epi-retour').addEventListener('click', () => {   // la flèche recule d'un pas : un choix de Sans code → ses deux boutons → le scan → le choix de l'épicerie
+    if (!$('epi-sans').hidden) { if (EPI_SANS) choisirSans(''); else modeSansCode(false); }
     else montrerEpiceries();                         // la liste du jour reste ouverte : retouchée, l'épicerie y revient; demain, elle attend Compléter
   });
   $('epi-sans-code').addEventListener('click', () => modeSansCode(true));
@@ -1004,7 +1014,7 @@ function initEpicerie() {
     if (ok) { validerCarte(ok.dataset.epiOk); return; }
     if (ev.target.closest('[data-epi-annuler]')) annulerCarte();
   });
-  $('epi-habituels-tete').addEventListener('click', () => toggleAccordeon($('epi-habituels-tete')));
+  $('epi-sans-choix').addEventListener('click', ev => { const b = ev.target.closest('[data-sans]'); if (b) choisirSans(EPI_SANS ? '' : b.dataset.sans); });   // le bouton choisi, retouché : les deux, comme la flèche
   $('epi-habituels').addEventListener('click', ev => { const h = ev.target.closest('[data-epi-hab]'); if (h) choisirHabituel(Number(h.dataset.epiHab)); });
   $('epi-cat').addEventListener('change', surEpiCat);
   $('epi-souscat').addEventListener('change', surEpiSousCat);
