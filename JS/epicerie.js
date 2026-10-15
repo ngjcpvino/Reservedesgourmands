@@ -832,16 +832,8 @@ function idListeOuNeuve(liste, nom) {
   poserGeste({ action: 'creer', table: liste, opId: 'liste-' + id, ligne: [id, nom, 'O'] });   // Marques, Saveurs : ID · Nom · Actif
   return id;
 }
-/* Mettre un nom dans un menu de liste : retrouvé (choisi), sinon posé comme un nom neuf (« Nouvelle… » le rouvre pour le corriger). */
-function choisirNomPanneau(champ, nom) {
-  nom = String(nom || '').trim();
-  if (!nom) return;
-  const sel = $('cp-' + champ), x = LISTES[CHOIX_FICHE[champ].liste].find(y => cleNom(y.nom) === cleNom(nom)), neuve = $('cp-' + champ + '-neuve');
-  if (x) {
-    if (![...sel.options].some(o => o.value === x.id)) sel.insertAdjacentHTML('afterbegin', '<option value="' + esc(x.id) + '">' + esc(x.nom) + '</option>');
-    sel.value = x.id; majSaisie(sel);
-  } else { neuve.value = nom; poserNeuf(sel, ligneDe(sel), nom); }   // un nom neuf : choisi dans le menu, comme au + (il se corrige par « Nouvelle… »)
-}
+/* Compléter : un nom (la page collée) dans le menu de la marque ou de la saveur. */
+function choisirNomPanneau(champ, nom) { choisirNomDans($('cp-' + champ), $('cp-' + champ + '-neuve'), champ, nom); }   // choisirNomDans : entree.js (sert aussi le tri)
 /* La circulaire de l'épicerie (la semaine de l'achat) : ce produit y est-il ? Sans prix seulement — un prix déjà là (le scan) gagne. */
 function majCirculairePanneau() {
   const P = PANNEAU, boite = $('cp-circ');
