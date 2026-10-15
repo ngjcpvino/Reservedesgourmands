@@ -216,7 +216,7 @@
 
 <!-- ============================================================
      TOUTE L'ÉPICERIE — Entrer (RdG-01, 3 bis; aperçus du 2026-10-02) : l'épicerie, puis le scan en rafale.
-     Le JS (JS/epicerie.js) bâtit les tuiles des épiceries, la carte de l'article scanné et « Déjà scanné ».
+     Le JS (JS/epicerie.js) bâtit les tuiles des épiceries, la carte de l'article scanné et la liste du jour (« Épicerie du 14 octobre »).
 ============================================================ -->
 <div id="vue-epicerie" hidden>
   <div class="entete"><div class="titre" id="epi-titre">Toute l'épicerie</div></div>
@@ -243,12 +243,6 @@
         </div>
       </div>
       <div id="epi-sans" hidden>
-        <button class="bouton bouton-brun bouton-pleine" id="epi-revenir" type="button">Revenir au scan</button>
-        <div class="bloc bloc-suite">
-          <div class="label">PLU (l'autocollant du fruit ou du légume)</div>
-          <input class="champ" id="epi-plu" type="text" inputmode="numeric" pattern="[0-9]*" autocomplete="off" placeholder="4 ou 5 chiffres">
-          <div class="message message-repli" id="epi-plu-nom"></div>
-        </div>
         <div class="accordeon">
           <div class="accordeon-tete" id="epi-habituels-tete">Les habituels sans code</div>
           <div class="accordeon-corps" id="epi-habituels" hidden></div>
@@ -267,7 +261,7 @@
       </div>
       <div id="epi-carte"></div>
       <div id="epi-liste"></div>
-      <button class="bouton bouton-or bouton-pleine bouton-suite bouton-large" id="epi-retour" type="button" aria-label="Retour"><span class="icone icone-revenir"></span></button>   <!-- un pas en arrière (le choix de l'épicerie) : la flèche « revenir » -->
+      <button class="bouton bouton-or bouton-pleine bouton-suite bouton-large" id="epi-retour" type="button" aria-label="Retour"><span class="icone icone-revenir"></span></button>   <!-- un pas en arrière : de Sans code au scan, du scan au choix de l'épicerie -->
     </div>
     <!-- Compléter (le + : la feuille cochée) : l'épicerie groupée par meuble, « À placer » d'abord; OK retire ce qui est placé et a sa catégorie -->
     <div id="epi-completer" hidden>
@@ -550,8 +544,8 @@
 <script src="JS/coffre.js?v=18"></script>
 <script src="JS/entree.js?v=197"></script>
 <script src="JS/bientot.js?v=6"></script>
-<script src="JS/prix.js?v=7"></script>
-<script src="JS/epicerie.js?v=29"></script>
+<script src="JS/prix.js?v=8"></script>
+<script src="JS/epicerie.js?v=30"></script>
 <script src="JS/off.js?v=4"></script>
 <script src="JS/scan.js?v=19"></script>
 </body>

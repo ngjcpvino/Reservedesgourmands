@@ -60,6 +60,11 @@ function jourCourt(v) {
   const m = String(dateCourte(v) || '').match(/^(\d{4})-(\d{2})-(\d{2})/);
   return m ? new Date(+m[1], +m[2] - 1, +m[3]).toLocaleDateString('fr-CA', { day: 'numeric', month: 'short' }) : '';
 }
+/* « 14 octobre », « 1er octobre » (le titre d'une liste des deux sacs : « Épicerie du 14 octobre ») */
+function jourLong(v) {
+  const m = String(dateCourte(v) || '').match(/^(\d{4})-(\d{2})-(\d{2})/);
+  return m ? (+m[3] === 1 ? '1er' : String(+m[3])) + ' ' + MOIS[m[2] - 1] : '';
+}
 /* « au Super C », « à l'IGA » */
 function chez(m) { const n = nomListe(m); return (/^[aeiouyàâäéèêëîïôöùûü]/i.test(n) ? 'à l\'' : 'au ') + n; }
 /* L'épicerie d'une ligne de STOCK (col. L) : son ID; une vieille valeur écrite en texte retrouve le sien. */
