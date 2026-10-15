@@ -211,6 +211,13 @@ d'abord (l'écran du scan, la confirmation de Terminé, Compléter).*
      d'une étiquette de viande du magasin (prévu le 2026-10-03). Le code d'un paquet emballé au magasin change d'un
      paquet à l'autre, et le prix y est souvent caché : le piège (jamais reconnu deux fois), la chance (le prix payé lu
      dans le code). À vérifier sur la vraie étiquette.
+     **✅ L'étiquette reçue le 2026-10-15** (Super C Lavaltrie, bœuf haché mi-maigre, 1,022 kg à 16,51 $/kg, total
+     16,87 $) : le code **2 01757 7 1687 3** — le 2 = un paquet pesé au magasin; **01757 7** = le produit (le même d'un
+     paquet à l'autre, à confirmer au prochain); **1687 = le total payé, 16,87 $**; le 3 = le chiffre de contrôle (vérifié).
+     **Le poids n'est pas dans le code**, ni le prix au kilo. Donc : reconnaître un tel paquet par ses **7 premiers
+     chiffres**; le prix payé **lu dans le code**; **jamais proposé à Open Food Facts** (un code de magasin : aujourd'hui,
+     l'app le ferait — `codeOffOk()` accepte tout code de 8 à 14 chiffres). Aujourd'hui, sans rien de bâti, chaque paquet
+     entre comme un « Inconnu » neuf. **En réflexion** (point 57 de `CLAUDE.md`) : le poids, on le tape ou on s'en passe ?
    - **Noté** : un achat scanné le lendemain du changement de circulaire (acheté mercredi, scanné jeudi) prendrait la
      mauvaise semaine. Rare.
 5. **Sans code** : taper le **PLU** (l'app montre le nom officiel pour vérifier — existe déjà au scan). **Sans PLU** :
@@ -395,7 +402,7 @@ Compléter ») — `api.gs` collé (le 2026-10-04 au soir), à essayer en ligne
   le nom, il manque le code — l'inverse de Compléter).
 
 ### En attente
-- La photo de l'étiquette de viande (J-C, 2026-10-03).
+- ~~La photo de l'étiquette de viande (J-C, 2026-10-03).~~ ✅ reçue le 2026-10-15 (voir « La viande au kilo », plus haut).
 
 ---
 
