@@ -65,7 +65,7 @@ const Coffre = {
   },
 
   lire(table)               { return this.appel({ action: 'lire', table }); },
-  ajouter(table, ligne)     { return this.appel({ action: 'ajouter', table, ligne }); },
+  ajouter(table, ligne, delai) { return this.appel({ action: 'ajouter', table, ligne }, delai); },   // delai : seulement pour une ligne qui porte son ID (rejouable : le coffre-fort ne la double jamais)
   modifier(table, id, ligne){ return this.appel({ action: 'modifier', table, id, ligne }); },
 
   // Rapides : un seul aller-retour
