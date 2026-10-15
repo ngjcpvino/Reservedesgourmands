@@ -433,7 +433,7 @@ function reinitSansCode() {
    les légumes et fruits, les vracs »), en cases sur 3 colonnes, un bandeau par catégorie, dans son ordre, chacune en ordre alphabétique
    (on cherche un nom, pas un rang); « Sans catégorie » au bout. Une case = une sorte : le nom, dessous la marque · la saveur — ni le PLU
    ni le format (J-C : « la qte est dans la suite »); touchée, la carte prend le PLU et le format de sa dernière entrée. */
-function remplirHabituels() {
+function remplirHabituels(cible) {   // cible : où les poser (les deux sacs, sinon le sac seul)
   const par = {}, xs = [];
   STOCK.forEach(r => {
     const code = String(r[8] || '').trim(), pid = String(r[1] || ''), marque = String(r[5] || ''), saveur = String(r[9] || '');
@@ -456,12 +456,56 @@ function remplirHabituels() {
     h += '<div class="item" data-epi-hab="' + i + '"><div class="item-info"><div class="item-nom">' + esc(x.nom) + '</div>' +
       (x.det ? '<div class="item-detail">' + esc(x.det) + '</div>' : '') + '</div></div>';
   });
-  $('epi-habituels').innerHTML = h ? '<div class="liste-blanche liste-cases">' + h + '</div>'
+  (cible || $('epi-habituels')).innerHTML = h ? '<div class="liste-blanche liste-cases">' + h + '</div>'
     : '<div class="liste-blanche"><div class="item"><div class="item-info"><div class="texte-petit texte-pale">Rien encore : ils viendront au fil des épiceries</div></div></div></div>';
 }
 function choisirHabituel(i) {
   const x = EPI_HABITUELS[i];
   if (x) montrerCarte({ code: x.code, pid: x.pid, marque: x.marque, saveur: x.saveur, format: x.format, sansCode: true });
+}
+/* Le sac seul, « Sans code » (J-C, 2026-10-15 : « le même choix pour un sac, sauf qu'il n'a pas de liste ») : la caméra laisse sa place
+   aux deux mêmes boutons. Le cœur : les habituels; l'un touché → la fiche, remplie (sa marque, sa saveur, son format; son PLU s'il en a
+   un). L'entonnoir : la fiche à la main. La flèche recule d'un pas (un choix → les deux boutons → la caméra → le choix des sacs);
+   Annuler de la fiche ramène d'où elle est venue. */
+var SEUL_SANS = null;        // le sac seul : null (la caméra), '' (les deux boutons), 'habituels'
+function montrerSansSeul(quoi) {
+  if (window.stopScanner) window.stopScanner();
+  if ($('vue-scan').hidden) {                            // revenu de la fiche (Annuler)
+    toutCacher(); $('vue-scan').hidden = false; $('btn-burger').hidden = false; $('scan-titre').textContent = 'Entrer un article';
+  }
+  SEUL_SANS = quoi;
+  ['scan-video', 'scan-msg', 'scan-choix', 'scan-resultat'].forEach(id => montrer(id, false));
+  $('vue-scan').querySelectorAll('.saisie-neuve[data-ajout="code"]').forEach(l => { l.hidden = true; });
+  montrer('scan-sans', true);
+  $('scan-sans-choix').querySelectorAll('[data-sans]').forEach(b => { b.hidden = !!quoi && b.dataset.sans !== quoi; });
+  if (quoi === 'habituels') remplirHabituels($('scan-habituels'));
+  montrer('scan-habituels', quoi === 'habituels');
+}
+function retourSeul() {
+  if (SEUL_SANS === 'habituels') montrerSansSeul('');
+  else if (SEUL_SANS === '') montrerScanProduit();
+  else montrerChoixQuoi();
+}
+function choisirSansSeul(quoi) {
+  if (SEUL_SANS) { montrerSansSeul(''); return; }        // le bouton choisi, retouché : les deux, comme la flèche
+  if (quoi === 'habituels') { montrerSansSeul('habituels'); return; }
+  montrerFormulaire(false);                              // l'entonnoir : la fiche à la main
+  annulerFiche = () => montrerSansSeul('');
+}
+/* Un habituel touché (le sac seul) : la fiche, sa sorte remplie. Un PLU : comme tapé (le code connu donne sa dernière entrée). */
+function ouvrirHabituelSeul(x) {
+  if (!x) return;
+  if (x.code) ouvrirFicheScan(x.code);
+  else {
+    const p = PRODUITS.find(y => String(y.id) === String(x.pid));
+    ouvrirFicheNom(p ? p.nom : '');
+    if (produitCourant !== null) {
+      if (nomListe(x.marque)) choisirParNom('marque', nomListe(x.marque)); else $('marque').value = '';
+      if (nomListe(x.saveur)) choisirParNom('saveur', nomListe(x.saveur)); else $('saveur').value = '';
+      if (String(x.format || '').trim()) poserFormat(String(x.format).trim());
+    }
+  }
+  annulerFiche = () => montrerSansSeul('habituels');
 }
 /* L'article d'un PLU tapé (« Taper le code », sous la caméra : après OK, la caméra reprend) : l'aliment à qui il a déjà servi, sinon
    celui qui porte le même nom, sinon un aliment neuf au nom officiel. */
@@ -1014,6 +1058,8 @@ function initEpicerie() {
     if (ok) { validerCarte(ok.dataset.epiOk); return; }
     if (ev.target.closest('[data-epi-annuler]')) annulerCarte();
   });
+  $('scan-sans-choix').addEventListener('click', ev => { const b = ev.target.closest('[data-sans]'); if (b) choisirSansSeul(b.dataset.sans); });
+  $('scan-habituels').addEventListener('click', ev => { const h = ev.target.closest('[data-epi-hab]'); if (h) ouvrirHabituelSeul(EPI_HABITUELS[Number(h.dataset.epiHab)]); });
   $('epi-sans-choix').addEventListener('click', ev => { const b = ev.target.closest('[data-sans]'); if (b) choisirSans(EPI_SANS ? '' : b.dataset.sans); });   // le bouton choisi, retouché : les deux, comme la flèche
   $('epi-habituels').addEventListener('click', ev => { const h = ev.target.closest('[data-epi-hab]'); if (h) choisirHabituel(Number(h.dataset.epiHab)); });
   $('epi-cat').addEventListener('change', surEpiCat);

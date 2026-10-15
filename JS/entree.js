@@ -144,17 +144,21 @@ async function montrerListes() {
 function montrerAccueil()    { toutCacher(); $('vue-accueil').hidden = false; $('btn-burger').hidden = false; $('entete-photo').hidden = false; }
 /* Le Retour final (J-C, 2026-10-01) : pas l'accueil nu, l'accueil avec le menu ouvert — la prochaine action est là. */
 function retourAuMenu()      { montrerAccueil(); ouvrirMenu(); }
+var annulerFiche = null;   // où ramène Annuler de la fiche ('null' : la caméra du sac seul); posé APRÈS l'avoir ouverte (le sac seul, Sans code)
 function montrerFormulaire(avecCode) {
+  annulerFiche = null;
   toutCacher(); $('vue-app').hidden = false;
   preparerFiche(avecCode);
   chargerReferences();                        // catégories + liste des produits
 }
-/* LE SAC SEUL (J-C, 2026-10-09 : « comme les deux sacs ») : la caméra d'abord; « Sans code » dessous : l'entonnoir (Catégorie →
-   Sous-catégorie → Produit…); Retour : le choix des sacs. Un article entré, avec ou sans code, et c'est fini (« c'est fait pour
-   entrer 1 produit ») : le menu (enregistrer). */
+/* LE SAC SEUL (J-C, 2026-10-09 : « comme les deux sacs ») : la caméra d'abord; « Sans code » dessous : les deux boutons des deux sacs,
+   le cœur et l'entonnoir (J-C, 2026-10-15 : « le même choix pour un sac, sauf qu'il n'a pas de liste » — montrerSansSeul(), epicerie.js);
+   la flèche recule d'un pas (retourSeul()). Un article entré, avec ou sans code, et c'est fini (« c'est fait pour entrer 1 produit ») :
+   le menu (enregistrer). */
 function montrerScanProduit() {
+  SEUL_SANS = null;
   if (typeof montrerScanner !== 'function') { montrerFormulaire(false); return; }
-  montrerScanner({ lu: ouvrirFicheScan, retour: montrerChoixQuoi, sansCode: () => montrerFormulaire(false), titre: 'Entrer un article' });
+  montrerScanner({ lu: ouvrirFicheScan, retour: retourSeul, sansCode: () => montrerSansSeul(''), titre: 'Entrer un article' });
 }
 /* La fiche vierge, sur son chemin. Après une entrée, on revient à celle du départ (à la main) : un seul écran pour entrer. */
 function preparerFiche(avecCode) {
@@ -5220,7 +5224,7 @@ function initEntree() {
   $('btn-transit').addEventListener('click', () => pasEncoreRange(true));
   $('btn-ranger').addEventListener('click', () => pasEncoreRange(false));
   $('btn-enregistrer').addEventListener('click', enregistrer);
-  $('btn-annuler').addEventListener('click', montrerScanProduit);       // Annuler recule d'un pas : la caméra du sac seul
+  $('btn-annuler').addEventListener('click', () => (annulerFiche || montrerScanProduit)());   // Annuler recule d'un pas : d'où vient la fiche (la caméra du sac seul, ses habituels, ses deux boutons)
   // reste connecté → page d'ouverture, le chariot par-dessus jusqu'à ce que tout soit là
   if (Coffre.motDePasse()) { if (localStorage.getItem(QUI)) montrerAccueil(); else montrerQui(); chargerAvecChariot(); }
 }
