@@ -40,6 +40,8 @@
     el('scan-resultat').hidden = true;
     el('scan-code').textContent = '';
     el('scan-choix').hidden = !(mode && typeof mode.sansCode === 'function');   // le sac seul : « Taper le code » et « Sans code » sous la caméra
+    el('scan-video').hidden = false; el('scan-msg').hidden = false;   // le sac seul revient de Sans code : la caméra reprend sa place
+    var sans = el('scan-sans'); if (sans) sans.hidden = true;
     fermerTaper();
     msg('Démarrage de la caméra…');
     await demarrer('scan-video');
