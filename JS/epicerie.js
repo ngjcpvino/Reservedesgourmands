@@ -126,7 +126,8 @@ function montrerScanEpicerie() {
 }
 function demarrerCamera() { if (window.scanContinu) window.scanContinu(EPI_CAMERA); }
 function reprendreCamera() { if (window.reprendreScan) window.reprendreScan(EPI_CAMERA); }
-/* « Sans code » : la caméra laisse sa place au PLU, aux habituels (la barre fermée, J-C) et à l'entonnoir; « Revenir au scan ». */
+/* « Sans code » : la caméra laisse sa place aux habituels (la barre fermée, J-C) et à l'entonnoir; la flèche du bas ramène au scan.
+   Le PLU d'un fruit : « Taper le code », sous la caméra (J-C, 2026-10-15 : le champ PLU d'ici faisait double emploi). */
 function modeSansCode(on) {
   montrer('epi-camera', !on); montrer('epi-sans', on);
   fermerCarte();
@@ -149,7 +150,7 @@ async function surCodeEpicerie(code) {
     await chargerPlu();
     if (jeton !== epiJeton || $('epi-scan').hidden) return;
     const nom = nomPlu(code);
-    if (nom) { montrerCarte(articlePlu(code, nom, false)); return; }
+    if (nom) { montrerCarte(articlePlu(code, nom)); return; }
   }
   const local = codeCirculaire(code);                    // dans une circulaire d'IGA : tout de suite, sans réseau
   if (local) { montrerCarte(articleNouveau(code, local)); return; }
@@ -389,8 +390,8 @@ function relierCirculaire(l, pid, marque, saveur, code) {
   garderCirculaire();
 }
 
-/* « Déjà scanné (13) » : les lignes de STOCK de cette liste, une par produit (même aliment, marque, saveur, format, code), le
-   dernier scanné en haut; rescanner le même article fait monter sa quantité. */
+/* « Épicerie du 14 octobre » (J-C, 2026-10-15 : à la place de « Déjà scanné (13) ») : les lignes de STOCK de cette liste, une par
+   produit (même aliment, marque, saveur, format, code), le dernier scanné en haut; rescanner le même article fait monter sa quantité. */
 function remplirListeEpicerie() {
   const groupes = [], par = {};
   lignesEpicerie(EPI.id).forEach(r => {
@@ -401,8 +402,8 @@ function remplirListeEpicerie() {
     groupes.push(g);
     g.qte += Number(r[3]) || 0;
   });
-  const n = groupes.reduce((s, g) => s + g.qte, 0);
-  $('epi-liste').innerHTML = !groupes.length ? '' : '<div class="bloc-suite"><div class="label">Déjà scanné (' + n + ')</div><div class="liste-blanche">' +
+  const r = EPICERIES.find(x => String(x[0]) === EPI.id), jour = jourLong(r ? r[2] : dateDuJour());
+  $('epi-liste').innerHTML = !groupes.length ? '' : '<div class="bloc-suite"><div class="label">' + esc(jour ? 'Épicerie du ' + jour : 'Épicerie') + '</div><div class="liste-blanche">' +
     groupes.reverse().map(g => {
       const p = PRODUITS.find(x => String(x.id) === g.pid);
       const det = [nomListe(g.marque), nomListe(g.saveur), g.format].filter(Boolean).join(' · ') || (estPlu(g.code) ? 'PLU ' + g.code : '');
@@ -411,9 +412,8 @@ function remplirListeEpicerie() {
     }).join('') + '</div></div>';
 }
 
-/* ---------- 3. Sans code : le PLU, les habituels, l'entonnoir ---------- */
+/* ---------- 3. Sans code : les habituels, l'entonnoir ---------- */
 function reinitSansCode() {
-  $('epi-plu').value = ''; $('epi-plu-nom').textContent = ''; $('epi-plu-nom').className = 'message message-repli';
   remplirHabituels();
   $('epi-cat').innerHTML = optionsCats();
   surEpiCat();                                           // tout ce qui suit la catégorie, caché
@@ -453,26 +453,11 @@ function choisirHabituel(i) {
   const x = EPI_HABITUELS[i];
   if (x) montrerCarte({ code: x.code, pid: x.pid, marque: x.marque, saveur: x.saveur, format: x.format, sansCode: true });
 }
-/* Le PLU tapé : le nom officiel dessous (pour vérifier), et la carte — l'aliment à qui ce PLU a déjà servi, sinon celui qui porte
-   le même nom (« Pommes Fuji » → Pomme), sinon un aliment neuf au nom officiel. */
-async function surPluEpicerie() {
-  const v = $('epi-plu').value.replace(/\D/g, ''), msg = $('epi-plu-nom');
-  if (!estPlu(v)) { msg.textContent = ''; if (EPI_CARTE && EPI_CARTE.plu) fermerCarte(); return; }
-  await chargerPlu();
-  if ($('epi-plu').value.replace(/\D/g, '') !== v) return;   // un autre chiffre tapé entre-temps
-  const nom = nomPlu(v);
-  msg.className = 'message message-repli' + (nom ? '' : ' message-erreur');
-  msg.textContent = nom || 'PLU inconnu';
-  if (!nom) { if (EPI_CARTE && EPI_CARTE.plu) fermerCarte(); return; }
-  montrerCarte(articlePlu(v, nom, true));
-}
-/* L'article d'un PLU : l'aliment à qui il a déjà servi, sinon celui qui porte le même nom, sinon un aliment neuf au nom officiel.
-   sansCode : tapé dans « Sans code » (après OK, on y reste); sinon sous la caméra (« Taper le code » : après OK, la caméra reprend). */
-function articlePlu(v, nom, sansCode) {
+/* L'article d'un PLU tapé (« Taper le code », sous la caméra : après OK, la caméra reprend) : l'aliment à qui il a déjà servi, sinon
+   celui qui porte le même nom, sinon un aliment neuf au nom officiel. */
+function articlePlu(v, nom) {
   const connu = articleConnu(v), alim = !connu && alimentPourPlu(nom);
-  const a = connu || (alim ? { code: v, pid: String(alim.id), marque: '', saveur: '', format: '' } : { code: v, pid: null, nouveau: { nom: nom }, format: '' });
-  a.sansCode = sansCode; a.plu = true;
-  return a;
+  return connu || (alim ? { code: v, pid: String(alim.id), marque: '', saveur: '', format: '' } : { code: v, pid: null, nouveau: { nom: nom }, format: '' });
 }
 function alimentPourPlu(nom) {
   const mots = motsTri(nom);
@@ -1007,9 +992,11 @@ function initEpicerie() {
   $('btn-epi-magasin').addEventListener('click', ajouterEpicerie);
   $('epi-magasin-neuf').addEventListener('keydown', e => { if (e.key === 'Enter') { e.preventDefault(); ajouterEpicerie(); } });
   $('epi-choix-retour').addEventListener('click', montrerChoixQuoi);            // Retour recule d'un pas : les deux sacs
-  $('epi-retour').addEventListener('click', montrerEpiceries);                   // la liste du jour reste ouverte : retouchée, l'épicerie y revient; demain, elle attend Compléter
+  $('epi-retour').addEventListener('click', () => {   // la flèche recule d'un pas : de Sans code au scan, du scan au choix de l'épicerie
+    if (!$('epi-sans').hidden) modeSansCode(false);
+    else montrerEpiceries();                         // la liste du jour reste ouverte : retouchée, l'épicerie y revient; demain, elle attend Compléter
+  });
   $('epi-sans-code').addEventListener('click', () => modeSansCode(true));
-  $('epi-revenir').addEventListener('click', () => modeSansCode(false));
   $('epi-carte').addEventListener('click', ev => {
     const off = ev.target.closest('[data-off-carte]');
     if (off) { toucherOffCarte(off); return; }
@@ -1017,7 +1004,6 @@ function initEpicerie() {
     if (ok) { validerCarte(ok.dataset.epiOk); return; }
     if (ev.target.closest('[data-epi-annuler]')) annulerCarte();
   });
-  $('epi-plu').addEventListener('input', surPluEpicerie);
   $('epi-habituels-tete').addEventListener('click', () => toggleAccordeon($('epi-habituels-tete')));
   $('epi-habituels').addEventListener('click', ev => { const h = ev.target.closest('[data-epi-hab]'); if (h) choisirHabituel(Number(h.dataset.epiHab)); });
   $('epi-cat').addEventListener('change', surEpiCat);
