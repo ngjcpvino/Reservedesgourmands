@@ -135,6 +135,7 @@ async function montrerListes() {
   toutCacher(); $('vue-listes').hidden = false; $('btn-burger').hidden = false;
   // À l'ouverture (J-C, 2026-10-01) : tout est fermé, toutes les listes paraissent; l'Inventaire s'ouvrira sur ses deux boutons, rien de choisi
   $('vue-listes').querySelectorAll('.contenu > .accordeon > .accordeon-tete').forEach(t => { t.classList.remove('ouvert'); t.nextElementSibling.hidden = true; });
+  majRetourListes();
   vueInventaire = '';
   $('liste-bientot').innerHTML = ''; $('liste-special').innerHTML = '';   // À consommer bientôt, En spécial : leurs catégories repartent fermées
   remplirInventaire(); remplirBientot(); remplirSpecial(); remplirOff();   // instantané : ce qu'on a déjà en mémoire
@@ -144,6 +145,10 @@ async function montrerListes() {
 function montrerAccueil()    { toutCacher(); $('vue-accueil').hidden = false; $('btn-burger').hidden = false; $('entete-photo').hidden = false; }
 /* Le Retour final (J-C, 2026-10-01) : pas l'accueil nu, l'accueil avec le menu ouvert — la prochaine action est là. */
 function retourAuMenu()      { montrerAccueil(); ouvrirMenu(); }
+/* LA RÈGLE DES RETOUR (J-C, 2026-10-14; partout le 2026-10-15) : la maison mène au menu, la flèche « revenir » recule d'un pas.
+   Un Retour qui fait l'un ou l'autre selon ce qui est ouvert change de dessin à chaque changement. */
+function iconeRetour(id, auMenu) { const i = $(id).firstElementChild; if (i) i.className = 'icone ' + (auMenu ? 'icone-accueil' : 'icone-revenir'); }
+function majRetourListes() { iconeRetour('btn-retour-listes', !$('vue-listes').querySelector('.contenu > .accordeon > .accordeon-tete.ouvert')); }   // une liste ouverte : elle se referme (la flèche)
 var annulerFiche = null;   // où ramène Annuler de la fiche ('null' : la caméra du sac seul); posé APRÈS l'avoir ouverte (le sac seul, Sans code)
 function montrerFormulaire(avecCode) {
   annulerFiche = null;
@@ -357,6 +362,7 @@ function toggleAccordeon(tete) {
     tete.classList.add('ouvert');
     if (tete.nextElementSibling) tete.nextElementSibling.hidden = false;
   }
+  if (tete.closest('#vue-listes')) majRetourListes();   // une liste ouverte ou refermée : le Retour suit
 }
 function basculerMenu() {                // ouvrir, ou fermer par le seul chemin qui replie tout
   if ($('menu').classList.contains('ouvert')) fermerMenu();
@@ -2876,7 +2882,7 @@ var rechercheJeton = 0;                 // un scan plus ancien qui répond en re
 var modeRecherche = '';                 // '' = Rechercher · 'deplacer' · 'consommer' : le même écran, le lot touché fait le geste
 var sorteScannee = null;                // Consommer, Déplacer : la boîte scannée { pid, sortes: [{ marque, saveur, format }] } — elle seule à l'écran
 const TITRES_RECHERCHE = { '': 'Rechercher', deplacer: 'Déplacer', consommer: 'Consommer', ouvrir: 'Ouvrir' };
-const RETOURS = { 'vue-accueil': () => retourAuMenu(), 'vue-choix-quoi': () => montrerChoixQuoi(),
+const RETOURS = { 'vue-accueil': retourAuMenu, 'vue-choix-quoi': () => montrerChoixQuoi(),
                   'vue-listes': () => montrerListes(), 'vue-couleurs': () => montrerCouleurs() };
 /* depuis : true = on arrive de la loupe ou du menu (on retient d'où); false = on revient d'ailleurs (scan, rayon) */
 function montrerRecherche(depuis) {
@@ -2886,6 +2892,7 @@ function montrerRecherche(depuis) {
     $('recherche-texte').value = '';
   }
   sorteScannee = null;                             // le champ revient : la prochaine recherche part de tout l'aliment
+  iconeRetour('recherche-retour', retourRecherche === retourAuMenu);   // au menu : la maison; vers la page d'où l'on vient : la flèche
   toutCacher(); $('vue-recherche').hidden = false; $('btn-burger').hidden = false;
   montrer('recherche-saisie', true); montrer('recherche-rayon', false);
   $('recherche-titre').textContent = TITRES_RECHERCHE[modeRecherche];
@@ -3052,6 +3059,7 @@ function montrerRayon(pid, sansDefiler) {
   $('recherche-rayon').innerHTML = html;
   $('recherche-titre').textContent = modeRecherche ? TITRES_RECHERCHE[modeRecherche] : (cat || 'Rechercher');
   montrer('recherche-saisie', false); montrer('recherche-rayon', true);
+  iconeRetour('recherche-retour', false);          // l'écran de rayon : Retour revient à la recherche
   if (!sansDefiler) window.scrollTo(0, 0);
 }
 /* Les lots d'un aliment, regroupés par endroit sous le bandeau de la couleur du meuble; « Pas encore rangé » à la fin.
@@ -3535,6 +3543,7 @@ function lignesAchats(cote) {
 var vueAchats = 'categorie';                           // 'categorie' | 'epicerie'
 var epicerieOuverte = '';                              // Par épicerie : l'épicerie touchée ('' = les tuiles)
 function remplirAchats(ouvrir) {
+  iconeRetour('achats-retour', !(vueAchats === 'epicerie' && epicerieOuverte));   // une épicerie touchée : Retour revient aux tuiles (la flèche)
   const cible = $('liste-achats');
   const ouverte = cible.querySelector(':scope > .accordeon > .accordeon-tete.ouvert'), garde = ouverte ? ouverte.parentElement.dataset.groupe : '';   // on coche l'un après l'autre : elle reste ouverte
   ouvrir = ouvrir || garde;                            // un aliment ajouté ouvre sa catégorie
