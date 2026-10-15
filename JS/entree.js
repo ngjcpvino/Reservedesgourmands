@@ -398,7 +398,7 @@ function noterErreur(message, detail) {
     ecrireErreurs(lireErreurs().concat([[idLocal(), quandQuebec(), localStorage.getItem(QUI) || '', appareil(),
       vue ? vue.id.replace(/^vue-/, '') : '', message.slice(0, 500), String(detail || '').slice(0, 1000),
       s ? ((s.src.match(/[?&]v=(\d+)/) || [])[1] || '') : '']]));
-    setTimeout(expedierErreurs, 0);
+    if ($('pas-a-jour').hidden) setTimeout(expedierErreurs, 0);   // le coffre-fort ne répond pas : l'envoi attend la prochaine lecture réussie (sinon il passe devant « Réessayer » dans la file)
   } catch (e) { /* le journal ne plante jamais l'app */ }
 }
 async function expedierErreurs() {
@@ -408,7 +408,7 @@ async function expedierErreurs() {
     while (lireErreurs().length) {
       const ligne = lireErreurs()[0];
       let r = null;
-      try { r = await Coffre.ajouter('Erreurs', ligne); } catch (x) {}
+      try { r = await Coffre.ajouter('Erreurs', ligne, Coffre.DELAI_LECTURE); } catch (x) {}   // abandonné après 12 s : il ne bloque jamais la file (rejouable : son ID)
       if (!(r && r.ok)) break;                          // réseau, ou l'onglet pas encore connu du coffre-fort : tout reste, ça repartira
       ecrireErreurs(lireErreurs().filter(l => l[0] !== ligne[0]));
     }
@@ -548,7 +548,11 @@ async function chargerReferences() {
   } catch (e) {
     if (e.message === 'non autorisé') { marquerPasAJour(false); Coffre.oublier(); revenirConnexion('Mot de passe refusé.'); return false; }
     if (!cache) statut('Réseau lent — patiente un instant ou recharge la page.', 'erreur');
-    marquerPasAJour(true, e.refus || e.plante ? e.message : '');   // reste en haut tant que la réserve n'est pas relue (un plantage dit le sien)
+    // toujours POURQUOI (J-C, 2026-10-15 : « ne se branche pas ce matin », le bandeau ne disait rien) : pas de réponse, la
+    // communication coupée, le coffre-fort qui plante — ou l'app elle-même, sur ce qu'elle a reçu; le journal garde les 5 essais
+    const app = !(e.delai || e.reseau || e.plante || e.refus);
+    marquerPasAJour(true, app ? 'l\'app a planté : ' + e.message : e.message,
+      e.essais ? e.essais.join(' · ') : String(e.stack || '').split('\n').slice(0, 3).join(' · '));   // reste en haut tant que la réserve n'est pas relue
     return null;
   } finally { $('voile-texte').textContent = ''; }
 }
@@ -556,11 +560,11 @@ async function chargerReferences() {
 /* Le bandeau rouge (J-C, 2026-10-06 : « travailler avec des données pas à jour, c'est inconscient »; B puis A sur aperçu) :
    tant que la réserve n'a pas été relue, il reste en haut — on consulte ce que l'app a gardé, en le sachant; ce qu'on change
    attend dans sa file et part dès que le réseau répond. « Réessayer » relit sous le chariot. Il pousse la page et le burger. */
-function marquerPasAJour(oui, raison) {
-  if (oui) noterErreur('Réserve pas à jour' + (raison ? ' (' + raison + ')' : ''));
+function marquerPasAJour(oui, raison, detail) {
   $('pas-a-jour').hidden = !oui;
   $('pas-a-jour-texte').textContent = 'Réserve pas à jour' + (raison ? ' (' + raison + ')' : '');
   caleBandeau();
+  if (oui) noterErreur('Réserve pas à jour' + (raison ? ' (' + raison + ')' : ''), detail);   // après le bandeau : il part au journal à la prochaine lecture réussie
 }
 function caleBandeau() {                // sa hauteur (une raison peut le faire passer sur deux lignes) pousse la page et le burger
   const b = $('pas-a-jour');
@@ -577,7 +581,7 @@ async function relire() {               // « Réessayer » : comme au retour da
    Si rien ne passe, on garde ce qu'on avait (et le bandeau rouge le dit). suivi(i) : avant chaque essai. */
 const ESSAIS_LECTURE = [12000, 18000, 25000, 30000, 30000];   // ms : la patience de chaque essai
 async function chargerData(suivi) {
-  let err;
+  let err; const essais = [];                 // la raison de chaque essai raté (le journal des erreurs)
   for (let i = 0; i < ESSAIS_LECTURE.length; i++) {
     if (suivi) suivi(i);
     try {
@@ -586,8 +590,10 @@ async function chargerData(suivi) {
       if (r && r.erreur === 'non autorisé') throw new Error('non autorisé');   // inutile de réessayer
       err = new Error((r && r.erreur) || 'refus'); err.refus = true;          // le coffre-fort a répondu, mais pas oui
     } catch (e) { if (e.message === 'non autorisé') throw e; err = e; }
+    essais.push((i + 1) + ' : ' + err.message);
     if (i < ESSAIS_LECTURE.length - 1) await new Promise(res => setTimeout(res, 1000 * (i + 1)));
   }
+  err.essais = essais;
   throw err;
 }
 
