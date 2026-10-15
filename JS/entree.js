@@ -199,11 +199,14 @@ function ouvrirFicheScan(code) {
    recherche que les deux sacs (les circulaires d'IGA, puis Open Food Facts : identifierCode). Rien trouvé : « Inconnu » sous le code
    (J-C, 2026-10-09 : avant, rien ne le disait — le code s'inscrivait, c'est tout). */
 async function surCode() {
-  const code = $('codebarres').value.trim();
+  let code = $('codebarres').value.trim();
+  const cle = code && lirePese(code);               // un paquet pesé au magasin : sa clé (le prix lu, à côté)
+  if (cle && cle !== code) { $('codebarres').value = cle; code = cle; }
   codeScan = code;
   $('msg-code').textContent = '';
   offFicheRaz();
   if (!code) return;
+  if (estPese(code)) { surCodePese(code); return; }
   const tri = !CODES[String(code)] && (CODES_TRI[formeCode(code)] || CODES_TRI[code]);
   const pid = CODES[String(code)] || (tri && tri[0]);
   if (pid) {                                        // déjà à nous
@@ -253,6 +256,24 @@ async function surCode() {
     if (n.saveurId && NOMS_LISTES[n.saveurId]) choisirParNom('saveur', NOMS_LISTES[n.saveurId]);
     if (a.format) poserFormat(a.format);            // « 2 L » : réparti dans les deux champs
   }
+}
+/* Un paquet pesé au magasin (la viande) : déjà à nous → son aliment, sa marque, sa saveur; sinon « Inconnu » (J-C écrit le nom), sans
+   chercher ailleurs — ni les circulaires d'IGA ni Open Food Facts ne connaissent un code de magasin. Toujours : « kg » choisi, le poids
+   vide (J-C le tape : chaque paquet a le sien), le prix lu dans le code. */
+function surCodePese(code) {
+  const tri = !CODES[code] && CODES_TRI[code];
+  const pid = CODES[code] || (tri && tri[0]);
+  const prod = pid && PRODUITS.find(p => String(p.id) === String(pid));
+  if (prod) {
+    $('nom').value = prod.nom; surNom();             // prefillProduit : « kg », sans le poids du paquet d'avant
+    const l = tri ? null : derniereLigneCode(code);
+    const marque = tri ? tri[1] : l && l[5], saveur = tri ? tri[2] : l && l[9];
+    if (produitCourant !== null && nomListe(marque)) choisirParNom('marque', nomListe(marque));
+    if (produitCourant !== null && nomListe(saveur)) choisirParNom('saveur', nomListe(saveur));
+  } else $('msg-code').textContent = 'Inconnu';
+  poserFormat('kg');
+  const p = prixPese(code);
+  if (p !== '') $('prix').value = textePrix(p);
 }
 function revenirConnexion(msg) {
   toutCacher(); $('vue-connexion').hidden = false; $('entete-photo').hidden = false;
@@ -848,7 +869,7 @@ function prefillProduit(pid) {
   const vr = (pid && VARIANTES[pid]) || null;
   remplirVariantes(pid);                                   // ses marques et saveurs déjà vues
   $('marque').value = (vr && vr.derniereMarque) || '';
-  poserFormat((vr && vr.dernierFormat) || '');
+  poserFormat(estPese($('codebarres').value) ? 'kg' : (vr && vr.dernierFormat) || '');   // un paquet pesé : jamais le poids du paquet d'avant
   $('endroits').innerHTML = '';
   let n = 0;
   endroitsHabituels(pid).forEach(empId => {
@@ -3844,6 +3865,34 @@ function categorieLigneTri(r) {
 function estPlu(code) { return /^\d{4,5}$/.test(String(code || '').trim()); }
 /* Un code d'Open Food Facts de 13 chiffres qui commence par 0 = l'UPC de 12 chiffres que le scan lit. */
 const formeCode = c => { c = String(c || '').replace(/\D/g, ''); return /^0\d{12}$/.test(c) ? c.slice(1) : c; };
+/* LA VIANDE EMBALLÉE AU MAGASIN (J-C, 2026-10-15, l'étiquette du bœuf haché de Super C) : un code de 12 chiffres qui commence par 2
+   = un paquet pesé au magasin. « 2 01757 7 1687 3 » : 2017577 le produit, 1687 le total payé (16,87 $), 3 le contrôle. Le prix change
+   d'un paquet à l'autre, donc le code aussi : il se range sous sa clé — le produit et cinq 0, « 201757700000 », la même pour tous
+   ses paquets (STOCK col. I, le tri : reconnu partout comme un code). Le prix lu reste à côté (PESE), pour la carte et la fiche.
+   Le poids n'y est pas : J-C le tape (choix A sur aperçu). Jamais proposé à Open Food Facts : un code de magasin. */
+let PESE = null;                                   // { cle, prix } : le dernier paquet pesé lu
+const estPese = c => /^2\d{11}$/.test(formeCode(c));
+function controleUpc(c) {                          // le 12e chiffre d'un UPC : un chiffre tapé de travers ne donne pas un faux prix
+  let s = 0;
+  for (let i = 0; i < 11; i++) s += Number(c[i]) * (i % 2 ? 1 : 3);
+  return (10 - s % 10) % 10 === Number(c[11]);
+}
+/* Un code lu ou tapé : un paquet pesé → sa clé (et son prix retenu); tout autre code, tel quel. Une clé déjà faite reste elle-même. */
+function lirePese(code) {
+  const c = formeCode(code);
+  if (!estPese(c)) return code;
+  const cle = c.slice(0, 7) + '00000';
+  if (c !== cle) PESE = { cle: cle, prix: controleUpc(c) ? Number(c.slice(7, 11)) / 100 : '' };
+  return cle;
+}
+function prixPese(cle) { return PESE && PESE.cle === cle ? PESE.prix : ''; }
+/* Le poids tapé, en kilos : « 1,022 » ou « 1.022 » → « 1,022 »; vide → ''; pas un nombre, ou plus de 30 kg (des grammes ?) → null. */
+function lirePoids(v) {
+  const t = String(v || '').trim();
+  if (!t) return '';
+  const n = Number(t.replace(',', '.'));
+  return isFinite(n) && n > 0 && n <= 30 ? String(n).replace('.', ',') : null;
+}
 /* Le format, pour comparer (le même calcul que le coffre-fort, formatCle; ici aussi « 2 litres ») : « 2 L » → « 2 l ». */
 function formatCle(t) {
   t = String(t || '').toLowerCase().replace(/(\d),(\d)/g, '$1.$2');

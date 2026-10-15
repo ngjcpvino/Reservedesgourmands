@@ -31,7 +31,7 @@ var OFF_VUE = null;       // l'écran des photos : { code, ligne, manque, etat, 
 var OFF_FICHE = null;     // le sac seul : { code, manque, surListe, photos } — ce que la fiche sait d'Open Food Facts
 let envoiOff = false, expeditionOff = false;
 
-const codeOffOk = c => /^\d{8,14}$/.test(String(c || '').trim());   // un vrai code-barres (pas un PLU, pas « sans code »)
+const codeOffOk = c => /^\d{8,14}$/.test(String(c || '').trim()) && !estPese(c);   // un vrai code-barres (pas un PLU, pas « sans code », pas un paquet pesé au magasin)
 const estPhotoOff = k => OFF_PHOTOS_CLES.some(x => x[0] === k);
 const manqueDe = l => String((l && l[3]) || '').split(',').map(s => s.trim()).filter(Boolean);
 /* Le produit de ce code sur la liste (pas encore envoyé), ou null. */

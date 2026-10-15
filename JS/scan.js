@@ -123,14 +123,16 @@
   }
 
   function trouve(code) {
+    var lu = code;                               // tel que lu (le même paquet relu tout de suite : pas deux fois)
+    if (typeof lirePese === 'function') code = lirePese(code);   // un paquet pesé au magasin (la viande) : sa clé, le prix lu à côté
     if (continu) {                               // toute l'épicerie : la caméra reste ouverte, la lecture attend l'article suivant
       scanning = false; if (timer) { clearTimeout(timer); timer = null; }
-      dernierLu = code; msg('');
+      dernierLu = lu; msg('');
       continu.lu(code);
       return;
     }
     arreter();                                   // on tient un code : on coupe la caméra
-    msg('Lu : ' + code);
+    msg('Lu : ' + lu);
     if (mode) { mode.lu(code); return; }         // -> la recherche
     if (typeof ouvrirFicheScan === 'function') { ouvrirFicheScan(code); return; }   // -> la fiche (mode code)
     el('scan-code').textContent = code;          // filet : fiche pas branchée
@@ -145,6 +147,8 @@
   var MEMO_OFF_MS = 120000, memoOFF = {};
   var TOUT_MANQUE = ['devant', 'ingredients', 'nutrition', 'nom', 'marque', 'format'];
   async function chercherOFF(code, frais) {
+    if (typeof estPese === 'function' && estPese(code))   // un code de magasin (la viande pesée) : Open Food Facts ne l'a pas, et ne doit pas l'avoir
+      return { code: code, nom: '', nomAutre: '', marque: '', format: '', photo: '', trouve: false, manque: [], photos: {} };
     var m = memoOFF[code];
     if (!frais && m && Date.now() - m.a < MEMO_OFF_MS) return m.d;
     var url = 'https://world.openfoodfacts.org/api/v2/product/' + encodeURIComponent(code)

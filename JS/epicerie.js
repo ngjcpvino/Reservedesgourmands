@@ -150,11 +150,12 @@ function fermerCarte() { EPI_CARTE = null; epiJeton++; $('epi-carte').innerHTML 
 
 /* Un code lu. Ses données d'abord (instantané); sinon la recherche (identifierCode). */
 async function surCodeEpicerie(code) {
-  code = String(code || '').trim();
+  code = lirePese(String(code || '').trim());           // un paquet pesé au magasin : sa clé (le prix lu, à côté)
   if (!code || !EPI) return;
   const jeton = ++epiJeton;
   const connu = articleConnu(code);
   if (connu) { montrerCarte(connu); return; }
+  if (estPese(code)) { montrerCarte(articleNouveau(code, null)); return; }   // un code de magasin : personne d'autre ne le connaît
   if (estPlu(code)) {                                    // 4 ou 5 chiffres tapés (« Taper le code ») : un PLU, comme dans Sans code
     await chargerPlu();
     if (jeton !== epiJeton || $('epi-scan').hidden) return;
@@ -174,6 +175,7 @@ async function surCodeEpicerie(code) {
 /* Un code qui n'est pas à nous : UN appel au coffre-fort (les circulaires d'IGA, puis Open Food Facts) — un coffre-fort pas encore
    à jour : Open Food Facts directement. La même recherche pour les deux sacs et pour Ajouter (J-C, 2026-10-09). */
 async function identifierCode(code) {
+  if (estPese(code)) return { source: '' };              // un code de magasin (la viande) : ni IGA ni Open Food Facts
   let r = null;
   if (!CODES_CIRC.complet) {                             // l'archive d'IGA pas encore sur l'appareil : le coffre-fort la lit
     try { r = await Coffre.identifier(code); } catch (e) {}
@@ -227,7 +229,8 @@ function articleConnu(code) {
   const k = formeCode(code), pid = CODES[code] || CODES[k];
   if (pid && produitActif(pid)) {
     const l = derniereLigneCode(code);
-    return { code: code, pid: String(pid), marque: l ? String(l[5] || '') : '', saveur: l ? String(l[9] || '') : '', format: l ? String(l[6] || '') : '' };
+    return { code: code, pid: String(pid), marque: l ? String(l[5] || '') : '', saveur: l ? String(l[9] || '') : '',
+             format: l && !estPese(code) ? String(l[6] || '') : '' };   // un paquet pesé : son poids, J-C le tape
   }
   const t = CODES_TRI[k] || CODES_TRI[code];
   if (t && produitActif(t[0])) return { code: code, pid: String(t[0]), marque: String(t[1] || ''), saveur: String(t[2] || ''), format: '' };
@@ -258,6 +261,8 @@ function formatStock(f) {
    la quantité (1, − +); OK — ou « L'associer à ce produit ? » Oui / Non, qui accepte l'article; Annuler (un mauvais scan). */
 function montrerCarte(a) {
   EPI_CARTE = a;
+  const pese = estPese(a.code);
+  a.prixPese = pese ? prixPese(a.code) : '';
   const m = trouverCirculaire(a);
   a.ligne = m ? m.ligne : null; a.auto = !!(m && m.auto);
   const prod = a.pid ? PRODUITS.find(p => String(p.id) === String(a.pid)) : null;
@@ -270,7 +275,8 @@ function montrerCarte(a) {
     '<button class="off" type="button" data-off-carte hidden aria-label="Photos pour Open Food Facts"></button></div>';   // le logo d'Open Food Facts : quand il lui manque quelque chose (offCarte)
   if (a.ligne && a.auto) h += '<div class="message message-succes">En circulaire : ' + esc(textePrixLigne(a.ligne)) + '</div>';
   if (a.ligne && !a.auto) h += '<div class="bloc-suite"><div class="label">Dans la circulaire de ' + esc(EPI.nom) + '</div>' + htmlLigneCirc(a.ligne) + '</div>';
-  h += htmlQuantite();
+  if (a.prixPese !== '') h += '<div class="message message-succes">Prix payé : ' + esc(textePrix(a.prixPese)) + ' $</div>';
+  h += pese ? htmlPoids() : htmlQuantite();             // un paquet pesé : toujours 1; son poids à la place (choix A sur aperçu)
   h += a.ligne && !a.auto
     ? '<div class="bloc-suite"><div class="label-fort">L\'associer à ce produit ?</div><div class="grille bloc-suite">' +
       '<button class="bouton bouton-vert" type="button" data-epi-ok="O">Oui</button>' +
@@ -278,7 +284,7 @@ function montrerCarte(a) {
     : '<button class="bouton bouton-vert bouton-pleine bouton-suite" type="button" data-epi-ok="">OK</button>';
   h += '<button class="bouton bouton-pleine bouton-quitter" type="button" data-epi-annuler>Annuler</button>';
   $('epi-carte').innerHTML = '<div class="carte bloc-suite carte-scan">' + h + '</div>';
-  brancherPlusMoins($('epi-carte').firstElementChild, 99);
+  if (!pese) brancherPlusMoins($('epi-carte').firstElementChild, 99);
   offCarte(a);                                           // ce qui manque à Open Food Facts (JS/off.js) : son logo, s'il y a lieu
 }
 /* Une ligne de la circulaire, au complet (J-C : « sinon je peux pas répondre ») : sa photo, son nom, son format, son prix (le régulier). */
@@ -289,9 +295,16 @@ function htmlLigneCirc(l) {
     '<div class="item-info"><div class="item-nom">' + esc(adoucir(l.texte)) + '</div><div class="item-detail">' +
     esc([fmt, prix + (reg ? ' (' + reg + ')' : '')].filter(Boolean).join(' · ')) + '</div></div></div>';
 }
+/* Le poids d'un paquet pesé au magasin, à la place de la quantité (J-C, 2026-10-15, choix A sur aperçu : le poids seul). Vide, il
+   entre quand même. */
+function htmlPoids() {
+  return '<div class="bloc bloc-detache"><div class="label">Poids</div><div class="poids">' +
+    '<input class="champ" type="text" inputmode="decimal" autocomplete="off" enterkeyhint="done" data-poids>' +
+    '<span class="poids-unite">kg</span></div><div class="message message-erreur message-repli" data-poids-msg></div></div>';
+}
 function textePrixLigne(l) { const u = String(l.unite || '').trim(); return textePrix(l.prix) + (u ? (u[0] === '/' ? '' : ' ') + u : ''); }
 /* Le prix payé, d'après la circulaire : « 2 pour 7 $ » = 3,50 chacun (J-C); au poids (« /lb », « le 100 g ») : le paquet a son
-   propre prix, on le laisse vide (la viande : on attend l'étiquette de J-C). Le prix membre est celui de la circulaire (ils ont les cartes). */
+   propre prix, on le laisse vide (la viande emballée au magasin : son code le donne, lirePese). Le prix membre est celui de la circulaire (ils ont les cartes). */
 function prixUnitaire(l) {
   const u = String(l.unite || '').toLowerCase();
   if (/kg|lb|\d\s*g\b/.test(u)) return '';
@@ -344,8 +357,13 @@ function trouverCirculaire(a) {
    l'aliment neuf et sa marque neuve avant lui, puis le tri s'il est relié). */
 function validerCarte(rep) {
   const a = EPI_CARTE, carte = $('epi-carte').firstElementChild;
-  if (!a || !EPI || !carte || !carte.querySelector('.qte')) return;
-  const qte = Math.max(1, parseInt(carte.querySelector('.qte').value, 10) || 1);
+  if (!a || !EPI || !carte || !carte.querySelector('.qte, [data-poids]')) return;
+  const champPoids = carte.querySelector('[data-poids]'), poids = champPoids ? lirePoids(champPoids.value) : '';
+  if (poids === null) {                                  // « 1022 » : des grammes ? un poids se tape en kilos
+    carte.querySelector('[data-poids-msg]').textContent = 'Le poids en kilos : 1,022, par exemple.';
+    champPoids.focus(); return;
+  }
+  const qte = champPoids ? 1 : Math.max(1, parseInt(carte.querySelector('.qte').value, 10) || 1);
   let pid = a.pid, marque = a.marque || '', saveur = a.saveur || '';
   if (!pid) {
     const n = a.nouveau, deja = !n.inconnu && PRODUITS.find(p => cleNom(p.nom) === cleNom(n.nom));   // le même nom déjà à nous : lui
@@ -355,9 +373,9 @@ function validerCarte(rep) {
   }
   pid = String(pid);
   const l = a.ligne, avecCirc = !!l && (a.auto || rep === 'O');
-  const prix = avecCirc ? prixUnitaire(l) : '';
+  const prix = champPoids ? a.prixPese : avecCirc ? prixUnitaire(l) : '';   // un paquet pesé : le prix de son code, toujours
   const emp = premierEndroit(pid), id = idLocal(), opId = 'epi-' + id, qui = localStorage.getItem(QUI) || '', code = a.code || '';
-  const format = a.format || '';
+  const format = champPoids ? (poids ? poids + ' kg' : '') : a.format || '';
   // Stock : ID · ProduitID · Emp · Qte · Date · Marque · Format · OpId · CodeBarres · Saveur · QuiEntre · Magasin · Prix · Epicerie
   const ligne = [id, pid, emp, qte, dateDuJour(), marque, format, opId, code, saveur, qui, EPI.magasin, prix, EPI.id];
   poserGeste({ action: 'entrer', opId: opId, stock: [ligne],

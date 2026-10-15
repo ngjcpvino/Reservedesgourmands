@@ -217,7 +217,7 @@ d'abord (l'écran du scan, la confirmation de Terminé, Compléter).*
      **Le poids n'est pas dans le code**, ni le prix au kilo. Donc : reconnaître un tel paquet par ses **7 premiers
      chiffres**; le prix payé **lu dans le code**; **jamais proposé à Open Food Facts** (un code de magasin : aujourd'hui,
      l'app le ferait — `codeOffOk()` accepte tout code de 8 à 14 chiffres). Aujourd'hui, sans rien de bâti, chaque paquet
-     entre comme un « Inconnu » neuf. **En réflexion** (point 57 de `CLAUDE.md`) : **le poids, J-C le tape au scan** (2026-10-15 : « Je tape le poids »); sur aperçu, **A : le poids seul** à la place du − 1 + (pas de prix au kilo calculé dessous).
+     entre comme un « Inconnu » neuf. **En réflexion** (point 57 de `CLAUDE.md`) : **le poids, J-C le tape au scan** (2026-10-15 : « Je tape le poids »); sur aperçu, **A : le poids seul** à la place du − 1 + (pas de prix au kilo calculé dessous). **✅ BÂTI le même jour** (J-C : « Oui ») : voir `CLAUDE.md`, « ⭐ LA VIANDE EMBALLÉE AU MAGASIN »; à essayer : T76.
    - **Noté** : un achat scanné le lendemain du changement de circulaire (acheté mercredi, scanné jeudi) prendrait la
      mauvaise semaine. Rare.
 5. **Sans code** : taper le **PLU** (l'app montre le nom officiel pour vérifier — existe déjà au scan). **Sans PLU** :
@@ -348,7 +348,7 @@ Compléter ») — `api.gs` collé (le 2026-10-04 au soir), à essayer en ligne
   même aliment (ou, pour un produit neuf, ses mots), une marque et un format qui ne disent pas autre chose → **la ligne au complet**
   et « L'associer à ce produit ? » **Oui / Non** (sans OK). Oui : onglet Tri (Oui, l'aliment, le code scanné : les semaines
   suivantes, l'article est déjà trié, le point rouge baisse) + le prix payé. Non : rien, et elle n'est plus proposée pour ce produit
-  pendant cette épicerie. **Le prix** : « 2/ » = le prix divisé; au poids (« /lb », « le 100 g ») : vide (on attend l'étiquette).
+  pendant cette épicerie. **Le prix** : « 2/ » = le prix divisé; au poids (« /lb », « le 100 g ») : vide — sauf la viande emballée au magasin, dont le code donne le prix (2026-10-15).
 - **Sans code** : le PLU (le nom officiel dessous; l'aliment à qui ce PLU a déjà servi, sinon celui qui porte le même nom —
   « Pommes Fuji » → Pomme —, sinon un aliment neuf au nom officiel), **les habituels dans une barre fermée** (12 au plus, le plus
   fréquent en haut), l'entonnoir (« Nouveau produit… » au bout). Après OK, on **reste** dans Sans code (les fruits viennent
