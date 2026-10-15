@@ -982,6 +982,17 @@ const AJOUTS_NEUFS = {
 };
 const AVANT_NEUF = new WeakMap();                    // le menu avant « Nouveau… » : l'option choisie, et le nom qu'avait le champ
 /* La ligne de saisie d'un menu (juste après lui, ou après la ligne du menu et de son bouton scanner); le menu d'une ligne. */
+/* Mettre un nom dans un menu de liste (marque, saveur) : retrouvé (choisi), sinon posé comme un nom neuf (« Nouvelle… » le rouvre pour
+   le corriger). Sert Compléter et le tri (une page de Super C collée). */
+function choisirNomDans(sel, neuve, champ, nom) {
+  nom = String(nom || '').trim();
+  if (!nom || !sel) return;
+  const x = LISTES[CHOIX_FICHE[champ].liste].find(y => cleNom(y.nom) === cleNom(nom));
+  if (x) {
+    if (![...sel.options].some(o => o.value === x.id)) sel.insertAdjacentHTML('afterbegin', '<option value="' + esc(x.id) + '">' + esc(x.nom) + '</option>');
+    sel.value = x.id; majSaisie(sel);
+  } else { neuve.value = nom; poserNeuf(sel, ligneDe(sel), nom); }   // un nom neuf : choisi dans le menu, comme au + (il se corrige par « Nouvelle… »)
+}
 function ligneDe(sel) {
   const n = sel.nextElementSibling, p = sel.parentElement;
   if (n && n.classList.contains('saisie-neuve')) return n;
@@ -4118,13 +4129,57 @@ function etapeTri(rep) {
   const plusieurs = prods.length > 1 || /\sou\s|,/i.test(x.texte);   // « germes de haricot ou épinards » : « Un autre aliment »
   p.innerHTML = (TRI_PROPS.length ? '<div class="bloc bloc-suite" id="tri-props"><div class="label label-fort">Serait-ce celui-ci ?</div><div class="liste-blanche">' +
       TRI_PROPS.map((c, i) => htmlProposition(c, 'data-prop="' + i + '"')).join('') + '</div></div>' : '') +
-    '<div id="tri-entonnoirs">' + prods.map((q, i) => htmlEntonnoir(i)).join('') + '</div>' +
+    htmlPageTri(x) + '<div id="tri-entonnoirs">' + prods.map((q, i) => htmlEntonnoir(i)).join('') + '</div>' +
     (plusieurs ? '<button class="bouton bouton-petit bouton-pleine" type="button" data-tri-autre>Un autre aliment</button>' : '') +
     '<button class="bouton bouton-petit bouton-vert bouton-pleine' + (plusieurs ? ' bouton-suite' : '') + '" type="button" data-tri-ok>C\'est ça</button>' +
     '<div class="message message-repli message-erreur" id="tri-msg"></div>';
   // la proposition du coffre-fort — ou, pour corriger, ce qui avait été choisi
   prods.forEach((q, i) => remplirEntonnoir(i, q[0], q[1], q[2], i === 0 ? x : null));
   TRI_PROPS.forEach((c, i) => photoProposition(c, 'data-prop="' + i + '"'));
+}
+/* LA PAGE DE SUPER C, AU TRI (J-C, 2026-10-15 : « quand je complète, je peux copier la page de Super C qui contient le code-barres;
+   faudrait que je puisse faire ça aussi dans le tri »; B sur aperçu : comme dans Compléter). Un article de Super C ou de Metro sans
+   code : « Chercher chez Super C » (leur recherche, le nom de l'article), puis le texte de la page collé — il donne le CODE (le numéro
+   de produit) et remplit le 1er entonnoir : le rayon, l'aliment (un des siens dont tous les mots sont dans le nom), la marque.
+   « C'est ça » part alors avec ce code. Le format, lui, vient de la circulaire : le tri n'en a pas. */
+const RECHERCHES = { superc: 'https://www.superc.ca/recherche?filter=', metro: 'https://www.metro.ca/epicerie-en-ligne/recherche?filter=' };
+function rechercheEpicerie(mid) { const k = cleNom(nomListe(mid)); return Object.keys(RECHERCHES).find(c => k.indexOf(c) !== -1) || ''; }
+function htmlPageTri(x) {
+  if (x.code || !rechercheEpicerie(x.magasin)) return '';
+  return '<button class="bouton bouton-brun bouton-pleine" type="button" data-tri-chercher>Chercher chez ' + esc(nomListe(x.magasin)) + '</button>' +
+    '<div class="bloc"><div class="label">Colle le texte de la page</div><textarea class="champ" id="tri-page" placeholder="Du chemin du rayon jusqu\'au numéro de produit"></textarea>' +
+    '<div class="message message-repli" id="tri-lu"></div></div>';
+}
+function chercherPageTri() {
+  const x = articleOuvert(), site = x && RECHERCHES[rechercheEpicerie(x.magasin)];
+  if (site) window.open(site + encodeURIComponent(adoucir(x.texte)), '_blank');
+}
+function collerPageTri(texte) {
+  const p = panneauTri(), x = p && articleTri(p.dataset.art), m = $('tri-lu');
+  if (!x || !m || !$('tri-cat-0')) return;
+  delete p.dataset.codePage;
+  m.className = 'message message-repli';
+  const r = typeof lirePage === 'function' ? lirePage(texte) : {};   // lirePage : epicerie.js (la même lecture que Compléter)
+  if (!Object.keys(r).length) { m.textContent = texte.trim() ? 'Rien de lisible : as-tu copié le texte de la page ?' : ''; return; }
+  const lu = [], mots = r.nom ? motsTri(r.nom) : [];
+  const prod = mots.length ? PRODUITS.filter(q => (!r.scid || String(q.catId) === r.scid) && motsTri(q.nom).length && motsTri(q.nom).every(w => mots.indexOf(w) !== -1))
+    .sort((a, b) => motsTri(b.nom).length - motsTri(a.nom).length)[0] : null;   // le plus précis de ses aliments
+  const avant = PRODUITS.find(q => String(q.id) === $('tri-aliment-0').value);
+  const scid = prod ? String(prod.catId) : (r.scid || $('tri-souscat-0').value);
+  const rid = (scid && rayonDe(scid)) || r.rid || $('tri-cat-0').value;
+  const pid = prod ? String(prod.id) : (avant && String(avant.catId) === String(scid) ? String(avant.id) : '');   // rien de reconnu : l'aliment choisi reste, s'il est du même rayon
+  const marque = r.marque ? idListe('Marques', r.marque) : $('tri-marque-0').value, saveur = $('tri-saveur-0').value;
+  $('tri-cat-0').value = rid;
+  triSurCat(0, scid, pid, marque, saveur);
+  if (r.marque && !marque) choisirNomDans($('tri-marque-0'), $('tri-marque-neuve-0'), 'marque', r.marque);   // une marque neuve : choisie, comme au +
+  if (r.rid) lu.push('le rayon');
+  if (prod) lu.push('l\'aliment');
+  if (r.marque) lu.push('la marque');
+  if (r.code) p.dataset.codePage = formeCode(r.code);
+  const autre = mots.length && !motsTri(x.texte).some(w => mots.indexOf(w) !== -1);   // aucun mot en commun : la page d'un autre produit ?
+  m.className = 'message message-repli' + (autre || !r.code ? ' message-erreur' : '');
+  m.textContent = (lu.length ? 'Lu : ' + lu.join(', ') + '. ' : '') + (r.code ? 'Numéro de produit : ' + formeCode(r.code) + '.' : 'Pas de numéro de produit dans ce texte.') +
+    (r.nom && !prod ? ' Choisis l\'aliment.' : '') + (autre ? ' Attention : cette page ne semble pas être « ' + adoucir(x.texte) + ' ».' : '');
 }
 function htmlEntonnoir(i) {
   const choix = (champ, nom) => '<div class="bloc"><div class="label">' + nom + '</div><select class="champ" id="tri-' + champ + '-' + i + '" data-champ="' + champ + '" data-i="' + i + '"></select>' +
@@ -4233,7 +4288,8 @@ async function validerTri() {
     return { produitId: String(pid), marque: choixListeTri('marque', l.i), saveur: choixListeTri('saveur', l.i) };
   }).filter((q, k, t) => t.findIndex(z => z.produitId === q.produitId) === k);           // le même aliment deux fois : une seule
   // le code : celui de l'article (IGA : c'est lui, l'article); une correction garde celui du même aliment; sinon une proposition du même format
-  const code = x.code && (x.cle.indexOf(' ~ #') !== -1 || (produits.length === 1 && produits[0].produitId === String(x.produitId))) ? x.code : (p.dataset.code || '');
+  const code = x.code && (x.cle.indexOf(' ~ #') !== -1 || (produits.length === 1 && produits[0].produitId === String(x.produitId))) ? x.code
+    : (p.dataset.codePage || p.dataset.code || '');   // la page de Super C collée passe devant une proposition
   if (code || produits.length > 1) { trier([x], rep, { produits: produits, code: code }); return; }
   etapeCode(x, rep, produits);
 }
@@ -5103,6 +5159,7 @@ function initEntree() {
     const ci = ev.target.closest('[data-code-i]');         // le code : une proposition d'Open Food Facts, un PLU, ou « Aucun »
     if (ci) { choisirCode(Number(ci.dataset.codeI)); return; }
     if (ev.target.closest('[data-tri-autre]')) { ajouterEntonnoir(); return; }   // une ligne à plusieurs produits
+    if (ev.target.closest('[data-tri-chercher]')) { chercherPageTri(); return; }   // sa recherche chez Super C (ou Metro)
     const o = ev.target.closest('[data-ouvrir]');          // une épicerie (son logo), ou un rond : Oui, Peut-être, Jamais
     if (o) { vueTri(o.dataset.ouvrir); return; }
     if (ev.target.closest('.tri-panneau')) return;         // un menu, un champ : rien ne se referme
@@ -5112,6 +5169,7 @@ function initEntree() {
     if (tete && tete.parentElement.hasAttribute('data-vue')) { vueTri(''); return; }   // la bannière, la barre du rond : retour aux épiceries
     if (tete) { fermerArticleTri(); toggleAccordeon(tete); }
   });
+  $('liste-tri').addEventListener('input', ev => { if (ev.target.id === 'tri-page') collerPageTri(ev.target.value); });   // la page de Super C collée
   $('liste-tri').addEventListener('change', function (ev) {   // un entonnoir d'un article ouvert (data-i : lequel)
     const champ = ev.target.dataset.champ, i = Number(ev.target.dataset.i);
     if (!champ) return;
