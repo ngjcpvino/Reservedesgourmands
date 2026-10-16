@@ -116,17 +116,10 @@ async function montrerCouleurs() {
 function montrerQui() {
   toutCacher(); $('vue-qui').hidden = false; $('btn-burger').hidden = false; $('entete-photo').hidden = false;
   $('qui-nom').value = localStorage.getItem(QUI) || '';
-  $('qui-msg').className = 'message message-repli';
-  $('qui-msg').textContent = '';
 }
 function enregistrerQui() {
   const nom = $('qui-nom').value.trim();
-  const msg = $('qui-msg');
-  if (!nom) {                                   // un nom vide ne règle rien : on insiste
-    msg.className = 'message message-repli message-erreur';
-    msg.textContent = 'Écris ton nom.';
-    return;
-  }
+  if (!nom) { avis('Écris ton nom.', 'erreur'); return; }   // un nom vide ne règle rien : on insiste
   try { localStorage.setItem(QUI, nom); } catch (e) {}
   montrerAccueil();                             // le nom est posé : on passe à la suite
 }
@@ -184,7 +177,7 @@ function ordonnerFiche() {
   const ordre = modeManuel
     ? ['bloc-code', 'bloc-cat', 'bloc-souscat', 'bloc-produit', 'bloc-doublons', 'bloc-plu', 'bloc-nom', 'bloc-details', 'bloc-achat', 'bloc-endroits']
     : ['bloc-code', 'bloc-nom', 'bloc-doublons', 'bloc-details', 'bloc-achat', 'bloc-cat', 'bloc-souscat', 'bloc-produit', 'bloc-plu', 'bloc-endroits'];   // magasin + prix : juste sous le format
-  ordre.forEach(id => parent.insertBefore($(id), $('msg')));   // avant le message et les boutons du bas (le crochet et le X, dans leur grille)
+  ordre.forEach(id => parent.insertBefore($(id), $('btn-enregistrer').parentElement));   // avant les boutons du bas (le crochet et le X, dans leur grille)
 }
 
 /* Arrivée par le SCAN : ouvre la fiche en mode code, pose le code, lance la recherche. */
@@ -278,7 +271,7 @@ function surCodePese(code) {
 function revenirConnexion(msg) {
   toutCacher(); $('vue-connexion').hidden = false; $('entete-photo').hidden = false;
   if (msg) $('mdp').value = '';   // refusé : le champ se vide, on retape
-  $('msg-connexion').textContent = msg || '';
+  if (msg) avis(msg, 'erreur');                 // au centre, comme tous les messages (J-C, 2026-10-16 : « C'est une règle de base »)
 }
 
 async function entrer() {
@@ -299,7 +292,7 @@ async function chargerAvecChariot() {
 
 function deconnexion() {
   Coffre.oublier(); marquerPasAJour(false);   // plus connecté : plus rien à relire
-  $('mdp').value = ''; $('msg-connexion').textContent = '';
+  $('mdp').value = '';
   revenirConnexion();
 }
 
@@ -429,6 +422,12 @@ function avis(txt, type) {                 // type : 'avis' (défaut) · 'succes
   void t.offsetWidth;                                 // le navigateur prend acte de l'arrêt…
   t.classList.add('visible');                         // …puis le message paraît au centre, --toast-duree (au root), et s'efface seul
   if (type === 'erreur') noterErreur(txt);            // (une erreur, elle, reste : J-C, 2026-10-12 — et elle va au journal)
+}
+/* Ce qu'une carte a à dire pendant qu'on la remplit (« Il y en a 3. », « Il y est déjà. ») : au centre, comme tous les messages
+   (J-C, 2026-10-16 : « C'est une règle de base ») — une fois quand ça change, pas à chaque chiffre tapé. */
+function direCarte(carte, texte, type) {
+  if (texte && texte !== carte.dataset.dit) avis(texte, type);
+  carte.dataset.dit = texte || '';
 }
 
 /* ---------- LE JOURNAL DES ERREURS (J-C, 2026-10-12 : « un message d'erreur que je n'ai pas pu lire au complet… fais un onglet dans
@@ -1418,11 +1417,10 @@ function dateDuJour() {
 }
 
 /* ---------- Enregistrer ---------- */
+/* Un message de la fiche : au centre, comme tous les messages (J-C, 2026-10-16 : « C'est une règle de base »); une erreur va au
+   journal (avis). Sans genre (« Enregistrement… ») : rien — le chariot le dit déjà. */
 function statut(txt, type) {
-  const m = $('msg');
-  m.className = 'message' + (type ? ' message-' + type : '');
-  m.textContent = txt;
-  if (type === 'erreur') noterErreur(txt);
+  if (txt && type) avis(txt, type);
 }
 
 async function enregistrer() {
@@ -1714,7 +1712,7 @@ function remplirPieces() {
 async function montrerPieces() {
   toutCacher(); $('vue-pieces').hidden = false; $('btn-burger').hidden = false;
   $('liste-pieces').innerHTML = '';                // on arrive : tout fermé
-  $('piece-nouvelle').value = ''; $('pieces-msg').className = 'message message-repli'; $('pieces-msg').textContent = '';
+  $('piece-nouvelle').value = '';
   if (!PIECES.length && !MEUBLES.length) {         // pas encore chargé → on charge (même patron que les bases)
     $('liste-pieces').innerHTML = '<div class="texte-petit texte-pale">Chargement…</div>';
     await chargerReferences();
@@ -1736,12 +1734,11 @@ function choisirCouleurLieu(id, num) {
 /* Ajouter une pièce : le nom, puis Ajouter (ou Entrée). Un nom déjà pris ne crée rien.
    Un échec relit la réserve : si la pièce a été créée quand même, elle paraît, et le 2e essai ne la double pas. */
 async function ajouterPiece() {
-  const champ = $('piece-nouvelle'), msg = $('pieces-msg'), btn = $('btn-piece-ajouter');
+  const champ = $('piece-nouvelle'), btn = $('btn-piece-ajouter');
   const nom = champ.value.trim();
-  msg.className = 'message message-repli'; msg.textContent = '';
   if (!nom || btn.disabled) return;
   const deja = PIECES.find(p => cleNom(p.nom) === cleNom(nom));
-  if (deja) { msg.className = 'message message-repli message-erreur'; msg.textContent = '« ' + deja.nom + ' » existe déjà.'; return; }
+  if (deja) { avis('« ' + deja.nom + ' » existe déjà.', 'erreur'); return; }
   btn.disabled = true; montrerVoile(true);
   try {
     // Emplacements : ID · Nom · ParentID (le SECTEUR : c'est une pièce) · SecteurID · Actif · Couleur
@@ -1752,7 +1749,7 @@ async function ajouterPiece() {
     champ.value = '';
     remplirPieces();
   } catch (e) {
-    msg.className = 'message message-repli message-erreur'; msg.textContent = 'Pièce pas ajoutée — réessaie.';
+    avis('Pièce pas ajoutée — réessaie.', 'erreur');
     chargerReferences().then(() => { if (!$('vue-pieces').hidden) remplirPieces(); });
   } finally { btn.disabled = false; montrerVoile(false); }
 }
@@ -2261,7 +2258,6 @@ async function montrerPageNoms(cle) {
   $('vue-noms').dataset.page = cle;
   $('noms-ajout').hidden = !pageNoms.gere;
   $('nom-nouveau').value = ''; if (pageNoms.gere) $('nom-nouveau').placeholder = pageNoms.neuve || CHOIX_FICHE[pageNoms.choix].neuve;
-  $('noms-msg').className = 'message message-repli'; $('noms-msg').textContent = '';
   if (!RAYONS.length) {                            // pas encore chargé → on charge (même patron que les bases)
     $('liste-noms').innerHTML = '<div class="texte-petit texte-pale">Chargement…</div>';
     await chargerReferences();
@@ -2272,19 +2268,18 @@ async function montrerPageNoms(cle) {
    si le nom a été créé quand même, il paraît, et le 2e essai ne le double pas. */
 async function ajouterNom() {
   if (pageNoms.unites) { ajouterUnite(); return; }
-  const champ = $('nom-nouveau'), msg = $('noms-msg'), btn = $('btn-nom-ajouter');
+  const champ = $('nom-nouveau'), btn = $('btn-nom-ajouter');
   const nom = champ.value.trim();
-  msg.className = 'message message-repli'; msg.textContent = '';
   if (!nom || btn.disabled || !pageNoms.gere) return;
   const deja = LISTES.Magasins.find(m => cleNom(m.nom) === cleNom(nom));
-  if (deja) { msg.className = 'message message-repli message-erreur'; msg.textContent = '« ' + deja.nom + ' » existe déjà.'; return; }
+  if (deja) { avis('« ' + deja.nom + ' » existe déjà.', 'erreur'); return; }
   btn.disabled = true; montrerVoile(true);
   try {
     await creerMagasin(nom);
     champ.value = '';
     remplirPageNoms();
   } catch (e) {
-    msg.className = 'message message-repli message-erreur'; msg.textContent = 'Pas ajouté — réessaie.';
+    avis('Pas ajouté — réessaie.', 'erreur');
     chargerReferences().then(() => { if (!$('vue-noms').hidden) remplirPageNoms(); });
   } finally { btn.disabled = false; montrerVoile(false); }
 }
@@ -2346,11 +2341,10 @@ const rangUnite = nom => { const c = lireCache(); return ((c && c.listes && c.li
 /* « Nouvelle unité… » + Ajouter (ou Entrée) : un nom qui existe déjà (sans accent ni majuscule : « ml » = « mL ») ne crée rien; une
    unité retirée du même nom revient. Sous le chariot, comme un magasin : un échec relit la réserve (le 2e essai ne double rien). */
 async function ajouterUnite() {
-  const champ = $('nom-nouveau'), msg = $('noms-msg'), btn = $('btn-nom-ajouter'), nom = champ.value.trim();
-  msg.className = 'message message-repli'; msg.textContent = '';
+  const champ = $('nom-nouveau'), btn = $('btn-nom-ajouter'), nom = champ.value.trim();
   if (!nom || btn.disabled) return;
   const deja = unitesConnues().find(u => cleNom(u) === cleNom(nom));
-  if (deja) { msg.className = 'message message-repli message-erreur'; msg.textContent = '« ' + deja + ' » existe déjà.'; return; }
+  if (deja) { avis('« ' + deja + ' » existe déjà.', 'erreur'); return; }
   const c = lireCache(), ancien = ((c && c.listes && c.listes.Unites) || []).find(r => String(r[2]) === 'N' && cleNom(r[1]) === cleNom(nom));
   btn.disabled = true; montrerVoile(true);
   try {
@@ -2364,7 +2358,7 @@ async function ajouterUnite() {
     remplirPageUnites();
     avis('Unité ajoutée : ' + nom, 'succes');
   } catch (e) {
-    msg.className = 'message message-repli message-erreur'; msg.textContent = 'Pas ajoutée — réessaie.';
+    avis('Pas ajoutée — réessaie.', 'erreur');
     chargerReferences().then(() => { if (!$('vue-noms').hidden) remplirPageNoms(); });
   } finally { btn.disabled = false; montrerVoile(false); }
 }
@@ -2615,9 +2609,8 @@ function ouvrirLot(btn) {
     const emp = cible(), q = combien(), m = carte.querySelector('.message'), oui = carte.querySelector('.lot-oui');
     const ok = !!emp && q > 0 && q <= lot.qte;
     const les = q > 1 ? 'les ' + q : 'le ' + q;
-    m.className = 'message';
-    if (q > lot.qte) { m.className = 'message message-erreur'; m.textContent = 'Il y en a ' + lot.qte + ' à ranger.'; }
-    else if (!ok) m.textContent = '';
+    direCarte(carte, q > lot.qte ? 'Il y en a ' + lot.qte + ' à ranger.' : '', 'erreur');
+    if (!ok) m.textContent = '';
     else m.textContent = 'Ranger ' + les + ' à ' + libelleEndroit(emp) + ' ?' + (q < lot.qte ? ' (' + (lot.qte - q) + ' attendront)' : '');
     oui.hidden = !ok;
   };
@@ -2830,7 +2823,7 @@ function ouvrirActionInventaire(btn) {
     (conso ? '<div class="bloc inv-bloc-format" hidden><div class="label">Format</div><select class="champ inv-format"></select></div>' : htmlChoixEndroit()) +
     htmlQuantite() +
     (conso ? '<label class="case-ligne inv-pas-aime"><input class="case" type="checkbox"><span>Ne pas racheter</span></label>' : '') +
-    '<div class="message"></div>' + (conso ? htmlBoutonsConso('inv') : htmlBoutonsDeplacer('inv'));
+    (conso ? htmlBoutonsConso('inv') : htmlBoutonsDeplacer('inv'));
   item.after(carte);                                     // la ligne reste visible : on voit combien il y en a
   const lot = () => lots[carte.querySelector('.inv-de') ? Number(carte.querySelector('.inv-de').value) : 0];
   const parts = () => partsDuLot(lot());
@@ -2854,10 +2847,10 @@ function ouvrirActionInventaire(btn) {
     verifier();
   };
   const verifier = () => {
-    const q = combien(), m = carte.querySelector('.message'), emp = cible();
+    const q = combien(), emp = cible();
     const ok = q > 0 && q <= maxi() && (conso || (!!emp && emp !== lot().emp));
-    m.className = q > maxi() ? 'message message-erreur' : 'message';
-    m.textContent = q > maxi() ? 'Il y en a ' + maxi() + '.' : (!conso && emp && emp === lot().emp ? 'Il y est déjà.' : '');
+    if (q > maxi()) direCarte(carte, 'Il y en a ' + maxi() + '.', 'erreur');
+    else direCarte(carte, !conso && emp && emp === lot().emp ? 'Il y est déjà.' : '');
     carte.querySelectorAll('.inv-oui, .inv-jeter').forEach(b => { b.hidden = !ok; });
   };
   carte.addEventListener('input', verifier);
@@ -3231,19 +3224,17 @@ function ouvrirDeplacement(cle) {
   carte.className = 'endroit carte niveau-3';
   carte.innerHTML = htmlChoixEndroit() +
     htmlQuantite() +
-    '<div class="message"></div>' + htmlBoutonsDeplacer('bouger');
+    htmlBoutonsDeplacer('bouger');
   item.after(carte);                                  // la ligne reste visible : on voit combien il y en a
   brancherEndroit(carte, vers ? resoudreEmp(vers) : null);
   brancherPlusMoins(carte, lot.qte);
   const cible = () => carte.querySelector('.espace').value || carte.querySelector('.meuble').value;
   const combien = () => parseInt(carte.querySelector('.qte').value, 10) || 0;
   const verifier = () => {
-    const emp = cible(), q = combien(), m = carte.querySelector('.message');
+    const emp = cible(), q = combien();
     const ok = !!emp && emp !== lot.emp && q > 0 && q <= lot.qte;
-    m.className = 'message';
-    if (q > lot.qte) { m.className = 'message message-erreur'; m.textContent = 'Il y en a ' + lot.qte + ' ici.'; }
-    else if (!emp || emp !== lot.emp) m.textContent = '';
-    else m.textContent = 'C\'est déjà ici : choisis un autre endroit.';
+    if (q > lot.qte) direCarte(carte, 'Il y en a ' + lot.qte + ' ici.', 'erreur');
+    else direCarte(carte, emp && emp === lot.emp ? 'C\'est déjà ici : choisis un autre endroit.' : '');
     carte.querySelector('.bouger-oui').hidden = !ok;
   };
   carte.addEventListener('change', verifier);
@@ -3355,15 +3346,14 @@ function ouvrirConsommation(cle) {
   carte.className = 'endroit carte niveau-3';
   carte.innerHTML = htmlQuantite() +
     (pas ? '' : '<label class="case-ligne"><input class="case pas-aime" type="checkbox"><span>Ne pas racheter</span></label>') +
-    '<div class="message"></div>' + htmlBoutonsConso('conso');
+    htmlBoutonsConso('conso');
   item.after(carte);
   brancherPlusMoins(carte, p.qte);
   const combien = () => parseInt(carte.querySelector('.qte').value, 10) || 0;
   const verifier = () => {
-    const q = combien(), m = carte.querySelector('.message');
+    const q = combien();
     const ok = q > 0 && q <= p.qte;
-    m.className = ok ? 'message' : 'message message-erreur';
-    m.textContent = ok || !q ? '' : 'Il y en a ' + p.qte + '.';
+    direCarte(carte, ok || !q ? '' : 'Il y en a ' + p.qte + '.', 'erreur');
     carte.querySelectorAll('.conso-oui, .conso-jeter').forEach(b => { b.hidden = !ok; });
   };
   carte.addEventListener('input', verifier);
@@ -3550,11 +3540,11 @@ async function expedierGestes() {
       if (r && r.ok || definitif) ecrireAttenteGestes(lireAttenteGestes().filter(x => x.opId !== e.opId));
       if (definitif) { relire = true; avis('Un changement a été refusé — la réserve est relue', 'erreur'); }
       else if (!(r && r.ok)) {
-        // CHAQUE ÉCHEC DIT POURQUOI (J-C, 2026-10-08, au tri : « ça dit souvent pas encore enregistré », sans raison) : dans le message,
-        // et écrit en tête de la page Circulaires tant que la file ne passe pas (3 s, c'est trop court pour lire une raison)
+        // CHAQUE ÉCHEC DIT POURQUOI (J-C, 2026-10-08, au tri : « ça dit souvent pas encore enregistré », sans raison) : dans le message
+        // rouge, au centre, qui reste jusqu'au toucher — une fois par série d'échecs
         const deja = !!GESTE_ECHEC;                        // un échec déjà dit : le message rouge (qui reste jusqu'au toucher) ne revient pas à chaque geste
         poserEchecGeste('Pas encore enregistré (' + (raison || (r && r.erreur) || 'pas de réponse') + ') — ça repartira tout seul');
-        if (!deja) avis(GESTE_ECHEC, 'erreur');            // (J-C, 2026-10-15 : au tri, il revenait à chaque article; la raison reste écrite en tête de Circulaires)
+        if (!deja) avis(GESTE_ECHEC, 'erreur');            // (J-C, 2026-10-15 : au tri, il revenait à chaque article)
         break;
       }
       file = lireAttenteGestes();
@@ -3854,7 +3844,7 @@ async function montrerCirculaires(article) {
   // Comme la réserve (chargerData) : jusqu'à 5 essais, chaque essai plus patient, et sous le chariot ce qu'il fait — une seule lecture
   // de 12 s ne suffisait plus (J-C, 2026-10-07, capture à l'appui : « Circulaires pas lues », deux fois de suite, sans raison).
   // Le coffre-fort qui répond non (r.erreur) : réessayer n'y changerait rien. Qui plante (e.plante) : on réessaie — Google a ses ratés passagers.
-  // Un échec reste ÉCRIT en tête de la page avec sa raison (TRI_ECHEC) : 3 s de message, c'est trop court pour lire une erreur.
+  // Un échec : sa raison au centre, en rouge, jusqu'à ce qu'on la touche (comme tous les messages : J-C, 2026-10-16).
   let r = null, raison = '';
   for (let i = 0; i < ESSAIS_LECTURE.length && !(r && r.ok) && !(r && r.erreur); i++) {
     if (i) await new Promise(res => setTimeout(res, 1000 * i));
@@ -3867,8 +3857,7 @@ async function montrerCirculaires(article) {
   if ($('vue-circulaires').hidden) return;          // parti ailleurs entre-temps
   if (r && r.ok) poserTriLu(r);
   else {
-    TRI_ECHEC = 'Circulaires pas lues : ' + (r && r.erreur ? r.erreur : raison || 'pas de réponse');   // la raison exacte, du coffre-fort ou du réseau
-    avis('Circulaires pas lues', 'erreur');
+    avis('Circulaires pas lues : ' + (r && r.erreur ? r.erreur : raison || 'pas de réponse'), 'erreur');   // la raison exacte, du coffre-fort ou du réseau
   }
   if (article && r && r.ok) ouvrirTriArticle(article);
   else remplirTri();                               // (pas relues : ce qu'on avait, s'il y a lieu, sous la raison)
@@ -3876,7 +3865,7 @@ async function montrerCirculaires(article) {
 /* Ce que lireTri a rendu devient TRI : les tris en route y sont reposés, ses marques et saveurs retenues, le point rouge suit, et
    les réponses sont gardées sur l'appareil (Gérer les bases → Aliments les montre sans attendre). */
 function poserTriLu(r) {
-  TRI = { aTrier: r.aTrier || [], tri: r.tri || [] }; TRI_ECHEC = ''; TRI_LU = Date.now();
+  TRI = { aTrier: r.aTrier || [], tri: r.tri || [] }; TRI_LU = Date.now();
   lireAttenteGestes().forEach(e => { if (e.action === 'trier') appliquerTri(e, TRI); });   // un tri en route reste fait
   retenirSortesTri(TRI.tri);                       // ses marques et saveurs, proposées ensuite pour l'aliment
   noterNbATrier(TRI.aTrier.length);
@@ -3925,13 +3914,8 @@ function revenirAuxAliments() {
   fermerArticleTri();
   montrerPageAliments(o);
 }
-var TRI_ECHEC = '';                                  // la dernière lecture des circulaires a raté : pourquoi (écrit en tête de la page)
-var GESTE_ECHEC = '';                                // le dernier envoi d'un geste a raté : pourquoi (en tête de la page Circulaires, jusqu'à ce que la file passe)
-function poserEchecGeste(t) {
-  GESTE_ECHEC = t;
-  const el = $('tri-geste-echec');                   // mis à jour sur place : redessiner fermerait l'article qu'on est en train de trier
-  if (el) { el.textContent = t; el.hidden = !t; }
-}
+var GESTE_ECHEC = '';                                // le dernier envoi d'un geste a raté : pourquoi (dit une fois au centre, jusqu'à ce que la file passe)
+function poserEchecGeste(t) { GESTE_ECHEC = t; }
 /* D, E, F d'une ligne de Tri : un ou plusieurs aliments (une ligne à plusieurs produits), séparés par des virgules. */
 const morceaux = v => String(v == null ? '' : v).split(',');
 /* Une catégorie de la page : une des siennes, sinon « Autres ». */
@@ -4084,9 +4068,7 @@ const RONDS_TRI = [['O', 'Oui', 'rond-oui'], ['P', 'Peut-être', 'rond-peutetre'
 function remplirTri() {
   const cible = $('liste-tri');
   montrer('circulaires-retour', true);               // l'article ouvert disparaît avec la liste : la flèche de la page revient
-  const echec = (TRI_ECHEC ? '<div class="message message-erreur">' + esc(TRI_ECHEC) + '</div>' : '') +   // la raison d'une lecture ratée, en tête
-    '<div class="message message-erreur" id="tri-geste-echec"' + (GESTE_ECHEC ? '' : ' hidden') + '>' + esc(GESTE_ECHEC) + '</div>';   // et celle d'un tri pas encore parti
-  if (!TRI) { cible.innerHTML = echec + (TRI_ECHEC ? '' : '<div class="texte-petit texte-pale">Circulaires pas lues — réessaie dans un instant.</div>'); return; }
+  if (!TRI) { cible.innerHTML = '<div class="texte-petit texte-pale">Circulaires pas lues — réessaie dans un instant.</div>'; return; }   // la raison : dite au centre
   const tG = cible.querySelector('[data-groupe] > .accordeon-tete.ouvert'), groupe = tG ? tG.parentElement.dataset.groupe : '';
   const parTexte = (a, b) => String(a).localeCompare(String(b), 'fr');
   const vide = t => '<div class="accordeon-item"><span class="texte-petit texte-pale">' + t + '</span></div>';
@@ -4098,17 +4080,17 @@ function remplirTri() {
     const m = TRI_VUE.slice(2), ici = aTrier.filter(x => x.magasin === m), logo = styleLogo(m), t = teinteMagasin(m);
     const tete = logo ? '<div class="accordeon-tete ouvert banniere"><span class="logo"' + logo + ' aria-label="' + esc(nomListe(m)) + '"></span></div>'
                       : '<div class="accordeon-tete ouvert' + t.pale + '"' + t.style + '><span>' + esc(nomListe(m)) + '</span></div>';
-    cible.innerHTML = echec + ouverte('', tete, ici.length ? htmlGroupesTri(ici, x => x.categorie, x => ligneTri('a:' + x.cle, x.texte, detailATrier(x))) : vide('Rien à trier cette semaine.'));
+    cible.innerHTML = ouverte('', tete, ici.length ? htmlGroupesTri(ici, x => x.categorie, x => ligneTri('a:' + x.cle, x.texte, detailATrier(x))) : vide('Rien à trier cette semaine.'));
   } else if (TRI_VUE.slice(0, 2) === 'b:') {
     const b = TRI_VUE.slice(2), rond = RONDS_TRI.find(r => r[0] === b) || RONDS_TRI[0], reps = b === 'J' ? ['J', 'M'] : [b];
     const vus = {}, rs = TRI.tri.filter(r => reps.indexOf(String(r[2])) !== -1 && !vus[cleDoublon(r)] && (vus[cleDoublon(r)] = 1))
       .sort((x, y) => parTexte(x[9] || x[1], y[9] || y[1]));
-    cible.innerHTML = echec + ouverte(' tri-' + { O: 'oui', P: 'peutetre', J: 'jamais' }[b], '<div class="accordeon-tete ouvert"><span>' + rond[1] + '</span></div>',
+    cible.innerHTML = ouverte(' tri-' + { O: 'oui', P: 'peutetre', J: 'jamais' }[b], '<div class="accordeon-tete ouvert"><span>' + rond[1] + '</span></div>',
       rs.length ? htmlGroupesTri(rs, categorieLigneTri, r => ligneTri('r:' + r[0], r[9] || r[1], detailTri(r))) : vide('Rien pour l\'instant.'));
   } else {
     // les épiceries dont la circulaire est lue : celles qui ont quelque chose à trier d'abord (IGA, qui donne ses codes, en tête), puis les autres
     const avec = ordreMagasins(aTrier), sans = LISTES.Magasins.filter(x => x.circ !== false && !x.introuvable && avec.indexOf(String(x.id)) === -1).map(x => String(x.id));
-    cible.innerHTML = echec + '<div class="grille">' +
+    cible.innerHTML = '<div class="grille">' +
       avec.concat(sans).map(m => tuileMagasin(m, 'data-ouvrir="m:' + esc(m) + '"', avec.indexOf(m) !== -1 ? 'point-rouge' : '')).join('') + '</div>' +
       '<div class="ronds">' + RONDS_TRI.map(r => '<button class="bouton rond ' + r[2] + '" type="button" data-ouvrir="b:' + r[0] + '" aria-label="' + r[1] + '"></button>').join('') + '</div>';
     return;
@@ -4312,7 +4294,6 @@ function etapeTri(rep) {
 }
 function htmlEtapesTri(x, n) {
   const sup = !x.code && rechercheEpicerie(x.magasin);
-  const place = '<div class="tri-msg-place"></div>';
   // les boutons d'une étape (la ligne directrice, RdG-11) : des icônes, au niveau 3 (le panneau), chacun la couleur de son action
   const bouton = (action, icone, nom, attr) => '<button class="bouton bouton-grand" type="button" data-action="' + action + '" ' + attr + ' aria-label="' + esc(nom) + '"><span class="icone ' + icone + '"></span></button>';
   const fleche = '<button class="bouton bouton-grand bouton-or" type="button" data-tri-recul aria-label="Revenir"><span class="icone icone-revenir"></span></button>';
@@ -4326,29 +4307,27 @@ function htmlEtapesTri(x, n) {
         TRI_PROPS.map((c, i) => htmlProposition(c, 'data-prop="' + i + '"')).join('') + (sup ? '' : ligneAucun('data-prop="-1"')) + '</div>' : '') +
       (sup ? grille(tuileMagasin(x.magasin, 'data-tri-chercher aria-label="' + esc('Chercher chez ' + nomListe(x.magasin)) + '"'),   // son logo : sa recherche
                     bouton('coller', 'icone-coller', 'Coller la page', 'data-tri-coller')) +
-             '<div class="message">Sur sa page : Partager → Copier pour la Réserve, puis reviens ici.</div>' + place +
+             '<div class="message">Sur sa page : Partager → Copier pour la Réserve, puis reviens ici.</div>' +
              '<textarea class="champ bloc-suite" id="tri-page" placeholder="Colle le texte de la page ici" hidden></textarea>' +
              grille(fleche, bouton('sans', 'icone-avant', 'Sans la page', 'data-tri-sans'))
-           : place + grille(fleche, annuler)) + '</div>';
+           : grille(fleche, annuler)) + '</div>';
   }
   h += '<div data-pas="lu" hidden><div class="tri-tete"></div><div class="liste-blanche bloc-suite" id="tri-lu"></div>' +
-    place + grille(fleche, annuler, bouton('oui', 'icone-oui', 'Oui, c\'est ça', 'data-tri-suivant')) + '</div>';
+    grille(fleche, annuler, bouton('oui', 'icone-oui', 'Oui, c\'est ça', 'data-tri-suivant')) + '</div>';
   h += '<div data-pas="aliment" hidden><div class="tri-tete"></div><div id="tri-repris"></div>' +
     '<div class="bloc-suite" id="tri-entonnoirs">' + Array.from({ length: n }, (v, i) => htmlEntonnoir(i)).join('') + '</div>' +
     (plusieurs ? '<div class="grille bloc-suite">' + bouton('ajouter', 'icone-plus', 'Un autre aliment', 'data-tri-autre') + '</div>' : '') +
-    place + grille(fleche, annuler, bouton('oui', 'icone-oui', 'C\'est ça', 'data-tri-ok')) + '</div>';   // le crochet devient la flèche vers l'avant (Suivant) quand « Lequel est-ce ? » suit
+    grille(fleche, annuler, bouton('oui', 'icone-oui', 'C\'est ça', 'data-tri-ok')) + '</div>';   // le crochet devient la flèche vers l'avant (Suivant) quand « Lequel est-ce ? » suit
   h += '<div data-pas="lequel" hidden><div class="tri-tete"></div><div id="tri-lequel"></div>' + grille(fleche, annuler) + '</div>';
-  return h + '<div class="message message-repli message-erreur" id="tri-msg"></div>';
+  return h;
 }
-/* Une étape à la fois : ses points, son titre; le message d'erreur se pose au-dessus de ses boutons. */
+/* Une étape à la fois : ses points, son titre (un message paraît au centre, comme tous les messages). */
 function allerEtapeTri(pas) {
   const p = panneauTri();
   if (!p || !p.querySelector('[data-pas="' + pas + '"]')) return;
   p.dataset.ici = pas;
   p.querySelectorAll('[data-pas]').forEach(e => { e.hidden = e.dataset.pas !== pas; });
   montrer('circulaires-retour', pas === 'feu');     // au feu, la flèche de la page referme l'article; ensuite, celle de l'étape recule
-  const m = $('tri-msg'), place = p.querySelector('[data-pas="' + pas + '"] .tri-msg-place');
-  if (m) { m.textContent = ''; if (place) place.appendChild(m); }
   if (pas === 'lu') remplirLuTri();
   majTeteTri();
   window.scrollTo(0, 0);
@@ -4395,15 +4374,15 @@ function chercherPageTri() {
 async function collerTri() {
   const p = panneauTri(), t = await lirePressePapiers();
   if (!p || panneauTri() !== p) return;
-  if (t == null) { montrer('tri-page', true); $('tri-page').focus(); $('tri-msg').textContent = 'Colle le texte de la page dans la case.'; return; }
-  if (!t.trim()) { $('tri-msg').textContent = 'Rien à coller : sur sa page, Partager → Copier pour la Réserve.'; return; }
+  if (t == null) { montrer('tri-page', true); $('tri-page').focus(); avis('Colle le texte de la page dans la case.', 'erreur'); return; }
+  if (!t.trim()) { avis('Rien à coller : sur sa page, Partager → Copier pour la Réserve.', 'erreur'); return; }
   collerPageTri(t);
 }
 function collerPageTri(texte) {
   const p = panneauTri(), x = p && articleTri(p.dataset.art);
   if (!x || !$('tri-cat-0') || !String(texte || '').trim()) return;
   const r = typeof lirePage === 'function' ? lirePage(texte) : {};   // lirePage : epicerie.js (la même lecture que Compléter)
-  if (!r || !Object.keys(r).length) { $('tri-msg').textContent = 'Rien de lisible : as-tu copié la page avec « Copier pour la Réserve » ?'; return; }
+  if (!r || !Object.keys(r).length) { avis('Rien de lisible : as-tu copié la page avec « Copier pour la Réserve » ?', 'erreur'); return; }
   const mots = r.nom ? motsTri(r.nom) : [];
   const prod = mots.length ? PRODUITS.filter(q => (!r.scid || String(q.catId) === r.scid) && motsTri(q.nom).length && motsTri(q.nom).every(w => mots.indexOf(w) !== -1))
     .sort((a, b) => motsTri(b.nom).length - motsTri(a.nom).length)[0] : null;   // le plus précis de ses aliments
@@ -4543,7 +4522,7 @@ async function validerTri() {
   const p = panneauTri(), x = p && articleTri(p.dataset.art), rep = p && p.dataset.rep;
   if (!x || (rep !== 'O' && rep !== 'P') || !$('tri-aliment-0')) return;
   if (!await poserCatsTapees(p) || panneauTri() !== p) return;     // une catégorie tapée sans le + : créée d'abord
-  const msg = t => { $('tri-msg').textContent = t; };
+  const msg = t => avis(t, 'erreur');            // au centre, comme tous les messages
   const n = p.querySelectorAll('select[data-champ="cat"]').length, lus = [];
   for (let i = 0; i < n; i++) {
     if (i > 0 && !$('tri-cat-' + i).value) continue;            // un aliment de plus laissé vide : ignoré
@@ -4701,7 +4680,7 @@ function ouvrirAjoutAchat() {
   msgAchat(nomScanne ? 'Nouveau : « ' + nomScanne + ' ». Choisis sa catégorie et sa sous-catégorie.' : '');
 }
 function fermerAjoutAchat() { montrer('achats-ajout', false); montrer('achats-page', true); nomScanne = ''; msgAchat(''); }
-function msgAchat(txt, erreur) { $('achats-msg').className = 'message message-repli' + (erreur ? ' message-erreur' : ''); $('achats-msg').textContent = txt; }
+function msgAchat(txt, erreur) { if (txt) avis(txt, erreur ? 'erreur' : 'avis'); }   // au centre, comme tous les messages (J-C, 2026-10-16 : « C'est une règle de base »)
 function surAchatCat() {
   const rid = $('achat-cat').value, ok = vraieCat(rid);
   majSaisie($('achat-cat'), true);                 // « Nouvelle catégorie… » : son nom à la place du menu

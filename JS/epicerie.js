@@ -19,7 +19,7 @@ var EPI_HABITUELS = [];      // les habituels sans code affichés (Sans code)
 var EPI_SANS = '';           // Sans code : 'habituels', 'entonnoir', ou '' (les deux boutons)
 var epiJeton = 0;            // un code qui cherche encore quand on passe à autre chose : sa réponse ne compte plus
 const EPI_CACHE_CIRC = 'rdg_circ_epicerie';   // { magasin, jour, lignes } : rouvrir la même épicerie le même jour = instantané
-const EPI_CAMERA = { video: 'epi-video', msg: 'epi-msg', lu: c => surCodeEpicerie(c) };
+const EPI_CAMERA = { video: 'epi-video', lu: c => surCodeEpicerie(c) };
 
 /* ---------- 1. L'épicerie ---------- */
 function montrerEpiceries() {
@@ -27,7 +27,7 @@ function montrerEpiceries() {
   EPI = null; EPI_CARTE = null; epiJeton++;
   titreEpicerie("Toute l'épicerie", 'epicerie');
   montrer('epi-choix', true); montrer('epi-scan', false); montrer('epi-completer', false);   // Compléter vu juste avant (le + → Compléter → Retour → les deux sacs) ne reste pas dessous
-  $('epi-magasin-neuf').value = ''; $('epi-magasin-msg').className = 'message message-repli'; $('epi-magasin-msg').textContent = '';
+  $('epi-magasin-neuf').value = '';
   fermerListesVides();
   remplirEpiceries();
   window.scrollTo(0, 0);
@@ -61,9 +61,8 @@ function remplirEpiceries() {
 /* « Nouveau magasin… » (J-C, 2026-10-09 : « dans les 2 sacs, faudrait pouvoir ajouter un magasin ») : créé comme dans Gérer les
    bases → Magasins (sa circulaire à Oui), puis ouvert tout de suite pour scanner — on l'ajoute parce qu'on y est. Un nom déjà là : lui. */
 async function ajouterEpicerie() {
-  const champ = $('epi-magasin-neuf'), msg = $('epi-magasin-msg'), btn = $('btn-epi-magasin');
+  const champ = $('epi-magasin-neuf'), btn = $('btn-epi-magasin');
   const nom = champ.value.trim();
-  msg.className = 'message message-repli'; msg.textContent = '';
   if (!nom || btn.disabled) return;
   const deja = LISTES.Magasins.find(m => cleNom(m.nom) === cleNom(nom));
   let id = deja ? String(deja.id) : '';
@@ -71,7 +70,7 @@ async function ajouterEpicerie() {
     btn.disabled = true; montrerVoile(true);
     try { id = await creerMagasin(nom); }
     catch (e) {
-      msg.className = 'message message-repli message-erreur'; msg.textContent = 'Pas ajouté — réessaie.';
+      avis('Pas ajouté — réessaie.', 'erreur');
       chargerReferences().then(() => { if (!$('vue-epicerie').hidden && !$('epi-choix').hidden) remplirEpiceries(); });   // créé quand même ? il paraît
       return;
     } finally { btn.disabled = false; montrerVoile(false); }
@@ -307,7 +306,7 @@ function htmlLigneCirc(l, attr) {
 function htmlPoids() {
   return '<div class="bloc bloc-detache"><div class="label">Poids</div><div class="poids">' +
     '<input class="champ" type="text" inputmode="decimal" autocomplete="off" enterkeyhint="done" data-poids>' +
-    '<span class="poids-unite">kg</span></div><div class="message message-erreur message-repli" data-poids-msg></div></div>';
+    '<span class="poids-unite">kg</span></div></div>';
 }
 function textePrixLigne(l) { const u = String(l.unite || '').trim(); return textePrix(l.prix) + (u ? (u[0] === '/' ? '' : ' ') + u : ''); }
 /* Le prix payé, d'après la circulaire : « 2 pour 7 $ » = 3,50 chacun (J-C); au poids (« /lb », « le 100 g ») : le paquet a son
@@ -367,7 +366,7 @@ function validerCarte(rep) {
   if (!a || !EPI || !carte || !carte.querySelector('.qte, [data-poids]')) return;
   const champPoids = carte.querySelector('[data-poids]'), poids = champPoids ? lirePoids(champPoids.value) : '';
   if (poids === null) {                                  // « 1022 » : des grammes ? un poids se tape en kilos
-    carte.querySelector('[data-poids-msg]').textContent = 'Le poids en kilos : 1,022, par exemple.';
+    avis('Le poids en kilos : 1,022, par exemple.', 'erreur');   // au centre, comme tous les messages
     champPoids.focus(); return;
   }
   const qte = champPoids ? 1 : Math.max(1, parseInt(carte.querySelector('.qte').value, 10) || 1);
@@ -500,7 +499,7 @@ function montrerSansSeul(quoi) {
     $('scan-titre').innerHTML = '<span class="icone icone-produit"></span>Entrer un article'; $('vue-scan').dataset.page = 'produit';   // comme montrerScanner
   }
   SEUL_SANS = quoi;
-  ['scan-video', 'scan-msg', 'scan-choix'].forEach(id => montrer(id, false));
+  ['scan-video', 'scan-choix'].forEach(id => montrer(id, false));
   $('vue-scan').querySelectorAll('.saisie-neuve[data-ajout="code"]').forEach(l => { l.hidden = true; });
   montrer('scan-sans', true);
   $('scan-sans-choix').querySelectorAll('[data-sans]').forEach(b => { b.hidden = !!quoi && b.dataset.sans !== quoi; });
@@ -685,9 +684,9 @@ function ouvrirLotCompleter(btn) {
   const question = () => {
     const emp = cible(), q = combien(), m = carte.querySelector('.message'), oui = carte.querySelector('.lot-oui');
     const ok = !!emp && emp !== lot.emp && q > 0 && q <= lot.qte;
-    m.className = 'message';
-    if (q > lot.qte) { m.className = 'message message-erreur'; m.textContent = 'Il y en a ' + lot.qte + '.'; }
-    else if (!ok) m.textContent = emp && emp === lot.emp ? 'Il y est déjà.' : '';
+    if (q > lot.qte) direCarte(carte, 'Il y en a ' + lot.qte + '.', 'erreur');
+    else direCarte(carte, !ok && emp && emp === lot.emp ? 'Il y est déjà.' : '');
+    if (!ok) m.textContent = '';
     else m.textContent = 'Ranger ' + (q > 1 ? 'les ' + q : 'le ' + q) + ' à ' + libelleEndroit(emp) + ' ?' + (q < lot.qte ? ' (' + (lot.qte - q) + (lot.qte - q > 1 ? ' restent où ils sont)' : ' reste où il est)') : '');
     oui.hidden = !ok;
   };
@@ -796,7 +795,7 @@ function htmlPanneau(lot) {
   const fleche = '<button class="bouton bouton-grand bouton-or" type="button" data-cp-recul aria-label="Revenir"><span class="icone icone-revenir"></span></button>';
   const annuler = boutonCarte('non', 'icone-non', 'Annuler', 'data-cp-annuler');
   const suivant = attr => boutonCarte('suivant', 'icone-avant', 'Suivant', attr);
-  const bas = (...b) => '<div class="cp-msg-place"></div><div class="grille' + (b.length > 2 ? ' grille-trois' : '') + ' bloc-suite">' + b.join('') + '</div>';
+  const bas = (...b) => '<div class="grille' + (b.length > 2 ? ' grille-trois' : '') + ' bloc-suite">' + b.join('') + '</div>';
   const sc = LISTES.Magasins.find(m => cleNom(nomListe(m.id)).indexOf('superc') !== -1);   // « Voir chez Super C » : son logo
   const voir = sc ? tuileMagasin(sc.id, 'data-cp-voir aria-label="Voir chez Super C"')
                   : '<button class="bouton bouton-grand tuile-nom" type="button" data-cp-voir aria-label="Voir chez Super C">Super C</button>';
@@ -833,8 +832,7 @@ function htmlPanneau(lot) {
     '<div data-etape="4" hidden>' + tete(4, 'Où il est rangé') +
       '<div class="bloc-suite" id="cp-endroits"></div><div class="grille bloc-suite">' + boutonCarte('ajouter', 'icone-plus', 'Un autre endroit', 'data-cp-endroit') + '</div>' +   // un ou plusieurs endroits, comme la fiche (J-C : « la répartition doit pouvoir se faire là aussi »)
       bas(fleche, annuler, boutonCarte('oui', 'icone-oui', 'C\'est fait', 'data-cp-ok')) +
-    '</div>' +
-    '<div class="message message-repli message-erreur" id="cp-msg"></div></div>';
+    '</div></div>';
 }
 /* Une étape à la fois; le message d'erreur se pose au-dessus de ses boutons. */
 function allerEtape(n) {
@@ -842,11 +840,8 @@ function allerEtape(n) {
   if (!P) return;
   P.etape = n;
   carte.querySelectorAll('[data-etape]').forEach(e => { e.hidden = Number(e.dataset.etape) !== n; });
-  $('cp-msg').textContent = '';
   if (n === 2) montrerEtape2();
   if (n === 3) majCirculairePanneau();
-  const place = [...carte.querySelectorAll('[data-etape="' + n + '"] .cp-msg-place')].find(x => !x.closest('[hidden]'));
-  if (place) place.appendChild($('cp-msg'));
   window.scrollTo(0, 0);
 }
 /* L'étape 2 : ce qui a été lu (la page collée), Oui / Corriger — ou, sans la page (ou pour corriger), la marque, le format, le prix. */
@@ -856,8 +851,6 @@ function montrerEtape2() {
   montrer('cp-champs', !lu); montrer('cp-bas-champs', !lu);
   $('cp-titre-2').textContent = P.lu ? 'Ce que l\'app a lu' : 'Marque, format, prix';
   if (lu) remplirLu();
-  const place = [...$('completer-produit').querySelectorAll('[data-etape="2"] .cp-msg-place')].find(x => !x.closest('[hidden]'));
-  if (place) place.appendChild($('cp-msg'));
 }
 /* Ce que l'app a lu, tel que ce sera enregistré (les champs remplis par la page) : le nom français et la photo de Super C, la marque,
    le format, le rayon, le prix, le numéro de produit — le bon (vert) ou pas celui scanné (rouge). */
@@ -896,16 +889,16 @@ async function collerDuPressePapiers() {
   if (!PANNEAU) return;
   if (t == null) {
     montrer('cp-texte', true); $('cp-texte').focus();
-    $('cp-msg').textContent = 'Colle le texte de la page dans la case.';
+    avis('Colle le texte de la page dans la case.', 'erreur');
     return;
   }
-  if (!t.trim()) { $('cp-msg').textContent = 'Rien à coller : sur sa page, Partager → Copier pour la Réserve.'; return; }
+  if (!t.trim()) { avis('Rien à coller : sur sa page, Partager → Copier pour la Réserve.', 'erreur'); return; }
   lireLaPage(t);
 }
 function lireLaPage(t) {
   if (!PANNEAU || !String(t || '').trim()) return;
   const r = collerPage(t);
-  if (!r) { $('cp-msg').textContent = 'Rien de lisible : as-tu copié la page avec « Copier pour la Réserve » ?'; return; }
+  if (!r) { avis('Rien de lisible : as-tu copié la page avec « Copier pour la Réserve » ?', 'erreur'); return; }
   PANNEAU.lu = r; PANNEAU.corriger = false;
   allerEtape(2);
 }
@@ -918,20 +911,20 @@ function reculerEtape() {
 }
 /* Suivant (ou Oui, c'est ça) : ce que l'étape demande, puis la suivante. */
 async function suivantEtape() {
-  const P = PANNEAU, msg = $('cp-msg');
+  const P = PANNEAU, msg = t => avis(t, 'erreur');   // au centre, comme tous les messages
   if (!P) return;
   if (P.etape === 2) {
     const t = $('cp-prix').value.trim(), n = Number(t.replace(/\s*\$\s*/, '').replace(',', '.'));
-    if (t && !(isFinite(n) && n >= 0)) { P.corriger = true; montrerEtape2(); msg.textContent = 'Le prix : un nombre (« 2,49 »).'; return; }
+    if (t && !(isFinite(n) && n >= 0)) { P.corriger = true; montrerEtape2(); msg('Le prix : un nombre (« 2,49 »).'); return; }
     allerEtape(3);
     return;
   }
   if (P.etape === 3) {
     if (!await poserCatsTapees($('completer-produit')) || PANNEAU !== P) return;   // une catégorie tapée sans le + : créée d'abord
     const manque = manqueEntonnoir($('cp-cat').value, $('cp-souscat').value);
-    if (manque) { msg.textContent = manque; return; }
+    if (manque) { msg(manque); return; }
     const v = $('cp-aliment').value;
-    if (!v || (v === 'nouveau' && !$('cp-nom').value.trim())) { msg.textContent = 'Choisis l\'aliment, ou nomme le nouveau.'; return; }
+    if (!v || (v === 'nouveau' && !$('cp-nom').value.trim())) { msg('Choisis l\'aliment, ou nomme le nouveau.'); return; }
     allerEtape(4);
   }
 }
@@ -1143,21 +1136,21 @@ function collerPage(texte) {
 }
 /* « C'est ça » : l'aliment (catégorie, nom — ou réuni à l'aliment choisi), puis les lignes du lot (marque, saveur, format, prix). */
 async function validerProduit() {
-  const P = PANNEAU, msg = $('cp-msg');
+  const P = PANNEAU, msg = t => avis(t, 'erreur');   // au centre, comme tous les messages
   if (!P) return;
   if (!await poserCatsTapees($('epi-completer')) || PANNEAU !== P) return;   // une catégorie tapée sans le + : créée d'abord
   const lot = P.lot, scid = $('cp-souscat').value, v = $('cp-aliment').value, nom = $('cp-nom').value.trim();
   const manque = manqueEntonnoir($('cp-cat').value, scid);
-  if (manque) { msg.textContent = manque; return; }
-  if (!v || (v === 'nouveau' && !nom)) { msg.textContent = 'Choisis l\'aliment, ou nomme le nouveau.'; return; }
+  if (manque) { msg(manque); return; }
+  if (!v || (v === 'nouveau' && !nom)) { msg('Choisis l\'aliment, ou nomme le nouveau.'); return; }
   const prixTxt = $('cp-prix').value.trim(), prixNb = Number(prixTxt.replace(/\s*\$\s*/, '').replace(',', '.'));
-  if (prixTxt && !(isFinite(prixNb) && prixNb >= 0)) { msg.textContent = 'Le prix : un nombre (« 2,49 »).'; return; }
+  if (prixTxt && !(isFinite(prixNb) && prixNb >= 0)) { msg('Le prix : un nombre (« 2,49 »).'); return; }
   const marque = choixPanneau('marque'), saveur = choixPanneau('saveur'), format = formatPanneau();
   const endroits = [...document.querySelectorAll('#cp-endroits .endroit')].map(c => ({ emp: c.querySelector('.espace').value || c.querySelector('.meuble').value,
     q: parseInt(c.querySelector('.qte').value, 10) || 0 })).filter(e => e.q > 0);
   const total = endroits.reduce((s, e) => s + e.q, 0);
-  if (total > lot.qte) { msg.textContent = 'Il y en a ' + lot.qte + '.'; return; }
-  if (endroits.length > 1 && endroits.some(e => !e.emp)) { msg.textContent = 'Choisis où va chaque quantité.'; return; }
+  if (total > lot.qte) { msg('Il y en a ' + lot.qte + '.'); return; }
+  if (endroits.length > 1 && endroits.some(e => !e.emp)) { msg('Choisis où va chaque quantité.'); return; }
   const ventes = endroits.filter(e => e.emp && e.emp !== lot.emp);   // ce qui change de place; le reste reste où il est
   let cible = lot.pid;
   const c = lireCache(), p = PRODUITS.find(x => String(x.id) === lot.pid);

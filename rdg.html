@@ -94,7 +94,6 @@
       <input class="champ" id="mdp" type="password" autocomplete="current-password" placeholder="Mot de passe">
     </div>
     <button class="bouton bouton-pleine bouton-large" data-action="entrer" id="btn-entrer" type="button" aria-label="Entrer"><span class="icone icone-porte"></span></button>   <!-- la flèche qui entre par la porte (RdG-11) -->
-    <div class="message message-repli message-erreur" id="msg-connexion"></div>
   </div>
 </div>
 
@@ -149,7 +148,6 @@
           <input class="champ" id="achat-nom" autocomplete="off" enterkeyhint="done" placeholder="Nouvel aliment…"><button class="retirer" type="button" aria-label="Laisser tomber"></button><button class="ajouter" type="button" aria-label="Ajouter"></button>
         </div>
       </div>
-      <div class="message message-repli" id="achats-msg"></div>
       <div class="grille bloc-suite">
         <button class="bouton bouton-grand" data-action="oui" id="achat-ok" type="button" aria-label="Mettre sur la liste"><span class="icone icone-oui"></span></button>
         <button class="bouton bouton-grand" data-action="non" id="achat-annuler" type="button" aria-label="Annuler"><span class="icone icone-non"></span></button>
@@ -198,7 +196,6 @@
   <div class="entete"><div class="titre titre-action" id="scan-titre"><span class="icone icone-produit"></span>Entrer un article</div></div>   <!-- le titre de la page d'où l'on vient, son icône et sa couleur (montrerScanner : data-page) -->
   <div class="contenu niveau-2">
     <video class="scan-video" id="scan-video" playsinline muted></video>
-    <div class="message message-repli" id="scan-msg"></div>
     <div class="grille bloc-suite" id="scan-choix" hidden>   <!-- le sac seul : un code que la caméra ne lit pas, et l'entonnoir (comme les deux sacs) -->
       <button class="bouton bouton-grand" id="scan-taper" type="button" data-scan="taper" data-taper aria-label="Taper le code"><span class="icone icone-taper"></span></button>
       <button class="bouton bouton-grand" id="scan-sans-code" type="button" data-scan="sans-code" aria-label="Sans code"><span class="icone icone-sans-code"></span></button>
@@ -230,13 +227,11 @@
         <input class="champ" id="epi-magasin-neuf" autocomplete="off" enterkeyhint="done" placeholder="Nouveau magasin…">
         <button class="ajouter" id="btn-epi-magasin" type="button" aria-label="Ajouter"></button>
       </div>
-      <div class="message message-repli" id="epi-magasin-msg"></div>
       <button class="bouton bouton-or bouton-pleine bouton-detache bouton-large" id="epi-choix-retour" type="button" aria-label="Retour"><span class="icone icone-revenir"></span></button>   <!-- un pas en arrière (le +) : la flèche « revenir » -->
     </div>
     <div id="epi-scan" hidden>
       <div id="epi-camera">
         <video class="scan-video" id="epi-video" playsinline muted></video>
-        <div class="message message-repli" id="epi-msg"></div>
         <div class="grille bloc-suite">
           <button class="bouton bouton-grand" type="button" data-scan="taper" data-taper aria-label="Taper le code"><span class="icone icone-taper"></span></button>
           <button class="bouton bouton-grand" id="epi-sans-code" type="button" data-scan="sans-code" aria-label="Sans code"><span class="icone icone-sans-code"></span></button>
@@ -429,7 +424,6 @@
       </div>
     </div>
 
-    <div class="message" id="msg"></div>
     <div class="grille bloc-detache niveau-3">   <!-- le crochet (Enregistrer) et le X (Annuler), sur une ligne -->
       <button class="bouton bouton-grand" data-action="oui" id="btn-enregistrer" type="button" aria-label="Enregistrer" hidden><span class="icone icone-oui"></span></button>
       <button class="bouton bouton-grand" data-action="non" id="btn-annuler" type="button" aria-label="Annuler"><span class="icone icone-non"></span></button>
@@ -450,7 +444,6 @@
       <input class="champ" id="piece-nouvelle" autocomplete="off" enterkeyhint="done" placeholder="Nouvelle pièce…">
       <button class="ajouter" id="btn-piece-ajouter" type="button" aria-label="Ajouter"></button>
     </div>
-    <div class="message message-repli" id="pieces-msg"></div>
     <button class="bouton bouton-or bouton-pleine bouton-detache bouton-large" id="pieces-retour" type="button" aria-label="Retour"><span class="icone icone-revenir"></span></button>   <!-- un pas en arrière : la grille des bases -->
   </div>
 </div>
@@ -504,7 +497,6 @@
       <input class="champ" id="nom-nouveau" autocomplete="off" enterkeyhint="done">
       <button class="ajouter" id="btn-nom-ajouter" type="button" aria-label="Ajouter"></button>
     </div>
-    <div class="message message-repli" id="noms-msg"></div>
     <button class="bouton bouton-or bouton-pleine bouton-detache bouton-large" id="noms-retour" type="button" aria-label="Retour"><span class="icone icone-revenir"></span></button>   <!-- un pas en arrière : la grille des bases -->
   </div>
 </div>
@@ -543,18 +535,17 @@
       <input class="champ" id="qui-nom" autocomplete="off" placeholder="Inscrire son nom">
     </div>
     <button class="bouton bouton-pleine bouton-large" data-action="entrer" id="btn-qui-enr" type="button" aria-label="Entrer"><span class="icone icone-porte"></span></button>
-    <div class="message message-repli" id="qui-msg"></div>
   </div>
 </div>
 
 </div><!-- fin du conteneur -->
 
 <script src="JS/coffre.js?v=21"></script>
-<script src="JS/entree.js?v=216"></script>
+<script src="JS/entree.js?v=217"></script>
 <script src="JS/bientot.js?v=6"></script>
 <script src="JS/prix.js?v=9"></script>
-<script src="JS/epicerie.js?v=39"></script>
+<script src="JS/epicerie.js?v=40"></script>
 <script src="JS/off.js?v=9"></script>
-<script src="JS/scan.js?v=22"></script>
+<script src="JS/scan.js?v=23"></script>
 </body>
 </html>

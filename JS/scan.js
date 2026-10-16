@@ -16,7 +16,9 @@
   var MEME_CODE_MS = 2500;   // après « OK », le même code encore sous la caméra ne compte pas tout de suite (sinon : +1 de trop)
 
   function el(id) { return document.getElementById(id); }
-  function msg(t) { var m = el(continu ? continu.msg : 'scan-msg'); if (m) m.textContent = t || ''; }
+  // Un ennui de la caméra : au centre, comme tous les messages (J-C, 2026-10-16 : « C'est une règle de base »). « Démarrage de la caméra… »
+  // et « Lu : … » ne disaient rien d'utile (la caméra se voit, la carte ou la fiche suit) : retirés.
+  function msg(t) { if (t && typeof avis === 'function') avis(t, 'erreur'); }
 
   /* Charge le moteur WASM à la demande (pas au chargement de la page). */
   async function chargerLib() {
@@ -41,10 +43,9 @@
     el('vue-scan').dataset.page = (mode && mode.page) || 'produit';
     var b = el('btn-burger'); if (b) b.hidden = false;
     el('scan-choix').hidden = !(mode && typeof mode.sansCode === 'function');   // le sac seul : « Taper le code » et « Sans code » sous la caméra
-    el('scan-video').hidden = false; el('scan-msg').hidden = false;   // le sac seul revient de Sans code : la caméra reprend sa place
+    el('scan-video').hidden = false;             // le sac seul revient de Sans code : la caméra reprend sa place
     var sans = el('scan-sans'); if (sans) sans.hidden = true;
     fermerTaper();
-    msg('Démarrage de la caméra…');
     await demarrer('scan-video');
   }
 
@@ -54,14 +55,13 @@
     arreter();
     continu = m; mode = null; dernierLu = ''; repriseA = 0;
     fermerTaper();
-    msg('Démarrage de la caméra…');
     await demarrer(m.video);
   }
   function reprendreScan(m) {
     if (!continu) { if (m) scanContinu(m); return; }   // la caméra a été fermée entre-temps (l'app en arrière-plan) : on la rouvre
     if (scanning) return;
     if (!stream) { scanContinu(continu); return; }   // la caméra s'est fermée (l'app est passée en arrière-plan) : on la rouvre
-    repriseA = Date.now(); msg('');
+    repriseA = Date.now();
     scanning = true;
     boucle();
   }
@@ -86,7 +86,6 @@
     try { await video.play(); } catch (e) {}
     if (!(await chargerLib())) return;
     if (!canvas) { canvas = document.createElement('canvas'); ctx = canvas.getContext('2d', { willReadFrequently: true }); }
-    msg('');                                     // la caméra est prête : rien à dire (J-C, 2026-10-13 : « Vise un code-barres… », pas utile)
     scanning = true;
     boucle();
   }
@@ -128,12 +127,11 @@
     if (typeof lirePese === 'function') code = lirePese(code);   // un paquet pesé au magasin (la viande) : sa clé, le prix lu à côté
     if (continu) {                               // toute l'épicerie : la caméra reste ouverte, la lecture attend l'article suivant
       scanning = false; if (timer) { clearTimeout(timer); timer = null; }
-      dernierLu = lu; msg('');
+      dernierLu = lu;
       continu.lu(code);
       return;
     }
     arreter();                                   // on tient un code : on coupe la caméra
-    msg('Lu : ' + lu);
     if (mode) { mode.lu(code); return; }         // -> la recherche
     ouvrirFicheScan(code);                       // -> la fiche (mode code)
   }
@@ -189,7 +187,7 @@
   function codeTape(l, nom) {
     var c = String(nom || '').replace(/[\s-]/g, '');
     if (!/^[0-9]{4,14}$/.test(c)) {
-      var m = el(l.closest('#vue-epicerie') ? 'epi-msg' : 'scan-msg'); if (m) m.textContent = 'Un code, c’est 4 à 14 chiffres.';
+      msg('Un code, c’est 4 à 14 chiffres.');
       l.querySelector('input').focus(); return;
     }
     fermerTaper();
