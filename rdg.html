@@ -10,7 +10,7 @@
   <!-- Ecran d'accueil iPad : le meme sac, en PNG (iOS n'accepte pas le SVG ici) -->
   <link rel="apple-touch-icon" href="apple-touch-icon.png?v=2">
 
-<link rel="stylesheet" href="CSS/rdg.css?v=180">
+<link rel="stylesheet" href="CSS/rdg.css?v=181">
 </head>
 <body>
 
@@ -195,7 +195,7 @@
 <div id="vue-scan" hidden>
   <div class="entete"><div class="titre titre-action" id="scan-titre"><span class="icone icone-produit"></span>Entrer un article</div></div>   <!-- le titre de la page d'où l'on vient, son icône et sa couleur (montrerScanner : data-page) -->
   <div class="contenu niveau-2">
-    <video class="scan-video" id="scan-video" playsinline muted></video>
+    <div class="scan-cadre" id="scan-cadre"><video class="scan-video" id="scan-video" playsinline muted></video></div>   <!-- le cadre garde la forme; la vidéo le remplit, quelle que soit la forme de la caméra -->
     <div class="grille bloc-suite" id="scan-choix" hidden>   <!-- le sac seul : un code que la caméra ne lit pas, et l'entonnoir (comme les deux sacs) -->
       <button class="bouton bouton-grand" id="scan-taper" type="button" data-scan="taper" data-taper aria-label="Taper le code"><span class="icone icone-taper"></span></button>
       <button class="bouton bouton-grand" id="scan-sans-code" type="button" data-scan="sans-code" aria-label="Sans code"><span class="icone icone-sans-code"></span></button>
@@ -231,7 +231,7 @@
     </div>
     <div id="epi-scan" hidden>
       <div id="epi-camera">
-        <video class="scan-video" id="epi-video" playsinline muted></video>
+        <div class="scan-cadre"><video class="scan-video" id="epi-video" playsinline muted></video></div>
         <div class="grille bloc-suite">
           <button class="bouton bouton-grand" type="button" data-scan="taper" data-taper aria-label="Taper le code"><span class="icone icone-taper"></span></button>
           <button class="bouton bouton-grand" id="epi-sans-code" type="button" data-scan="sans-code" aria-label="Sans code"><span class="icone icone-sans-code"></span></button>
@@ -544,8 +544,8 @@
 <script src="JS/entree.js?v=218"></script>
 <script src="JS/bientot.js?v=6"></script>
 <script src="JS/prix.js?v=9"></script>
-<script src="JS/epicerie.js?v=40"></script>
+<script src="JS/epicerie.js?v=41"></script>
 <script src="JS/off.js?v=9"></script>
-<script src="JS/scan.js?v=23"></script>
+<script src="JS/scan.js?v=24"></script>
 </body>
 </html>

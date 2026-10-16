@@ -696,13 +696,21 @@ select.champ {
   background-position: right var(--espace-m) center;
 }
 
-/* L'image du scan — ce que la camera montre */
-.scan-video {
-  display: block;             /* sinon un jour sous la video s'ajoute a l'ecart */
-  width: 100%;
-  height: auto;
-  aspect-ratio: var(--scan-forme);   /* sa forme à elle : sinon iOS garde la forme debout de la caméra */
+/* L'image du scan — ce que la camera montre. Sa FORME est celle du cadre, jamais celle de la vidéo (J-C, 2026-10-16 : « l'espace
+   pour la caméra ne devrait jamais changer de format » — posée sur la vidéo elle-même, la forme cédait sur l'iPhone à celle de la
+   caméra, debout ou couchée) : le cadre a sa forme, la vidéo le remplit et se rogne. */
+.scan-cadre {
+  position: relative;
+  aspect-ratio: var(--scan-forme);
   background: var(--couleur-903);
+  border-radius: var(--rayon-video);
+}
+.scan-video {
+  position: absolute;
+  inset: 0;
+  display: block;
+  width: 100%;
+  height: 100%;
   border-radius: var(--rayon-video);
   object-fit: cover;
 }

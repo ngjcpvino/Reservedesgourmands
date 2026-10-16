@@ -499,7 +499,7 @@ function montrerSansSeul(quoi) {
     $('scan-titre').innerHTML = '<span class="icone icone-produit"></span>Entrer un article'; $('vue-scan').dataset.page = 'produit';   // comme montrerScanner
   }
   SEUL_SANS = quoi;
-  ['scan-video', 'scan-choix'].forEach(id => montrer(id, false));
+  ['scan-cadre', 'scan-choix'].forEach(id => montrer(id, false));
   $('vue-scan').querySelectorAll('.saisie-neuve[data-ajout="code"]').forEach(l => { l.hidden = true; });
   montrer('scan-sans', true);
   $('scan-sans-choix').querySelectorAll('[data-sans]').forEach(b => { b.hidden = !!quoi && b.dataset.sans !== quoi; });
