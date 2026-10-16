@@ -173,7 +173,7 @@ Principes structurels non négociables (détail dans `RdG-00`) : rien de fixe (l
 >
 > 68. **Suivant et Sans la page : la même flèche vers l'avant, seule la couleur change** (verte = Suivant, blanche = Sans la page; `RdG-11`, décision 11) — à revoir à l'usage, si J-C les confond.
 >
-> 69. ~~**Le titre des pages, trop gros pour son icône**~~ ✅ 2026-10-16 (J-C : « le titre est trop gros par rapport à l'icône qui est devant »; D sur aperçu parmi 28 / 24 / 22 / 20, et l'icône plus grosse) : le texte à **20** (`--titre-action-taille`), l'icône reste à 34; pas encore testé en ligne (T92).
+> 69. ~~**Le titre des pages, trop gros pour son icône**~~ ✅ 2026-10-16 (J-C : « le titre est trop gros par rapport à l'icône qui est devant »; D sur aperçu parmi 28 / 24 / 22 / 20, et l'icône plus grosse) : le texte à **20** (`--titre-action-taille`), l'icône reste à 34; **testé OK en ligne par J-C le même jour** (T92).
 >
 > ⚠️ `docs/collection territoire.md` n'est **pas** de la Réserve (une collection de savons, Univers Caresse) : rangé là par erreur, n'y rien toucher.
 
