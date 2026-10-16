@@ -79,4 +79,9 @@
   presque de la même taille que le menu (44 px, au plus petit).
 - Le 607 de Catégories est doré, près de l'or du Retour.
 - Suivant / Sans la page (la même flèche) : à revoir à l'usage (décision 11).
-- **La suite** : essayer la ligne au complet sur une page (aperçu final), puis l'appliquer page par page.
+- **L'aperçu final de la Liste d'achats, envoyé le 2026-10-16** (`scratchpad/apercu-final/fait.py`), en cinq moments : 1 en arrivant
+  (le titre D, les trois actions au niveau 2, la maison de la même hauteur, aucune barre) · 2 après Par catégorie (Par épicerie
+  disparaît, les catégories, la flèche) · 3 une catégorie ouverte · 4 après Par épicerie (les tuiles, elles aussi au niveau 2 :
+  proposé par Claude) · 5 Ajouter à la liste (niveau 3 : le crochet et le X sur une ligne). **Son avis à venir.** ⚠️ Vu sur
+  l'aperçu : **Par épicerie (802) et le + (803) sont deux bleus presque pareils, côte à côte.**
+- **La suite** : l'appliquer à la Liste d'achats, puis page par page.
