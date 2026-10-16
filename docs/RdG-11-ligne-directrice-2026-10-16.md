@@ -40,4 +40,9 @@
 - **L'iPhone** : les boutons du menu y sont déjà au plancher (`--bouton-grand-haut`, 50 px) : les niveaux 2 et 3 y seront
   presque de la même taille que le menu (44 px, au plus petit).
 - Le 607 de Catégories est doré, près de l'or du Retour.
-- Les autres sortes : les barres, Oui / Non (deux façons), les boutons à texte (Annuler, C'est ça…), les pastilles…
+- **Oui / Non** — aujourd'hui **trois façons** : petits, le Oui rouge au milieu de la ligne (retirer : `ouiNon()`); petits, le Oui
+  vert (réunir : `demanderReunion()`; un lot, en deux demis); normaux, Oui vert et Non brun, en deux demis dessous (« L'associer à ce
+  produit ? » : le scan, Compléter). **Aperçu envoyé le 2026-10-16** (`scratchpad/apercu-ouinon/fait.py`) : **A** petits, à droite de
+  la question, Oui vert / Non blanc, partout · **B** comme A, le Oui qui retire en rouge · **C** deux demi-boutons sous la question, à
+  la taille du niveau 3, Oui vert / Non blanc · **D** en icônes, le crochet vert / le X blanc, petits, à droite. **Son choix à venir.**
+- Les autres sortes : les barres, les boutons à texte (Annuler, C'est ça…), les pastilles…
