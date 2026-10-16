@@ -42,6 +42,9 @@
    **À regarder à part** (une chose précise) : Voir chez Super C, Chercher chez…, Coller la page, Sans la page, Plus tard, Corriger,
    Suivant, Réessayer, Envoyer à Open Food Facts, L'ajouter, Scanner un autre, Un autre aliment, + un autre endroit, Choisir un
    endroit, Escale, Retirer, Enlever, Entrer, et les gestes du menu écrits en mots sur une carte : Consommer, Déplacer, Jeter, Ouvrir.
+9. **Les gestes du menu, sur une carte, prennent leur icône et leur couleur du menu** (J-C : « Oui ») : Consommer = la fourchette et
+   le couteau, rouge (401); Déplacer = les deux flèches, vert (702); Ouvrir = le biscuit croqué, bleu pâle (801); **Jeter = la
+   poubelle** (beige, la couleur des petites actions sans bouton au menu).
 
 ## 3. Ouvert
 
