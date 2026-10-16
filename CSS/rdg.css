@@ -323,7 +323,7 @@
   --icone-trait:       var(--couleur-105);   /* le trait des icônes : crème */
   --icone-trait-pale:  var(--couleur-306);   /* sur un bouton pâle : brun, sinon le dessin disparaît */
   --icone-deux-forme:  835 / 600;   /* la proportion de l'icône « deux sacs » : plus large que haute */
-  --icone-part-n:      0.6;    /* sur un gros bouton, le dessin suit la hauteur : 60 % de son dedans… */
+  --icone-part-n:      0.9;    /* sur un gros bouton, le dessin suit la hauteur : 90 % de son dedans… (J-C, 2026-10-16, D sur aperçu parmi 60 / 70 / 80 / 90 : à 60, sur l'iPhone, « les icônes sont trop petites »; les rectangles, eux, sont bons) */
   --icone-part:        calc(var(--icone-part-n) * 100%);
 
   /* ---- Spinner : un chariot d'épicerie qui traverse l'écran (change de dessin par secteur) ---- */
@@ -557,8 +557,8 @@ body:has(.sur-photo:not([hidden]))::before { display: none; }
 .bouton-petit > .icone { width: var(--icone-reponse); height: var(--icone-reponse); }   /* le crochet et le X d'une question */
 .bouton-pleine > .icone { width: var(--icone-pleine); height: var(--icone-pleine); }    /* … ceux d'un bouton de toute la largeur (le Retour : la règle juste dessous, plus loin, l'emporte) */
 .bouton-grand .icone, .grille + .bouton .icone, .bouton-large .icone { height: var(--icone-part); width: auto; aspect-ratio: 1; }   /* le dessin grandit avec le bouton (la maison du Retour d'Ajouter, la flèche du scan aussi) */
-/* … et jamais moins que 60 % de sa hauteur minimale : un bouton étroit (trois sur une ligne, ou deux au niveau 2 ou 3 sur l'iPhone)
-   prend sa hauteur minimale, que Safari ne compte pas dans le 60 % — le dessin rapetissait à presque rien (J-C, 2026-10-16, la carte
+/* … et jamais moins que cette part de sa hauteur minimale : un bouton étroit (trois sur une ligne, ou deux au niveau 2 ou 3 sur l'iPhone)
+   prend sa hauteur minimale, que Safari ne compte pas dans la part — le dessin rapetissait à presque rien (J-C, 2026-10-16, la carte
    de Consommer : « les icônes sont minuscules »). */
 :is(.bouton-grand, .grille + .bouton, .bouton-large) :is(.icone, .logo-off) {
   --icone-min: calc((max(var(--tactile), calc(var(--bouton-grand-haut) * var(--niveau))) - 2 * var(--espace-xs)) * var(--icone-part-n));
