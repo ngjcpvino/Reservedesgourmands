@@ -1370,6 +1370,25 @@ select.champ {
   transition: transform var(--transition-menu) ease-in-out;
 }
 .menu.ouvert .menu-contenu { transform: translateY(0); }
+/* Le menu ouvert sur une page de travail (J-C, 2026-10-16 : « la photo blanchie, j'aimerais l'avoir à 100 % comme au début ») :
+   l'en-tête photo se pose par-dessus la page, à la même place qu'à l'accueil (le cadre blanc, la photo nette, le titre), le temps
+   du menu; elle paraît et s'efface en fondu, pendant que la page s'efface et revient (photoDuMenu() dans entree.js). */
+body.menu-sur-page #entete-photo {
+  position: fixed;
+  top: calc(var(--haut-ecran) + var(--alerte-haut));
+  bottom: 0;
+  left: 50%;
+  transform: translateX(-50%);
+  width: min(100%, var(--largeur-max));
+  display: flex;
+  flex-direction: column;
+  padding-bottom: var(--espace-xl);
+  background: var(--couleur-101);
+  animation: apparait var(--transition-menu) ease-in-out;
+}
+body.menu-sur-page #entete-photo .entete-photo { flex: 1; height: auto; }
+body.menu-sur-page-sort #entete-photo { opacity: 0; animation: none; transition: opacity var(--transition-menu) ease-in-out; }
+@keyframes apparait { from { opacity: 0; } to { opacity: 1; } }
 body.menu-ouvert { overflow: hidden; }                          /* rien ne défile derrière */
 .conteneur > [id^="vue-"] { transition: opacity var(--transition-menu) ease-in-out; }
 body.menu-ouvert .conteneur > [id^="vue-"] { opacity: 0; pointer-events: none; }   /* menu ouvert : la page consultée s'efface, on ne la voit plus derrière */        

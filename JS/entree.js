@@ -310,7 +310,30 @@ function fermerMenu() {                 // la page redescend ; Outils se replie 
   document.body.classList.remove('menu-ouvert');
   $('btn-burger').classList.remove('ouvert');
   montrerGrilleMenu('principal');
+  photoDuMenu(false);
   placerTitre();
+}
+/* Le menu ouvert sur une page de travail : la photo NETTE, comme au début (J-C, 2026-10-16 : « la photo est blanchie, j'aimerais
+   l'avoir à 100 % comme au début ») — l'en-tête photo (et le titre) se pose par-dessus la page le temps du menu (body.menu-sur-page),
+   et s'efface avec lui (menu-sur-page-sort, --transition-menu). Un changement d'écran (toutCacher, qui a déjà caché l'en-tête) :
+   tout de suite, sans fondu. Sur l'accueil et le + la photo est déjà là : rien à faire. */
+let photoMenuMinuterie = 0;
+function photoDuMenu(oui) {
+  const b = document.body, e = $('entete-photo');
+  clearTimeout(photoMenuMinuterie);
+  if (oui) {
+    if (b.classList.contains('menu-sur-page')) { b.classList.remove('menu-sur-page-sort'); return; }   // rouvert pendant qu'elle s'effaçait
+    if (!e.hidden) return;
+    b.classList.add('menu-sur-page'); e.hidden = false;
+    return;
+  }
+  if (!b.classList.contains('menu-sur-page')) return;
+  if (e.hidden) { b.classList.remove('menu-sur-page', 'menu-sur-page-sort'); return; }   // on change d'écran
+  b.classList.add('menu-sur-page-sort');
+  photoMenuMinuterie = setTimeout(() => {
+    b.classList.remove('menu-sur-page', 'menu-sur-page-sort');
+    e.hidden = true;
+  }, parseFloat(getComputedStyle(document.documentElement).getPropertyValue('--transition-menu')) * 1000);   // en secondes au root
 }
 /* Les points rouges sont refaits chaque fois qu'on les voit (J-C, 2026-10-15, capture à l'appui : le point sur Compléter, « Rien à
    compléter » — ce qui restait avait été consommé, et rien ne l'éteignait) : le menu, l'écran du +. */
@@ -320,6 +343,7 @@ function ouvrirMenu() {
   $('menu').classList.add('ouvert');
   document.body.classList.add('menu-ouvert');
   $('btn-burger').classList.add('ouvert');
+  photoDuMenu(true);                       // avant placerTitre : le titre se mesure sur la photo
   placerTitre();
 }
 /* Menu ouvert : le titre du site monte juste au-dessus des icônes, pour ne pas être caché dessous. */
