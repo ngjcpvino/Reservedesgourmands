@@ -467,6 +467,11 @@ body:has(.sur-photo:not([hidden]))::before { display: none; }
 }
 .titre-action .icone { width: var(--titre-action-icone); height: var(--titre-action-icone); --icone-trait: var(--t, var(--couleur-306)); }
 #vue-achats { --t: var(--menu-achats); }
+#vue-listes { --t: var(--menu-listes); }
+#vue-recherche { --t: var(--menu-rechercher); }
+#vue-recherche[data-mode="consommer"] { --t: var(--menu-consommer); }
+#vue-recherche[data-mode="deplacer"]  { --t: var(--menu-deplacer); }
+#vue-recherche[data-mode="ouvrir"]    { --t: var(--menu-ouvrir); }   /* le bleu pâle, l'icône aussi (J-C, A sur aperçu) */
 
 /* ============================================================
    BOUTON — UNE base, puis couleur / taille / forme par-dessus
@@ -513,7 +518,6 @@ body:has(.sur-photo:not([hidden]))::before { display: none; }
 .bouton-bleu   { --c: var(--couleur-803);   color: var(--couleur-101); }
 .bouton-rouge  { --c: var(--couleur-402);  color: var(--couleur-101); }
 .bouton-or     { --c: var(--couleur-604);     color: var(--couleur-306); --icone-trait: var(--icone-trait-pale); }   /* Retour : l'or est clair, le texte (et la maison) passe au brun foncé */
-.choix-eteint  { --c: var(--couleur-201);     color: var(--couleur-305); }   /* un choix pas pris (Par catégorie / Par meuble) : pâle; le choix pris est brun */
 
 /* taille */
 .bouton-grand {
@@ -591,6 +595,11 @@ body:has(.sur-photo:not([hidden]))::before { display: none; }
 :is(.grille > .bouton-grand, .bouton)[data-action="ajouter"]    { --c: var(--action-ajouter); }
 :is(.grille > .bouton-grand, .bouton)[data-action="oui"]        { --c: var(--action-oui); }
 :is(.grille > .bouton-grand, .bouton)[data-action="non"]        { --c: var(--action-non); --icone-trait: var(--icone-trait-pale); }
+:is(.grille > .bouton-grand, .bouton)[data-action="meubles"]    { --c: var(--base-meubles); }
+:is(.grille > .bouton-grand, .bouton)[data-action="consommer"]  { --c: var(--action-consommer); }
+:is(.grille > .bouton-grand, .bouton)[data-action="deplacer"]   { --c: var(--action-deplacer); }
+:is(.grille > .bouton-grand, .bouton)[data-action="jeter"]      { --c: var(--action-base); --icone-trait: var(--icone-trait-pale); }   /* la poubelle : beige, comme sur une ligne */
+.grille.grille-trois { grid-template-columns: repeat(3, minmax(0, 1fr)); }   /* trois gestes sur une ligne (la carte de Consommer : B) */
 /* Une question et ses réponses à sa droite (la ligne directrice, RdG-11 : D — avant, le Oui se posait au milieu de la ligne) */
 .question { display: flex; align-items: center; gap: var(--espace-s); }
 .question > .message { margin-top: 0; }
@@ -1153,6 +1162,7 @@ select.champ {
 .icone-plus { --dessin: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='0.8' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M12 5v14M5 12h14'/%3E%3C/svg%3E"); }   /* entrer un article : le + , pas le scan */
 .icone-oui { --dessin: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='0.8' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M5 12.5l4.5 4.5L19 7.5'/%3E%3C/svg%3E"); }   /* le crochet : je confirme (la ligne directrice, RdG-11, D sur aperçu) */
 .icone-non { --dessin: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='0.8' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M6.5 6.5l11 11M17.5 6.5l-11 11'/%3E%3C/svg%3E"); }   /* le X : je laisse tomber */
+.icone-poubelle { --dessin: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='0.8' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M4 6.5h16M9.5 6.5V4h5v2.5M6.5 6.5l1 13.5h9l1-13.5M10 10.5v6M14 10.5v6'/%3E%3C/svg%3E"); }   /* Jeter, en grand (le dessin de la poubelle d'une ligne) */
 .icone-revenir { --dessin: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='0.8' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M9 14L4 9l5-5'/%3E%3Cpath d='M4 9h10.5a5.5 5.5 0 0 1 0 11H11'/%3E%3C/svg%3E"); }   /* Retour d'un pas : la flèche « revenir » (le scan — J-C, 2026-10-14, C sur aperçu parmi le + / cette flèche / ←; la maison, elle, mène au menu) */
 .icone-deplacer { --dessin: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23f5efe6' stroke-width='0.8' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M3 8h17M16 4l4 4-4 4'/%3E%3Cpath d='M21 16H4M8 12l-4 4 4 4'/%3E%3C/svg%3E") }   /* deux flèches opposées : d'un endroit à l'autre, dans les deux sens (J-C, choix A sur aperçu, 2026-09-29) */
 .icone-accueil { --dessin: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='0.8' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M3 11.5 12 3.5l9 8'/%3E%3Cpath d='M5.5 9.5v11h13v-11'/%3E%3Cpath d='M10 20.5v-5.5h4v5.5'/%3E%3C/svg%3E"); }   /* Accueil : la maison (J-C, 2026-09-27) */

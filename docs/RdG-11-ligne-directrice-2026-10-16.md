@@ -107,11 +107,18 @@
     **Laissés à leur lot, pour ne pas mêler mots et icônes sur une même ligne** : les étapes du tri (lot 3) et de Compléter (lot 4), les cartes
     de Consommer / Déplacer / l'Inventaire (lot 2, la carte B), la carte des deux sacs (lot 4 : ⚠️ « L'associer à ce produit ? » Non et
     Annuler y deviendraient deux X — à trancher avec J-C).
-  - Lot 2 : les pages du menu — Listes (l'Inventaire : les quatre cases et l'armoire), Rechercher, Consommer (la carte B), Déplacer, Ouvrir.
-    J-C : « Go ». **Aperçu envoyé le 2026-10-16** (`scratchpad/apercu-lot2/fait.py`, le vrai CSS du jour) : chaque titre à l'icône et la
-    couleur de son bouton du menu; la carte de Consommer B (la poubelle — Jeter —, la fourchette, le X, au niveau 3; plus de case
-    « Jeté »); la carte de Déplacer (les flèches, le X); Ouvrir en deux titres — **A** le biscuit et la ligne bleu pâle (801) · **B** le
-    biscuit brun, la ligne bleu pâle (comme sur son bouton du menu); l'Inventaire : Par catégorie (les quatre cases) et Par meuble
-    (l'armoire), au niveau 2. **Son avis à venir.** Pas dans cet aperçu : les barres de Listes elles-mêmes (le point 52).
+  - **✅ Lot 2, le 2026-10-16 (les pages du menu; pas encore testé, T89)** (J-C : « Go »; sur l'aperçu, `scratchpad/apercu-lot2/fait.py` :
+    **A pour Ouvrir** — le biscuit et la ligne bleu pâle 801, parmi B le biscuit brun) : **chaque titre à l'icône et la couleur de son
+    bouton du menu** — Listes (la feuille), Rechercher (la loupe, aussi sur l'écran de rayon), Consommer (la fourchette), Déplacer (les
+    flèches), Ouvrir (le biscuit) : `titreRecherche()` pose `data-mode` sur `vue-recherche`, le CSS en tire `--t`; **les pages au niveau 2,
+    les cartes au niveau 3**; **la carte de Consommer = B** (`htmlBoutonsConso()` : la poubelle — Jeter, beige, `data-action="jeter"`,
+    `icone-poubelle` —, la fourchette, le X sur une ligne, `.grille-trois`), **la case « Jeté » retirée** (la poubelle la remplace), la
+    même carte pour la fourchette d'une ligne de l'Inventaire et d'À consommer bientôt; **la carte de Déplacer** (`htmlBoutonsDeplacer()` :
+    les flèches, cachées tant que l'endroit n'est pas choisi, le X); **L'ajouter = le +** (« Tu n'en as pas »); **l'Inventaire** : les
+    quatre cases (Par catégorie) et l'armoire (Par meuble), un choix touché, l'autre disparaît, retouché ou la flèche du Retour : les deux
+    (la flèche, encore : l'Inventaire se referme, puis le menu). Ménage : `.choix-eteint` retiré. Essai dans le faux navigateur : 30
+    vérifications. Sur l'aperçu, J-C a vu « le produit trouvé collé sur le champ de recherche » : une erreur de l'aperçu seulement (dans
+    l'app, le champ disparaît sur l'écran de rayon, et les résultats ont leur espace). Pas dans ce lot : les barres de Listes elles-mêmes
+    (le point 52).
   - Lot 3 : Gérer les bases, Couleurs, Circulaires (d'abord les couleurs fixes d'Outils, le point 25).
   - Lot 4 : le + — le sac seul, les deux sacs, Compléter, la fiche, Open Food Facts.

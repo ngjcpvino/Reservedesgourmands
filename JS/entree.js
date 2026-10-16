@@ -2756,8 +2756,11 @@ function htmlMeubleInventaire(m, par) {
 }
 /* L'Inventaire : UNE liste, deux vues (J-C, 2026-09-30, piste 2 sur aperçu : « l'inventaire mélange l'inventaire et les meubles »).
    En haut, « Par catégorie » (ce que j'ai) et « Par meuble » (ce qu'il y a dans ce meuble). À l'ouverture : les deux boutons
-   seulement, rien de choisi; un bouton touché ouvre sa liste (J-C, 2026-10-01). */
+   seulement, rien de choisi; un bouton touché ouvre sa liste (J-C, 2026-10-01). Depuis la ligne directrice (RdG-11, 2026-10-16) : les
+   icônes de Gérer les bases (les quatre cases, l'armoire), au niveau 2; un choix touché, l'autre disparaît; retouché, ou la flèche du
+   Retour : les deux reviennent (comme Sans code). */
 var vueInventaire = '';                          // '' (rien de choisi) | 'categorie' | 'meuble'
+const CHOIX_INVENTAIRE = [['categorie', 'Par catégorie', 'categories'], ['meuble', 'Par meuble', 'meubles']];   // [vue, son nom, son action]
 function remplirInventaire() {
   const cible = $('liste-inventaire');
   if (!cible) return;
@@ -2766,8 +2769,8 @@ function remplirInventaire() {
   const ouverts = [...cible.querySelectorAll('[data-cle] > .ouvert')].map(t => t.parentElement.dataset.cle);   // ce qui était ouvert le reste (un geste redessine tout)
   LOTS = lotsParProduit();
   const html = vueInventaire === 'meuble' ? htmlInventaireMeubles() : vueInventaire === 'categorie' ? htmlInventaireCategories() : '';
-  const choix = '<div class="grille choix-vue">' + [['categorie', 'Par catégorie'], ['meuble', 'Par meuble']].map(v =>
-    '<button class="bouton bouton-petit ' + (v[0] === vueInventaire ? 'bouton-brun' : 'choix-eteint') + '" type="button" data-vue="' + v[0] + '">' + v[1] + '</button>').join('') + '</div>';
+  const choix = '<div class="grille choix-vue">' + CHOIX_INVENTAIRE.filter(v => !vueInventaire || v[0] === vueInventaire).map(v =>
+    '<button class="bouton bouton-grand" type="button" data-action="' + v[2] + '" data-vue="' + v[0] + '" aria-label="' + v[1] + '"><span class="icone icone-' + v[2] + '"></span></button>').join('') + '</div>';
   const vide = t => '<div class="accordeon-item"><span class="texte-petit texte-pale">' + t + '</span></div>';
   cible.innerHTML = !Object.keys(LOTS).length ? vide('Rien d\'entré pour le moment.')
                   : choix + (!vueInventaire ? '' : html || vide('Rien à montrer ici.'));   // le choix reste là : on peut toujours changer de vue
@@ -2820,16 +2823,13 @@ function ouvrirActionInventaire(btn) {
   if (btn.dataset.inv === 'o') { ouvrirDeLaLigne(lots, () => redessiner()); return; }   // le biscuit : un toucher, pas de carte
   if (!lots.length || !item) return;
   const carte = document.createElement('div');
-  carte.className = 'endroit carte carte-inv';
+  carte.className = 'endroit carte carte-inv niveau-3';
   carte.innerHTML = (lots.length > 1 ? '<div class="bloc"><div class="label">De</div><select class="champ inv-de">' +
       lots.map((l, i) => '<option value="' + i + '">' + esc(endroitMeuble(l.emp) + ' (' + l.qte + ')') + '</option>').join('') + '</select></div>' : '') +
     (conso ? '<div class="bloc inv-bloc-format" hidden><div class="label">Format</div><select class="champ inv-format"></select></div>' : htmlChoixEndroit()) +
     htmlQuantite() +
-    (conso ? '<label class="case-ligne inv-pas-aime"><input class="case" type="checkbox"><span>Ne pas racheter</span></label>' +
-      '<label class="case-ligne"><input class="case jete" type="checkbox"><span>Jeté</span></label>' : '') +
-    '<div class="message"></div>' +
-    '<div class="grille bloc-suite"><button class="bouton bouton-petit bouton-vert inv-oui" type="button">' + (conso ? 'Consommer' : 'Déplacer') + '</button>' +
-    '<button class="bouton bouton-petit inv-non" type="button">Annuler</button></div>';
+    (conso ? '<label class="case-ligne inv-pas-aime"><input class="case" type="checkbox"><span>Ne pas racheter</span></label>' : '') +
+    '<div class="message"></div>' + (conso ? htmlBoutonsConso('inv') : htmlBoutonsDeplacer('inv'));
   item.after(carte);                                     // la ligne reste visible : on voit combien il y en a
   const lot = () => lots[carte.querySelector('.inv-de') ? Number(carte.querySelector('.inv-de').value) : 0];
   const parts = () => partsDuLot(lot());
@@ -2857,23 +2857,24 @@ function ouvrirActionInventaire(btn) {
     const ok = q > 0 && q <= maxi() && (conso || (!!emp && emp !== lot().emp));
     m.className = q > maxi() ? 'message message-erreur' : 'message';
     m.textContent = q > maxi() ? 'Il y en a ' + maxi() + '.' : (!conso && emp && emp === lot().emp ? 'Il y est déjà.' : '');
-    carte.querySelector('.inv-oui').hidden = !ok;
+    carte.querySelectorAll('.inv-oui, .inv-jeter').forEach(b => { b.hidden = !ok; });
   };
   carte.addEventListener('input', verifier);
   carte.addEventListener('change', ev => {
     if (ev.target.classList.contains('inv-de')) preparer();
     else if (ev.target.classList.contains('inv-format')) { carte.querySelector('.qte').value = 1; brancherPlusMoins(carte, maxi()); verifier(); }
-    else if (ev.target.classList.contains('jete')) carte.querySelector('.inv-oui').textContent = ev.target.checked ? 'Jeter' : 'Consommer';
     else verifier();
   });
   carte.querySelector('.inv-non').onclick = () => carte.remove();
-  carte.querySelector('.inv-oui').onclick = () => {
+  const faire = jete => {                                // la fourchette (consommé) ou la poubelle (jeté); les flèches (déplacer)
     const l = lot(), q = combien();
     if (conso) {
       const c = carte.querySelector('.inv-pas-aime input');
-      consommerPart(l, part().cle, q, !!(c && c.checked && !c.closest('[hidden]')), () => redessiner(), carte.querySelector('.jete').checked);
+      consommerPart(l, part().cle, q, !!(c && c.checked && !c.closest('[hidden]')), () => redessiner(), jete);
     } else deplacerLot(l, cible(), q, fait => { if (fait) avis('Déplacé', 'succes'); redessiner(); });
   };
+  carte.querySelector('.inv-oui').onclick = () => faire(false);
+  if (conso) carte.querySelector('.inv-jeter').onclick = () => faire(true);
   preparer();
 }
 /* Par meuble : pièce -> meuble -> espace -> produits, « Pas encore rangé » à la fin des meubles (J-C, 2026-10-01).
@@ -2964,6 +2965,13 @@ var rechercheJeton = 0;                 // un scan plus ancien qui répond en re
 var modeRecherche = '';                 // '' = Rechercher · 'deplacer' · 'consommer' : le même écran, le lot touché fait le geste
 var sorteScannee = null;                // Consommer, Déplacer : la boîte scannée { pid, sortes: [{ marque, saveur, format }] } — elle seule à l'écran
 const TITRES_RECHERCHE = { '': 'Rechercher', deplacer: 'Déplacer', consommer: 'Consommer', ouvrir: 'Ouvrir' };
+const ICONES_RECHERCHE = { '': 'icone-trouver', deplacer: 'icone-deplacer', consommer: 'icone-consommer', ouvrir: 'icone-ouvrir' };
+/* Le titre de la page (la ligne directrice, RdG-11 : D) : l'icône du bouton du menu qui l'ouvre, devant; sa couleur (la ligne, l'icône)
+   suit le mode (data-mode, dans le CSS). */
+function titreRecherche(texte) {
+  $('vue-recherche').dataset.mode = modeRecherche;
+  $('recherche-titre').innerHTML = '<span class="icone ' + ICONES_RECHERCHE[modeRecherche] + '"></span>' + esc(texte);
+}
 const RETOURS = { 'vue-accueil': retourAuMenu, 'vue-choix-quoi': () => montrerChoixQuoi(),
                   'vue-listes': () => montrerListes(), 'vue-couleurs': () => montrerCouleurs() };
 /* depuis : true = on arrive de la loupe ou du menu (on retient d'où); false = on revient d'ailleurs (scan, rayon) */
@@ -2977,7 +2985,7 @@ function montrerRecherche(depuis) {
   iconeRetour('recherche-retour', retourRecherche === retourAuMenu);   // au menu : la maison; vers la page d'où l'on vient : la flèche
   toutCacher(); $('vue-recherche').hidden = false; $('btn-burger').hidden = false;
   montrer('recherche-saisie', true); montrer('recherche-rayon', false);
-  $('recherche-titre').textContent = TITRES_RECHERCHE[modeRecherche];
+  titreRecherche(TITRES_RECHERCHE[modeRecherche]);
   surRecherche();
   if (depuis) $('recherche-texte').focus();   // prêt à taper : le clavier s'ouvre
 }
@@ -3014,7 +3022,7 @@ function variantesParProduit() {
 function htmlVide(titre, texte, ajouter, avant, apres) {
   return '<div class="vide">' + (avant || '') + (titre ? '<div class="vide-titre">' + esc(titre) + '</div>' : '') +
     (texte ? '<div class="texte texte-pale">' + esc(texte) + '</div>' : '') + (apres || '') + '</div>' +
-    (ajouter ? '<button class="bouton bouton-vert bouton-pleine bouton-suite" type="button" ' + ajouter + '>L\'ajouter</button>' : '');
+    (ajouter ? '<button class="bouton bouton-pleine bouton-suite" type="button" data-action="ajouter" ' + ajouter + ' aria-label="L\'ajouter"><span class="icone icone-plus"></span></button>' : '');   // le + (RdG-11)
 }
 /* Une ligne par aliment. Le nom d'abord (ceux dont le NOM colle), puis ceux trouvés par marque ou saveur. La faute permise ne sert que
    si rien ne colle tel quel (J-C, 2026-10-15 : « Beur » montrait le « Beuf haché », à une lettre — « Biz! »); un mot bien tapé ne ramène
@@ -3144,7 +3152,7 @@ function montrerRayon(pid, sansDefiler) {
   if (voisins.length) html += '<div class="label">' + (cat ? 'Aussi dans « ' + esc(cat) + ' »' : 'Aussi dans la même catégorie') + '</div>' +
     '<div class="liste-blanche">' + voisins.map(p => htmlLigneAliment(p, totalLots(par[p.id]), '')).join('') + '</div>';
   $('recherche-rayon').innerHTML = html;
-  $('recherche-titre').textContent = modeRecherche ? TITRES_RECHERCHE[modeRecherche] : (cat || 'Rechercher');
+  titreRecherche(modeRecherche ? TITRES_RECHERCHE[modeRecherche] : (cat || 'Rechercher'));
   montrer('recherche-saisie', false); montrer('recherche-rayon', true);
   iconeRetour('recherche-retour', false);          // l'écran de rayon : Retour revient à la recherche
   if (!sansDefiler) window.scrollTo(0, 0);
@@ -3176,6 +3184,20 @@ function htmlLigneLot(prod, l, attr) {
     (detail ? '<div class="item-detail">' + esc(detail) + '</div>' : '') + '</div>' +
     '<span class="item-quantite">' + esc(l.qte) + '</span></div>';
 }
+/* Le bas d'une carte (la ligne directrice, RdG-11; Consommer : B sur aperçu) : les gestes du menu en icônes, à leur couleur, et le X,
+   sur une ligne, au niveau 3. Consommer : la poubelle (Jeter — remplace la case « Jeté »), la fourchette, le X; Déplacer : les flèches,
+   le X. p : le préfixe des classes de la carte (« inv », « conso », « bouger »). */
+function htmlBoutonsConso(p) {
+  return '<div class="grille grille-trois bloc-suite">' +
+    '<button class="bouton bouton-grand ' + p + '-jeter" type="button" data-action="jeter" aria-label="Jeter"><span class="icone icone-poubelle"></span></button>' +
+    '<button class="bouton bouton-grand ' + p + '-oui" type="button" data-action="consommer" aria-label="Consommer"><span class="icone icone-consommer"></span></button>' +
+    '<button class="bouton bouton-grand ' + p + '-non" type="button" data-action="non" aria-label="Annuler"><span class="icone icone-non"></span></button></div>';
+}
+function htmlBoutonsDeplacer(p) {
+  return '<div class="grille bloc-suite">' +
+    '<button class="bouton bouton-grand ' + p + '-oui" type="button" data-action="deplacer" aria-label="Déplacer" hidden><span class="icone icone-deplacer"></span></button>' +
+    '<button class="bouton bouton-grand ' + p + '-non" type="button" data-action="non" aria-label="Annuler"><span class="icone icone-non"></span></button></div>';
+}
 /* La quantité d'une carte (Déplacer, Consommer) : 1 d'office, entre un − et un +. */
 function htmlQuantite() {
   return '<div class="bloc"><div class="label">Quantité</div><div class="plus-moins">' +
@@ -3205,12 +3227,10 @@ function ouvrirDeplacement(cle) {
   const habituels = endroitsHabituels(lot.pid);
   const vers = habituels[0] === lot.emp ? habituels[1] : habituels[0];
   const carte = document.createElement('div');
-  carte.className = 'endroit carte';
+  carte.className = 'endroit carte niveau-3';
   carte.innerHTML = htmlChoixEndroit() +
     htmlQuantite() +
-    '<div class="message"></div>' +
-    '<div class="grille"><button class="bouton bouton-petit bouton-vert bouger-oui" type="button" hidden>Déplacer</button>' +
-    '<button class="bouton bouton-petit bouger-non" type="button">Annuler</button></div>';
+    '<div class="message"></div>' + htmlBoutonsDeplacer('bouger');
   item.after(carte);                                  // la ligne reste visible : on voit combien il y en a
   brancherEndroit(carte, vers ? resoudreEmp(vers) : null);
   brancherPlusMoins(carte, lot.qte);
@@ -3331,13 +3351,10 @@ function ouvrirConsommation(cle) {
   if (!item) return;
   const pas = estPasAime(lot.pid, lot.marque, lot.saveur);
   const carte = document.createElement('div');
-  carte.className = 'endroit carte';
+  carte.className = 'endroit carte niveau-3';
   carte.innerHTML = htmlQuantite() +
     (pas ? '' : '<label class="case-ligne"><input class="case pas-aime" type="checkbox"><span>Ne pas racheter</span></label>') +
-    '<label class="case-ligne"><input class="case jete" type="checkbox"><span>Jeté</span></label>' +
-    '<div class="message"></div>' +
-    '<div class="grille"><button class="bouton bouton-petit bouton-vert conso-oui" type="button">Consommer</button>' +
-    '<button class="bouton bouton-petit conso-non" type="button">Annuler</button></div>';
+    '<div class="message"></div>' + htmlBoutonsConso('conso');
   item.after(carte);
   brancherPlusMoins(carte, p.qte);
   const combien = () => parseInt(carte.querySelector('.qte').value, 10) || 0;
@@ -3346,15 +3363,13 @@ function ouvrirConsommation(cle) {
     const ok = q > 0 && q <= p.qte;
     m.className = ok ? 'message' : 'message message-erreur';
     m.textContent = ok || !q ? '' : 'Il y en a ' + p.qte + '.';
-    carte.querySelector('.conso-oui').hidden = !ok;
+    carte.querySelectorAll('.conso-oui, .conso-jeter').forEach(b => { b.hidden = !ok; });
   };
   carte.addEventListener('input', verifier);
-  carte.querySelector('.jete').onchange = ev => { carte.querySelector('.conso-oui').textContent = ev.target.checked ? 'Jeter' : 'Consommer'; };
   carte.querySelector('.conso-non').onclick = () => montrerRayon(lot.pid, true);
-  carte.querySelector('.conso-oui').onclick = () => {
-    const case_ = carte.querySelector('.pas-aime');
-    consommerPart(lot, p.cle, combien(), !!(case_ && case_.checked), null, carte.querySelector('.jete').checked);
-  };
+  const faire = jete => { const case_ = carte.querySelector('.pas-aime'); consommerPart(lot, p.cle, combien(), !!(case_ && case_.checked), null, jete); };
+  carte.querySelector('.conso-oui').onclick = () => faire(false);   // la fourchette : consommé
+  carte.querySelector('.conso-jeter').onclick = () => faire(true);  // la poubelle : jeté
   verifier();
 }
 /* ---------- LA PHOTO EN GRAND (J-C, 2026-10-08, choix A sur aperçu : « sur iPhone, c'est beaucoup trop petit ») ----------
@@ -5503,7 +5518,7 @@ function initEntree() {
   $('vue-recherche').addEventListener('click', surClicRecherche);
   $('liste-inventaire').addEventListener('click', function (ev) {   // pièces et meubles de l'inventaire
     const vue = ev.target.closest('[data-vue]');           // « Par catégorie » / « Par meuble »
-    if (vue) { if (vue.dataset.vue !== vueInventaire) { vueInventaire = vue.dataset.vue; remplirInventaire(); } return; }
+    if (vue) { vueInventaire = vue.dataset.vue === vueInventaire ? '' : vue.dataset.vue; remplirInventaire(); return; }   // retouché : les deux choix
     const inv = ev.target.closest('[data-inv]');           // les deux flèches (déplacer), le biscuit (ouvrir), la fourchette (consommer) d'une ligne
     if (inv) { ouvrirActionInventaire(inv); return; }
     const lot = ev.target.closest('.ranger[data-lot]');    // l'Escale : les deux flèches rangent
@@ -5514,9 +5529,10 @@ function initEntree() {
     const tete = ev.target.closest('.accordeon-tete');
     if (tete) toggleAccordeon(tete);
   });            // bouton bleu → la page des listes
-  $('btn-retour-listes').addEventListener('click', () => {   // Retour recule d'un pas (J-C, 2026-10-01) : une liste ouverte se referme; sinon, le menu
+  $('btn-retour-listes').addEventListener('click', () => {   // Retour recule d'un pas (J-C, 2026-10-01) : l'Inventaire choisi → ses deux choix; une liste ouverte se referme; sinon, le menu
     const ouverte = $('vue-listes').querySelector('.contenu > .accordeon > .accordeon-tete.ouvert');
-    if (ouverte) { toggleAccordeon(ouverte); window.scrollTo(0, 0); } else retourAuMenu();
+    if (ouverte && ouverte === $('liste-inventaire').previousElementSibling && vueInventaire) { vueInventaire = ''; remplirInventaire(); window.scrollTo(0, 0); }
+    else if (ouverte) { toggleAccordeon(ouverte); window.scrollTo(0, 0); } else retourAuMenu();
   });
   $('choix-produit').addEventListener('click', montrerScanProduit);    // le sac seul : la caméra d'abord, « Sans code » : l'entonnoir
   $('choix-epicerie').addEventListener('click', montrerEpiceries);      // toute l'épicerie : l'épicerie, puis le scan (JS/epicerie.js)
