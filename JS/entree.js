@@ -2939,15 +2939,16 @@ function montrerDeplacer() { modeRecherche = 'deplacer'; montrerRecherche(true);
 function montrerConsommer() { modeRecherche = 'consommer'; montrerRecherche(true); }
 function montrerOuvrir() { modeRecherche = 'ouvrir'; montrerRecherche(true); }   // « Ouvrir » (RdG-09) : le même écran, le contenant touché s'ouvre
 function ouvrirRecherche() { modeRecherche = ''; montrerRecherche(true); }
-/* Un mot tapé colle-t-il à un mot de l'aliment ? Le début suffit (« fra » → fraise); une faute permise dès 4 lettres. */
-function motColle(q, mot) {
+/* Un mot tapé colle-t-il à un mot de l'aliment ? Le début suffit (« fra » → fraise); flou : une faute permise dès 4 lettres. */
+function motColle(q, mot, flou) {
   if (mot.indexOf(q) === 0) return true;
+  if (!flou) return false;
   if (q.length >= 4 && distance(q, mot.slice(0, q.length)) <= 1) return true;
   return q.length >= 5 && distance(q, mot) <= 2;
 }
-function texteColle(requete, texte) {
+function texteColle(requete, texte, flou) {
   const mots = nomNu(texte).split(' ').filter(Boolean);
-  return requete.every(q => mots.some(m => motColle(q, m)));
+  return requete.every(q => mots.some(m => motColle(q, m, flou)));
 }
 /* Le total d'un aliment, tous endroits confondus. */
 function totalLots(lots) { return (lots || []).reduce((s, l) => s + l.qte, 0); }
@@ -2968,7 +2969,9 @@ function htmlVide(titre, texte, ajouter, avant, apres) {
     (texte ? '<div class="texte texte-pale">' + esc(texte) + '</div>' : '') + (apres || '') + '</div>' +
     (ajouter ? '<button class="bouton bouton-vert bouton-pleine bouton-suite" type="button" ' + ajouter + '>L\'ajouter</button>' : '');
 }
-/* Une ligne par aliment. Le nom d'abord (ceux dont le NOM colle), puis ceux trouvés par marque ou saveur. */
+/* Une ligne par aliment. Le nom d'abord (ceux dont le NOM colle), puis ceux trouvés par marque ou saveur. La faute permise ne sert que
+   si rien ne colle tel quel (J-C, 2026-10-15 : « Beur » montrait le « Beuf haché », à une lettre — « Biz! »); un mot bien tapé ne ramène
+   que ce qu'il dit, même si ce n'est plus en réserve. */
 function surRecherche() {
   rechercheJeton++;
   const brut = $('recherche-texte').value.trim();
@@ -2977,11 +2980,13 @@ function surRecherche() {
   if (!requete.length || nomNu(brut).length < 2) { cible.innerHTML = ''; return; }
   const par = lotsParProduit(), variantes = variantesParProduit();
   const parNom = [], parVariante = [];
-  PRODUITS.forEach(p => {
-    if (texteColle(requete, p.nom)) { parNom.push({ p: p, detail: [] }); return; }
-    const v = (variantes[String(p.id)] || []).filter(x => texteColle(requete, x));   // ce qui l'a fait trouver : « Liberté fraise »
+  const chercher = flou => PRODUITS.forEach(p => {
+    if (texteColle(requete, p.nom, flou)) { parNom.push({ p: p, detail: [] }); return; }
+    const v = (variantes[String(p.id)] || []).filter(x => texteColle(requete, x, flou));   // ce qui l'a fait trouver : « Liberté fraise »
     if (v.length) parVariante.push({ p: p, detail: v });
   });
+  chercher(false);
+  if (!parNom.length && !parVariante.length) chercher(true);   // rien tel quel : une faute permise
   const alpha = (a, b) => String(a.p.nom).localeCompare(String(b.p.nom), 'fr');
   let trouves = parNom.sort(alpha).concat(parVariante.sort(alpha));
   // Consommer, Déplacer : seulement ce qu'on a (J-C, 2026-10-05 : « plus en réserve », « pas utile » — on ne consomme pas ce qu'on n'a
