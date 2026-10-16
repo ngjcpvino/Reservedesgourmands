@@ -83,5 +83,8 @@
   (le titre D, les trois actions au niveau 2, la maison de la même hauteur, aucune barre) · 2 après Par catégorie (Par épicerie
   disparaît, les catégories, la flèche) · 3 une catégorie ouverte · 4 après Par épicerie (les tuiles, elles aussi au niveau 2 :
   proposé par Claude) · 5 Ajouter à la liste (niveau 3 : le crochet et le X sur une ligne). **Son avis à venir.** ⚠️ Vu sur
-  l'aperçu : **Par épicerie (802) et le + (803) sont deux bleus presque pareils, côte à côte.**
+  l'aperçu : **Par épicerie (802) et le + (803) sont deux bleus presque pareils, côte à côte** — J-C : « Effectivement, les 2 bleus… ».
+  Proposé : **Magasins (donc Par épicerie) change de couleur, le + garde la sienne** (le bleu du bouton Ajouter, partout). **Aperçu envoyé**
+  (`scratchpad/apercu-bleus/fait.py`, la Liste d'achats et la grille de Gérer les bases sur la photo nette) : A anthracite 902 · B olive
+  704 · C vert sapin 703 (déjà Rechercher au menu) — **son choix à venir.**
 - **La suite** : l'appliquer à la Liste d'achats, puis page par page.
