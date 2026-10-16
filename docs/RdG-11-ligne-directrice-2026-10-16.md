@@ -37,6 +37,11 @@
 7. **Oui / Non = D, en icônes** (l'aperçu « Oui et Non », `scratchpad/apercu-ouinon/fait.py`, parmi A petits à droite, B le Oui
    rouge pour retirer, C deux demis dessous, D en icônes) : **le crochet vert = Oui, le X blanc = Non, petits, à droite de la
    question**, partout — la même couleur toujours (pas de rouge pour retirer : décision 5).
+8. **Le crochet et le X, aussi hors des questions** (proposé par Claude, J-C : « Oui ») : **le crochet = je confirme** — OK, C'est ça,
+   Oui c'est ça, C'est fait, Enregistrer, Enregistrer les couleurs, Mettre sur la liste; **le X = je laisse tomber** — Annuler.
+   **À regarder à part** (une chose précise) : Voir chez Super C, Chercher chez…, Coller la page, Sans la page, Plus tard, Corriger,
+   Suivant, Réessayer, Envoyer à Open Food Facts, L'ajouter, Scanner un autre, Un autre aliment, + un autre endroit, Choisir un
+   endroit, Escale, Retirer, Enlever, Entrer, et les gestes du menu écrits en mots sur une carte : Consommer, Déplacer, Jeter, Ouvrir.
 
 ## 3. Ouvert
 
