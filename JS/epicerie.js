@@ -783,8 +783,7 @@ function htmlPanneau(lot) {
   const code = formeCode(codeDuLot(lot)), page = code.length >= 8 && !estPese(code);   // une page à chercher : un vrai code-barres
   const p = PRODUITS.find(x => String(x.id) === lot.pid) || { nom: '' };
   const champ = (label, html) => '<div class="bloc"><div class="label">' + label + '</div>' + html + '</div>';
-  const tete = (n, titre, id) => '<div class="etapes">' + [1, 2, 3, 4].map(k => '<span class="etape-point' + (k < n ? ' faite' : k === n ? ' ici' : '') + '"></span>').join('') +
-    '</div><div class="etape-num">Étape ' + n + ' de 4</div><div class="label-fort"' + (id ? ' id="' + id + '"' : '') + '>' + titre + '</div>';
+  const tete = (n, titre, id) => htmlEtapes(n, 4, titre, id);   // htmlEtapes : entree.js (le tri aussi)
   const fleche = '<button class="bouton bouton-or" type="button" data-cp-recul aria-label="Revenir"><span class="icone icone-revenir"></span></button>';
   const annuler = '<button class="bouton" type="button" data-cp-annuler>Annuler</button>';
   const bas = (texte, attr, second) => '<div class="cp-msg-place"></div><button class="bouton bouton-vert bouton-pleine bouton-detache" type="button" ' + attr + '>' + texte + '</button>' +
@@ -852,9 +851,7 @@ function montrerEtape2() {
 /* Ce que l'app a lu, tel que ce sera enregistré (les champs remplis par la page) : le nom français et la photo de Super C, la marque,
    le format, le rayon, le prix, le numéro de produit — le bon (vert) ou pas celui scanné (rouge). */
 function remplirLu() {
-  const P = PANNEAU, r = P.lu;
-  const ligne = (label, val, cls, sous) => '<div class="item"><div class="item-info"><div class="item-detail">' + esc(label) + '</div><div class="item-nom' + (cls ? ' ' + cls : '') + '">' +
-    esc(val) + '</div>' + (sous ? '<div class="item-detail">' + esc(sous) + '</div>' : '') + '</div></div>';
+  const P = PANNEAU, r = P.lu, ligne = ligneLu;     // ligneLu : entree.js (le tri aussi)
   const rid = $('cp-cat').value, scid = $('cp-souscat').value;
   const ry = RAYONS.find(x => String(x.id) === rid), sc = (SOUSCATS[rid] || []).find(x => String(x.id) === scid);
   const code = r.code ? formeCode(r.code) : '', bon = !!code && codeNu(code) === codeNu(codeDuLot(P.lot));
@@ -884,14 +881,14 @@ async function photoProduitPanneau() {
 /* « Coller la page » : le presse-papiers lu d'un toucher (le raccourci vient de copier la page); refusé par l'appareil : une case où
    coller, comme avant. */
 async function collerDuPressePapiers() {
-  let t = null;
-  try { t = await navigator.clipboard.readText(); } catch (e) {}
+  const t = await lirePressePapiers();               // entree.js (le tri aussi)
   if (!PANNEAU) return;
   if (t == null) {
     montrer('cp-texte', true); $('cp-texte').focus();
     $('cp-msg').textContent = 'Colle le texte de la page dans la case.';
     return;
   }
+  if (!t.trim()) { $('cp-msg').textContent = 'Rien à coller : sur sa page, Partager → Copier pour la Réserve.'; return; }
   lireLaPage(t);
 }
 function lireLaPage(t) {
