@@ -300,7 +300,7 @@
   /* ---- Spinner : un chariot d'épicerie qui traverse l'écran (change de dessin par secteur) ---- */
   --spinner-taille:   96px;                    /* le chariot */
   --spinner-vitesse:  6s;                      /* une traversée, lentement */
-  --phrase-duree:     1.5s;                    /* sous le chariot, chaque phrase de la lecture de la réserve (« Je garnis la tablette 1… ») — en secondes, le script la lit (J-C, 2026-10-16) */
+  --phrase-duree:     3s;                      /* sous le chariot, chaque phrase de la lecture de la réserve (« Je garnis la tablette 1… ») — en secondes, le script la lit (J-C, 2026-10-16 : 1,5 s « ça va trop vite », 3 s comme un message) */
   --spinner-trait:    var(--couleur-105);            /* le trait du chariot */
   --plein-largeur:    100vw;                   /* la largeur d'un écran complet */
   --spinner-dessin:   url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='0.8' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M1.5 4.5h3l3.2 11.5h13.3'/%3E%3Cpath d='M5.6 9H21.5V14H7.2'/%3E%3Cpath d='M10 9v5M13.5 9v5M17 9v5'/%3E%3Cpath d='M9 9l3.4-5.2a0.9 0.9 0 0 1 1.5 1L11.2 9'/%3E%3Cpath d='M15.6 9V5.6l0.6-0.8V3.4h1.2v1.4l0.6 0.8V9'/%3E%3Ccircle cx='9.5' cy='19.3' r='1.4'/%3E%3Ccircle cx='19' cy='19.3' r='1.4'/%3E%3C/svg%3E");   /* chariot à grillage, devant droit, baguette + bouteille (J-C, choix B, trait fin) */
