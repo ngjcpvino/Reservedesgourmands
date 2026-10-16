@@ -1343,7 +1343,7 @@ select.champ {
    Jamais), le relief des boutons. Ouverte, l'épicerie passe en bannière. Plus fort que la suite des grilles : .grille > .bouton-grand.… */
 /* Une tuile à logo, et sa bannière : une carte blanche PLATE (J-C, 2026-10-05, choix A sur aperçu : le relief des boutons grisait le bas,
    « c'est laid ») — ni dégradé ni reflet, l'ombre seulement. */
-.grille > .bouton-grand.tuile-logo { background: var(--couleur-101); padding: var(--espace-m); }
+.grille > .bouton-grand.tuile-logo { background: var(--couleur-101); padding: var(--espace-xs); }   /* une petite marge : le logo, rogné de son blanc (rognerLogo), remplit sa tuile (J-C, 2026-10-16, B sur aperçu; avant : --espace-m, « minuscules » sur l'iPhone) */
 .tuile-logo::before, .banniere::before { display: none; }
 .grille > .bouton-grand.tuile-nom  { --c: var(--couleur-305); color: var(--couleur-105); font-size: var(--texte-moyen); }   /* sans logo : brune, sauf sa couleur (posée par le JS) */
 .grille > .bouton-grand.tuile-pale { color: var(--couleur-306); }

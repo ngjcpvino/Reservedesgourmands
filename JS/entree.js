@@ -4049,7 +4049,64 @@ function urlLogo(u) {
   if (!/^https:\/\/[^\s"'()\\<>]+$/.test(u)) return '';
   return u.replace(/^(https:\/\/res\.cloudinary\.com\/[^/]+\/image\/upload\/)(?![a-z]{1,2}_[^/]*\/)/, '$1w_400,f_auto,q_auto/');
 }
-const styleLogo = m => { const x = LISTES.Magasins.find(y => String(y.id) === String(m)), u = urlLogo(x && x.logo); return u ? ' style="--logo:url(&quot;' + esc(u) + '&quot;)"' : ''; };
+const styleLogo = m => { const x = LISTES.Magasins.find(y => String(y.id) === String(m)), u = urlLogo(x && x.logo); return u ? ' data-logo="' + esc(u) + '" style="--logo:url(&quot;' + esc(logoAffiche(u)) + '&quot;)"' : ''; };
+/* LES LOGOS SANS LEUR BLANC (J-C, 2026-10-16, B sur aperçu : « la même tuile, le logo plus gros ») : bien des images ont du blanc (ou du
+   transparent) tout autour du dessin — Nespresso, Dollarama, IGA, Metro —, qui rapetissait leur logo deux fois. L'app le retire elle-même,
+   une fois par lien : l'image lue dans un canevas (Cloudinary permet de la lire), le cadre de ce qui n'est pas blanc, l'image rognée gardée
+   sur l'appareil. Un logo sur sa couleur (Super C) n'a pas de blanc autour : rien ne change. Une image qu'on ne peut pas lire (un site qui
+   ne le permet pas) : telle quelle. */
+const CACHE_LOGOS = 'rdg_logos';   // { lien : l'image rognée (data:), ou '' : rien à rogner }
+const LOGO_BLANC = 240;            // plus clair que ça, une fois posé sur du blanc : c'est du blanc autour
+let LOGOS_ROGNES = null;
+const logosEnCours = {};           // un lien déjà lu (ou illisible) pendant cette visite : pas une 2e fois
+function logosRognes() {
+  if (!LOGOS_ROGNES) { try { LOGOS_ROGNES = JSON.parse(localStorage.getItem(CACHE_LOGOS) || '{}') || {}; } catch (e) { LOGOS_ROGNES = {}; } }
+  return LOGOS_ROGNES;
+}
+/* Le lien à montrer : l'image rognée si elle est prête; sinon le lien tel quel, et on la prépare (la tuile suit quand elle l'est). */
+function logoAffiche(u) {
+  const r = logosRognes()[u];
+  if (r === undefined) rognerLogo(u);
+  return r || u;
+}
+function rognerLogo(u) {
+  if (logosEnCours[u]) return;
+  logosEnCours[u] = true;
+  const img = new Image();
+  img.crossOrigin = 'anonymous';
+  img.onload = () => {
+    let r = '';
+    try {
+      const w = img.naturalWidth, h = img.naturalHeight, c = document.createElement('canvas');
+      c.width = w; c.height = h;
+      const x = c.getContext('2d', { willReadFrequently: true });
+      x.drawImage(img, 0, 0);
+      const d = x.getImageData(0, 0, w, h).data;
+      let g = w, dr = -1, ht = h, bas = -1;
+      for (let y = 0; y < h; y++) for (let i = 0; i < w; i++) {
+        const k = (y * w + i) * 4, a = d[k + 3] / 255;
+        if (a * (0.299 * d[k] + 0.587 * d[k + 1] + 0.114 * d[k + 2]) + (1 - a) * 255 >= LOGO_BLANC) continue;   // posé sur du blanc : du blanc
+        if (i < g) g = i; if (i > dr) dr = i; if (y < ht) ht = y; if (y > bas) bas = y;
+      }
+      if (dr >= 0 && (g > 0 || ht > 0 || dr < w - 1 || bas < h - 1)) {
+        const lw = dr - g + 1, lh = bas - ht + 1, c2 = document.createElement('canvas');
+        c2.width = lw; c2.height = lh;
+        c2.getContext('2d').drawImage(img, g, ht, lw, lh, 0, 0, lw, lh);
+        r = c2.toDataURL('image/png');
+      }
+    } catch (e) { return; }        // illisible : l'image telle quelle (on réessaiera à la prochaine ouverture de l'app)
+    logosRognes()[u] = r;
+    garderLogos();
+    if (r) document.querySelectorAll('.logo[data-logo]').forEach(s => { if (s.dataset.logo === u) s.style.setProperty('--logo', 'url("' + r + '")'); });
+  };
+  img.src = u;
+}
+/* Sur l'appareil : seulement les logos des épiceries d'aujourd'hui (un logo changé ou retiré ne traîne pas). */
+function garderLogos() {
+  const vivants = {};
+  LISTES.Magasins.forEach(m => { const u = urlLogo(m.logo); if (u && LOGOS_ROGNES[u] !== undefined) vivants[u] = LOGOS_ROGNES[u]; });
+  try { localStorage.setItem(CACHE_LOGOS, JSON.stringify(vivants)); } catch (e) {}
+}
 /* Une épicerie en tuile, dans une .grille (la page Circulaires, la Liste d'achats Par épicerie, les deux sacs) : son logo sur une carte
    blanche, sinon son nom sur sa couleur. attr : ce que la page y lit (data-…, déjà échappé); classe : en plus (point-rouge); dedans : le nombre. */
 function tuileMagasin(m, attr, classe, dedans) {
