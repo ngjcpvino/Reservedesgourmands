@@ -282,8 +282,8 @@ function remplirVueOff() {
       '<div class="item-nom">' + (val ? esc(val) : '<span class="texte-pale">(à écrire)</span>') + '</div></div>' +
       '<button class="crayon" type="button" data-off-texte="' + k + '" aria-label="Corriger"></button></div>';
   }).join('');
-  const pret = aEnvoyerOff().length > 0 && !v.fini;   // rien de prêt : ni le merci ni Envoyer (on prend d'abord une photo)
-  montrer('off-merci', pret); montrer('off-envoyer', pret);
+  const pret = aEnvoyerOff().length > 0 && !v.fini;   // rien de prêt : pas d'Envoyer (on prend d'abord une photo)
+  montrer('off-envoyer', pret);
   montrer('off-fini', v.fini); montrer('off-retour', v.fini); montrer('off-plus-tard', !v.fini);   // tout est parti : leur logo, « Merci ! », Retour
   iconeRetour('off-retour', v.retour === retourAuMenu);   // la maison mène au menu, la flèche recule d'un pas
 }
