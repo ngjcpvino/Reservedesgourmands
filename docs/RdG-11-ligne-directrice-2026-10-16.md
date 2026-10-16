@@ -45,6 +45,9 @@
 9. **Les gestes du menu, sur une carte, prennent leur icône et leur couleur du menu** (J-C : « Oui ») : Consommer = la fourchette et
    le couteau, rouge (401); Déplacer = les deux flèches, vert (702); Ouvrir = le biscuit croqué, bleu pâle (801); **Jeter = la
    poubelle** (beige, la couleur des petites actions sans bouton au menu).
+10. **Ceux qui ont déjà une icône qui dit la même chose la prennent** (J-C : « Oui ») : **le +** — L'ajouter (Rechercher), + un autre
+   endroit, Un autre aliment; **la poubelle** — Retirer (un endroit de la fiche), Enlever (un « Pas aimé »); **le crayon** — Corriger;
+   **le code-barres** — Scanner un autre; **le logo d'Open Food Facts** — Envoyer à Open Food Facts.
 
 ## 3. Ouvert
 
