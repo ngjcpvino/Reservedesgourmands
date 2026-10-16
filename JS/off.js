@@ -6,7 +6,9 @@
      demande à Open Food Facts ce qui lui manque : les trois photos (le devant, les ingrédients, la valeur nutritive), le nom
      français, la marque, le format. S'il manque quelque chose, son logo (L1) paraît sur la carte, sur la fiche. Touché : l'article
      entre, puis l'écran des photos. Pas touché : l'article entre, et le produit va sur la liste « Pour Open Food Facts » (plus tard).
-   · La liste : la 4e de Listes (sa barre porte la forme du logo, L2), toute la liste, le plus vieux en premier.
+   · La liste : la 4e de Listes (sa barre porte la forme du logo, L2), toute la liste, le plus vieux en premier. Sa poubelle (J-C,
+     2026-10-16 : « je n'ai pas gardé l'emballage ») : il la quitte (G = « Retiré … »); au prochain achat, Open Food Facts est
+     redemandé et le logo reparaît — pas touché, il revient sur la liste.
    · Consommer et Ouvrir : la ligne d'un produit de la liste porte le logo (R1) — le produit en main, on fait les photos; ignoré, rien.
    · L'écran des photos (B) : les trois cases côte à côte (une vide : on la touche, l'appareil photo de l'iPhone s'ouvre, la photo se
      pose dans sa case); ce qui manque du texte, chacun son crayon; « Envoyer à Open Food Facts » / « Plus tard ». L'envoi passe par
@@ -29,12 +31,21 @@ var OFF_PHOTOS = {};      // { code: { devant: 'data:image/jpeg;base64,…' } } 
 var OFF_ENVOYEES = {};    // { code: { devant: … } } : les photos parties pendant la visite — montrées « (envoyée) » dans leur case, pas une case vide
 var OFF_VUE = null;       // l'écran des photos : { code, ligne, manque, etat, textes, retour, prise }
 var OFF_FICHE = null;     // le sac seul : { code, manque, surListe, photos } — ce que la fiche sait d'Open Food Facts
+/* Les codes qu'Open Food Facts a déjà au complet (gardés sur l'appareil) : au prochain achat, aucun appel. Les autres sont redemandés
+   à chaque achat — un produit retiré de la liste y revient. */
+const OFF_COMPLETS_LOCAL = 'rdg_off_complets';
+var OFF_COMPLETS = (() => { try { return JSON.parse(localStorage.getItem(OFF_COMPLETS_LOCAL) || '{}') || {}; } catch (e) { return {}; } })();
 let envoiOff = false, expeditionOff = false;
 
 const codeOffOk = c => /^\d{8,14}$/.test(String(c || '').trim()) && !estPese(c);   // un vrai code-barres (pas un PLU, pas « sans code », pas un paquet pesé au magasin)
 const estPhotoOff = k => OFF_PHOTOS_CLES.some(x => x[0] === k);
 const manqueDe = l => String((l && l[3]) || '').split(',').map(s => s.trim()).filter(Boolean);
-/* Le produit de ce code sur la liste (pas encore envoyé), ou null. */
+const completOff = code => !!OFF_COMPLETS[codeNu(code)];
+function noterCompletOff(code) {
+  OFF_COMPLETS[codeNu(code)] = 1;
+  try { localStorage.setItem(OFF_COMPLETS_LOCAL, JSON.stringify(OFF_COMPLETS)); } catch (e) {}
+}
+/* Le produit de ce code sur la liste (pas encore envoyé ni retiré), ou null. */
 function ligneOff(code) {
   const k = codeNu(code);
   return OFF_LISTE.find(l => !l[6] && codeNu(l[1]) === k) || null;
@@ -66,6 +77,8 @@ function poserListeOff(serveur) {
   if (Array.isArray(serveur)) OFF_LISTE = serveur.map(r => { const l = r.slice(); while (l.length < 7) l.push(''); l[1] = String(l[1] || ''); return l; });
   lireAttenteOff().forEach(e => poserLigneOff(e.ligne));
   garderOff();
+  // un code de magasin (la viande pesée, entrée avant le 2026-10-15) n'est jamais pour Open Food Facts : il quitte la liste
+  OFF_LISTE.filter(l => !l[6] && !codeOffOk(l[1])).forEach(l => { const n = l.slice(); n[6] = 'Retiré ' + dateDuJour(); ecrireOff(n, false); });
 }
 async function expedierOff() {
   if (expeditionOff || !Coffre.motDePasse()) return;
@@ -96,16 +109,17 @@ async function etatOff(code, frais) {
 
 /* ---------- Le sac seul : la fiche ---------- */
 function offFicheRaz() { OFF_FICHE = null; montrer('fiche-off', false); }
-/* Le code connu (sa recherche finie : jamais deux appels à la fois). Déjà sur la liste : le logo tout de suite; déjà entré ici :
-   rien (on l'a déjà proposé); sinon, Open Food Facts dit ce qui lui manque. */
+/* Le code connu (sa recherche finie : jamais deux appels à la fois). Déjà sur la liste : le logo tout de suite; Open Food Facts l'a
+   déjà au complet : rien; sinon (un premier achat, un produit retiré de la liste…), Open Food Facts dit ce qui lui manque. */
 async function offFiche(code) {
   code = String(code || '').trim();
   offFicheRaz();
   if (!codeOffOk(code)) return;
   const deja = ligneOff(code);
   if (deja) { OFF_FICHE = { code: code, manque: manqueDe(deja), surListe: true }; montrer('fiche-off', true); return; }
-  if (CODES[code] || CODES[formeCode(code)]) return;
+  if (completOff(code)) return;
   const d = await etatOff(code);
+  if (d && !d.manque.length) noterCompletOff(code);
   if ($('vue-app').hidden || $('codebarres').value.trim() !== code || !d || !d.manque.length) return;
   OFF_FICHE = { code: code, manque: d.manque };
   montrer('fiche-off', true);
@@ -134,8 +148,9 @@ async function offCarte(a) {
   if (!a || !codeOffOk(a.code)) return;
   const deja = ligneOff(a.code);
   if (deja) { a.off = { manque: manqueDe(deja), surListe: true }; montrerLogoCarte(a); return; }
-  if (CODES[a.code] || CODES[formeCode(a.code)]) return;
+  if (completOff(a.code)) return;
   const d = await etatOff(a.code);
+  if (d && !d.manque.length) noterCompletOff(a.code);
   if (EPI_CARTE !== a || !d || !d.manque.length) return;
   a.off = { manque: d.manque };
   montrerLogoCarte(a);
@@ -172,7 +187,7 @@ function boutonOff(rows, pid) {
 function remplirOff() {
   const cible = $('liste-off');
   if (!cible) return;
-  const xs = OFF_LISTE.filter(l => !l[6]).sort((a, b) =>
+  const xs = OFF_LISTE.filter(l => !l[6] && codeOffOk(l[1])).sort((a, b) =>
     String(dateCourte(a[4]) || '').localeCompare(String(dateCourte(b[4]) || '')) || String(a[0]).localeCompare(String(b[0])));
   cible.innerHTML = xs.length ? '<div class="liste-blanche">' + xs.map(ligneListeOff).join('') + '</div>'
     : '<div class="accordeon-item"><span class="texte-petit texte-pale">Rien à envoyer à Open Food Facts.</span></div>';
@@ -185,7 +200,21 @@ function ligneListeOff(l) {
     '<div class="item-detail">' + esc(det) + '</div>' +
     '<div class="item-detail">Il manque : ' + esc(texteManque(manqueDe(l))) + '</div>' +
     (jour ? '<div class="item-detail">Entré le ' + esc(jour) + '</div>' : '') + '</div>' +
-    '<button class="off" type="button" data-off="' + esc(code) + '" aria-label="Photos pour Open Food Facts"></button></div>';
+    '<div class="boutons-ligne"><button class="retirer" type="button" data-off-retirer="' + esc(l[0]) + '" aria-label="Retirer de la liste"></button>' +
+    '<button class="off" type="button" data-off="' + esc(code) + '" aria-label="Photos pour Open Food Facts"></button></div></div>';
+}
+/* La poubelle (A sur aperçu : avant le logo) : « Retirer … de la liste ? » à la place de la ligne, Oui / Non, comme partout. */
+function demanderRetraitOff(id) {
+  remplirOff();                                    // une seule question à la fois
+  const l = OFF_LISTE.find(x => String(x[0]) === String(id)), b = $('liste-off').querySelector('[data-off-retirer="' + selVal(id) + '"]');
+  if (!l || !b) return;
+  b.closest('.item').outerHTML = '<div class="accordeon-item accordeon-item-saisie"><span>' + esc('Retirer ' + nomOff(l[2]) + ' de la liste ?') + '</span>' + ouiNon('o', id) + '</div>';
+}
+/* Oui : il quitte la liste (rien d'effacé : la ligne de l'onglet OFF porte « Retiré » et le jour); au prochain achat, il reviendra. */
+function retirerOff(id) {
+  const l = OFF_LISTE.find(x => String(x[0]) === String(id));
+  if (l && !l[6]) { const n = l.slice(); n[6] = 'Retiré ' + dateDuJour(); ecrireOff(n, false); }
+  remplirOff();
 }
 /* Le nom de l'aliment (un produit inconnu des deux sacs porte « Inconnu 0626… » tant qu'on ne l'a pas complété). */
 function nomOff(pid) {
@@ -214,7 +243,7 @@ async function montrerOff(code, retour) {
   if (OFF_VUE !== v || $('vue-off').hidden || !d) return;   // parti ailleurs, ou pas de réponse : ce que la liste dit
   v.etat = d;
   if (!d.manque.length) {                          // il a déjà tout : il quitte la liste
-    v.ligne[3] = ''; v.ligne[6] = dateDuJour(); ecrireOff(v.ligne, false);
+    v.ligne[3] = ''; v.ligne[6] = dateDuJour(); ecrireOff(v.ligne, false); noterCompletOff(code);
     OFF_VUE = null;
     avis('Open Food Facts l\'a déjà. Merci quand même !', 'succes');
     retour(); return;
@@ -393,7 +422,15 @@ function initOff() {
   $('off-plus-tard').addEventListener('click', quitterOff);
   $('off-retour').addEventListener('click', quitterOff);
   $('fiche-off').addEventListener('click', toucherOffFiche);
-  $('liste-off').addEventListener('click', ev => { const b = ev.target.closest('[data-off]'); if (b) montrerOff(b.dataset.off, revenirListeOff); });
+  $('liste-off').addEventListener('click', ev => {
+    const r = ev.target.closest('[data-off-retirer]');   // la poubelle : la question
+    if (r) { demanderRetraitOff(r.dataset.offRetirer); return; }
+    const oui = ev.target.closest('[data-retirer-oui]');
+    if (oui) { const k = oui.dataset.retirerOui; retirerOff(k.slice(k.indexOf('|') + 1)); return; }
+    if (ev.target.closest('[data-retirer-non]')) { remplirOff(); return; }
+    const b = ev.target.closest('[data-off]');
+    if (b) montrerOff(b.dataset.off, revenirListeOff);
+  });
   $('liste-off').previousElementSibling.addEventListener('click', function () { if (this.classList.contains('ouvert')) remplirOff(); });
 }
 document.addEventListener('DOMContentLoaded', initOff);

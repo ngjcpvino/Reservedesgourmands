@@ -3596,7 +3596,7 @@ function remplirAchats(ouvrir) {
     // inversée — plus de poubelle), puis la case « dans le panier »; l'aliment et la case alignés par le haut
     '<div class="item achat' + (it.coche ? ' achat-coche' : '') + '" data-achat="' + esc(it.cle) + '">' +
       '<div class="item-info"><div class="item-nom">' + esc(nomDe(it.pid)) + '</div>' + (detail(it) ? '<div class="item-detail">' + esc(detail(it)) + '</div>' : '') + '</div>' +
-      '<div class="achat-boutons"><button class="remettre ecarter" type="button" data-achat-cote="' + esc(it.cle) + '" aria-label="Mettre de côté"></button>' +
+      '<div class="boutons-ligne"><button class="remettre ecarter" type="button" data-achat-cote="' + esc(it.cle) + '" aria-label="Mettre de côté"></button>' +
       '<input class="case" type="checkbox" tabindex="-1"' + (it.coche ? ' checked' : '') + '></div>' + soldesSous(it.pid) + '</div>';
   // les soldes d'un aliment : SOUS sa ligne, sur toute la largeur (J-C, 2026-10-02 : « sur une même ligne si possible »)
   const soldesSous = pid => { const h = htmlSoldes(pid); return h ? '<div class="soldes-ligne">' + h + '</div>' : ''; };

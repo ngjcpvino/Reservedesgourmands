@@ -1137,8 +1137,8 @@ select.champ {
 .achat { cursor: pointer; align-items: flex-start; }   /* l'aliment et la case alignés par le haut (J-C, 2026-10-02) */
 .achat .case { accent-color: var(--couleur-703); pointer-events: none; }   /* la ligne entière se touche : la case suit */
 /* En haut à droite, côte à côte (J-C, 2026-10-02, choix C sur aperçu) : la flèche « mettre de côté », puis la case « dans le panier ». */
-.achat-boutons { display: flex; align-items: center; gap: var(--espace-xs); }
-.achat-boutons .remettre { height: var(--pastille-action); }
+.boutons-ligne { display: flex; align-items: center; gap: var(--espace-xs); }
+.boutons-ligne .remettre { height: var(--pastille-action); }
 .ecarter::before { transform: scaleX(-1); }   /* « mettre de côté » = la flèche « revenir » de « Mis de côté », inversée (plus de poubelle) */
 .achat-coche .item-nom, .achat-coche .item-detail { color: var(--couleur-205); text-decoration: line-through; }
 /* LES SOLDES (J-C, 2026-10-02 : « trop d'info ») : sous l'aliment, une ligne courte par magasin — « IGA · Québon · 2 L · 4,99 (6,49) »,

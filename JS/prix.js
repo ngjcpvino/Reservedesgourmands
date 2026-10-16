@@ -147,7 +147,7 @@ function htmlParEpicerie(items, ouverte) {
     }
     return '<div class="item achat' + (it.coche ? ' achat-coche' : '') + '" data-achat="' + esc(it.cle) + '">' +
       '<div class="item-info"><div class="item-nom">' + esc(pDe(it.pid).nom || '') + '</div>' + d + '</div>' +
-      '<div class="achat-boutons"><input class="case" type="checkbox" tabindex="-1"' + (it.coche ? ' checked' : '') + '></div></div>';
+      '<div class="boutons-ligne"><input class="case" type="checkbox" tabindex="-1"' + (it.coche ? ' checked' : '') + '></div></div>';
   };
   const partie = (titre, xs, m) => {
     if (!xs.length) return '';

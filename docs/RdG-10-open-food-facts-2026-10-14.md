@@ -82,6 +82,18 @@ d'un code (un code déjà entré ici ne l'est plus, sauf s'il est déjà sur la 
   verte / C avec leur logo)** : quand tout est parti, l'écran reste — leur logo en grand, « Merci ! » en vert, « C'est sur Open Food Facts. »,
   les photos « (envoyée) », et **Retour** (doré) au lieu d'Envoyer et Plus tard. Avant : 3 s de message, puis la liste (vide).
 - Essai dans le faux navigateur : 66 vérifications.
+- **La poubelle (J-C, 2026-10-16 : « pour ne pas envoyer un des noms listés. Exemple je n'ai pas gardé l'emballage. Au prochain achat il
+  reviendrait dans la liste »; A sur aperçu, parmi A avant le logo / B après / C dessous)** : sur chaque ligne de la liste, **la poubelle
+  puis le logo** (`.boutons-ligne`, la boîte des deux boutons de la Liste d'achats, renommée); touchée → « Retirer … de la liste ? » Oui /
+  Non à la place de la ligne (`demanderRetraitOff()`, `ouiNon()`); Oui → **la ligne de l'onglet OFF porte « Retiré » et le jour en col. G**
+  (`retirerOff()`, par la file d'OFF; rien d'effacé — `references.off` ne renvoie déjà que G vide) : elle quitte la liste et son logo
+  quitte Consommer et Ouvrir. **Au prochain achat, Open Food Facts est redemandé** : avant, l'app ne le demandait qu'au tout premier achat
+  d'un code (`offFiche()`, `offCarte()` : un code connu = rien); désormais, à chaque achat d'un code qui n'est pas sur la liste — **sauf un
+  code qu'Open Food Facts a déjà au complet** (noté sur l'appareil, `OFF_COMPLETS`, `rdg_off_complets` : la fois suivante, aucun appel).
+  Le logo reparaît sur la carte (la fiche); pas touché, il revient sur la liste, une ligne neuve datée du jour. En prime : un produit
+  entré avant le 2026-10-14 est proposé à son prochain achat. **Un code de magasin** (la viande pesée, entrée avant le 2026-10-15 : le
+  bœuf haché de Super C, vu sur la capture de J-C) **quitte la liste tout seul** (`poserListeOff()` : « Retiré »). Rien dans `api.gs`.
+  Essai dans le faux navigateur : 18 vérifications.
 
 ## 4. Pour le coffre-fort (`api.gs`, à l'ordi)
 
