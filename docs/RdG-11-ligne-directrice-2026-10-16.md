@@ -26,6 +26,8 @@
 3. **Sa taille dit le niveau** (J-C : « les boutons d'action 1, 2, 3 toujours un peu plus petits ») : niveau 1, le menu (le plus
    gros); niveau 2, une page ouverte du menu; niveau 3, la suivante. **Sur une page, tous de la même taille, le Retour compris.**
    **Le niveau 2 = B, 70 % de la hauteur du menu** (l'aperçu « Les niveaux », `scratchpad/apercu-niveaux/fait.py`, parmi 85 / 70 / 55 %).
+   **Le niveau 3 = 50 %** (J-C : « Oui, 50 % pour le niveau 3 » — le même pas). **Sur l'iPhone, rien sous 44 px** (`--tactile`, la
+   taille d'un doigt : proposé avec le niveau 3, pas contredit).
 4. **Le moins de texte possible** : des icônes. Par catégorie et Par épicerie **reprennent les icônes de Gérer les bases** (les
    quatre cases, la devanture). Ajouter à la liste = le + (proposé par Claude).
 5. **Une action garde son icône et sa couleur, partout** (J-C : « un Ajouter, c'est toujours la même couleur, par catégorie aussi,
@@ -35,8 +37,7 @@
 
 ## 3. Ouvert
 
-- **Le niveau 3** : combien plus petit ? (proposé : 50 %, le même pas).
-- **L'iPhone** : les boutons du menu y sont déjà au plancher (`--bouton-grand-haut`, 50 px); au niveau 2 (70 %), un bouton
-  tomberait sous la taille d'un doigt (44 px, `--tactile`) — proposé : rien sous 44 px.
+- **L'iPhone** : les boutons du menu y sont déjà au plancher (`--bouton-grand-haut`, 50 px) : les niveaux 2 et 3 y seront
+  presque de la même taille que le menu (44 px, au plus petit).
 - Le 607 de Catégories est doré, près de l'or du Retour.
 - Les autres sortes : les barres, Oui / Non (deux façons), les boutons à texte (Annuler, C'est ça…), les pastilles…
