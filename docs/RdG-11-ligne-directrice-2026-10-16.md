@@ -54,6 +54,10 @@
    = l'horloge · Réessayer = la flèche qui tourne · Voir chez Super C, Chercher chez… = le logo de l'épicerie · Escale = le sac,
    Choisir un endroit = l'armoire · Entrer = la flèche qui entre par la porte. ⚠️ **Suivant et Sans la page** : la même flèche, seule la
    couleur change — J-C : « pas clair, mais je déciderai à l'utilisation ».
+12. **Les autres sortes restent telles quelles** (l'aperçu « Les autres sortes », `scratchpad/apercu-sortes/fait.py` : la barre, la
+   pastille, la case, l'interrupteur, les ronds et le feu, moins / plus, le scanner, la vignette, la tuile), **sauf la case à cocher :
+   verte partout** (J-C : « La case verte partout ») — avant : verte dans la Liste d'achats (703), rouge sur la carte de Consommer
+   (Ne pas racheter, Jeté : `.case`, 402).
 
 ## 3. Ouvert
 
@@ -61,4 +65,4 @@
   presque de la même taille que le menu (44 px, au plus petit).
 - Le 607 de Catégories est doré, près de l'or du Retour.
 - Suivant / Sans la page (la même flèche) : à revoir à l'usage (décision 11).
-- Les autres sortes : les barres, les pastilles, la case, l'interrupteur, les ronds et le feu, moins / plus, le scanner, la vignette, la tuile.
+- **La suite** : essayer la ligne au complet sur une page (aperçu final), puis l'appliquer page par page.
