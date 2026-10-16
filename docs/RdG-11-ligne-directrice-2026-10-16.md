@@ -59,4 +59,8 @@
   produit ? » : le scan, Compléter). **Aperçu envoyé le 2026-10-16** (`scratchpad/apercu-ouinon/fait.py`) : **A** petits, à droite de
   la question, Oui vert / Non blanc, partout · **B** comme A, le Oui qui retire en rouge · **C** deux demi-boutons sous la question, à
   la taille du niveau 3, Oui vert / Non blanc · **D** en icônes, le crochet vert / le X blanc, petits, à droite. **J-C : « D »** — décision 7 ci-dessus.
-- Les autres sortes : les barres, les boutons à texte (Annuler, C'est ça…), les pastilles…
+- **Les boutons écrits qui restent** — aperçu envoyé le 2026-10-16 (`scratchpad/apercu-autres/fait.py`), le mot à côté de l'icône
+  proposée : 1 Coller la page = le presse-papiers · 2 Suivant, Sans la page = la flèche du Retour tournée vers l'avant · 3 Plus tard =
+  l'horloge · 4 Réessayer = la flèche qui tourne · 5 Voir chez Super C, Chercher chez… = le logo de l'épicerie · 6 Escale = le sac,
+  Choisir un endroit = l'armoire · 7 Entrer = la flèche qui entre par la porte. **Son avis, un par un, à venir.**
+- Les autres sortes : les barres, les pastilles, la case, l'interrupteur, les ronds et le feu, moins / plus, le scanner, la vignette, la tuile.
