@@ -353,7 +353,7 @@ function surToucheFin(ev) {
   if (ev.changedTouches[0].clientY - glisserDepart > GLISSER) fermerMenu();
   glisserDepart = null;
 }
-function montrerVoile(on){ $('voile').hidden = !on; $('voile-texte').textContent = ''; }   // voile bloquant + le chariot (et sa ligne : « 2e essai… »)
+function montrerVoile(on){ $('voile').hidden = !on; $('voile-texte').textContent = ''; }   // voile bloquant + le chariot (et sa ligne : « Je garnis la tablette 1… »)
 /* Le chariot PENDANT une recherche (J-C, 2026-10-13 : « on ne sait pas s'il travaille ou pas »; « 12 secondes c'est trop long ») :
    au plus CHARIOT_MAX; ensuite il part et la recherche continue derrière — sa réponse remplit encore, si rien n'a été tapé entre-temps. */
 const CHARIOT_MAX = 5000;
@@ -542,15 +542,30 @@ function appliquer(d) {
   appliquerCouleursSite();
 }
 
+/* Sous le chariot, pendant la lecture de la réserve (J-C, 2026-10-16 : « parler en terme de rangement, comme les employés qui
+   garnissent leur épicerie » — avant : « Lecture de la réserve… ») : une phrase après l'autre, chacune --phrase-duree (au root);
+   si c'est long, on recommence à la 1re. Un 2e essai s'écrit au bout (J-C, 2026-10-06 : l'app dit qu'elle fait un 2e essai).
+   Seulement si le chariot est déjà là : une relecture silencieuse n'écrit rien (elle effacerait le texte d'un autre chariot). */
+const PHRASES_RESERVE = ['J\'ouvre les boîtes…', 'Je garnis la tablette 1…', 'Je garnis la tablette 2…', 'Je garnis la tablette 3…',
+  'J\'aligne les conserves…', 'Je vérifie les dates…'];
+function phrasesReserve() {
+  if ($('voile').hidden) return { suivi: () => {}, fin: () => {} };
+  let n = 0, essai = 0;
+  const ecrire = () => { if (!$('voile').hidden) $('voile-texte').textContent = PHRASES_RESERVE[n % PHRASES_RESERVE.length] + (essai ? ' (' + (essai + 1) + 'e essai)' : ''); };
+  const duree = parseFloat(getComputedStyle(document.documentElement).getPropertyValue('--phrase-duree')) * 1000;   // en secondes au root
+  const minuterie = setInterval(() => { n++; ecrire(); }, duree);
+  return { suivi: i => { essai = i; ecrire(); }, fin: () => clearInterval(minuterie) };
+}
+
 /* Rend true (chargé), false (mot de passe refusé) ou null (réseau). */
 async function chargerReferences() {
   const cache = lireCache();
   if (cache) { appliquer(cache); remplirListes(); statut(''); }   // instantané si déjà vu
   else statut('Chargement…');
   dernierChargement = Date.now();
-  const suivi = i => { if (!$('voile').hidden) $('voile-texte').textContent = i ? (i + 1) + 'e essai…' : 'Lecture de la réserve…'; };   // sous le chariot seulement
+  const phrases = phrasesReserve();   // sous le chariot seulement
   try {
-    const data = await chargerData(suivi);
+    const data = await chargerData(phrases.suivi);
     if (Object.keys(ordreModifie).length) envoyerOrdre();   // des flèches touchées pendant le chargement : on les garde
     reordonnerLignes(data.emps, lireAttente());   // un ordre pas encore confirmé l'emporte sur l'ancien
     poserOrdresAliments(data.prods, lireAttenteAliments());   // idem pour l'ordre des endroits d'un aliment
@@ -584,7 +599,7 @@ async function chargerReferences() {
     marquerPasAJour(true, app ? 'l\'app a planté : ' + e.message : e.message,
       e.essais ? e.essais.join(' · ') : String(e.stack || '').split('\n').slice(0, 3).join(' · '));   // reste en haut tant que la réserve n'est pas relue
     return null;
-  } finally { $('voile-texte').textContent = ''; }
+  } finally { phrases.fin(); $('voile-texte').textContent = ''; }
 }
 
 /* Le bandeau rouge (J-C, 2026-10-06 : « travailler avec des données pas à jour, c'est inconscient »; B puis A sur aperçu) :
