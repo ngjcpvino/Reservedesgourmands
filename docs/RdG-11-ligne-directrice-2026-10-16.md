@@ -58,6 +58,10 @@
    pastille, la case, l'interrupteur, les ronds et le feu, moins / plus, le scanner, la vignette, la tuile), **sauf la case à cocher :
    verte partout** (J-C : « La case verte partout ») — avant : verte dans la Liste d'achats (703), rouge sur la carte de Consommer
    (Ne pas racheter, Jeté : `.case`, 402).
+13. **Moins / plus : plus étroit** (J-C : « Le + et −, trop large pour rien ») — aujourd'hui le champ du nombre prend toute la largeur
+   entre les deux carrés.
+14. **La carte de Consommer : Jeter et Consommer sur une même ligne** (J-C) — aujourd'hui une case « Jeté » change le mot du bouton
+   Consommer; deux boutons côte à côte, la poubelle et la fourchette (décision 9). Où va le X (Annuler) : aperçu.
 
 ## 3. Ouvert
 
