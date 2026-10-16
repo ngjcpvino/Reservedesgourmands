@@ -316,7 +316,7 @@
   --icone-reponse:     22px;    /* le crochet et le X d'une question (Oui / Non), petits, à droite (D sur aperçu) */
   --icone-pleine:      28px;    /* le crochet ou le X sur un bouton de toute la largeur (Enregistrer, Annuler…) */
   --qte-large:         calc(var(--tactile) * 1.5);   /* le nombre entre − et + : sa largeur, pas plus (J-C, 2026-10-16 : « trop large pour rien ») */
-  --titre-action-taille: 28px;  /* le titre d'une page (D sur aperçu) : plus gros… */
+  --titre-action-taille: 20px;  /* le titre d'une page (D sur aperçu) : en gras… (20 : J-C, 2026-10-16, D sur aperçu — 28 était trop gros pour son icône) */
   --titre-action-icone:  34px;  /* … l'icône de son bouton du menu devant… */
   --filet-titre-action:  3px;   /* … et la ligne dessous, dans sa couleur */
   --icone-taille:      40px;   /* le dessin dedans, sur un bouton ordinaire */

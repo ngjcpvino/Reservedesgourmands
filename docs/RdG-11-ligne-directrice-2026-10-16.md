@@ -72,6 +72,8 @@
    d'achats : le chariot 303; Listes : la feuille 304; Rechercher : la loupe 703; Pièces, Meubles… : leur icône de Gérer les bases;
    Circulaires : l'étiquette 401…). ⚠️ À voir à l'application : une couleur pâle (Ouvrir et Pièces 801, Saveurs 701) se lira-t-elle
    en icône et en ligne sur le blanc ?
+   **Le texte à 20, l'icône à 34** (J-C, le même soir, devant ses pages : « le titre est trop gros par rapport à l'icône qui est
+   devant »; sur aperçu, A 28 · B 24 · C 22 · D 20, l'icône à 34, et E le texte à 28, l'icône à 46 — **« D »**).
 
 ## 3. Ouvert
 
