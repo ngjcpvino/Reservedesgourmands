@@ -543,18 +543,26 @@ function appliquer(d) {
 }
 
 /* Sous le chariot, pendant la lecture de la réserve (J-C, 2026-10-16 : « parler en terme de rangement, comme les employés qui
-   garnissent leur épicerie » — avant : « Lecture de la réserve… ») : une phrase après l'autre, chacune --phrase-duree (au root);
-   si c'est long, on recommence à la 1re. Un 2e essai s'écrit au bout (J-C, 2026-10-06 : l'app dit qu'elle fait un 2e essai).
-   Seulement si le chariot est déjà là : une relecture silencieuse n'écrit rien (elle effacerait le texte d'un autre chariot). */
-const PHRASES_RESERVE = ['J\'ouvre les boîtes…', 'Je garnis la tablette 1…', 'Je garnis la tablette 2…', 'Je garnis la tablette 3…',
-  'J\'aligne les conserves…', 'Je vérifie les dates…'];
+   garnissent leur épicerie » — avant : « Lecture de la réserve… »; puis « les circulaires, les surplus, etc. ») : le quart de travail
+   d'un commis, une phrase après l'autre, chacune --phrase-duree (au root), en boucle. Une lecture n'en montre que 4 à 6 : la suivante
+   reprend là où la dernière s'est arrêtée (PHRASE_SUIVANTE, sur l'appareil). Un 2e essai s'écrit au bout (J-C, 2026-10-06 : l'app dit
+   qu'elle fait un 2e essai). Seulement si le chariot est déjà là : une relecture silencieuse n'écrit rien (elle effacerait le texte
+   d'un autre chariot). */
+const PHRASES_RESERVE = ['Je défais la palette…', 'J\'ouvre les boîtes…', 'Je garnis la tablette 1…', 'Je garnis la tablette 2…',
+  'Je garnis la tablette 3…', 'Je range les surplus dans la réserve…', 'J\'aligne les conserves…', 'Je vérifie les dates…',
+  'J\'accroche les spéciaux de la circulaire…', 'Je change les étiquettes de prix…', 'J\'arrose les légumes…'];
+const PHRASE_SUIVANTE = 'rdg_phrase';   // où la prochaine lecture reprend la série, sur CET appareil
 function phrasesReserve() {
   if ($('voile').hidden) return { suivi: () => {}, fin: () => {} };
   let n = 0, essai = 0;
+  try { n = parseInt(localStorage.getItem(PHRASE_SUIVANTE), 10) || 0; } catch (e) {}
   const ecrire = () => { if (!$('voile').hidden) $('voile-texte').textContent = PHRASES_RESERVE[n % PHRASES_RESERVE.length] + (essai ? ' (' + (essai + 1) + 'e essai)' : ''); };
   const duree = parseFloat(getComputedStyle(document.documentElement).getPropertyValue('--phrase-duree')) * 1000;   // en secondes au root
   const minuterie = setInterval(() => { n++; ecrire(); }, duree);
-  return { suivi: i => { essai = i; ecrire(); }, fin: () => clearInterval(minuterie) };
+  return {
+    suivi: i => { essai = i; ecrire(); },
+    fin: () => { clearInterval(minuterie); try { localStorage.setItem(PHRASE_SUIVANTE, String((n + 1) % PHRASES_RESERVE.length)); } catch (e) {} }
+  };
 }
 
 /* Rend true (chargé), false (mot de passe refusé) ou null (réseau). */
