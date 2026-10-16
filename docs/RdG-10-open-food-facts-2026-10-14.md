@@ -28,7 +28,8 @@
    catégories** (celles d'Open Food Facts ne sont pas les siennes). **Avant d'envoyer, un écran « très convivial et visuel »** qui montre tout.
 8. **L'écran avant d'envoyer = B** (sur aperçu, parmi A la fiche, B les trois photos puis le texte, C comme chez eux) : les 3 photos
    côte à côte, leur nom dessous; le nom, la marque, le format dans une liste blanche, chacun son crayon; « Tout est beau ? Merci
-   pour ton aide ! »; « Envoyer à Open Food Facts » (vert), « Plus tard ».
+   pour ton aide ! »; « Envoyer à Open Food Facts » (vert), « Plus tard ». (La phrase « Tout est beau ? Merci pour ton aide ! » :
+   retirée le 2026-10-16, J-C : « C'est pas utile ».)
 9. **Le même écran sert à PRENDRE les photos** (J-C : « Oh oui ») : une case vide = on la touche, l'appareil photo de l'iPhone
    s'ouvre, la photo se pose dans sa case.
 10. **Les deux sacs ne s'arrêtent pas** (J-C : « Si j'ai pas le temps, oui ») : sur la carte d'un produit qu'Open Food Facts ne

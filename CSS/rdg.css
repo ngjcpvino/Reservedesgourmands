@@ -1036,7 +1036,6 @@ select.champ {
 .off-vide { border: var(--filet) dashed var(--couleur-302); box-shadow: none; cursor: pointer; }
 .off-grand { width: var(--off-grand); height: var(--off-grand); background: var(--off-logo) center / contain no-repeat; }
 .off-photo figcaption { text-align: center; font-size: var(--texte-petit); color: var(--couleur-305); margin-top: var(--espace-xs); }
-.off-merci { text-align: center; font-size: var(--texte-petit); color: var(--couleur-305); margin-top: var(--espace-m); }
 /* Tout est parti (C sur aperçu) : leur logo en grand, « Merci ! » en vert, « C'est sur Open Food Facts. », puis les photos « (envoyée) » et Retour. */
 .off-fini { display: flex; flex-direction: column; align-items: center; margin-bottom: var(--espace-l); }
 .off-fini-logo { width: var(--off-merci-logo); height: var(--off-merci-logo); margin-bottom: var(--espace-s); background: var(--off-logo) center / contain no-repeat; }
