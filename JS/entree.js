@@ -2747,7 +2747,7 @@ function boutonOuvrir(cle) {
   const rien = !lotsDeCle(cle).some(l => partsAOuvrir(prod, l).length);
   return '<button class="entamer' + (rien ? ' entamer-eteinte' : '') + '" type="button" data-inv="o" data-lots="' + esc(cle) + '" aria-label="Ouvrir"></button>';
 }
-/* La conserve touchée : un contenant s'ouvre tout de suite. Plusieurs endroits (Par catégorie) : celui de son emplacement 1, sinon le
+/* Le biscuit touché : un contenant s'ouvre tout de suite. Plusieurs endroits (Par catégorie) : celui de son emplacement 1, sinon le
    plus vieux; plusieurs formats : le plus vieux. fin : l'écran qui se redessine. */
 function ouvrirDeLaLigne(lots, fin) {
   const pid = lots.length ? lots[0].pid : '', prod = PRODUITS.find(p => String(p.id) === String(pid));
@@ -2770,7 +2770,7 @@ function ouvrirActionInventaire(btn) {
   const redessiner = zone && zone.id === 'liste-bientot' ? remplirBientot : remplirInventaire;
   if (!zone || btn.classList.contains('entamer-eteinte')) return;
   zone.querySelectorAll('.carte-inv').forEach(c => c.remove());   // une seule carte ouverte à la fois
-  if (btn.dataset.inv === 'o') { ouvrirDeLaLigne(lots, () => redessiner()); return; }   // la conserve : un toucher, pas de carte
+  if (btn.dataset.inv === 'o') { ouvrirDeLaLigne(lots, () => redessiner()); return; }   // le biscuit : un toucher, pas de carte
   if (!lots.length || !item) return;
   const carte = document.createElement('div');
   carte.className = 'endroit carte carte-inv';
@@ -5425,7 +5425,7 @@ function initEntree() {
     if (tete) toggleAccordeon(tete);
   });
   $('liste-bientot').addEventListener('click', function (ev) {
-    const inv = ev.target.closest('[data-inv]');           // les deux flèches (déplacer), la conserve (ouvrir), la fourchette (consommer, jeter)
+    const inv = ev.target.closest('[data-inv]');           // les deux flèches (déplacer), le biscuit (ouvrir), la fourchette (consommer, jeter)
     if (inv) { ouvrirActionInventaire(inv); return; }
     if (ev.target.closest('.endroit')) return;             // toucher la carte ouverte ne plie pas l'accordéon
     const tete = ev.target.closest('.accordeon-tete');
@@ -5445,7 +5445,7 @@ function initEntree() {
   $('liste-inventaire').addEventListener('click', function (ev) {   // pièces et meubles de l'inventaire
     const vue = ev.target.closest('[data-vue]');           // « Par catégorie » / « Par meuble »
     if (vue) { if (vue.dataset.vue !== vueInventaire) { vueInventaire = vue.dataset.vue; remplirInventaire(); } return; }
-    const inv = ev.target.closest('[data-inv]');           // les deux flèches (déplacer), la conserve (ouvrir), la fourchette (consommer) d'une ligne
+    const inv = ev.target.closest('[data-inv]');           // les deux flèches (déplacer), le biscuit (ouvrir), la fourchette (consommer) d'une ligne
     if (inv) { ouvrirActionInventaire(inv); return; }
     const lot = ev.target.closest('.ranger[data-lot]');    // l'Escale : les deux flèches rangent
     if (lot) { ouvrirLot(lot); return; }
