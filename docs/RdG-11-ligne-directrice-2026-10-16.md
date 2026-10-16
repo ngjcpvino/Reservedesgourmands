@@ -61,7 +61,12 @@
 13. **Moins / plus : plus étroit** (J-C : « Le + et −, trop large pour rien ») — aujourd'hui le champ du nombre prend toute la largeur
    entre les deux carrés.
 14. **La carte de Consommer : Jeter et Consommer sur une même ligne** (J-C) — aujourd'hui une case « Jeté » change le mot du bouton
-   Consommer; deux boutons côte à côte, la poubelle et la fourchette (décision 9). Où va le X (Annuler) : aperçu.
+   Consommer; deux boutons côte à côte, la poubelle et la fourchette (décision 9). **Aperçu envoyé** (`scratchpad/apercu-conso/fait.py`) :
+   A la poubelle et la fourchette côte à côte, le X seul dessous · B les trois sur une ligne — **son choix à venir.**
+15. **Le titre d'une page, plus évident; la ligne dessous, toujours** (J-C : « Le titre de ces pages, pas assez évident. Garder toujours
+   la ligne sous le titre de la page ») — aujourd'hui : en capitales, 22, léger, la ligne beige fine. **Aperçu envoyé**
+   (`scratchpad/apercu-titre/fait.py`, la page Consommer) : A 28 léger · B 28 gras, la ligne brune · C 34 gras, la ligne brune plus
+   épaisse · D 28 gras, l'icône et la couleur de son bouton du menu (la fourchette rouge, la ligne rouge) — **son choix à venir.**
 
 ## 3. Ouvert
 
