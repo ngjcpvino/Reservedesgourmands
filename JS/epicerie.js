@@ -584,7 +584,7 @@ const aCategorie = pid => { const p = PRODUITS.find(x => String(x.id) === String
 /* Les épiceries où il y a du travail, en tuiles (A sur aperçu : seulement celles-là), le point rouge sur chacune; rien d'écrit. */
 function montrerCompleter() {
   const xs = aCompleter();
-  if (!xs.length) { avis('Rien à compléter'); return; }
+  if (!xs.length) { poserPoints(); avis('Rien à compléter'); return; }   // un point resté allumé s'éteint
   toutCacher(); $('vue-epicerie').hidden = false; $('btn-burger').hidden = false;
   EPI_COMPLETER = null;
   $('epi-titre').textContent = 'Compléter';
