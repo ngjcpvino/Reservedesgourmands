@@ -130,7 +130,7 @@ function enregistrerQui() {
   try { localStorage.setItem(QUI, nom); } catch (e) {}
   montrerAccueil();                             // le nom est posé : on passe à la suite
 }
-function montrerChoixQuoi()    { toutCacher(); $('vue-choix-quoi').hidden = false; $('btn-burger').hidden = false; $('entete-photo').hidden = false; }
+function montrerChoixQuoi()    { toutCacher(); poserPoints(); $('vue-choix-quoi').hidden = false; $('btn-burger').hidden = false; $('entete-photo').hidden = false; }
 async function montrerListes() {
   toutCacher(); $('vue-listes').hidden = false; $('btn-burger').hidden = false;
   // À l'ouverture (J-C, 2026-10-01) : tout est fermé, toutes les listes paraissent; l'Inventaire s'ouvrira sur ses deux boutons, rien de choisi
@@ -312,7 +312,10 @@ function fermerMenu() {                 // la page redescend ; Outils se replie 
   montrerGrilleMenu('principal');
   placerTitre();
 }
+/* Les points rouges sont refaits chaque fois qu'on les voit (J-C, 2026-10-15, capture à l'appui : le point sur Compléter, « Rien à
+   compléter » — ce qui restait avait été consommé, et rien ne l'éteignait) : le menu, l'écran du +. */
 function ouvrirMenu() {
+  poserPoints();
   $('menu').scrollTop = 0;
   $('menu').classList.add('ouvert');
   document.body.classList.add('menu-ouvert');
