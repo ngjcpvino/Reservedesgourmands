@@ -120,5 +120,13 @@
     vérifications. Sur l'aperçu, J-C a vu « le produit trouvé collé sur le champ de recherche » : une erreur de l'aperçu seulement (dans
     l'app, le champ disparaît sur l'écran de rayon, et les résultats ont leur espace). Pas dans ce lot : les barres de Listes elles-mêmes
     (le point 52).
-  - Lot 3 : Gérer les bases, Couleurs, Circulaires (d'abord les couleurs fixes d'Outils, le point 25).
+  - Lot 3 : Gérer les bases, Couleurs, Circulaires (d'abord les couleurs fixes d'Outils, le point 25). J-C : « On y va ». **Aperçu
+    envoyé le 2026-10-16** (`scratchpad/apercu-lot3/fait.py`, le vrai CSS du jour) : 1 Outils — **A** chacun garde sa couleur d'aujourd'hui
+    (505 · 803 · 702), Se déconnecter quitte le rouge pour l'anthracite 902 · **B** des couleurs à eux (roux 506 · bordeaux 403 · brun pâle
+    302 · anthracite 902); 2 les titres (l'icône et la couleur de leur bouton : Pièces… Unités, Circulaires, Couleurs); 3 Meubles au
+    niveau 2; 4 Aliments : Enlever (Pas aimé) = la poubelle, avec sa question; 5 Circulaires : les tuiles, les ronds, le Retour au niveau 2;
+    6 le tri au niveau 3 — Son code-barres (le logo de l'épicerie = Chercher, le presse-papiers vert = Coller la page, la flèche recule, la
+    flèche vers l'avant blanche = Sans la page), Ce que l'app a lu et Ton aliment (la flèche, le X, le crochet sur une ligne; Un autre
+    aliment = le +; Suivant = la flèche vers l'avant verte); 7 Couleurs : le titre et un Retour au bas (la flèche → Outils); 8 Qui entre et
+    le mot de passe : Entrer = la flèche qui entre par la porte. **Son choix à venir (Outils : A ou B).**
   - Lot 4 : le + — le sac seul, les deux sacs, Compléter, la fiche, Open Food Facts.
