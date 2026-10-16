@@ -107,6 +107,10 @@
   --menu-outils:      var(--couleur-802);
   --menu-achats:      var(--couleur-303);
   --menu-rechercher:  var(--couleur-703);
+  /* Le choix du + : chaque bouton SA couleur, figée (la ligne directrice, lot 4 — celle qu'il avait, comme le menu et Outils) */
+  --quoi-produit:     var(--couleur-505);   /* le sac seul */
+  --quoi-epicerie:    var(--couleur-803);   /* les deux sacs */
+  --quoi-completer:   var(--couleur-702);   /* Compléter */
   /* Sous la caméra : chaque bouton SA couleur (J-C, 2026-10-13, choix B sur aperçu) */
   --scan-taper:       var(--couleur-802);
   --scan-sans-code:   var(--couleur-505);
@@ -233,6 +237,8 @@
   --action-suivant:    var(--couleur-703);      /* la flèche vers l'avant : Suivant (vert) */
   --action-sans:       var(--couleur-101);      /* … la même, blanche : Sans la page */
   --action-entrer:     var(--couleur-305);      /* la flèche qui entre par la porte : Entrer (le mot de passe, Qui entre) */
+  --action-tard:       var(--couleur-305);      /* l'horloge : Plus tard (Open Food Facts) */
+  --action-off:        var(--off-fond);         /* leur logo sur blanc : Envoyer à Open Food Facts */
   --poubelle-taille:   24px;   /* la poubelle « retirer », un peu plus grosse que le crayon : elle tient tête à l'interrupteur (J-C, 2026-10-03, choix F sur aperçu parmi 22 / 24 / 26) */
   --icone-colonne:     28px;   /* Magasins : l'icône des circulaires au-dessus des interrupteurs, à la place du mot (J-C, 2026-10-03, choix A sur aperçu) */
   --interrupteur-large:  40px;   /* l'interrupteur « Circulaire » (Magasins) : sa piste */
@@ -482,6 +488,10 @@ body:has(.sur-photo:not([hidden]))::before { display: none; }
 #vue-aliments { --t: var(--base-aliments); }   #vue-circulaires { --t: var(--base-circulaires); }   #vue-couleurs { --t: var(--outil-couleurs); }
 #vue-noms[data-page="magasins"] { --t: var(--base-magasins); }   #vue-noms[data-page="marques"] { --t: var(--base-marques); }
 #vue-noms[data-page="saveurs"]  { --t: var(--base-saveurs); }    #vue-noms[data-page="unites"]  { --t: var(--base-unites); }
+#vue-app, #vue-scan { --t: var(--quoi-produit); }   #vue-off { --t: var(--couleur-305); }
+#vue-epicerie[data-quoi="epicerie"] { --t: var(--quoi-epicerie); }   #vue-epicerie[data-quoi="completer"] { --t: var(--quoi-completer); }
+#vue-scan[data-page="achats"] { --t: var(--menu-achats); }   #vue-scan[data-page="rechercher"] { --t: var(--menu-rechercher); }
+#vue-scan[data-page="consommer"] { --t: var(--menu-consommer); }   #vue-scan[data-page="deplacer"] { --t: var(--menu-deplacer); }   #vue-scan[data-page="ouvrir"] { --t: var(--menu-ouvrir); }
 #vue-recherche { --t: var(--menu-rechercher); }
 #vue-recherche[data-mode="consommer"] { --t: var(--menu-consommer); }
 #vue-recherche[data-mode="deplacer"]  { --t: var(--menu-deplacer); }
@@ -553,19 +563,20 @@ body:has(.sur-photo:not([hidden]))::before { display: none; }
 .grille + .bouton, .bouton-large { aspect-ratio: calc(var(--bouton-forme-l) * 2) / calc(var(--bouton-forme-h) * var(--niveau)); min-height: max(var(--tactile), calc(var(--bouton-grand-haut) * var(--niveau))); width: 100%; min-width: 0; padding: var(--espace-xs); }   /* le rembourrage d'un gros bouton : son dessin a la même taille que ceux de la grille */
 /* .bouton-large : la même chose quand la grille n'est pas juste au-dessus (le scan : la ligne « Taper le code » se glisse entre les deux). */
 
-/* LA SUITE : un groupe de frères se colore selon la position — les grilles d'icônes, les accordéons de Listes et les listes
-   « .liste-suite » (Magasins — juste en dessous). Le HTML ne porte aucune couleur : ajouter un frère le colore tout seul. Au-delà de 10, la suite recommence.
-   Les CATÉGORIES n'en sont plus (J-C, 2026-10-01) : chacune a SA couleur, la même partout (teinteCategorie, Categories col. H). */
-.grille > .bouton-grand:nth-child(10n+1), .contenu > .accordeon:nth-child(10n+1) > .accordeon-tete { --c: var(--suite-1); }
-.grille > .bouton-grand:nth-child(10n+2), .contenu > .accordeon:nth-child(10n+2) > .accordeon-tete { --c: var(--suite-2); }
-.grille > .bouton-grand:nth-child(10n+3), .contenu > .accordeon:nth-child(10n+3) > .accordeon-tete { --c: var(--suite-3); }
-.grille > .bouton-grand:nth-child(10n+4), .contenu > .accordeon:nth-child(10n+4) > .accordeon-tete { --c: var(--suite-4); }
-.grille > .bouton-grand:nth-child(10n+5), .contenu > .accordeon:nth-child(10n+5) > .accordeon-tete { --c: var(--suite-5); }
-.grille > .bouton-grand:nth-child(10n+6), .contenu > .accordeon:nth-child(10n+6) > .accordeon-tete { --c: var(--suite-6); }
-.grille > .bouton-grand:nth-child(10n+7), .contenu > .accordeon:nth-child(10n+7) > .accordeon-tete { --c: var(--suite-7); }
-.grille > .bouton-grand:nth-child(10n+8), .contenu > .accordeon:nth-child(10n+8) > .accordeon-tete { --c: var(--suite-8); }
-.grille > .bouton-grand:nth-child(10n+9), .contenu > .accordeon:nth-child(10n+9) > .accordeon-tete { --c: var(--suite-9); }
-.grille > .bouton-grand:nth-child(10n+10), .contenu > .accordeon:nth-child(10n+10) > .accordeon-tete { --c: var(--suite-10); }
+/* LA SUITE : un groupe de frères se colore selon la position — les accordéons de Listes et les listes « .liste-suite » (Marques,
+   Saveurs, Unités — juste en dessous). Au-delà de 10, la suite recommence. Les CATÉGORIES n'en sont plus (J-C, 2026-10-01 : chacune SA
+   couleur, teinteCategorie), ni les grilles d'icônes depuis le lot 4 de la ligne directrice (2026-10-16 : chaque bouton dit son action,
+   data-menu / data-base / data-outil / data-quoi / data-scan / data-action, et en garde la couleur partout). */
+.contenu > .accordeon:nth-child(10n+1) > .accordeon-tete { --c: var(--suite-1); }
+.contenu > .accordeon:nth-child(10n+2) > .accordeon-tete { --c: var(--suite-2); }
+.contenu > .accordeon:nth-child(10n+3) > .accordeon-tete { --c: var(--suite-3); }
+.contenu > .accordeon:nth-child(10n+4) > .accordeon-tete { --c: var(--suite-4); }
+.contenu > .accordeon:nth-child(10n+5) > .accordeon-tete { --c: var(--suite-5); }
+.contenu > .accordeon:nth-child(10n+6) > .accordeon-tete { --c: var(--suite-6); }
+.contenu > .accordeon:nth-child(10n+7) > .accordeon-tete { --c: var(--suite-7); }
+.contenu > .accordeon:nth-child(10n+8) > .accordeon-tete { --c: var(--suite-8); }
+.contenu > .accordeon:nth-child(10n+9) > .accordeon-tete { --c: var(--suite-9); }
+.contenu > .accordeon:nth-child(10n+10) > .accordeon-tete { --c: var(--suite-10); }
 /* .liste-suite : la couleur se pose sur l'accordéon (--meuble), pas sur sa seule tête — la tête la prend (.accordeon-tete),
    et les bandeaux dessous aussi, pâlis. (Une catégorie pose la sienne de la même façon, par le JS.) */
 .liste-suite > .accordeon:nth-child(10n+1) { --meuble: var(--suite-1); }
@@ -583,6 +594,10 @@ body:has(.sur-photo:not([hidden]))::before { display: none; }
 .grille > .bouton-grand[data-scan="sans-code"]   { --c: var(--scan-sans-code); }
 .grille > .bouton-grand[data-scan="habituels"]   { --c: var(--sans-habituels); }
 .grille > .bouton-grand[data-scan="entonnoir"]   { --c: var(--sans-entonnoir); }
+/* Le choix du + : les siennes, figées (lot 4 de la ligne directrice) */
+.grille > .bouton-grand[data-quoi="produit"]     { --c: var(--quoi-produit); }
+.grille > .bouton-grand[data-quoi="epicerie"]    { --c: var(--quoi-epicerie); }
+.grille > .bouton-grand[data-quoi="completer"]   { --c: var(--quoi-completer); }
 /* Gérer les bases : chaque bouton SA couleur (root, --base-…), plus la suite par position. Pâle : le dessin passe au brun. */
 .grille > .bouton-grand[data-base="pieces"]      { --c: var(--base-pieces); --icone-trait: var(--icone-trait-pale); }
 .grille > .bouton-grand[data-base="meubles"]     { --c: var(--base-meubles); }
@@ -621,7 +636,13 @@ body:has(.sur-photo:not([hidden]))::before { display: none; }
 :is(.grille > .bouton-grand, .bouton)[data-action="suivant"]    { --c: var(--action-suivant); }
 :is(.grille > .bouton-grand, .bouton)[data-action="sans"]       { --c: var(--action-sans); --icone-trait: var(--icone-trait-pale); }
 :is(.grille > .bouton-grand, .bouton)[data-action="entrer"]     { --c: var(--action-entrer); }
-.grille > .bouton-grand.bouton-or { --c: var(--couleur-604); }   /* la flèche d'une étape, dans une grille : dorée, jamais la couleur de la suite */
+:is(.grille > .bouton-grand, .bouton)[data-action="escale"]     { --c: var(--action-base); --icone-trait: var(--icone-trait-pale); }   /* le sac : en escale, pas encore rangé */
+:is(.grille > .bouton-grand, .bouton)[data-action="corriger"]   { --c: var(--action-base); --icone-trait: var(--icone-trait-pale); }   /* le crayon, en grand */
+:is(.grille > .bouton-grand, .bouton)[data-action="tard"]       { --c: var(--action-tard); }
+:is(.grille > .bouton-grand, .bouton)[data-action="off"]        { --c: var(--action-off); }
+.logo-off { display: block; height: var(--icone-part); aspect-ratio: 1; background: var(--off-logo) center / contain no-repeat; }   /* leur logo, en couleurs, dans un bouton (Envoyer) et au titre */
+.titre-action .logo-off { height: var(--titre-action-icone); }
+.endroit > .endroit-retirer { margin-left: auto; height: var(--tactile); }   /* la poubelle d'un endroit de la fiche : au bout de sa carte */
 .grille.grille-trois { grid-template-columns: repeat(3, minmax(0, 1fr)); }   /* trois gestes sur une ligne (la carte de Consommer : B) */
 /* Une question et ses réponses à sa droite (la ligne directrice, RdG-11 : D — avant, le Oui se posait au milieu de la ligne) */
 .question { display: flex; align-items: center; gap: var(--espace-s); }
@@ -633,7 +654,6 @@ body:has(.sur-photo:not([hidden]))::before { display: none; }
 
 /* Ou le bouton se pose par rapport a ce qui le precede */
 .bouton-detache    { margin-top: var(--espace-l); }     /* pose apres le contenu : Retour, Enregistrer */
-.bouton-quitter    { margin-top: var(--espace-xl); }    /* detache du reste : Annuler */
 .bouton-suite      { margin-top: var(--espace-s); }     /* suit immediatement ce qui precede */
 
 /* ============================================================
@@ -659,7 +679,6 @@ textarea.champ { min-height: calc(var(--tactile) * 2); resize: none; }
 .champ::placeholder { color: var(--placeholder); opacity: var(--placeholder-opacite); }
 .champ-fort { font-weight: var(--poids-fort); }   /* le nom du produit, dans la fiche */
 .champ-fort::placeholder { font-weight: var(--poids-normal); }
-.champ-code { font-weight: var(--poids-fort); letter-spacing: var(--lettrage-large); }   /* le code lu apres un scan */
 select.champ {
   appearance: none;
   cursor: pointer;
@@ -695,7 +714,7 @@ select.champ {
 }
 /* Toute l'épicerie : la carte de l'article scanné — sa ligne (et celle de la circulaire) posée dans la carte, sans trait ni retrait
    (aperçu du 2026-10-02) */
-.carte-scan .item { border-top: none; padding-left: 0; padding-right: 0; }
+.carte-scan > .item { border-top: none; padding-left: 0; padding-right: 0; }   /* le produit de la carte; la liste « est-ce lui ? » garde ses lignes */
 
 /* ============================================================
    ACCORDÉON — un bloc repliable (tête brune + items)
@@ -1190,6 +1209,9 @@ select.champ {
 .icone-avant { --dessin: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='0.8' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M15 14l5-5-5-5'/%3E%3Cpath d='M20 9H9.5a5.5 5.5 0 0 0 0 11H13'/%3E%3C/svg%3E"); }   /* la même, tournée vers l'avant : Suivant, Sans la page (RdG-11, décision 11) */
 .icone-coller { --dessin: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='0.8' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M9 3.5h6v3H9z'/%3E%3Cpath d='M8 5H5.5v15.5h13V5H16'/%3E%3Cpath d='M8.5 11h7M8.5 14h7M8.5 17h4.5'/%3E%3C/svg%3E"); }   /* le presse-papiers : Coller la page */
 .icone-porte { --dessin: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='0.8' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M13.5 3.5h5v17h-5'/%3E%3Cpath d='M3.5 12h11'/%3E%3Cpath d='M10.5 8l4 4-4 4'/%3E%3C/svg%3E"); }   /* la flèche qui entre par la porte : Entrer */
+.icone-crayon { --dessin: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='0.8' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M4 20.5l1.2-4.4L16.8 4.5l3.2 3.2L8.4 19.3z'/%3E%3Cpath d='M14.3 7l3.2 3.2'/%3E%3C/svg%3E"); }   /* le crayon, en grand : Corriger (Compléter) */
+.icone-horloge { --dessin: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='0.8' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M12 3.5a8.5 8.5 0 1 0 0 17a8.5 8.5 0 1 0 0-17'/%3E%3Cpath d='M12 7.5V12l3 2'/%3E%3C/svg%3E"); }   /* l'horloge : Plus tard */
+.icone-reessayer { --dessin: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='0.8' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M19.5 12a7.5 7.5 0 1 1-2.2-5.3'/%3E%3Cpath d='M19.5 4.5v4h-4'/%3E%3C/svg%3E"); }   /* la flèche qui tourne : Réessayer (le bandeau rouge) */
 .icone-deplacer { --dessin: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23f5efe6' stroke-width='0.8' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M3 8h17M16 4l4 4-4 4'/%3E%3Cpath d='M21 16H4M8 12l-4 4 4 4'/%3E%3C/svg%3E") }   /* deux flèches opposées : d'un endroit à l'autre, dans les deux sens (J-C, choix A sur aperçu, 2026-09-29) */
 .icone-accueil { --dessin: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='0.8' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M3 11.5 12 3.5l9 8'/%3E%3Cpath d='M5.5 9.5v11h13v-11'/%3E%3Cpath d='M10 20.5v-5.5h4v5.5'/%3E%3C/svg%3E"); }   /* Accueil : la maison (J-C, 2026-09-27) */
 .icone-chariot { --dessin: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='0.8' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M1.5 4.5h3l3.2 11.5h13.3'/%3E%3Cpath d='M5.6 9H21.5V14H7.2'/%3E%3Cpath d='M10 9v5M13.5 9v5M17 9v5'/%3E%3Ccircle cx='9.5' cy='19.3' r='1.4'/%3E%3Ccircle cx='19' cy='19.3' r='1.4'/%3E%3C/svg%3E"); }   /* la Liste d'achats : le chariot du chargement, vide (J-C, 2026-09-30, choix B sur aperçu) */
@@ -1402,7 +1424,7 @@ select.champ {
   font-weight: var(--poids-fort);
   box-shadow: var(--bouton-ombre);
 }
-.pas-a-jour .bouton { --c: var(--couleur-101); color: var(--couleur-402); flex-shrink: 0; padding: var(--espace-xs) var(--espace-m); }
+.pas-a-jour .bouton { --c: var(--couleur-101); color: var(--couleur-402); --icone-trait: var(--couleur-402); flex-shrink: 0; padding: var(--espace-xs) var(--espace-m); }   /* Réessayer : la flèche qui tourne, rouge sur blanc */
 
 /* ============================================================
    MENU BURGER — bouton fixe en haut à DROITE + menu plein écran

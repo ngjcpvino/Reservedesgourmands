@@ -25,7 +25,7 @@ const EPI_CAMERA = { video: 'epi-video', msg: 'epi-msg', lu: c => surCodeEpiceri
 function montrerEpiceries() {
   toutCacher(); $('vue-epicerie').hidden = false; $('btn-burger').hidden = false;
   EPI = null; EPI_CARTE = null; epiJeton++;
-  $('epi-titre').textContent = "Toute l'épicerie";
+  titreEpicerie("Toute l'épicerie", 'epicerie');
   montrer('epi-choix', true); montrer('epi-scan', false); montrer('epi-completer', false);   // Compléter vu juste avant (le + → Compléter → Retour → les deux sacs) ne reste pas dessous
   $('epi-magasin-neuf').value = ''; $('epi-magasin-msg').className = 'message message-repli'; $('epi-magasin-msg').textContent = '';
   fermerListesVides();
@@ -119,7 +119,7 @@ function garderCirculaire() {
 /* ---------- 2. Le scan ---------- */
 function montrerScanEpicerie() {
   toutCacher(); $('vue-epicerie').hidden = false; $('btn-burger').hidden = false;
-  $('epi-titre').textContent = EPI.nom;
+  titreEpicerie(EPI.nom, 'epicerie');
   montrer('epi-choix', false); montrer('epi-scan', true); montrer('epi-completer', false);
   remplirListeEpicerie();
   modeSansCode(false);
@@ -164,8 +164,8 @@ async function surCodeEpicerie(code) {
   }
   const local = codeCirculaire(code);                    // dans une circulaire d'IGA : tout de suite, sans réseau
   if (local) { montrerCarte(articleNouveau(code, local)); return; }
-  $('epi-carte').innerHTML = '<div class="carte bloc-suite carte-scan"><div class="message">Recherche du produit…</div>' +
-    '<button class="bouton bouton-pleine bouton-quitter" type="button" data-epi-annuler>Annuler</button></div>';
+  $('epi-carte').innerHTML = '<div class="carte bloc-suite carte-scan niveau-3"><div class="message">Recherche du produit…</div>' +
+    '<div class="grille bloc-suite">' + annulerCarteHtml() + '</div></div>';
   const recherche = identifierCode(code);
   chariotPendant(recherche, 'Recherche du produit…');   // le chariot : on voit qu'elle travaille (5 s au plus, elle continue derrière)
   const r = await recherche;
@@ -237,6 +237,14 @@ function articleConnu(code) {
   return null;
 }
 /* Pas à nous : un produit neuf (le nom de la circulaire d'IGA ou d'Open Food Facts), ou inconnu (le code seul). */
+/* Le titre de la page (la ligne directrice, RdG-11 : D) : l'icône de son bouton du + (les deux sacs ou Compléter), sa couleur (data-quoi). */
+function titreEpicerie(texte, quoi) {
+  $('vue-epicerie').dataset.quoi = quoi;
+  $('epi-titre').innerHTML = '<span class="icone ' + (quoi === 'completer' ? 'icone-completer' : 'icone-epicerie') + '"></span>' + esc(texte);
+}
+/* Les boutons d'une carte, en icônes (RdG-11) : le crochet, le X, sur une ligne. */
+const boutonCarte = (action, icone, nom, attr) => '<button class="bouton bouton-grand" type="button" data-action="' + action + '" ' + attr + ' aria-label="' + esc(nom) + '"><span class="icone ' + icone + '"></span></button>';
+const annulerCarteHtml = () => boutonCarte('non', 'icone-non', 'Annuler', 'data-epi-annuler');
 function articleNouveau(code, r) {
   if (!r || !r.source || !String(r.texte || r.marque || '').trim()) return { code: code, pid: null, nouveau: { nom: 'Inconnu ' + code, inconnu: true }, format: '' };
   const marqueNom = adoucir(r.marque || '');
@@ -257,8 +265,9 @@ function formatStock(f) {
   return m ? m[1].replace('.', ',') + ' ' + (m[2] === 'l' ? 'L' : m[2]) : t;
 }
 
-/* La carte de l'article : sa photo (si on en a une), son nom, marque · saveur · format; la ligne de la circulaire s'il y a lieu;
-   la quantité (1, − +); OK — ou « L'associer à ce produit ? » Oui / Non, qui accepte l'article; Annuler (un mauvais scan). */
+/* La carte de l'article : sa photo (si on en a une), son nom, marque · saveur · format; la quantité (1, − +); le crochet (OK) et le X
+   (Annuler : un mauvais scan). En circulaire, à associer (J-C, 2026-10-16, A sur aperçu — le geste du tri) : sous la quantité,
+   « est-ce lui ? », la ligne de la circulaire (la toucher : l'entrer et l'associer) et « Aucun » (l'entrer sans); le X seul au bas. */
 function montrerCarte(a) {
   EPI_CARTE = a;
   const pese = estPese(a.code);
@@ -274,24 +283,22 @@ function montrerCarte(a) {
     (a.nouveau && a.nouveau.inconnu ? '<div class="code-barres">' + esc(a.code) + '</div>' : '') + '</div>' +
     '<button class="off" type="button" data-off-carte hidden aria-label="Photos pour Open Food Facts"></button></div>';   // le logo d'Open Food Facts : quand il lui manque quelque chose (offCarte)
   if (a.ligne && a.auto) h += '<div class="message message-succes">En circulaire : ' + esc(textePrixLigne(a.ligne)) + '</div>';
-  if (a.ligne && !a.auto) h += '<div class="bloc-suite"><div class="label">Dans la circulaire de ' + esc(EPI.nom) + '</div>' + htmlLigneCirc(a.ligne) + '</div>';
   if (a.prixPese !== '') h += '<div class="message message-succes">Prix payé : ' + esc(textePrix(a.prixPese)) + ' $</div>';
   h += pese ? htmlPoids() : htmlQuantite();             // un paquet pesé : toujours 1; son poids à la place (choix A sur aperçu)
   h += a.ligne && !a.auto
-    ? '<div class="bloc-suite"><div class="label-fort">L\'associer à ce produit ?</div><div class="grille bloc-suite">' +
-      '<button class="bouton bouton-vert" type="button" data-epi-ok="O">Oui</button>' +
-      '<button class="bouton bouton-brun" type="button" data-epi-ok="N">Non</button></div></div>'
-    : '<button class="bouton bouton-vert bouton-pleine bouton-suite" type="button" data-epi-ok="">OK</button>';
-  h += '<button class="bouton bouton-pleine bouton-quitter" type="button" data-epi-annuler>Annuler</button>';
-  $('epi-carte').innerHTML = '<div class="carte bloc-suite carte-scan">' + h + '</div>';
+    ? '<div class="bloc-suite"><div class="label">Dans la circulaire de ' + esc(EPI.nom) + ' : est-ce lui ?</div><div class="liste-blanche">' +
+      htmlLigneCirc(a.ligne, 'data-epi-ok="O"') + ligneAucun('data-epi-ok="N"') + '</div></div>' +   // ligneAucun : entree.js (le tri)
+      '<div class="grille bloc-suite">' + annulerCarteHtml() + '</div>'
+    : '<div class="grille bloc-suite">' + boutonCarte('oui', 'icone-oui', 'OK', 'data-epi-ok=""') + annulerCarteHtml() + '</div>';
+  $('epi-carte').innerHTML = '<div class="carte bloc-suite carte-scan niveau-3">' + h + '</div>';
   if (!pese) brancherPlusMoins($('epi-carte').firstElementChild, 99);
   offCarte(a);                                           // ce qui manque à Open Food Facts (JS/off.js) : son logo, s'il y a lieu
 }
 /* Une ligne de la circulaire, au complet (J-C : « sinon je peux pas répondre ») : sa photo, son nom, son format, son prix (le régulier). */
-function htmlLigneCirc(l) {
+function htmlLigneCirc(l, attr) {
   const fmt = formatAffiche(l.format).replace(/(\d)x(\d)/g, '$1 x $2').replace(/ \+ /g, ' ou ') || l.description || '';
   const reg = textePrix(l.regulier), prix = textePrixLigne(l);
-  return '<div class="item">' + (l.photo ? '<img class="tri-photo" src="' + esc(l.photo) + '" alt="">' : '<span class="tri-photo tri-photo-vide"></span>') +
+  return '<div class="item"' + (attr ? ' ' + attr : '') + '>' + (l.photo ? '<img class="tri-photo" src="' + esc(l.photo) + '" alt="">' : '<span class="tri-photo tri-photo-vide"></span>') +
     '<div class="item-info"><div class="item-nom">' + esc(adoucir(l.texte)) + '</div><div class="item-detail">' +
     esc([fmt, prix + (reg ? ' (' + reg + ')' : '')].filter(Boolean).join(' · ')) + '</div></div></div>';
 }
@@ -489,10 +496,11 @@ var SEUL_SANS = null;        // le sac seul : null (la caméra), '' (les deux bo
 function montrerSansSeul(quoi) {
   if (window.stopScanner) window.stopScanner();
   if ($('vue-scan').hidden) {                            // revenu de la fiche (Annuler)
-    toutCacher(); $('vue-scan').hidden = false; $('btn-burger').hidden = false; $('scan-titre').textContent = 'Entrer un article';
+    toutCacher(); $('vue-scan').hidden = false; $('btn-burger').hidden = false;
+    $('scan-titre').innerHTML = '<span class="icone icone-produit"></span>Entrer un article'; $('vue-scan').dataset.page = 'produit';   // comme montrerScanner
   }
   SEUL_SANS = quoi;
-  ['scan-video', 'scan-msg', 'scan-choix', 'scan-resultat'].forEach(id => montrer(id, false));
+  ['scan-video', 'scan-msg', 'scan-choix'].forEach(id => montrer(id, false));
   $('vue-scan').querySelectorAll('.saisie-neuve[data-ajout="code"]').forEach(l => { l.hidden = true; });
   montrer('scan-sans', true);
   $('scan-sans-choix').querySelectorAll('[data-sans]').forEach(b => { b.hidden = !!quoi && b.dataset.sans !== quoi; });
@@ -587,7 +595,7 @@ function montrerCompleter() {
   if (!xs.length) { poserPoints(); avis('Rien à compléter'); return; }   // un point resté allumé s'éteint
   toutCacher(); $('vue-epicerie').hidden = false; $('btn-burger').hidden = false;
   EPI_COMPLETER = null;
-  $('epi-titre').textContent = 'Compléter';
+  titreEpicerie('Compléter', 'completer');
   montrer('epi-choix', false); montrer('epi-scan', false); montrer('epi-completer', true);
   PANNEAU = null; $('completer-produit').innerHTML = ''; majVueCompleter(); montrer('completer-ok', false);   // une carte restée ouverte (le menu, une autre page) : fermée
   $('completer-liste').innerHTML = '';
@@ -604,7 +612,7 @@ function ouvrirCompleterMagasin(m) {
 function ouvrirCompleter(row) {
   EPI_COMPLETER = { id: String(row[0]), magasin: String(row[1]), nom: nomListe(row[1]) };
   toutCacher(); $('vue-epicerie').hidden = false; $('btn-burger').hidden = false;
-  $('epi-titre').textContent = EPI_COMPLETER.nom;
+  titreEpicerie(EPI_COMPLETER.nom, 'completer');
   montrer('epi-choix', false); montrer('epi-scan', false); montrer('epi-completer', true);
   $('completer-listes').innerHTML = '';
   COMPLETER_OUVERT = 'escale';                           // « À placer » ouvert d'abord : c'est là qu'il y a quelque chose à faire
@@ -784,21 +792,24 @@ function htmlPanneau(lot) {
   const p = PRODUITS.find(x => String(x.id) === lot.pid) || { nom: '' };
   const champ = (label, html) => '<div class="bloc"><div class="label">' + label + '</div>' + html + '</div>';
   const tete = (n, titre, id) => htmlEtapes(n, 4, titre, id);   // htmlEtapes : entree.js (le tri aussi)
-  const fleche = '<button class="bouton bouton-or" type="button" data-cp-recul aria-label="Revenir"><span class="icone icone-revenir"></span></button>';
-  const annuler = '<button class="bouton" type="button" data-cp-annuler>Annuler</button>';
-  const bas = (texte, attr, second) => '<div class="cp-msg-place"></div><button class="bouton bouton-vert bouton-pleine bouton-detache" type="button" ' + attr + '>' + texte + '</button>' +
-    '<div class="grille bloc-suite">' + second + '</div>';
+  // les boutons d'une étape (la ligne directrice, RdG-11; comme le tri) : des icônes, au niveau 3, chacun la couleur de son action
+  const fleche = '<button class="bouton bouton-grand bouton-or" type="button" data-cp-recul aria-label="Revenir"><span class="icone icone-revenir"></span></button>';
+  const annuler = boutonCarte('non', 'icone-non', 'Annuler', 'data-cp-annuler');
+  const suivant = attr => boutonCarte('suivant', 'icone-avant', 'Suivant', attr);
+  const bas = (...b) => '<div class="cp-msg-place"></div><div class="grille' + (b.length > 2 ? ' grille-trois' : '') + ' bloc-suite">' + b.join('') + '</div>';
+  const sc = LISTES.Magasins.find(m => cleNom(nomListe(m.id)).indexOf('superc') !== -1);   // « Voir chez Super C » : son logo
+  const voir = sc ? tuileMagasin(sc.id, 'data-cp-voir aria-label="Voir chez Super C"')
+                  : '<button class="bouton bouton-grand tuile-nom" type="button" data-cp-voir aria-label="Voir chez Super C">Super C</button>';
   const detail = detailLot(lot);
-  return '<div class="carte">' +
+  return '<div class="carte niveau-3">' +
     '<div data-etape="1">' + tete(1, 'Le produit') +
       '<div class="liste-blanche bloc-suite"><div class="item" id="cp-produit"><div class="item-info"><div class="item-nom">' + esc(p.nom) + '</div>' +
         (detail ? '<div class="item-detail">' + esc(detail) + '</div>' : '') + (code ? '<div class="code-barres">' + esc(code) + '</div>' : '') + '</div></div></div>' +
-      (page ? '<button class="bouton bouton-brun bouton-pleine bouton-detache" type="button" data-cp-voir>Voir chez Super C</button>' +
+      (page ? '<div class="grille bloc-suite">' + voir + boutonCarte('coller', 'icone-coller', 'Coller la page', 'data-cp-coller') + '</div>' +
               '<div class="message">Sur sa page : Partager → Copier pour la Réserve, puis reviens ici.</div>' +
               '<textarea class="champ bloc-suite" id="cp-texte" placeholder="Colle le texte de la page ici" hidden></textarea>' +
-              '<div class="cp-msg-place"></div><button class="bouton bouton-vert bouton-pleine bouton-suite" type="button" data-cp-coller>Coller la page</button>' +
-              '<div class="grille bloc-suite"><button class="bouton" type="button" data-cp-sans>Sans la page</button>' + annuler + '</div>'
-            : bas('Suivant', 'data-cp-sans', annuler)) +
+              bas(boutonCarte('sans', 'icone-avant', 'Sans la page', 'data-cp-sans'), annuler)
+            : bas(suivant('data-cp-sans'), annuler)) +
     '</div>' +
     '<div data-etape="2" hidden>' + tete(2, 'Ce que l\'app a lu', 'cp-titre-2') +
       '<div class="liste-blanche bloc-suite" id="cp-lu"></div>' +
@@ -807,8 +818,8 @@ function htmlPanneau(lot) {
         champ('Format', '<div class="ligne-couleur"><input class="champ champ-nombre" id="cp-nb" inputmode="decimal" autocomplete="off"><select class="champ" id="cp-unite"></select></div>') +
         champ('Prix payé', '<input class="champ" id="cp-prix" inputmode="decimal" autocomplete="off"><div class="message message-repli" id="cp-prix-msg"></div>') +
       '</div>' +
-      '<div id="cp-bas-lu">' + bas('Oui, c\'est ça', 'data-cp-suivant', fleche + '<button class="bouton bouton-brun" type="button" data-cp-corriger>Corriger</button>') + '</div>' +
-      '<div id="cp-bas-champs">' + bas('Suivant', 'data-cp-suivant', fleche + annuler) + '</div>' +
+      '<div id="cp-bas-lu">' + bas(fleche, boutonCarte('corriger', 'icone-crayon', 'Corriger', 'data-cp-corriger'), boutonCarte('oui', 'icone-oui', 'Oui, c\'est ça', 'data-cp-suivant')) + '</div>' +
+      '<div id="cp-bas-champs">' + bas(fleche, annuler, suivant('data-cp-suivant')) + '</div>' +
     '</div>' +
     '<div data-etape="3" hidden>' + tete(3, 'Ton aliment') + '<div class="bloc-suite">' +
       champ('Catégorie', '<select class="champ" id="cp-cat"></select>' + htmlSaisieNeuve('neuve', 'cp-cat-neuve', 'Nouvelle catégorie…', 'categorie')) +
@@ -817,11 +828,11 @@ function htmlPanneau(lot) {
       '<div class="bloc" id="cp-bloc-aliment"><div class="label">Aliment</div><select class="champ champ-fort" id="cp-aliment"></select>' +
       htmlSaisieNeuve('nouveau', 'cp-nom', 'Nouvel aliment…') + '<div class="message message-repli" id="cp-aliment-msg"></div></div>' +
       champ('Saveur', '<select class="champ" id="cp-saveur"></select>' + htmlSaisieNeuve('neuve', 'cp-saveur-neuve', 'Nouvelle saveur…')) +
-      '<div id="cp-circ"></div></div>' + bas('Suivant', 'data-cp-suivant', fleche + annuler) +
+      '<div id="cp-circ"></div></div>' + bas(fleche, annuler, suivant('data-cp-suivant')) +
     '</div>' +
     '<div data-etape="4" hidden>' + tete(4, 'Où il est rangé') +
-      '<div class="bloc-suite" id="cp-endroits"></div><button class="bouton bouton-petit bouton-suite" type="button" data-cp-endroit>+ un autre endroit</button>' +   // un ou plusieurs endroits, comme la fiche (J-C : « la répartition doit pouvoir se faire là aussi »)
-      bas('C\'est fait', 'data-cp-ok', fleche + annuler) +
+      '<div class="bloc-suite" id="cp-endroits"></div><div class="grille bloc-suite">' + boutonCarte('ajouter', 'icone-plus', 'Un autre endroit', 'data-cp-endroit') + '</div>' +   // un ou plusieurs endroits, comme la fiche (J-C : « la répartition doit pouvoir se faire là aussi »)
+      bas(fleche, annuler, boutonCarte('oui', 'icone-oui', 'C\'est fait', 'data-cp-ok')) +
     '</div>' +
     '<div class="message message-repli message-erreur" id="cp-msg"></div></div>';
 }
@@ -930,7 +941,7 @@ function ajouterEndroitPanneau(pref, qte) {
   row.className = 'endroit carte';
   row.innerHTML = htmlChoixEndroit() +
     '<div class="bloc"><div class="label">Quantité</div><input class="champ qte" type="text" inputmode="numeric" pattern="[0-9]*" value="' + esc(qte) + '"></div>' +
-    '<button class="bouton bouton-petit endroit-retirer" type="button">Retirer</button>';
+    '<button class="retirer endroit-retirer" type="button" aria-label="Retirer"></button>';   // la poubelle, comme la fiche
   $('cp-endroits').appendChild(row);
   brancherEndroit(row, pref);
 }
@@ -1013,10 +1024,10 @@ function majCirculairePanneau() {
   if (P.auto) { P.assoc = 'O'; $('cp-prix').value = textePrix(prixUnitaire(P.ligne)); }
   boite.innerHTML = !P.ligne ? '' : P.auto
     ? '<div class="message message-succes">En circulaire chez ' + esc(EPI_COMPLETER.nom) + ' : ' + esc(textePrixLigne(P.ligne)) + '</div>'
-    : '<div class="bloc"><div class="label">Dans la circulaire de ' + esc(EPI_COMPLETER.nom) + '</div>' + htmlLigneCirc(P.ligne) +
-      (P.assoc ? '<div class="message">' + (P.assoc === 'O' ? 'Associé : le prix de la circulaire.' : 'Pas associé.') + '</div>'
-               : '<div class="label-fort bloc-suite">L\'associer à ce produit ?</div><div class="grille bloc-suite">' +
-                 '<button class="bouton bouton-vert" type="button" data-cp-assoc="O">Oui</button><button class="bouton bouton-brun" type="button" data-cp-assoc="N">Non</button></div>') + '</div>';
+    : P.assoc ? '<div class="bloc"><div class="label">Dans la circulaire de ' + esc(EPI_COMPLETER.nom) + '</div>' + htmlLigneCirc(P.ligne) +
+                '<div class="message">' + (P.assoc === 'O' ? 'Associé : le prix de la circulaire.' : 'Pas associé.') + '</div></div>'
+              : '<div class="bloc"><div class="label">Dans la circulaire de ' + esc(EPI_COMPLETER.nom) + ' : est-ce lui ?</div><div class="liste-blanche">' +   // comme la carte des deux sacs (A)
+                htmlLigneCirc(P.ligne, 'data-cp-assoc="O"') + ligneAucun('data-cp-assoc="N"') + '</div></div>';
 }
 function associerPanneau(rep) {
   const P = PANNEAU;

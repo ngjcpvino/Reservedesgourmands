@@ -163,7 +163,7 @@ function montrerFormulaire(avecCode) {
 function montrerScanProduit() {
   SEUL_SANS = null;
   if (typeof montrerScanner !== 'function') { montrerFormulaire(false); return; }
-  montrerScanner({ lu: ouvrirFicheScan, retour: retourSeul, sansCode: () => montrerSansSeul(''), titre: 'Entrer un article' });
+  montrerScanner({ lu: ouvrirFicheScan, retour: retourSeul, sansCode: () => montrerSansSeul(''), titre: 'Entrer un article', icone: 'icone-produit', page: 'produit' });
 }
 /* La fiche vierge, sur son chemin. Après une entrée, on revient à celle du départ (à la main) : un seul écran pour entrer. */
 function preparerFiche(avecCode) {
@@ -184,7 +184,7 @@ function ordonnerFiche() {
   const ordre = modeManuel
     ? ['bloc-code', 'bloc-cat', 'bloc-souscat', 'bloc-produit', 'bloc-doublons', 'bloc-plu', 'bloc-nom', 'bloc-details', 'bloc-achat', 'bloc-endroits']
     : ['bloc-code', 'bloc-nom', 'bloc-doublons', 'bloc-details', 'bloc-achat', 'bloc-cat', 'bloc-souscat', 'bloc-produit', 'bloc-plu', 'bloc-endroits'];   // magasin + prix : juste sous le format
-  ordre.forEach(id => parent.insertBefore($(id), $('btn-enregistrer')));
+  ordre.forEach(id => parent.insertBefore($(id), $('msg')));   // avant le message et les boutons du bas (le crochet et le X, dans leur grille)
 }
 
 /* Arrivée par le SCAN : ouvre la fiche en mode code, pose le code, lance la recherche. */
@@ -1403,7 +1403,7 @@ function ajouterEndroit(pref) {
   row.className = 'endroit carte';
   row.innerHTML = htmlChoixEndroit() +
     '<div class="bloc"><div class="label">Quantité</div><input class="champ qte" type="text" inputmode="numeric" pattern="[0-9]*" value="1"></div>' +
-    '<button class="bouton bouton-petit endroit-retirer" type="button">Retirer</button>';   // pas « retirer » : c'est la poubelle (vu par J-C, 2026-10-02)
+    '<button class="retirer endroit-retirer" type="button" aria-label="Retirer"></button>';   // la poubelle, au bout de sa carte (la ligne directrice, RdG-11)
   row.querySelector('.endroit-retirer').onclick = () => { if ($('endroits').children.length > 1) row.remove(); };
   $('endroits').appendChild(row);
   brancherEndroit(row, pref);
@@ -4773,7 +4773,7 @@ function mettreSurListe(pid) {
 /* Le scan : un code à nous -> sur la liste; sinon le nom d'Open Food Facts, pour « Nouvel aliment… » (sa catégorie à choisir). */
 function scannerPourAchat() {
   if (typeof montrerScanner !== 'function') return;
-  montrerScanner({ lu: achatParCode, retour: montrerPageAchatsAjout, titre: 'Liste d\'achats' });
+  montrerScanner({ lu: achatParCode, retour: montrerPageAchatsAjout, titre: 'Liste d\'achats', icone: 'icone-chariot', page: 'achats' });
 }
 function montrerPageAchatsAjout() {                    // revenir du scan sur l'entonnoir, tel quel
   toutCacher(); $('vue-achats').hidden = false; $('btn-burger').hidden = false;
@@ -4828,7 +4828,7 @@ async function enleverPasAime(btn) {
 /* Le scan de la recherche : un code à nous -> son écran de rayon; sinon « Tu n'en as pas », avec le nom d'Open Food Facts. */
 function scannerPourChercher() {
   if (typeof montrerScanner !== 'function') return;
-  montrerScanner({ lu: chercherParCode, retour: () => montrerRecherche(false), titre: $('recherche-titre').textContent });
+  montrerScanner({ lu: chercherParCode, retour: () => montrerRecherche(false), titre: $('recherche-titre').textContent, icone: ICONES_RECHERCHE[modeRecherche], page: modeRecherche || 'rechercher' });
 }
 async function chercherParCode(code) {
   code = String(code || '').trim();

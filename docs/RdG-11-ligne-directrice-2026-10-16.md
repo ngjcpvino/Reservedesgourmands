@@ -148,4 +148,20 @@
     (la feuille cochée verte; 1 le logo de Super C, le presse-papiers, Sans la page = la flèche vers l'avant blanche, le X; 2 la flèche, le
     crayon = Corriger, le crochet; 3 « L'associer ? » comme la carte A, Suivant = la flèche vers l'avant verte; 4 le +, la flèche, le X, le
     crochet); 6 Open Food Facts (leur logo au titre; Envoyer = leur logo sur blanc, Plus tard = l'horloge); 7 Réessayer = la flèche qui
-    tourne. « Scanner un autre » (la page du scan) : jamais montré (le filet d'une fiche pas branchée) — à retirer au ménage. **Son avis à venir.**
+    tourne. « Scanner un autre » (la page du scan) : jamais montré (le filet d'une fiche pas branchée) — à retirer au ménage. **J-C : « Go »**
+  - **✅ Lot 4, le 2026-10-16 (le +; pas encore testé, T91)** : tel que l'aperçu. **Le choix du + figé** (`--quoi-…`, `data-quoi` : 505 · 803 ·
+    702); **les titres D** — le scan (l'icône et la couleur de la page d'où l'on vient : `montrerScanner({ titre, icone, page })`, `data-page`;
+    le sac seul par défaut), la fiche (le sac), les deux sacs et Compléter (`titreEpicerie()`, `data-quoi`), Open Food Facts (leur logo,
+    `.logo-off`); **ces pages au niveau 2, leurs cartes au niveau 3**; **la fiche** : la poubelle d'un endroit (`.retirer.endroit-retirer`, au
+    bout de sa carte), le + (un autre endroit), le sac (Escale, beige), l'armoire (Choisir un endroit), **le crochet et le X sur une ligne**
+    (`ordonnerFiche()` range les blocs avant le message); **la carte des deux sacs = A** (sous la quantité, « Dans la circulaire de … : est-ce
+    lui ? », la ligne et Aucun à toucher, `htmlLigneCirc(l, attr)` + `ligneAucun()`, le X seul au bas; sans circulaire : le crochet et le X;
+    « Recherche du produit… » : le X); **Compléter** (`htmlPanneau()` : le logo de Super C = Voir — `tuileMagasin()` —, le presse-papiers,
+    Sans la page = la flèche vers l'avant blanche, le crayon = Corriger, Suivant = la flèche vers l'avant verte, le crochet = Oui c'est ça et
+    C'est fait, le + = un autre endroit; « L'associer ? » comme la carte A); **Open Food Facts** (Envoyer = leur logo sur blanc, Plus tard =
+    l'horloge); **Réessayer** = la flèche qui tourne. Pièces ajoutées : `icone-crayon`, `icone-horloge`, `icone-reessayer`; `data-action`
+    `escale`, `corriger`, `tard`, `off`. **Ménage** : « Scanner un autre » et le code lu (`scan-resultat`, `scan-code`, `scan-encore`,
+    `.champ-code` — jamais montrés), `.bouton-quitter`; **la suite des couleurs ne colore plus aucune grille** (chaque bouton dit son action),
+    avec elle la règle de l'or dans une grille. Essai dans le faux navigateur : 34 vérifications (et les 92 des lots d'avant, refaites).
+  - **La ligne directrice est appliquée partout** (les quatre lots). Reste à confirmer au final : « un choix touché, l'autre disparaît »
+    (décision 6), et à revoir à l'usage : Suivant / Sans la page (décision 11).

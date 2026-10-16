@@ -35,10 +35,11 @@
     mode = (m && typeof m.lu === 'function') ? m : null;
     if (typeof toutCacher === 'function') toutCacher();
     el('vue-scan').hidden = false;
-    el('scan-titre').textContent = (mode && mode.titre) || 'Entrer un article';   // on sait où l'on est : le titre de la page d'où l'on vient (J-C, 2026-10-14)
+    var t = el('scan-titre');                    // on sait où l'on est : le titre de la page d'où l'on vient (J-C, 2026-10-14), son icône et sa couleur (RdG-11)
+    t.textContent = (mode && mode.titre) || 'Entrer un article';
+    var ic = document.createElement('span'); ic.className = 'icone ' + ((mode && mode.icone) || 'icone-produit'); t.insertBefore(ic, t.firstChild);
+    el('vue-scan').dataset.page = (mode && mode.page) || 'produit';
     var b = el('btn-burger'); if (b) b.hidden = false;
-    el('scan-resultat').hidden = true;
-    el('scan-code').textContent = '';
     el('scan-choix').hidden = !(mode && typeof mode.sansCode === 'function');   // le sac seul : « Taper le code » et « Sans code » sous la caméra
     el('scan-video').hidden = false; el('scan-msg').hidden = false;   // le sac seul revient de Sans code : la caméra reprend sa place
     var sans = el('scan-sans'); if (sans) sans.hidden = true;
@@ -134,10 +135,7 @@
     arreter();                                   // on tient un code : on coupe la caméra
     msg('Lu : ' + lu);
     if (mode) { mode.lu(code); return; }         // -> la recherche
-    if (typeof ouvrirFicheScan === 'function') { ouvrirFicheScan(code); return; }   // -> la fiche (mode code)
-    el('scan-code').textContent = code;          // filet : fiche pas branchée
-    el('scan-resultat').hidden = false;
-    msg('Code lu');
+    ouvrirFicheScan(code);                       // -> la fiche (mode code)
   }
 
   /* Open Food Facts : code -> { code, nom, marque, format, photo, trouve, manque, photos, erreur }.
@@ -234,8 +232,6 @@
       l.hidden = false; l.querySelector('input').focus();
     });
     if (typeof AJOUTS_NEUFS === 'object') AJOUTS_NEUFS.code = codeTape;   // le + de la ligne (et Entrée) : le mécanisme des « Nouveau… »
-    var encore = el('scan-encore');
-    if (encore) encore.addEventListener('click', function () { montrerScanner(mode); });
   }
   if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', init);
   else init();
