@@ -10,7 +10,7 @@
   <!-- Ecran d'accueil iPad : le meme sac, en PNG (iOS n'accepte pas le SVG ici) -->
   <link rel="apple-touch-icon" href="apple-touch-icon.png?v=2">
 
-<link rel="stylesheet" href="CSS/rdg.css?v=172">
+<link rel="stylesheet" href="CSS/rdg.css?v=173">
 </head>
 <body>
 
@@ -122,14 +122,13 @@
      « Ajouter à la liste » : l'entonnoir (catégorie → sous-catégorie → aliment) et le scan, à la place de la liste.
 ============================================================ -->
 <div id="vue-achats" hidden>
-  <div class="entete"><div class="titre">Liste d'achats</div></div>
+  <div class="entete"><div class="titre titre-action"><span class="icone icone-chariot"></span>Liste d'achats</div></div>
   <div class="contenu">
-    <div id="achats-page">
-      <div id="liste-achats"></div>
-      <button class="bouton bouton-vert bouton-pleine bouton-detache" id="btn-achat-ajouter" type="button">Ajouter à la liste</button>
-      <button class="bouton bouton-or bouton-pleine bouton-suite bouton-large" id="achats-retour" type="button" aria-label="Retour"><span class="icone icone-accueil"></span></button>   <!-- la maison; une épicerie touchée : la flèche (remplirAchats) -->
+    <div id="achats-page" class="niveau-2">   <!-- la ligne directrice (RdG-11) : ses boutons d'action au niveau 2 -->
+      <div id="liste-achats"></div>   <!-- les actions (Par catégorie, Par épicerie, le +), puis ce qu'elles ouvrent (remplirAchats) -->
+      <button class="bouton bouton-or bouton-pleine bouton-detache bouton-large" id="achats-retour" type="button" aria-label="Retour"><span class="icone icone-accueil"></span></button>   <!-- rien de choisi : la maison; sinon la flèche (remplirAchats) -->
     </div>
-    <div id="achats-ajout" hidden>
+    <div id="achats-ajout" class="niveau-3" hidden>
       <div class="bloc">
         <div class="label">Catégorie</div>
         <div class="ligne-couleur">
@@ -151,8 +150,10 @@
         </div>
       </div>
       <div class="message message-repli" id="achats-msg"></div>
-      <button class="bouton bouton-vert bouton-pleine bouton-suite" id="achat-ok" type="button">Mettre sur la liste</button>
-      <button class="bouton bouton-pleine bouton-quitter" id="achat-annuler" type="button">Annuler</button>
+      <div class="grille bloc-suite">
+        <button class="bouton bouton-grand" data-action="oui" id="achat-ok" type="button" aria-label="Mettre sur la liste"><span class="icone icone-oui"></span></button>
+        <button class="bouton bouton-grand" data-action="non" id="achat-annuler" type="button" aria-label="Annuler"><span class="icone icone-non"></span></button>
+      </div>
     </div>
   </div>
 </div>
@@ -550,7 +551,7 @@
 </div><!-- fin du conteneur -->
 
 <script src="JS/coffre.js?v=20"></script>
-<script src="JS/entree.js?v=211"></script>
+<script src="JS/entree.js?v=212"></script>
 <script src="JS/bientot.js?v=6"></script>
 <script src="JS/prix.js?v=9"></script>
 <script src="JS/epicerie.js?v=37"></script>
