@@ -52,7 +52,11 @@ const Coffre = {
                                     : this._echec('communication coupée après ' + s + ' s (' + e.message + ')', 'reseau');
     } finally { if (minuterie) clearTimeout(minuterie); }
     try { return JSON.parse(texte); }
-    catch (e) { throw this._echec(this._google(texte) || 'le coffre-fort a planté : ' + this._extrait(texte), 'plante'); }
+    catch (e) {
+      const g = this._google(texte), err = this._echec(g || 'le coffre-fort a planté : ' + this._extrait(texte), 'plante');
+      if (g) err.google = true;                    // Google n'a pas ouvert le script : rien n'a été fait, réessayer est sans danger
+      throw err;
+    }
   },
   // La page « Sorry, unable to open the file at this time » (J-C, 2026-10-15, au tri) : Google n'a même pas ouvert le script —
   // rien à voir avec l'app ni le coffre-fort. En français, sans l'anglais de Google.

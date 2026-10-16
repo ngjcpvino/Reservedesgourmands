@@ -24,7 +24,8 @@ const OFF_MOTS = { devant: 'le devant', ingredients: 'les ingrédients', nutriti
 const OFF_LOCAL = 'rdg_off', OFF_ATTENTE = 'rdg_off_attente';
 const OFF_PHOTO_MAX = 1600, OFF_QUALITE = 0.85;   // la photo réduite sur l'appareil avant l'envoi (le VPN) : assez fine pour lire les ingrédients
 /* Open Food Facts compte les demandes : trop d'un coup, il répond « 429 » (J-C, 2026-10-14 : deux photos parties, la 3e refusée). Une pause
-   entre deux envois; un 429 : on attend et on réessaie, de plus en plus patients, le chariot dit combien de temps encore. */
+   entre deux envois; un 429 : on attend et on réessaie, de plus en plus patients, le chariot dit combien de temps encore. La même attente
+   quand Google n'ouvre pas le coffre-fort (J-C, 2026-10-16). */
 const OFF_PAUSE = 3000, OFF_REESSAIS = [10000, 20000, 40000];
 var OFF_LISTE = (() => { try { return JSON.parse(localStorage.getItem(OFF_LOCAL) || '[]'); } catch (e) { return []; } })();
 var OFF_PHOTOS = {};      // { code: { devant: 'data:image/jpeg;base64,…' } } : les photos prises, pas encore envoyées
@@ -235,7 +236,6 @@ async function montrerOff(code, retour) {
   window.scrollTo(0, 0);
   code = String(ligne[1]);
   const v = OFF_VUE = { code: code, ligne: ligne.slice(), manque: manqueDe(ligne), etat: null, textes: textesDepart(ligne), retour: retour, prise: '', fini: false };
-  messageOff('');
   remplirVueOff();
   const recherche = etatOff(code, true);          // ce qu'Open Food Facts a MAINTENANT (quelqu'un l'a peut-être complété entre-temps)
   chariotPendant(recherche, 'Open Food Facts…');
@@ -256,7 +256,6 @@ function textesDepart(ligne) {
   const st = derniereLigneCode(ligne[1]), nom = nomOff(ligne[2]);
   return { nom: nom === 'Produit inconnu' ? '' : nom, marque: st ? nomListe(st[5]) : '', format: st ? String(st[6] || '').trim() : '' };
 }
-function messageOff(t) { $('off-msg').className = 'message message-repli' + (t ? ' message-erreur' : ''); $('off-msg').textContent = t || ''; }
 function remplirVueOff() {
   const v = OFF_VUE;
   if (!v) return;
@@ -308,8 +307,8 @@ async function surPhotoOff() {
   const v = OFF_VUE, champ = $('off-fichier'), f = champ.files && champ.files[0];
   champ.value = '';                                  // la même case retouchée rouvre l'appareil
   if (!v || !f || !v.prise) return;
-  try { (OFF_PHOTOS[v.code] = OFF_PHOTOS[v.code] || {})[v.prise] = await reduirePhoto(f); messageOff(''); }
-  catch (e) { messageOff('Photo illisible — reprends-la.'); }
+  try { (OFF_PHOTOS[v.code] = OFF_PHOTOS[v.code] || {})[v.prise] = await reduirePhoto(f); }
+  catch (e) { avis('Photo illisible — reprends-la.', 'erreur'); }   // un message comme les autres, au centre (J-C, 2026-10-16)
   if (OFF_VUE === v) remplirVueOff();
 }
 function reduirePhoto(fichier) {
@@ -343,7 +342,7 @@ async function envoyerOff() {
   if (!v || envoiOff) return;
   const envois = aEnvoyerOff();
   if (!envois.length) return;
-  envoiOff = true; messageOff('');
+  envoiOff = true;
   montrerVoile(true);
   let erreur = '';
   const avant = v.ligne.join('|');
@@ -361,9 +360,17 @@ async function envoyerOff() {
       let r = null;
       for (let essai = 0; ; essai++) {
         $('voile-texte').textContent = quoi;
-        r = await Coffre.envoyerOFF(charge);
-        if ((r && r.ok) || !tropDeDemandes(r) || essai >= OFF_REESSAIS.length) break;
-        await patienterOff(OFF_REESSAIS[essai]);         // « 429 » : trop de demandes — on attend, puis on réessaie
+        let pause;
+        try {
+          r = await Coffre.envoyerOFF(charge);
+          if ((r && r.ok) || !tropDeDemandes(r)) break;
+          pause = 'Open Food Facts demande une pause…';  // « 429 » : trop de demandes — on attend, puis on réessaie
+        } catch (e) {                                    // Google n'a pas ouvert le coffre-fort (rien n'a été envoyé) : on attend, on réessaie
+          if (!e.google || essai >= OFF_REESSAIS.length) throw e;   // (J-C, 2026-10-16 : « Oui », au lieu de « réessaie »)
+          pause = 'Google ne répond pas, nouvel essai dans';
+        }
+        if (essai >= OFF_REESSAIS.length) break;
+        await patienterOff(OFF_REESSAIS[essai], pause);
       }
       if (!(r && r.ok)) {
         erreur = r && r.erreur === 'action inconnue' ? 'Pas envoyé : le coffre-fort ne sait pas encore parler à Open Food Facts (api.gs, à l\'ordi).'
@@ -379,14 +386,15 @@ async function envoyerOff() {
       }
       v.ligne[3] = v.manque.join(',');
     }
-  } catch (e) { erreur = 'Pas envoyé (' + e.message + ') — réessaie.'; }
+  } catch (e) { erreur = e.google ? 'Pas envoyé : Google n\'arrive pas à ouvrir le coffre-fort en ce moment. Réessaie dans quelques minutes.'
+                             : 'Pas envoyé (' + e.message + ') — réessaie.'; }
   finally { envoiOff = false; montrerVoile(false); }
   if (!erreur) v.manque = v.manque.filter(estPhotoOff);
   v.ligne[3] = v.manque.join(',');
   if (!v.manque.length) v.ligne[6] = dateDuJour();
   if (v.ligne.join('|') !== avant) ecrireOff(v.ligne, false);
   if (OFF_VUE !== v) return;
-  if (erreur) { messageOff(erreur); noterErreur(erreur); remplirVueOff(); return; }
+  if (erreur) { avis(erreur, 'erreur'); remplirVueOff(); return; }   // au centre, comme tous les messages (J-C, 2026-10-16 : « pas en petit comme ça, perdu »); il va au journal
   if (!v.manque.length) { v.fini = true; remplirVueOff(); window.scrollTo(0, 0); return; }   // tout est parti : l'écran reste, le merci en gros (J-C, 2026-10-14, C sur aperçu : 3 s de message, c'était trop court)
   avis('Envoyé. Il reste ' + texteManque(v.manque) + '.', 'succes');
   remplirVueOff();
@@ -394,10 +402,11 @@ async function envoyerOff() {
 /* Un refus pour trop de demandes (« erreur 429 »). */
 const tropDeDemandes = r => !!r && !r.ok && /\b429\b/.test(String(r.erreur || ''));
 const dormirOff = ms => new Promise(ok => setTimeout(ok, ms));
-/* L'attente après un 429, seconde par seconde sous le chariot : « Open Food Facts demande une pause… 18 s ». */
-async function patienterOff(ms) {
+/* L'attente avant un nouvel essai, seconde par seconde sous le chariot : « Open Food Facts demande une pause… 18 s » (un 429),
+   « Google ne répond pas, nouvel essai dans 18 s » (sa page « impossible d'ouvrir le fichier »). */
+async function patienterOff(ms, texte) {
   for (let s = Math.ceil(ms / 1000); s > 0; s--) {
-    $('voile-texte').textContent = 'Open Food Facts demande une pause… ' + s + ' s';
+    $('voile-texte').textContent = texte + ' ' + s + ' s';
     await dormirOff(1000);
   }
 }

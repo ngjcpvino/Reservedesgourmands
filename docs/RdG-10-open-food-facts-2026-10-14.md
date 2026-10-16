@@ -95,6 +95,14 @@ d'un code (un code déjà entré ici ne l'est plus, sauf s'il est déjà sur la 
   entré avant le 2026-10-14 est proposé à son prochain achat. **Un code de magasin** (la viande pesée, entrée avant le 2026-10-15 : le
   bœuf haché de Super C, vu sur la capture de J-C) **quitte la liste tout seul** (`poserListeOff()` : « Retiré »). Rien dans `api.gs`.
   Essai dans le faux navigateur : 18 vérifications.
+- **Google qui n'ouvre pas le coffre-fort, et les messages au centre** (J-C, 2026-10-16, capture à l'appui : « Pas envoyé (Google n'arrive
+  pas à ouvrir le coffre-fort en ce moment) — réessaie. », en petit sous les photos; « Oui » à l'idée de réessayer tout seul, et « ce
+  message doit être dans un bloc comme tous les messages, pas en petit comme ça, perdu »). Sa page « impossible d'ouvrir le fichier » =
+  rien n'a été envoyé : **l'app attend et réessaie toute seule, comme pour un 429** (10, 20, 40 s; « Google ne répond pas, nouvel essai
+  dans 18 s » sous le chariot; `e.google`, posé par `Coffre._envoyer`), puis « Pas envoyé : Google n'arrive pas à ouvrir le coffre-fort en
+  ce moment. Réessaie dans quelques minutes. ». **Les messages de l'écran** (un envoi refusé, une photo illisible) **paraissent au centre,
+  comme tous les messages** (`avis(…, 'erreur')` : rouge, il reste jusqu'au toucher, il va au journal); `#off-msg` et `messageOff()`
+  retirés. Essai dans le faux navigateur : 13 vérifications.
 
 ## 4. Pour le coffre-fort (`api.gs`, à l'ordi)
 
