@@ -120,13 +120,18 @@
     vérifications. Sur l'aperçu, J-C a vu « le produit trouvé collé sur le champ de recherche » : une erreur de l'aperçu seulement (dans
     l'app, le champ disparaît sur l'écran de rayon, et les résultats ont leur espace). Pas dans ce lot : les barres de Listes elles-mêmes
     (le point 52).
-  - Lot 3 : Gérer les bases, Couleurs, Circulaires (d'abord les couleurs fixes d'Outils, le point 25). J-C : « On y va ». **Aperçu
-    envoyé le 2026-10-16** (`scratchpad/apercu-lot3/fait.py`, le vrai CSS du jour) : 1 Outils — **A** chacun garde sa couleur d'aujourd'hui
-    (505 · 803 · 702), Se déconnecter quitte le rouge pour l'anthracite 902 · **B** des couleurs à eux (roux 506 · bordeaux 403 · brun pâle
-    302 · anthracite 902); 2 les titres (l'icône et la couleur de leur bouton : Pièces… Unités, Circulaires, Couleurs); 3 Meubles au
-    niveau 2; 4 Aliments : Enlever (Pas aimé) = la poubelle, avec sa question; 5 Circulaires : les tuiles, les ronds, le Retour au niveau 2;
-    6 le tri au niveau 3 — Son code-barres (le logo de l'épicerie = Chercher, le presse-papiers vert = Coller la page, la flèche recule, la
-    flèche vers l'avant blanche = Sans la page), Ce que l'app a lu et Ton aliment (la flèche, le X, le crochet sur une ligne; Un autre
-    aliment = le +; Suivant = la flèche vers l'avant verte); 7 Couleurs : le titre et un Retour au bas (la flèche → Outils); 8 Qui entre et
-    le mot de passe : Entrer = la flèche qui entre par la porte. **Son choix à venir (Outils : A ou B).**
+  - **✅ Lot 3, le 2026-10-16 (Outils, Gérer les bases, Couleurs, Circulaires, Qui entre; pas encore testé, T90)** (J-C : « On y va »; sur
+    l'aperçu, `scratchpad/apercu-lot3/fait.py` : **A pour Outils**) : **Outils a ses couleurs, figées** (le point 25 : chacun garde la sienne,
+    comme le menu — Gérer les bases 505, Couleurs 803, Qui entre 702 —, **Se déconnecter quitte le rouge pour l'anthracite 902**; `--outil-…`
+    au root, `data-outil`); **les titres D** (Pièces, Meubles, Catégories, Aliments, Magasins, Marques, Saveurs, Unités, Circulaires : l'icône et
+    la couleur de leur bouton de Gérer les bases; Couleurs : celle de son bouton d'Outils; la page des noms pose `data-page`); **ces pages au
+    niveau 2** (le Retour, les tuiles de Circulaires); **Couleurs gagne son Retour** (la flèche → Outils; avant : on n'en sortait que par le
+    menu); **Aliments : « Enlever » (Pas aimé) = la poubelle**, et sa question « Enlever … des Pas aimé ? » avec le crochet et le X
+    (`demanderEnleverPasAime()`); **le tri, ses étapes en icônes, au niveau 3** (le panneau) — Son code-barres : **le logo de l'épicerie =
+    Chercher** (`tuileMagasin()`, « Chercher chez Super C » pour le lecteur d'écran), **le presse-papiers vert = Coller la page**, la flèche,
+    **la flèche vers l'avant blanche = Sans la page**; Ce que l'app a lu et Ton aliment : **la flèche, le X, le crochet sur une ligne**
+    (`.grille-trois`); **Un autre aliment = le +**; **Suivant = la flèche vers l'avant verte** (le crochet change de dessin, `majTeteTri()`);
+    **Entrer** (le mot de passe, Qui entre) **= la flèche qui entre par la porte**, brune, aussi haute qu'un bouton du menu. Pièces communes
+    ajoutées : `icone-avant`, `icone-coller`, `icone-porte`; `data-action` `coller`, `suivant`, `sans`, `entrer`; une flèche dorée dans une grille
+    garde l'or (`.grille > .bouton-grand.bouton-or`). Essai dans le faux navigateur : 34 vérifications.
   - Lot 4 : le + — le sac seul, les deux sacs, Compléter, la fiche, Open Food Facts.

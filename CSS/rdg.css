@@ -90,6 +90,12 @@
   --base-marques:     var(--couleur-505);
   --base-saveurs:     var(--couleur-701);
   --base-unites:      var(--couleur-901);
+  /* Outils : chaque bouton SA couleur, figée (J-C, 2026-10-16, A sur aperçu : chacun garde celle qu'il avait, comme au menu;
+     Se déconnecter quitte le rouge — celui de Circulaires — pour l'anthracite) */
+  --outil-bases:      var(--couleur-505);
+  --outil-couleurs:   var(--couleur-803);
+  --outil-qui:        var(--couleur-702);
+  --outil-deco:       var(--couleur-902);
   /* Le menu principal : chaque bouton SA couleur, figée (J-C, 2026-10-08, avec « Ouvrir » — RdG-09, décision 7 : chacun garde celle
      qu'il avait par sa place; la suite par position ne sert plus au menu). Ouvrir : le bleu pâle, le dessin en brun. */
   --menu-accueil:     var(--couleur-505);
@@ -223,6 +229,10 @@
   --action-base:       var(--couleur-201);      /* le crayon, les flèches, la poubelle : pas de bouton au menu, beige */
   --action-oui:        var(--couleur-703);      /* le crochet : je confirme (Oui, OK, C'est ça, Mettre sur la liste…) — la ligne directrice, RdG-11 */
   --action-non:        var(--couleur-101);      /* le X : je laisse tomber (Non, Annuler), blanc, le dessin brun */
+  --action-coller:     var(--couleur-703);      /* le presse-papiers : coller la page de l'épicerie (vert, comme avant) — RdG-11, décision 11 */
+  --action-suivant:    var(--couleur-703);      /* la flèche vers l'avant : Suivant (vert) */
+  --action-sans:       var(--couleur-101);      /* … la même, blanche : Sans la page */
+  --action-entrer:     var(--couleur-305);      /* la flèche qui entre par la porte : Entrer (le mot de passe, Qui entre) */
   --poubelle-taille:   24px;   /* la poubelle « retirer », un peu plus grosse que le crayon : elle tient tête à l'interrupteur (J-C, 2026-10-03, choix F sur aperçu parmi 22 / 24 / 26) */
   --icone-colonne:     28px;   /* Magasins : l'icône des circulaires au-dessus des interrupteurs, à la place du mot (J-C, 2026-10-03, choix A sur aperçu) */
   --interrupteur-large:  40px;   /* l'interrupteur « Circulaire » (Magasins) : sa piste */
@@ -468,6 +478,10 @@ body:has(.sur-photo:not([hidden]))::before { display: none; }
 .titre-action .icone { width: var(--titre-action-icone); height: var(--titre-action-icone); --icone-trait: var(--t, var(--couleur-306)); }
 #vue-achats { --t: var(--menu-achats); }
 #vue-listes { --t: var(--menu-listes); }
+#vue-pieces { --t: var(--base-pieces); }   #vue-meubles { --t: var(--base-meubles); }   #vue-categories { --t: var(--base-categories); }
+#vue-aliments { --t: var(--base-aliments); }   #vue-circulaires { --t: var(--base-circulaires); }   #vue-couleurs { --t: var(--outil-couleurs); }
+#vue-noms[data-page="magasins"] { --t: var(--base-magasins); }   #vue-noms[data-page="marques"] { --t: var(--base-marques); }
+#vue-noms[data-page="saveurs"]  { --t: var(--base-saveurs); }    #vue-noms[data-page="unites"]  { --t: var(--base-unites); }
 #vue-recherche { --t: var(--menu-rechercher); }
 #vue-recherche[data-mode="consommer"] { --t: var(--menu-consommer); }
 #vue-recherche[data-mode="deplacer"]  { --t: var(--menu-deplacer); }
@@ -579,6 +593,10 @@ body:has(.sur-photo:not([hidden]))::before { display: none; }
 .grille > .bouton-grand[data-base="marques"]     { --c: var(--base-marques); }
 .grille > .bouton-grand[data-base="saveurs"]     { --c: var(--base-saveurs); --icone-trait: var(--icone-trait-pale); }
 .grille > .bouton-grand[data-base="unites"]      { --c: var(--base-unites); }
+.grille > .bouton-grand[data-outil="bases"]      { --c: var(--outil-bases); }   /* Outils : les siennes, figées (le point 25) */
+.grille > .bouton-grand[data-outil="couleurs"]   { --c: var(--outil-couleurs); }
+.grille > .bouton-grand[data-outil="qui"]        { --c: var(--outil-qui); }
+.grille > .bouton-grand[data-outil="deco"]       { --c: var(--outil-deco); }
 .grille > .bouton-grand[data-menu="accueil"]     { --c: var(--menu-accueil); }
 .grille > .bouton-grand[data-menu="ajouter"]     { --c: var(--menu-ajouter); }
 .grille > .bouton-grand[data-menu="deplacer"]    { --c: var(--menu-deplacer); }
@@ -599,6 +617,11 @@ body:has(.sur-photo:not([hidden]))::before { display: none; }
 :is(.grille > .bouton-grand, .bouton)[data-action="consommer"]  { --c: var(--action-consommer); }
 :is(.grille > .bouton-grand, .bouton)[data-action="deplacer"]   { --c: var(--action-deplacer); }
 :is(.grille > .bouton-grand, .bouton)[data-action="jeter"]      { --c: var(--action-base); --icone-trait: var(--icone-trait-pale); }   /* la poubelle : beige, comme sur une ligne */
+:is(.grille > .bouton-grand, .bouton)[data-action="coller"]     { --c: var(--action-coller); }
+:is(.grille > .bouton-grand, .bouton)[data-action="suivant"]    { --c: var(--action-suivant); }
+:is(.grille > .bouton-grand, .bouton)[data-action="sans"]       { --c: var(--action-sans); --icone-trait: var(--icone-trait-pale); }
+:is(.grille > .bouton-grand, .bouton)[data-action="entrer"]     { --c: var(--action-entrer); }
+.grille > .bouton-grand.bouton-or { --c: var(--couleur-604); }   /* la flèche d'une étape, dans une grille : dorée, jamais la couleur de la suite */
 .grille.grille-trois { grid-template-columns: repeat(3, minmax(0, 1fr)); }   /* trois gestes sur une ligne (la carte de Consommer : B) */
 /* Une question et ses réponses à sa droite (la ligne directrice, RdG-11 : D — avant, le Oui se posait au milieu de la ligne) */
 .question { display: flex; align-items: center; gap: var(--espace-s); }
@@ -1164,6 +1187,9 @@ select.champ {
 .icone-non { --dessin: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='0.8' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M6.5 6.5l11 11M17.5 6.5l-11 11'/%3E%3C/svg%3E"); }   /* le X : je laisse tomber */
 .icone-poubelle { --dessin: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='0.8' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M4 6.5h16M9.5 6.5V4h5v2.5M6.5 6.5l1 13.5h9l1-13.5M10 10.5v6M14 10.5v6'/%3E%3C/svg%3E"); }   /* Jeter, en grand (le dessin de la poubelle d'une ligne) */
 .icone-revenir { --dessin: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='0.8' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M9 14L4 9l5-5'/%3E%3Cpath d='M4 9h10.5a5.5 5.5 0 0 1 0 11H11'/%3E%3C/svg%3E"); }   /* Retour d'un pas : la flèche « revenir » (le scan — J-C, 2026-10-14, C sur aperçu parmi le + / cette flèche / ←; la maison, elle, mène au menu) */
+.icone-avant { --dessin: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='0.8' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M15 14l5-5-5-5'/%3E%3Cpath d='M20 9H9.5a5.5 5.5 0 0 0 0 11H13'/%3E%3C/svg%3E"); }   /* la même, tournée vers l'avant : Suivant, Sans la page (RdG-11, décision 11) */
+.icone-coller { --dessin: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='0.8' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M9 3.5h6v3H9z'/%3E%3Cpath d='M8 5H5.5v15.5h13V5H16'/%3E%3Cpath d='M8.5 11h7M8.5 14h7M8.5 17h4.5'/%3E%3C/svg%3E"); }   /* le presse-papiers : Coller la page */
+.icone-porte { --dessin: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='0.8' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M13.5 3.5h5v17h-5'/%3E%3Cpath d='M3.5 12h11'/%3E%3Cpath d='M10.5 8l4 4-4 4'/%3E%3C/svg%3E"); }   /* la flèche qui entre par la porte : Entrer */
 .icone-deplacer { --dessin: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23f5efe6' stroke-width='0.8' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M3 8h17M16 4l4 4-4 4'/%3E%3Cpath d='M21 16H4M8 12l-4 4 4 4'/%3E%3C/svg%3E") }   /* deux flèches opposées : d'un endroit à l'autre, dans les deux sens (J-C, choix A sur aperçu, 2026-09-29) */
 .icone-accueil { --dessin: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='0.8' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M3 11.5 12 3.5l9 8'/%3E%3Cpath d='M5.5 9.5v11h13v-11'/%3E%3Cpath d='M10 20.5v-5.5h4v5.5'/%3E%3C/svg%3E"); }   /* Accueil : la maison (J-C, 2026-09-27) */
 .icone-chariot { --dessin: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='0.8' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M1.5 4.5h3l3.2 11.5h13.3'/%3E%3Cpath d='M5.6 9H21.5V14H7.2'/%3E%3Cpath d='M10 9v5M13.5 9v5M17 9v5'/%3E%3Ccircle cx='9.5' cy='19.3' r='1.4'/%3E%3Ccircle cx='19' cy='19.3' r='1.4'/%3E%3C/svg%3E"); }   /* la Liste d'achats : le chariot du chargement, vide (J-C, 2026-09-30, choix B sur aperçu) */

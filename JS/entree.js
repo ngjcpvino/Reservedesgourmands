@@ -2046,7 +2046,7 @@ function remplirCorpsAliment(tete) {
   const corps = tete.nextElementSibling, p = PRODUITS.find(x => String(x.id) === String(tete.parentElement.dataset.id));
   if (corps && p && !corps.firstChild) corps.innerHTML = htmlCorpsAliment(p);
 }
-/* Un aliment ouvert : sa sous-catégorie, sa durée (À consommer bientôt), ses endroits 1-2-3 (flèches), ses « Pas aimé » (Enlever). */
+/* Un aliment ouvert : sa sous-catégorie, sa durée (À consommer bientôt), ses endroits 1-2-3 (flèches), ses « Pas aimé » (la poubelle). */
 function htmlCorpsAliment(p) {
   const titre = t => '<div class="bloc accordeon-bloc"><div class="label">' + t + '</div></div>';
   const ok = rayonDe(p.catId) !== '';
@@ -2054,7 +2054,7 @@ function htmlCorpsAliment(p) {
   const pas = PAS_AIMES.filter(r => String(r[1]) === String(p.id)).map(r => {
     const m = String(r[2] || '').trim(), sv = String(r[3] || '').trim();
     return '<div class="accordeon-item"><span>' + esc([nomListe(m), nomListe(sv)].filter(Boolean).join(' ') || p.nom) + '</span>' +
-      '<button class="bouton bouton-petit" type="button" data-pas-aime="' + esc(p.id + '|' + m + '|' + sv) + '">Enlever</button></div>';
+      '<button class="retirer" type="button" data-pas-demande="' + esc(p.id + '|' + m + '|' + sv) + '" aria-label="Enlever"></button></div>';   // la poubelle (RdG-11), puis sa question
   }).join('');
   const tri = (TRI_ALIMENTS[p.id] || {}).lignes || [];
   return '<div class="bloc accordeon-bloc"><div class="label">Sous-catégorie</div>' +
@@ -2257,7 +2257,8 @@ async function montrerPageNoms(cle) {
   pageNoms = PAGES_NOMS[cle];
   toutCacher(); $('vue-noms').hidden = false; $('btn-burger').hidden = false;
   $('liste-noms').innerHTML = '';                  // on arrive : tout fermé
-  $('noms-titre').textContent = pageNoms.titre;
+  $('noms-titre').innerHTML = '<span class="icone icone-' + cle + '"></span>' + esc(pageNoms.titre);   // le titre (RdG-11) : l'icône de son bouton, sa couleur (data-page)
+  $('vue-noms').dataset.page = cle;
   $('noms-ajout').hidden = !pageNoms.gere;
   $('nom-nouveau').value = ''; if (pageNoms.gere) $('nom-nouveau').placeholder = pageNoms.neuve || CHOIX_FICHE[pageNoms.choix].neuve;
   $('noms-msg').className = 'message message-repli'; $('noms-msg').textContent = '';
@@ -4157,7 +4158,7 @@ function ouvrirArticleTri(el) {
   el.classList.add('ouvert');
   window.scrollTo(0, 0);
   const x = articleTri(el.dataset.art), codes = x ? ((x.codes || []).filter(Boolean).length ? x.codes.filter(Boolean) : [x.code].filter(Boolean)) : [];
-  el.insertAdjacentHTML('afterend', '<div class="tri-panneau" data-art="' + esc(el.dataset.art) + '"><div data-pas="feu"><div class="tri-tete"></div>' +
+  el.insertAdjacentHTML('afterend', '<div class="tri-panneau niveau-3" data-art="' + esc(el.dataset.art) + '"><div data-pas="feu"><div class="tri-tete"></div>' +
     codes.map(code => '<div class="item" data-code-produit="' + esc(code) + '">' +
     photoTri('') + '<div class="item-info"><div class="code-barres">' + esc(estPlu(code) ? 'PLU ' + code : code) + '</div></div></div>').join('') + htmlFeu() + '</div></div>');
   TRI_PROPS = x && !x.code ? propositionsTri(x) : [];   // « Serait-ce celui-ci ? » : connu d'avance, il compte dans les étapes
@@ -4312,29 +4313,31 @@ function etapeTri(rep) {
 function htmlEtapesTri(x, n) {
   const sup = !x.code && rechercheEpicerie(x.magasin);
   const place = '<div class="tri-msg-place"></div>';
-  const fleche = '<button class="bouton bouton-or" type="button" data-tri-recul aria-label="Revenir"><span class="icone icone-revenir"></span></button>';
-  const grille = second => '<div class="grille bloc-suite">' + second + '</div>';
-  const annuler = '<button class="bouton" type="button" data-tri-annuler>Annuler</button>';
-  const vert = (texte, attr, classe) => place + '<button class="bouton bouton-vert bouton-pleine ' + (classe || 'bouton-detache') + '" type="button" ' + attr + '>' + texte + '</button>';
+  // les boutons d'une étape (la ligne directrice, RdG-11) : des icônes, au niveau 3 (le panneau), chacun la couleur de son action
+  const bouton = (action, icone, nom, attr) => '<button class="bouton bouton-grand" type="button" data-action="' + action + '" ' + attr + ' aria-label="' + esc(nom) + '"><span class="icone ' + icone + '"></span></button>';
+  const fleche = '<button class="bouton bouton-grand bouton-or" type="button" data-tri-recul aria-label="Revenir"><span class="icone icone-revenir"></span></button>';
+  const annuler = bouton('non', 'icone-non', 'Annuler', 'data-tri-annuler');
+  const grille = (...b) => '<div class="grille' + (b.length > 2 ? ' grille-trois' : '') + ' bloc-suite">' + b.join('') + '</div>';
   const plusieurs = n > 1 || /\sou\s|,/i.test(x.texte);   // « germes de haricot ou épinards » : « Un autre aliment »
   let h = '';
   if (!x.code && (TRI_PROPS.length || sup)) {
     h += '<div data-pas="choix" hidden><div class="tri-tete"></div>' +
       (TRI_PROPS.length ? '<div class="label bloc-suite">Serait-ce celui-ci ?</div><div class="liste-blanche" id="tri-props">' +
         TRI_PROPS.map((c, i) => htmlProposition(c, 'data-prop="' + i + '"')).join('') + (sup ? '' : ligneAucun('data-prop="-1"')) + '</div>' : '') +
-      (sup ? '<button class="bouton bouton-brun bouton-pleine bouton-detache" type="button" data-tri-chercher>Chercher chez ' + esc(nomListe(x.magasin)) + '</button>' +
-             '<div class="message">Sur sa page : Partager → Copier pour la Réserve, puis reviens ici.</div>' +
+      (sup ? grille(tuileMagasin(x.magasin, 'data-tri-chercher aria-label="' + esc('Chercher chez ' + nomListe(x.magasin)) + '"'),   // son logo : sa recherche
+                    bouton('coller', 'icone-coller', 'Coller la page', 'data-tri-coller')) +
+             '<div class="message">Sur sa page : Partager → Copier pour la Réserve, puis reviens ici.</div>' + place +
              '<textarea class="champ bloc-suite" id="tri-page" placeholder="Colle le texte de la page ici" hidden></textarea>' +
-             vert('Coller la page', 'data-tri-coller', 'bouton-suite') + grille(fleche + '<button class="bouton" type="button" data-tri-sans>Sans la page</button>')
-           : place + grille(fleche + annuler)) + '</div>';
+             grille(fleche, bouton('sans', 'icone-avant', 'Sans la page', 'data-tri-sans'))
+           : place + grille(fleche, annuler)) + '</div>';
   }
   h += '<div data-pas="lu" hidden><div class="tri-tete"></div><div class="liste-blanche bloc-suite" id="tri-lu"></div>' +
-    vert('Oui, c\'est ça', 'data-tri-suivant') + grille(fleche + annuler) + '</div>';
+    place + grille(fleche, annuler, bouton('oui', 'icone-oui', 'Oui, c\'est ça', 'data-tri-suivant')) + '</div>';
   h += '<div data-pas="aliment" hidden><div class="tri-tete"></div><div id="tri-repris"></div>' +
     '<div class="bloc-suite" id="tri-entonnoirs">' + Array.from({ length: n }, (v, i) => htmlEntonnoir(i)).join('') + '</div>' +
-    (plusieurs ? '<button class="bouton bouton-petit bouton-pleine bouton-suite" type="button" data-tri-autre>Un autre aliment</button>' : '') +
-    vert('C\'est ça', 'data-tri-ok') + grille(fleche + annuler) + '</div>';
-  h += '<div data-pas="lequel" hidden><div class="tri-tete"></div><div id="tri-lequel"></div>' + grille(fleche + annuler) + '</div>';
+    (plusieurs ? '<div class="grille bloc-suite">' + bouton('ajouter', 'icone-plus', 'Un autre aliment', 'data-tri-autre') + '</div>' : '') +
+    place + grille(fleche, annuler, bouton('oui', 'icone-oui', 'C\'est ça', 'data-tri-ok')) + '</div>';   // le crochet devient la flèche vers l'avant (Suivant) quand « Lequel est-ce ? » suit
+  h += '<div data-pas="lequel" hidden><div class="tri-tete"></div><div id="tri-lequel"></div>' + grille(fleche, annuler) + '</div>';
   return h + '<div class="message message-repli message-erreur" id="tri-msg"></div>';
 }
 /* Une étape à la fois : ses points, son titre; le message d'erreur se pose au-dessus de ses boutons. */
@@ -4357,8 +4360,8 @@ function majTeteTri() {
   if (!x || !sec) return;
   const s = pasTri(p, x), k = s.indexOf(ici) + 1 || s.length;
   sec.querySelector('.tri-tete').innerHTML = htmlEtapes(k, s.length, ici === 'lequel' ? (p.dataset.fruit ? 'Quel PLU ?' : 'Lequel est-ce ?') : TITRES_TRI[ici]);
-  const ok = p.querySelector('[data-tri-ok]');
-  if (ok) ok.textContent = s.indexOf('lequel') === -1 ? 'C\'est ça' : 'Suivant';
+  const ok = p.querySelector('[data-tri-ok]'), suivant = s.indexOf('lequel') !== -1;   // le crochet (C'est ça), ou la flèche vers l'avant (Suivant)
+  if (ok) { ok.dataset.action = suivant ? 'suivant' : 'oui'; ok.setAttribute('aria-label', suivant ? 'Suivant' : 'C\'est ça'); ok.firstElementChild.className = 'icone ' + (suivant ? 'icone-avant' : 'icone-oui'); }
 }
 /* La flèche : une étape en arrière. Quitter « Ce que l'app a lu » oublie la page (on en colle une autre, ou on s'en passe). */
 function reculerTri() {
@@ -4794,6 +4797,16 @@ async function achatParCode(code) {
 }
 
 /* Gérer les bases → Aliments : « Enlever » retire un « Pas aimé ». */
+/* La poubelle d'un « Pas aimé » : « Enlever … des Pas aimé ? », le crochet et le X à sa place (comme partout). */
+function demanderEnleverPasAime(cle) {
+  remplirPageAliments(true);                       // une seule question à la fois
+  const b = [...$('liste-aliments').querySelectorAll('[data-pas-demande]')].find(x => x.dataset.pasDemande === cle);
+  if (!b) return;
+  const nom = b.previousElementSibling ? b.previousElementSibling.textContent : '';
+  b.parentElement.outerHTML = '<div class="accordeon-item accordeon-item-saisie" data-confirme><span>' + esc('Enlever ' + nom + ' des Pas aimé ?') + '</span>' +
+    '<button class="bouton bouton-petit" type="button" data-action="oui" data-pas-aime="' + esc(cle) + '" aria-label="Oui"><span class="icone icone-oui"></span></button>' +
+    '<button class="bouton bouton-petit" type="button" data-action="non" data-retirer-non aria-label="Non"><span class="icone icone-non"></span></button></div>';
+}
 async function enleverPasAime(btn) {
   const k = btn.dataset.pasAime.split('|');
   const pid = k[0], marque = k[1] || '', saveur = k.slice(2).join('|');
@@ -5399,8 +5412,10 @@ function initEntree() {
     const ru = ev.target.closest('[data-reunir]');         // « … existe déjà : les réunir ? » Oui
     if (ru) { reunirNoms(ru.dataset.reunir); return; }
     if (ev.target.closest('[data-retirer-non], [data-reunir-non]')) { remplirPageAliments(true); return; }
-    const pas = ev.target.closest('[data-pas-aime]');      // « Pas aimé » : Enlever
+    const pas = ev.target.closest('[data-pas-aime]');      // « Pas aimé » : le crochet de sa question
     if (pas) { enleverPasAime(pas); return; }
+    const pd = ev.target.closest('[data-pas-demande]');    // « Pas aimé » : la poubelle → sa question
+    if (pd) { demanderEnleverPasAime(pd.dataset.pasDemande); return; }
     const ta = ev.target.closest('[data-tri-aliment]');    // un article de circulaire : son feu, dans Circulaires
     if (ta) { corrigerTri(ta.dataset.triAliment, ta.closest('.aliment').dataset.id); return; }
     const pb = ev.target.closest('.retirer');              // avant la tête : la poubelle, le crayon et les flèches n'ouvrent ni ne ferment rien
@@ -5460,6 +5475,7 @@ function initEntree() {
   });
   // Gérer les bases → Magasins, Marques, Saveurs (une seule page)
   $('noms-retour').addEventListener('click', () => { ouvrirMenu(); montrerGrilleMenu('bases'); });   // le menu, sur la grille des bases
+  $('couleurs-retour').addEventListener('click', () => { ouvrirMenu(); montrerGrilleMenu('outils'); });   // le menu, sur Outils (les couleurs en attente partent en quittant la page)
   $('btn-nom-ajouter').addEventListener('click', ajouterNom);
   $('nom-nouveau').addEventListener('keydown', e => { if (e.key === 'Enter') { e.preventDefault(); ajouterNom(); } });
   $('liste-noms').addEventListener('click', function (ev) {
