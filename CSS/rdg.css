@@ -297,6 +297,9 @@
   --niveau:            1;
   --niveau-2:          0.7;     /* une page ouverte du menu (J-C, B sur aperçu parmi 85 / 70 / 55 %) */
   --niveau-3:          0.5;     /* la page d'après */
+  --icone-reponse:     22px;    /* le crochet et le X d'une question (Oui / Non), petits, à droite (D sur aperçu) */
+  --icone-pleine:      28px;    /* le crochet ou le X sur un bouton de toute la largeur (Enregistrer, Annuler…) */
+  --qte-large:         calc(var(--tactile) * 1.5);   /* le nombre entre − et + : sa largeur, pas plus (J-C, 2026-10-16 : « trop large pour rien ») */
   --titre-action-taille: 28px;  /* le titre d'une page (D sur aperçu) : plus gros… */
   --titre-action-icone:  34px;  /* … l'icône de son bouton du menu devant… */
   --filet-titre-action:  3px;   /* … et la ligne dessous, dans sa couleur */
@@ -522,6 +525,8 @@ body:has(.sur-photo:not([hidden]))::before { display: none; }
   flex-direction: column;
   padding: var(--espace-xs);
 }
+.bouton-petit > .icone { width: var(--icone-reponse); height: var(--icone-reponse); }   /* le crochet et le X d'une question */
+.bouton-pleine > .icone { width: var(--icone-pleine); height: var(--icone-pleine); }    /* … ceux d'un bouton de toute la largeur (le Retour : la règle juste dessous, plus loin, l'emporte) */
 .bouton-grand .icone, .grille + .bouton .icone, .bouton-large .icone { height: var(--icone-part); width: auto; aspect-ratio: 1; }   /* le dessin grandit avec le bouton (la maison du Retour d'Ajouter, la flèche du scan aussi) */
 .bouton-grand .icone-epicerie { aspect-ratio: var(--icone-deux-forme); }   /* deux sacs : l'icône s'élargit plutôt que de rapetisser */
 /* Une grille = toujours des demi-boutons, même impaire : le dernier reste seul, à gauche (J-C, 2026-10-01 : « toujours des demis
@@ -581,11 +586,15 @@ body:has(.sur-photo:not([hidden]))::before { display: none; }
 .grille > .bouton-grand[data-menu="rechercher"]  { --c: var(--menu-rechercher); }
 /* Un bouton d'action dit QUELLE action il est (data-action) : sa couleur suit, la même partout (la ligne directrice, RdG-11 :
    « un Ajouter, c'est toujours la même couleur, par catégorie aussi »). Par catégorie et Par épicerie : celles de Gérer les bases. */
-.grille > .bouton-grand[data-action="categories"] { --c: var(--base-categories); }
-.grille > .bouton-grand[data-action="magasins"]   { --c: var(--base-magasins); }
-.grille > .bouton-grand[data-action="ajouter"]    { --c: var(--action-ajouter); }
-.grille > .bouton-grand[data-action="oui"]        { --c: var(--action-oui); }
-.grille > .bouton-grand[data-action="non"]        { --c: var(--action-non); --icone-trait: var(--icone-trait-pale); }
+:is(.grille > .bouton-grand, .bouton)[data-action="categories"] { --c: var(--base-categories); }   /* :is : le poids de la suite des grilles, pour l'emporter sur elle */
+:is(.grille > .bouton-grand, .bouton)[data-action="magasins"]   { --c: var(--base-magasins); }
+:is(.grille > .bouton-grand, .bouton)[data-action="ajouter"]    { --c: var(--action-ajouter); }
+:is(.grille > .bouton-grand, .bouton)[data-action="oui"]        { --c: var(--action-oui); }
+:is(.grille > .bouton-grand, .bouton)[data-action="non"]        { --c: var(--action-non); --icone-trait: var(--icone-trait-pale); }
+/* Une question et ses réponses à sa droite (la ligne directrice, RdG-11 : D — avant, le Oui se posait au milieu de la ligne) */
+.question { display: flex; align-items: center; gap: var(--espace-s); }
+.question > .message { margin-top: 0; }
+:is(.question, [data-confirme]) > :first-child { flex-grow: 1; }
 .niveau-2 { --niveau: var(--niveau-2); }
 .niveau-3 { --niveau: var(--niveau-3); }
 .bouton-petit { min-height: auto; padding: var(--espace-s) var(--espace-l); font-size: var(--texte-petit); }
@@ -1093,12 +1102,13 @@ select.champ {
 /* La quantité entre un − et un + (Déplacer, Consommer — J-C, choix A sur aperçu : petits carrés bruns). Le signe vit ici, pas dans le HTML. */
 .plus-moins, .poids { display: flex; align-items: center; gap: var(--espace-s); }
 .plus-moins > .champ, .poids > .champ { flex: 1; min-width: 0; text-align: center; }
+.plus-moins > .champ { flex: none; width: var(--qte-large); }   /* le nombre : sa largeur, pas toute la ligne (J-C, 2026-10-16) */
 /* Le poids d'un paquet pesé au magasin (la viande, J-C 2026-10-15, choix A sur aperçu) : le champ et son unité, à la place du − + */
 .poids-unite { flex-shrink: 0; font-size: var(--texte-normal); color: var(--couleur-306); }
 .plus-moins > .bouton { flex-shrink: 0; width: var(--tactile); height: var(--tactile); min-width: 0; padding: 0; font-size: var(--texte-grand); }
 .plus-moins > .moins::after { content: '\2212'; }
 .plus-moins > .plus::after  { content: '+'; }
-.case { flex-shrink: 0; width: var(--case-taille); height: var(--case-taille); margin: 0; accent-color: var(--couleur-402); }
+.case { flex-shrink: 0; width: var(--case-taille); height: var(--case-taille); margin: 0; accent-color: var(--action-oui); }   /* verte partout (J-C, 2026-10-16; rouge avant, hors de la Liste d'achats) */
 .message { font-size: var(--texte-petit); font-weight: var(--poids-leger); margin-top: var(--espace-s); min-height: var(--message-haut); }
 .message-erreur { color: var(--couleur-402); }
 /* Sur la photo, une erreur se lirait mal : elle se pose dans un rectangle rouge, texte blanc. */
@@ -1169,7 +1179,7 @@ select.champ {
 ============================================================ */
 .achats-groupe { margin-bottom: var(--espace-m); }   /* l'espace du haut : la règle des barres (accordéon) */
 .achat { cursor: pointer; align-items: flex-start; }   /* l'aliment et la case alignés par le haut (J-C, 2026-10-02) */
-.achat .case { accent-color: var(--couleur-703); pointer-events: none; }   /* la ligne entière se touche : la case suit */
+.achat .case { pointer-events: none; }   /* la ligne entière se touche : la case suit */
 /* En haut à droite, côte à côte (J-C, 2026-10-02, choix C sur aperçu) : la flèche « mettre de côté », puis la case « dans le panier ». */
 .boutons-ligne { display: flex; align-items: center; gap: var(--espace-xs); }
 .boutons-ligne .remettre { height: var(--pastille-action); }

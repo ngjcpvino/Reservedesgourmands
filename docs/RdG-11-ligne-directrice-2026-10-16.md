@@ -96,4 +96,17 @@
   par la page : `#vue-achats { --t: var(--menu-achats) }`); **le crochet et le X** (`icone-oui`, `icone-non`). La Liste d'achats :
   `CHOIX_ACHATS`, `vueAchats` = '' à l'ouverture, le + dans la grille (`data-achat-ajout`; « Ajouter à la liste » écrit retiré).
   Essai dans le faux navigateur : 21 vérifications.
-- **La suite** : les autres pages, une à la fois (c'est J-C qui choisit l'ordre).
+- **Les autres pages, en quatre lots** (J-C : « Et déjà appliquer ces bases aux pages existantes ? Faire le ménage du CSS ? » — proposé par
+  Claude : quatre lots, chacun poussé puis testé; « Go 1 »). Le ménage suit chaque lot (le CSS n'avait aucun reste inutile le 2026-10-16).
+  - **✅ Lot 1, le 2026-10-16 (partout, les petites choses; pas encore testé, T88)** : **la case verte partout** (`.case` : `--action-oui`;
+    avant : rouge hors de la Liste d'achats); **moins / plus plus étroit** (`.plus-moins > .champ` : `--qte-large`, 1,5 × `--tactile`);
+    **Oui / Non = le crochet et le X, petits, à droite de la question** (`ouiNon()` — fini le Oui rouge —, la réunion, les cartes d'un lot
+    de l'Escale et de Compléter : `.question`; `[data-confirme] > :first-child` prend la place, le Oui ne se pose plus au milieu);
+    **le crochet** = Enregistrer (la fiche), Enregistrer les couleurs, OK (Compléter); **le X** = Annuler (la fiche). Pièces communes :
+    `data-action` vaut désormais pour tout `.bouton` (`:is(.grille > .bouton-grand, .bouton)`), `--icone-reponse` (22) et `--icone-pleine` (28).
+    **Laissés à leur lot, pour ne pas mêler mots et icônes sur une même ligne** : les étapes du tri (lot 3) et de Compléter (lot 4), les cartes
+    de Consommer / Déplacer / l'Inventaire (lot 2, la carte B), la carte des deux sacs (lot 4 : ⚠️ « L'associer à ce produit ? » Non et
+    Annuler y deviendraient deux X — à trancher avec J-C).
+  - Lot 2 : les pages du menu — Listes (l'Inventaire : les quatre cases et l'armoire), Rechercher, Consommer (la carte B), Déplacer, Ouvrir.
+  - Lot 3 : Gérer les bases, Couleurs, Circulaires (d'abord les couleurs fixes d'Outils, le point 25).
+  - Lot 4 : le + — le sac seul, les deux sacs, Compléter, la fiche, Open Food Facts.

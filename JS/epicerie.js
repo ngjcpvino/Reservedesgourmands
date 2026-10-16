@@ -667,9 +667,9 @@ function ouvrirLotCompleter(btn) {
   carte.className = 'endroit carte';
   carte.innerHTML = htmlChoixEndroit() +
     '<div class="bloc"><div class="label">Quantité</div><input class="champ qte" type="text" inputmode="numeric" pattern="[0-9]*" value="' + esc(lot.qte) + '"></div>' +
-    '<div class="message"></div>' +
-    '<div class="grille"><button class="bouton bouton-petit bouton-vert lot-oui" type="button" hidden>Oui</button>' +
-    '<button class="bouton bouton-petit lot-non" type="button">Non</button></div>';
+    '<div class="question"><div class="message"></div>' +   // la question, le crochet et le X à sa droite (RdG-11 : D)
+    '<button class="bouton bouton-petit lot-oui" type="button" data-action="oui" aria-label="Oui" hidden><span class="icone icone-oui"></span></button>' +
+    '<button class="bouton bouton-petit lot-non" type="button" data-action="non" aria-label="Non"><span class="icone icone-non"></span></button></div>';
   item.closest('.item').replaceWith(carte);
   brancherEndroit(carte);
   const cible = () => carte.querySelector('.espace').value || carte.querySelector('.meuble').value;

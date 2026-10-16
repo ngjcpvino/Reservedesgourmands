@@ -1822,8 +1822,8 @@ function demanderRetrait(type, id) {
 }
 /* Les deux réponses d'un retrait : Oui (rouge) / Non. */
 function ouiNon(type, id) {
-  return '<button class="bouton bouton-petit bouton-rouge" type="button" data-retirer-oui="' + type + '|' + esc(id) + '">Oui</button>' +
-    '<button class="bouton bouton-petit" type="button" data-retirer-non>Non</button>';
+  return '<button class="bouton bouton-petit" type="button" data-action="oui" data-retirer-oui="' + type + '|' + esc(id) + '" aria-label="Oui"><span class="icone icone-oui"></span></button>' +
+    '<button class="bouton bouton-petit" type="button" data-action="non" data-retirer-non aria-label="Non"><span class="icone icone-non"></span></button>';   // le crochet et le X (la ligne directrice, RdG-11 : D)
 }
 /* Oui : retirer. Ce qu'il contient passe dans « Pas encore rangé » (choix B de J-C). Instantané, comme Déplacer :
    la mémoire change tout de suite, l'envoi part dans la file des gestes. Rien n'est effacé du Sheet :
@@ -2509,8 +2509,8 @@ function demanderReunion(cle, autre) {
   const item = btn && (btn.closest('.aliment') || btn.closest('.liste-suite > .accordeon'));
   if (!item) { rafraichirBases(); return; }
   item.outerHTML = '<div class="accordeon-item accordeon-item-saisie" data-confirme><span>« ' + esc(autre.nom) + ' » existe déjà : les réunir ?</span>' +
-    '<button class="bouton bouton-petit bouton-vert" type="button" data-reunir="' + esc(cle + '|' + autre.id) + '">Oui</button>' +
-    '<button class="bouton bouton-petit" type="button" data-reunir-non>Non</button></div>';
+    '<button class="bouton bouton-petit" type="button" data-action="oui" data-reunir="' + esc(cle + '|' + autre.id) + '" aria-label="Oui"><span class="icone icone-oui"></span></button>' +
+    '<button class="bouton bouton-petit" type="button" data-action="non" data-reunir-non aria-label="Non"><span class="icone icone-non"></span></button></div>';
 }
 async function reunirNoms(val) {
   const k = String(val).split('|'), cle = k[0], garde = k[1], T = TABLES_NOM[cle.charAt(0)], perdu = cle.slice(2);
@@ -2603,9 +2603,9 @@ function ouvrirLot(btn) {
   carte.className = 'endroit carte';
   carte.innerHTML = htmlChoixEndroit() +
     '<div class="bloc"><div class="label">Quantité</div><input class="champ qte" type="text" inputmode="numeric" pattern="[0-9]*" value="' + esc(lot.qte) + '"></div>' +
-    '<div class="message"></div>' +
-    '<div class="grille"><button class="bouton bouton-petit bouton-vert lot-oui" type="button" hidden>Oui</button>' +
-    '<button class="bouton bouton-petit lot-non" type="button">Non</button></div>';
+    '<div class="question"><div class="message"></div>' +   // la question, le crochet et le X à sa droite (RdG-11 : D)
+    '<button class="bouton bouton-petit lot-oui" type="button" data-action="oui" aria-label="Oui" hidden><span class="icone icone-oui"></span></button>' +
+    '<button class="bouton bouton-petit lot-non" type="button" data-action="non" aria-label="Non"><span class="icone icone-non"></span></button></div>';
   btn.closest('.item').replaceWith(carte);
   brancherEndroit(carte);
   const cible = () => carte.querySelector('.espace').value || carte.querySelector('.meuble').value;
