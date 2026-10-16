@@ -48,6 +48,11 @@
 10. **Ceux qui ont déjà une icône qui dit la même chose la prennent** (J-C : « Oui ») : **le +** — L'ajouter (Rechercher), + un autre
    endroit, Un autre aliment; **la poubelle** — Retirer (un endroit de la fiche), Enlever (un « Pas aimé »); **le crayon** — Corriger;
    **le code-barres** — Scanner un autre; **le logo d'Open Food Facts** — Envoyer à Open Food Facts.
+11. **Les boutons écrits qui restent deviennent des icônes** (l'aperçu « Les autres boutons », `scratchpad/apercu-autres/fait.py`;
+   J-C : « Icône ») : Coller la page = le presse-papiers · Suivant, Sans la page = la flèche du Retour tournée vers l'avant · Plus tard
+   = l'horloge · Réessayer = la flèche qui tourne · Voir chez Super C, Chercher chez… = le logo de l'épicerie · Escale = le sac,
+   Choisir un endroit = l'armoire · Entrer = la flèche qui entre par la porte. ⚠️ **Suivant et Sans la page** : la même flèche, seule la
+   couleur change — J-C : « pas clair, mais je déciderai à l'utilisation ».
 
 ## 3. Ouvert
 
@@ -59,8 +64,5 @@
   produit ? » : le scan, Compléter). **Aperçu envoyé le 2026-10-16** (`scratchpad/apercu-ouinon/fait.py`) : **A** petits, à droite de
   la question, Oui vert / Non blanc, partout · **B** comme A, le Oui qui retire en rouge · **C** deux demi-boutons sous la question, à
   la taille du niveau 3, Oui vert / Non blanc · **D** en icônes, le crochet vert / le X blanc, petits, à droite. **J-C : « D »** — décision 7 ci-dessus.
-- **Les boutons écrits qui restent** — aperçu envoyé le 2026-10-16 (`scratchpad/apercu-autres/fait.py`), le mot à côté de l'icône
-  proposée : 1 Coller la page = le presse-papiers · 2 Suivant, Sans la page = la flèche du Retour tournée vers l'avant · 3 Plus tard =
-  l'horloge · 4 Réessayer = la flèche qui tourne · 5 Voir chez Super C, Chercher chez… = le logo de l'épicerie · 6 Escale = le sac,
-  Choisir un endroit = l'armoire · 7 Entrer = la flèche qui entre par la porte. **Son avis, un par un, à venir.**
+- Suivant / Sans la page (la même flèche) : à revoir à l'usage (décision 11).
 - Les autres sortes : les barres, les pastilles, la case, l'interrupteur, les ronds et le feu, moins / plus, le scanner, la vignette, la tuile.
