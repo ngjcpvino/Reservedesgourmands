@@ -86,5 +86,6 @@
   l'aperçu : **Par épicerie (802) et le + (803) sont deux bleus presque pareils, côte à côte** — J-C : « Effectivement, les 2 bleus… ».
   Proposé : **Magasins (donc Par épicerie) change de couleur, le + garde la sienne** (le bleu du bouton Ajouter, partout). **Aperçu envoyé**
   (`scratchpad/apercu-bleus/fait.py`, la Liste d'achats et la grille de Gérer les bases sur la photo nette) : A anthracite 902 · B olive
-  704 · C vert sapin 703 (déjà Rechercher au menu) — **son choix à venir.**
+  704 · C vert sapin 703 (déjà Rechercher au menu) — **J-C : « Olive. Ça donne faim »** : Magasins (Gérer les bases) et Par épicerie
+  passent au **704** (`--base-magasins`), le + garde le 803.
 - **La suite** : l'appliquer à la Liste d'achats, puis page par page.
