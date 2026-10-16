@@ -2,7 +2,7 @@
 
 > Le point 65 de la liste numérotée de `CLAUDE.md`. Né du 2e « On se refait une beauté ? » de J-C, devant sa capture de la Liste
 > d'achats : « Ouf. Pas de ligne directrice dans ces pages. » — « Oui, une ligne directrice pour toutes les pages. Oui et épurer. »
-> **EN RÉFLEXION — ZÉRO CODE.** Une question à la fois; un aperçu avant tout changement. Rien n'est appliqué tant que la ligne n'est
+> **Décidée le 2026-10-16; appliquée à la Liste d'achats le même jour, les autres pages à venir.** Une question à la fois; un aperçu avant tout changement. Rien n'est appliqué tant que la ligne n'est
 > pas finie (« à confirmer au final »).
 
 ## 1. Ce qu'on a vu (2026-10-16)
@@ -88,4 +88,12 @@
   (`scratchpad/apercu-bleus/fait.py`, la Liste d'achats et la grille de Gérer les bases sur la photo nette) : A anthracite 902 · B olive
   704 · C vert sapin 703 (déjà Rechercher au menu) — **J-C : « Olive. Ça donne faim »** : Magasins (Gérer les bases) et Par épicerie
   passent au **704** (`--base-magasins`), le + garde le 803.
-- **La suite** : l'appliquer à la Liste d'achats, puis page par page.
+- **✅ APPLIQUÉE À LA LISTE D'ACHATS le 2026-10-16** (J-C : « Oui, applique-la »), pas encore testée en ligne (T87). Ce qui sert
+  désormais à toutes les pages (`CSS/rdg.css`) : **le niveau** (`--niveau` au root = 1; `.niveau-2` / `.niveau-3` sur le bloc d'une page
+  posent 0,7 / 0,5; un `.bouton-grand`, un `.bouton-large` et le Retour sous une grille suivent, jamais sous `--tactile`; les vieux
+  `--bouton-grand-forme` / `--bouton-large-forme` retirés); **la couleur par l'action** (`data-action` sur un gros bouton : `categories`,
+  `magasins`, `ajouter`, `oui`, `non` — `--action-oui` 703, `--action-non` 101); **le titre** (`.titre-action`, l'icône devant, `--t` posée
+  par la page : `#vue-achats { --t: var(--menu-achats) }`); **le crochet et le X** (`icone-oui`, `icone-non`). La Liste d'achats :
+  `CHOIX_ACHATS`, `vueAchats` = '' à l'ouverture, le + dans la grille (`data-achat-ajout`; « Ajouter à la liste » écrit retiré).
+  Essai dans le faux navigateur : 21 vérifications.
+- **La suite** : les autres pages, une à la fois (c'est J-C qui choisit l'ordre).

@@ -3623,22 +3623,31 @@ function lignesAchats(cote) {
    TOUT FERMÉ à l'ouverture de la page (J-C, 2026-10-01 : « une vraie épicerie, je vais trop scroller »), une barre ouverte à la fois.
    Les soldes (J-C, 2026-10-01) : sous chaque aliment, partout (catégories, « Mis de côté »). (La barre « En circulaire » du bas,
    « Il y a aussi ceci », est retirée le 2026-10-07 : les idées se cherchent dans Listes → « En solde du … au … », RdG-08.)
-   DEUX VUES (J-C, 2026-10-07; RdG-08), deux boutons comme l'Inventaire : « Par catégorie » pour bâtir la liste (toujours à l'ouverture),
-   « Par épicerie » pour faire les courses (JS/prix.js : les épiceries, ce qui est moins cher où; la case seulement).
-   ouvrir : le groupe à ouvrir (data-groupe : l'ID de la catégorie, 'sans', 'cote'); sinon celui qui l'était reste ouvert. Par épicerie :
-   epicerieOuverte (la tuile touchée). */
-var vueAchats = 'categorie';                           // 'categorie' | 'epicerie'
+   DEUX VUES (J-C, 2026-10-07; RdG-08) : « Par catégorie » pour bâtir la liste, « Par épicerie » pour faire les courses (JS/prix.js :
+   les épiceries, ce qui est moins cher où; la case seulement).
+   LA LIGNE DIRECTRICE (RdG-11, J-C, 2026-10-16) : en arrivant, les actions seulement — Par catégorie, Par épicerie (les icônes de
+   Gérer les bases) et le + (Ajouter à la liste), au niveau 2 — « tant que j'ai pas touché un bouton d'action, on ne devrait pas voir
+   les accordéons » (avant : toujours Par catégorie à l'ouverture, RdG-08). Un choix touché : l'autre disparaît, ce qu'il ouvre paraît
+   dessous; retouché, ou la flèche du Retour : les deux choix (comme Sans code).
+   ouvrir : le groupe à ouvrir (data-groupe : l'ID de la catégorie, 'sans', 'cote' — Par catégorie s'ouvre); sinon celui qui l'était
+   reste ouvert. Par épicerie : epicerieOuverte (la tuile touchée). */
+var vueAchats = '';                                    // '' (les actions seulement) | 'categorie' | 'epicerie'
 var epicerieOuverte = '';                              // Par épicerie : l'épicerie touchée ('' = les tuiles)
+const CHOIX_ACHATS = [['categorie', 'Par catégorie', 'categories'], ['epicerie', 'Par épicerie', 'magasins']];   // [vue, son nom, son action (icône et couleur de Gérer les bases)]
 function remplirAchats(ouvrir) {
-  iconeRetour('achats-retour', !(vueAchats === 'epicerie' && epicerieOuverte));   // une épicerie touchée : Retour revient aux tuiles (la flèche)
+  if (ouvrir) vueAchats = 'categorie';                 // un aliment ajouté ou remis : sa catégorie s'ouvre, on le voit sur la liste
   const cible = $('liste-achats');
   const ouverte = cible.querySelector(':scope > .accordeon > .accordeon-tete.ouvert'), garde = ouverte ? ouverte.parentElement.dataset.groupe : '';   // on coche l'un après l'autre : elle reste ouverte
-  ouvrir = ouvrir || garde;                            // un aliment ajouté ouvre sa catégorie
-  const items = lignesAchats(), cote = lignesAchats(true);
-  const choix = items.length || cote.length ? '<div class="grille choix-vue">' + [['categorie', 'Par catégorie'], ['epicerie', 'Par épicerie']].map(v =>
-    '<button class="bouton bouton-petit ' + (v[0] === vueAchats ? 'bouton-brun' : 'choix-eteint') + '" type="button" data-vue-achats="' + v[0] + '">' + v[1] + '</button>').join('') + '</div>' : '';
+  ouvrir = ouvrir || garde;
+  const items = lignesAchats(), cote = lignesAchats(true), rien = '<div class="accordeon-item"><span class="texte-petit texte-pale">Rien à acheter.</span></div>';
+  if (!items.length && !cote.length) vueAchats = '';   // plus rien : rien à choisir
+  iconeRetour('achats-retour', !vueAchats);            // rien de choisi : la maison (le menu); un choix pris : la flèche (un pas)
+  const actions = '<div class="grille choix-vue">' + (items.length || cote.length ? CHOIX_ACHATS.filter(v => !vueAchats || v[0] === vueAchats).map(v =>
+      '<button class="bouton bouton-grand" type="button" data-action="' + v[2] + '" data-vue-achats="' + v[0] + '" aria-label="' + v[1] + '"><span class="icone icone-' + v[2] + '"></span></button>').join('') : '') +
+    '<button class="bouton bouton-grand" type="button" data-action="ajouter" data-achat-ajout aria-label="Ajouter à la liste"><span class="icone icone-plus"></span></button></div>';
+  if (!vueAchats) { cible.innerHTML = actions + (items.length || cote.length ? '' : rien); return; }
   if (vueAchats === 'epicerie') {                      // l'épicerie touchée le reste (on coche l'un après l'autre)
-    cible.innerHTML = choix + (items.length ? htmlParEpicerie(items, epicerieOuverte) : '<div class="accordeon-item"><span class="texte-petit texte-pale">Rien à acheter.</span></div>');
+    cible.innerHTML = actions + (items.length ? htmlParEpicerie(items, epicerieOuverte) : rien);
     return;
   }
   const nomDe = pid => (PRODUITS.find(p => String(p.id) === String(pid)) || {}).nom || '';
@@ -3673,17 +3682,17 @@ function remplirAchats(ouvrir) {
     return groupe(r.nom, lignes, r.id);
   }).join('');
   html += groupe('Sans catégorie', items.filter(it => !places[it.cle]).sort(tri), '');
-  html = html || '<div class="accordeon-item"><span class="texte-petit texte-pale">Rien à acheter.</span></div>';
+  html = html || rien;
   if (cote.length) html += '<div class="accordeon" data-groupe="cote"><div class="accordeon-tete">Mis de côté</div>' +
     '<div class="liste-blanche achats-groupe" hidden>' + cote.sort(tri).map(ligneCote).join('') + '</div></div>';
-  cible.innerHTML = choix + html;
+  cible.innerHTML = actions + html;
   const acc = [...cible.querySelectorAll(':scope > .accordeon')].find(a => ouvrir && a.dataset.groupe === ouvrir);
   if (acc) toggleAccordeon(acc.firstElementChild);
 }
 async function montrerAchats() {
   toutCacher(); $('vue-achats').hidden = false; $('btn-burger').hidden = false;
   fermerAjoutAchat();
-  vueAchats = 'categorie'; epicerieOuverte = '';   // toujours Par catégorie à l'ouverture (J-C, 2026-10-07, choix B : il bâtit sa liste toute la semaine)
+  vueAchats = ''; epicerieOuverte = '';           // les actions seulement à l'ouverture (la ligne directrice, RdG-11)
   $('liste-achats').innerHTML = '';                // une nouvelle visite : tout repart fermé
   if (!RAYONS.length) {                            // pas encore chargé → on charge (même patron que les bases)
     $('liste-achats').innerHTML = '<div class="texte-petit texte-pale">Chargement…</div>';
@@ -5250,8 +5259,9 @@ function initEntree() {
     if (mc) { mettreDeCote(mc.dataset.achatCote); return; }
     const rv = ev.target.closest('[data-achat-remettre]');
     if (rv) { remettreAchat(rv.dataset.achatRemettre); return; }
-    const vue = ev.target.closest('[data-vue-achats]');    // « Par catégorie » / « Par épicerie »
-    if (vue) { if (vue.dataset.vueAchats !== vueAchats) { vueAchats = vue.dataset.vueAchats; epicerieOuverte = ''; remplirAchats(); } return; }
+    const vue = ev.target.closest('[data-vue-achats]');    // « Par catégorie » / « Par épicerie » : l'autre disparaît; retouché, les deux reviennent
+    if (vue) { vueAchats = vue.dataset.vueAchats === vueAchats ? '' : vue.dataset.vueAchats; epicerieOuverte = ''; remplirAchats(); return; }
+    if (ev.target.closest('[data-achat-ajout]')) { nomScanne = ''; ouvrirAjoutAchat(); return; }   // le + : Ajouter à la liste
     const epi = ev.target.closest('[data-epicerie]');      // Par épicerie : une tuile touchée — elle seule, en bannière
     if (epi) { epicerieOuverte = epi.dataset.epicerie; remplirAchats(); window.scrollTo(0, 0); return; }
     if (ev.target.closest('[data-epicerie-ouverte] > .accordeon-tete')) { epicerieOuverte = ''; remplirAchats(); return; }   // sa bannière touchée : les tuiles
@@ -5260,10 +5270,12 @@ function initEntree() {
     const l = ev.target.closest('[data-achat]');
     if (l) cocherAchat(l.dataset.achat);
   });
-  $('achats-retour').addEventListener('click', () => {   // Retour recule d'un pas : Par épicerie, l'épicerie touchée revient aux tuiles; puis le menu
-    if (vueAchats === 'epicerie' && epicerieOuverte) { epicerieOuverte = ''; remplirAchats(); } else retourAuMenu();
+  $('achats-retour').addEventListener('click', () => {   // Retour recule d'un pas : l'épicerie touchée → ses tuiles; un choix → les deux choix; puis le menu
+    if (vueAchats === 'epicerie' && epicerieOuverte) epicerieOuverte = '';
+    else if (vueAchats) vueAchats = '';
+    else { retourAuMenu(); return; }
+    remplirAchats(); window.scrollTo(0, 0);
   });
-  $('btn-achat-ajouter').addEventListener('click', () => { nomScanne = ''; ouvrirAjoutAchat(); });
   $('achat-annuler').addEventListener('click', () => { fermerAjoutAchat(); remplirAchats(); });
   $('achat-cat').addEventListener('change', surAchatCat);
   $('achat-souscat').addEventListener('change', surAchatSousCat);

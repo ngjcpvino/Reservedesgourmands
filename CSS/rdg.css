@@ -85,7 +85,7 @@
   --base-meubles:     var(--couleur-304);
   --base-categories:  var(--couleur-607);
   --base-aliments:    var(--couleur-702);
-  --base-magasins:    var(--couleur-802);
+  --base-magasins:    var(--couleur-704);   /* l'olive (J-C, 2026-10-16 : « ça donne faim ») — le 802 était presque le bleu du + (803), côte à côte sur la Liste d'achats */
   --base-circulaires: var(--couleur-401);
   --base-marques:     var(--couleur-505);
   --base-saveurs:     var(--couleur-701);
@@ -221,6 +221,8 @@
   --action-achats:     var(--menu-achats);
   --action-ajouter:    var(--menu-ajouter);     /* le + d'un « Nouveau… » : le bleu du bouton Ajouter du menu (J-C, 2026-10-11) */
   --action-base:       var(--couleur-201);      /* le crayon, les flèches, la poubelle : pas de bouton au menu, beige */
+  --action-oui:        var(--couleur-703);      /* le crochet : je confirme (Oui, OK, C'est ça, Mettre sur la liste…) — la ligne directrice, RdG-11 */
+  --action-non:        var(--couleur-101);      /* le X : je laisse tomber (Non, Annuler), blanc, le dessin brun */
   --poubelle-taille:   24px;   /* la poubelle « retirer », un peu plus grosse que le crayon : elle tient tête à l'interrupteur (J-C, 2026-10-03, choix F sur aperçu parmi 22 / 24 / 26) */
   --icone-colonne:     28px;   /* Magasins : l'icône des circulaires au-dessus des interrupteurs, à la place du mot (J-C, 2026-10-03, choix A sur aperçu) */
   --interrupteur-large:  40px;   /* l'interrupteur « Circulaire » (Magasins) : sa piste */
@@ -289,8 +291,15 @@
   --bouton-grand-haut: 50px;   /* la hauteur MINIMALE d'un gros bouton (petit écran) */
   --bouton-forme-l:     167;     /* la proportion d'un gros bouton : sa largeur… */
   --bouton-forme-h:     50;      /* …pour sa hauteur */
-  --bouton-grand-forme: var(--bouton-forme-l) / var(--bouton-forme-h);  /* sa proportion : celle de l'iPhone. Sur grand écran il grandit en hauteur au lieu de s'étirer */
-  --bouton-large-forme: calc(var(--bouton-forme-l) * 2) / var(--bouton-forme-h);  /* deux fois plus large, même hauteur : le Retour sous une grille */
+  /* LE NIVEAU (la ligne directrice, RdG-11 — J-C, 2026-10-16 : « les boutons d'action 1, 2, 3 toujours un peu plus petits ») : un gros
+     bouton garde la proportion de l'iPhone, sa hauteur multipliée par le niveau de sa page (.niveau-2, .niveau-3 la posent); jamais
+     sous la taille d'un doigt (--tactile). Le menu = 1. */
+  --niveau:            1;
+  --niveau-2:          0.7;     /* une page ouverte du menu (J-C, B sur aperçu parmi 85 / 70 / 55 %) */
+  --niveau-3:          0.5;     /* la page d'après */
+  --titre-action-taille: 28px;  /* le titre d'une page (D sur aperçu) : plus gros… */
+  --titre-action-icone:  34px;  /* … l'icône de son bouton du menu devant… */
+  --filet-titre-action:  3px;   /* … et la ligne dessous, dans sa couleur */
   --icone-taille:      40px;   /* le dessin dedans, sur un bouton ordinaire */
   --icone-trait:       var(--couleur-105);   /* le trait des icônes : crème */
   --icone-trait-pale:  var(--couleur-306);   /* sur un bouton pâle : brun, sinon le dessin disparaît */
@@ -442,6 +451,19 @@ body:has(.sur-photo:not([hidden]))::before { display: none; }
   text-transform: uppercase;   /* en capitales, comme le titre du site (J-C, 2026-09-27) */
   letter-spacing: var(--lettrage-page);
 }
+/* LE TITRE D'UNE PAGE (la ligne directrice, RdG-11 — J-C, 2026-10-16, D sur aperçu : « pas assez évident; garder toujours la ligne ») :
+   plus gros, en gras, l'icône du bouton qui ouvre la page devant, la ligne dessous dans sa couleur (--t, posée par la page). */
+.titre-action {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--espace-m);
+  font-size: var(--titre-action-taille);
+  font-weight: var(--poids-fort);
+  border-bottom: var(--filet-titre-action) solid var(--t, var(--couleur-205));
+}
+.titre-action .icone { width: var(--titre-action-icone); height: var(--titre-action-icone); --icone-trait: var(--t, var(--couleur-306)); }
+#vue-achats { --t: var(--menu-achats); }
 
 /* ============================================================
    BOUTON — UNE base, puis couleur / taille / forme par-dessus
@@ -493,8 +515,8 @@ body:has(.sur-photo:not([hidden]))::before { display: none; }
 /* taille */
 .bouton-grand {
   height: auto;
-  aspect-ratio: var(--bouton-grand-forme);   /* garde la proportion de l'iPhone à toutes les largeurs */
-  min-height: var(--bouton-grand-haut);
+  aspect-ratio: var(--bouton-forme-l) / calc(var(--bouton-forme-h) * var(--niveau));   /* la proportion de l'iPhone à toutes les largeurs; sa hauteur suit le niveau */
+  min-height: max(var(--tactile), calc(var(--bouton-grand-haut) * var(--niveau)));
   width: 100%;                               /* la largeur vient de la colonne, jamais de la hauteur minimale : sans ça, sur iPhone, les boutons débordaient et se chevauchaient */
   min-width: 0;
   flex-direction: column;
@@ -505,7 +527,7 @@ body:has(.sur-photo:not([hidden]))::before { display: none; }
 /* Une grille = toujours des demi-boutons, même impaire : le dernier reste seul, à gauche (J-C, 2026-10-01 : « toujours des demis
    sauf le Retour en bas »; avant : il prenait toute la largeur). Le bouton qui suit une grille (Retour) : toute la largeur,
    la même hauteur que ceux de la grille, pour que rien ne bouge. */
-.grille + .bouton, .bouton-large { aspect-ratio: var(--bouton-large-forme); min-height: var(--bouton-grand-haut); width: 100%; min-width: 0; padding: var(--espace-xs); }   /* le rembourrage d'un gros bouton : son dessin a la même taille que ceux de la grille */
+.grille + .bouton, .bouton-large { aspect-ratio: calc(var(--bouton-forme-l) * 2) / calc(var(--bouton-forme-h) * var(--niveau)); min-height: max(var(--tactile), calc(var(--bouton-grand-haut) * var(--niveau))); width: 100%; min-width: 0; padding: var(--espace-xs); }   /* le rembourrage d'un gros bouton : son dessin a la même taille que ceux de la grille */
 /* .bouton-large : la même chose quand la grille n'est pas juste au-dessus (le scan : la ligne « Taper le code » se glisse entre les deux). */
 
 /* LA SUITE : un groupe de frères se colore selon la position — les grilles d'icônes, les accordéons de Listes et les listes
@@ -557,6 +579,15 @@ body:has(.sur-photo:not([hidden]))::before { display: none; }
 .grille > .bouton-grand[data-menu="outils"]      { --c: var(--menu-outils); }
 .grille > .bouton-grand[data-menu="achats"]      { --c: var(--menu-achats); }
 .grille > .bouton-grand[data-menu="rechercher"]  { --c: var(--menu-rechercher); }
+/* Un bouton d'action dit QUELLE action il est (data-action) : sa couleur suit, la même partout (la ligne directrice, RdG-11 :
+   « un Ajouter, c'est toujours la même couleur, par catégorie aussi »). Par catégorie et Par épicerie : celles de Gérer les bases. */
+.grille > .bouton-grand[data-action="categories"] { --c: var(--base-categories); }
+.grille > .bouton-grand[data-action="magasins"]   { --c: var(--base-magasins); }
+.grille > .bouton-grand[data-action="ajouter"]    { --c: var(--action-ajouter); }
+.grille > .bouton-grand[data-action="oui"]        { --c: var(--action-oui); }
+.grille > .bouton-grand[data-action="non"]        { --c: var(--action-non); --icone-trait: var(--icone-trait-pale); }
+.niveau-2 { --niveau: var(--niveau-2); }
+.niveau-3 { --niveau: var(--niveau-3); }
 .bouton-petit { min-height: auto; padding: var(--espace-s) var(--espace-l); font-size: var(--texte-petit); }
 
 /* Ou le bouton se pose par rapport a ce qui le precede */
@@ -1110,6 +1141,8 @@ select.champ {
 .icone-epicerie { --dessin: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 835 600' fill='none' stroke='black' stroke-linecap='round' stroke-linejoin='round'%3E%3Cg transform='translate(211.2,300) scale(0.9) translate(-281.5,-312.25)' stroke-width='22.2'%3E%3Cpath d='M80 180H483V548a24 24 0 0 1-24 24H104a24 24 0 0 1-24-24Z'/%3E%3Cpath d='M205 258V130a77.5 77.5 0 0 1 155 0V258'/%3E%3C/g%3E%3Cg transform='translate(623.9,300) scale(0.9) translate(-281.5,-312.25)' stroke-width='22.2'%3E%3Cpath d='M80 180H483V548a24 24 0 0 1-24 24H104a24 24 0 0 1-24-24Z'/%3E%3Cpath d='M205 258V130a77.5 77.5 0 0 1 155 0V258'/%3E%3C/g%3E%3C/svg%3E"); }   /* toute l'épicerie : deux sacs côte à côte, chacun aussi haut que le sac seul */
 .icone-completer { --dessin: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='0.8' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M6 2.5h8l5 5v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2v-17a2 2 0 0 1 2-2z'/%3E%3Cpath d='M14 2.5v5h5'/%3E%3Cpath d='M7 12.5l1.5 1.5 3-3M7.8 16.5h3v3h-3zM13.5 13h3M13.5 18h3'/%3E%3C/svg%3E"); }   /* compléter l'épicerie : la feuille, une ligne cochée, l'autre à faire — sa case vide (J-C, 2026-10-14, B sur aperçu : « des cochers sur toutes les lignes… il faudrait en enlever un pour indiquer que c'est à faire »; 2026-10-04, choix D : la feuille cochée; rejetés : le sac coché, les deux sacs, le sac au crayon) */
 .icone-plus { --dessin: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='0.8' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M12 5v14M5 12h14'/%3E%3C/svg%3E"); }   /* entrer un article : le + , pas le scan */
+.icone-oui { --dessin: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='0.8' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M5 12.5l4.5 4.5L19 7.5'/%3E%3C/svg%3E"); }   /* le crochet : je confirme (la ligne directrice, RdG-11, D sur aperçu) */
+.icone-non { --dessin: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='0.8' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M6.5 6.5l11 11M17.5 6.5l-11 11'/%3E%3C/svg%3E"); }   /* le X : je laisse tomber */
 .icone-revenir { --dessin: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='0.8' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M9 14L4 9l5-5'/%3E%3Cpath d='M4 9h10.5a5.5 5.5 0 0 1 0 11H11'/%3E%3C/svg%3E"); }   /* Retour d'un pas : la flèche « revenir » (le scan — J-C, 2026-10-14, C sur aperçu parmi le + / cette flèche / ←; la maison, elle, mène au menu) */
 .icone-deplacer { --dessin: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23f5efe6' stroke-width='0.8' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M3 8h17M16 4l4 4-4 4'/%3E%3Cpath d='M21 16H4M8 12l-4 4 4 4'/%3E%3C/svg%3E") }   /* deux flèches opposées : d'un endroit à l'autre, dans les deux sens (J-C, choix A sur aperçu, 2026-09-29) */
 .icone-accueil { --dessin: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='0.8' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M3 11.5 12 3.5l9 8'/%3E%3Cpath d='M5.5 9.5v11h13v-11'/%3E%3Cpath d='M10 20.5v-5.5h4v5.5'/%3E%3C/svg%3E"); }   /* Accueil : la maison (J-C, 2026-09-27) */
