@@ -698,21 +698,25 @@ select.champ {
 
 /* L'image du scan — ce que la camera montre. Sa FORME est celle du cadre, jamais celle de la vidéo (J-C, 2026-10-16 : « l'espace
    pour la caméra ne devrait jamais changer de format » — posée sur la vidéo elle-même, la forme cédait sur l'iPhone à celle de la
-   caméra, debout ou couchée) : le cadre a sa forme, la vidéo le remplit et se rogne. */
+   caméra, debout ou couchée) : le cadre a sa forme, la vidéo le remplit et se rogne. Remplir : la vidéo prend toute la largeur à sa
+   propre forme, centrée en hauteur, le cadre coupe le haut et le bas (la fenêtre, plus large que toute caméra, est toujours pleine).
+   Pas object-fit : sur l'iPhone, la caméra s'y montrait entière, deux bandes noires sur les côtés (vu par J-C le même jour). */
 .scan-cadre {
   position: relative;
   aspect-ratio: var(--scan-forme);
+  overflow: hidden;
+  isolation: isolate;          /* sinon Safari ne coupe pas la vidéo aux coins arrondis */
   background: var(--couleur-903);
   border-radius: var(--rayon-video);
 }
 .scan-video {
   position: absolute;
-  inset: 0;
+  left: 0;
+  top: 50%;
+  transform: translateY(-50%);
   display: block;
   width: 100%;
-  height: 100%;
-  border-radius: var(--rayon-video);
-  object-fit: cover;
+  height: auto;
 }
 
 /* ============================================================
