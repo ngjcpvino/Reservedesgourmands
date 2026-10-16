@@ -43,7 +43,7 @@
     el('vue-scan').dataset.page = (mode && mode.page) || 'produit';
     var b = el('btn-burger'); if (b) b.hidden = false;
     el('scan-choix').hidden = !(mode && typeof mode.sansCode === 'function');   // le sac seul : « Taper le code » et « Sans code » sous la caméra
-    el('scan-video').hidden = false;             // le sac seul revient de Sans code : la caméra reprend sa place
+    el('scan-cadre').hidden = false;             // le sac seul revient de Sans code : la caméra reprend sa place
     var sans = el('scan-sans'); if (sans) sans.hidden = true;
     fermerTaper();
     await demarrer('scan-video');
