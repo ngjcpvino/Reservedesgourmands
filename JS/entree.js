@@ -4240,7 +4240,7 @@ async function photoProposition(c, attr) {          // la photo d'Open Food Fact
    « Lequel est-ce ? » (Open Food Facts) ou « Quel PLU ? ». Un article d'IGA (son code) : le feu, ton aliment, c'est fini. Le rouge
    ne passe pas par ici : un toucher, et c'est Jamais. Une étape à la fois, ses points (comme Compléter); la flèche recule d'une étape
    (au feu : la flèche de la page, qui referme l'article), Annuler referme. */
-const TITRES_TRI = { feu: 'Oui, peut-être ou jamais ?', choix: 'Son code-barres', lu: 'Ce que l\'app a lu', aliment: 'Ton aliment' };
+const TITRES_TRI = { feu: '', choix: 'Son code-barres', lu: 'Ce que l\'app a lu', aliment: 'Ton aliment' };
 var TRI_PAGE = null;                                 // la page de Super C collée, pour « Ce que l'app a lu » : { r, prod, autre }
 /* Le code que la réponse portera : celui de l'article (IGA : c'est lui, l'article; une correction le garde pour le même aliment),
    sinon celui de la page collée, sinon celui d'une proposition du même format. pids : les aliments choisis (null : pas encore). */
@@ -4269,7 +4269,8 @@ function pasTri(p, x) {
 function htmlEtapes(n, total, titre, id) {
   let pts = '';
   for (let k = 1; k <= total; k++) pts += '<span class="etape-point' + (k < n ? ' faite' : k === n ? ' ici' : '') + '"></span>';
-  return '<div class="etapes">' + pts + '</div><div class="etape-num">Étape ' + n + ' de ' + total + '</div><div class="label-fort"' + (id ? ' id="' + id + '"' : '') + '>' + titre + '</div>';
+  return '<div class="etapes">' + pts + '</div><div class="etape-num">Étape ' + n + ' de ' + total + '</div>' +
+    (titre ? '<div class="label-fort"' + (id ? ' id="' + id + '"' : '') + '>' + titre + '</div>' : '');   // sans titre : le feu du tri se comprend seul
 }
 /* Une ligne de « Ce que l'app a lu » (Compléter aussi) : ce que c'est, en petit, puis la valeur. */
 const ligneLu = (label, val, cls, sous) => '<div class="item"><div class="item-info"><div class="item-detail">' + esc(label) + '</div><div class="item-nom' + (cls ? ' ' + cls : '') + '">' +
