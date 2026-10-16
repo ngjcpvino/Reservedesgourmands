@@ -34,7 +34,8 @@
    etc. ») : le + toujours le bleu du bouton Ajouter du menu (803), Par catégorie le 607 de Gérer les bases, Par épicerie le 802…
 6. **Un choix touché, l'autre disparaît; la flèche du Retour ramène les deux** — comme Sans code des deux sacs (2026-10-15).
    Un choix pas pris ne pâlit donc plus. **À confirmer au final** (J-C).
-7. **Oui / Non = D, en icônes** (l'aperçu « Oui et Non », `scratchpad/apercu-ouinon/fait.py`, parmi A petits à droite, B le Oui
+7. **Oui / Non = D, en icônes** (avant : trois façons — petits, le Oui rouge au milieu de la ligne pour retirer; petits, le Oui vert
+   pour réunir; normaux, Oui vert et Non brun dessous, au scan) (l'aperçu « Oui et Non », `scratchpad/apercu-ouinon/fait.py`, parmi A petits à droite, B le Oui
    rouge pour retirer, C deux demis dessous, D en icônes) : **le crochet vert = Oui, le X blanc = Non, petits, à droite de la
    question**, partout — la même couleur toujours (pas de rouge pour retirer : décision 5).
 8. **Le crochet et le X, aussi hors des questions** (proposé par Claude, J-C : « Oui ») : **le crochet = je confirme** — OK, C'est ça,
@@ -59,10 +60,5 @@
 - **L'iPhone** : les boutons du menu y sont déjà au plancher (`--bouton-grand-haut`, 50 px) : les niveaux 2 et 3 y seront
   presque de la même taille que le menu (44 px, au plus petit).
 - Le 607 de Catégories est doré, près de l'or du Retour.
-- **Oui / Non** — aujourd'hui **trois façons** : petits, le Oui rouge au milieu de la ligne (retirer : `ouiNon()`); petits, le Oui
-  vert (réunir : `demanderReunion()`; un lot, en deux demis); normaux, Oui vert et Non brun, en deux demis dessous (« L'associer à ce
-  produit ? » : le scan, Compléter). **Aperçu envoyé le 2026-10-16** (`scratchpad/apercu-ouinon/fait.py`) : **A** petits, à droite de
-  la question, Oui vert / Non blanc, partout · **B** comme A, le Oui qui retire en rouge · **C** deux demi-boutons sous la question, à
-  la taille du niveau 3, Oui vert / Non blanc · **D** en icônes, le crochet vert / le X blanc, petits, à droite. **J-C : « D »** — décision 7 ci-dessus.
 - Suivant / Sans la page (la même flèche) : à revoir à l'usage (décision 11).
 - Les autres sortes : les barres, les pastilles, la case, l'interrupteur, les ronds et le feu, moins / plus, le scanner, la vignette, la tuile.
