@@ -108,5 +108,10 @@
     de Consommer / Déplacer / l'Inventaire (lot 2, la carte B), la carte des deux sacs (lot 4 : ⚠️ « L'associer à ce produit ? » Non et
     Annuler y deviendraient deux X — à trancher avec J-C).
   - Lot 2 : les pages du menu — Listes (l'Inventaire : les quatre cases et l'armoire), Rechercher, Consommer (la carte B), Déplacer, Ouvrir.
+    J-C : « Go ». **Aperçu envoyé le 2026-10-16** (`scratchpad/apercu-lot2/fait.py`, le vrai CSS du jour) : chaque titre à l'icône et la
+    couleur de son bouton du menu; la carte de Consommer B (la poubelle — Jeter —, la fourchette, le X, au niveau 3; plus de case
+    « Jeté »); la carte de Déplacer (les flèches, le X); Ouvrir en deux titres — **A** le biscuit et la ligne bleu pâle (801) · **B** le
+    biscuit brun, la ligne bleu pâle (comme sur son bouton du menu); l'Inventaire : Par catégorie (les quatre cases) et Par meuble
+    (l'armoire), au niveau 2. **Son avis à venir.** Pas dans cet aperçu : les barres de Listes elles-mêmes (le point 52).
   - Lot 3 : Gérer les bases, Couleurs, Circulaires (d'abord les couleurs fixes d'Outils, le point 25).
   - Lot 4 : le + — le sac seul, les deux sacs, Compléter, la fiche, Open Food Facts.
