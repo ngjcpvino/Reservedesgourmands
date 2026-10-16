@@ -135,3 +135,9 @@
     ajoutées : `icone-avant`, `icone-coller`, `icone-porte`; `data-action` `coller`, `suivant`, `sans`, `entrer`; une flèche dorée dans une grille
     garde l'or (`.grille > .bouton-grand.bouton-or`). Essai dans le faux navigateur : 34 vérifications.
   - Lot 4 : le + — le sac seul, les deux sacs, Compléter, la fiche, Open Food Facts.
+    **À trancher d'abord (J-C : « Ouin… »)** : la carte des deux sacs, où « L'associer à ce produit ? » Non (= l'entrer sans l'associer) et
+    Annuler (= oublier l'article) deviendraient deux X. **Aperçu envoyé le 2026-10-16** (`scratchpad/apercu-carte/fait.py`) : **A** comme au
+    tri, « est-ce lui ? » — la quantité d'abord, puis la ligne de la circulaire et « Aucun », à toucher (la ligne = entrer et associer, Aucun =
+    entrer sans), seul le X (Annuler) au bas · **B** la question, le crochet et le X à sa droite, le X d'Annuler au bas (deux X, deux sens) ·
+    **C** une case « C'est lui : l'associer » sur la ligne, puis le crochet et le X, comme une carte sans circulaire (risque : oublier de
+    cocher). Reco de Claude : A. **Son choix à venir.**
