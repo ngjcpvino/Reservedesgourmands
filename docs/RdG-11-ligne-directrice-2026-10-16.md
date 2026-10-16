@@ -140,4 +140,12 @@
     tri, « est-ce lui ? » — la quantité d'abord, puis la ligne de la circulaire et « Aucun », à toucher (la ligne = entrer et associer, Aucun =
     entrer sans), seul le X (Annuler) au bas · **B** la question, le crochet et le X à sa droite, le X d'Annuler au bas (deux X, deux sens) ·
     **C** une case « C'est lui : l'associer » sur la ligne, puis le crochet et le X, comme une carte sans circulaire (risque : oublier de
-    cocher). Reco de Claude : A. **Son choix à venir.**
+    cocher). Reco de Claude : A. **J-C : « A »** — la carte des deux sacs suivra le geste du tri.
+    **Aperçu du lot 4 envoyé le 2026-10-16** (`scratchpad/apercu-lot4/fait.py`) : 1 le choix du + figé (le sac seul 505, les deux sacs 803,
+    Compléter 702, comme aujourd'hui), leurs pages en prennent le titre; 2 le scan du sac seul (le sac orange au titre, niveau 2); 3 la fiche
+    (Retirer un endroit = la poubelle, + un autre endroit = le +, Escale = le sac, Choisir un endroit = l'armoire, le crochet et le X sur une
+    ligne); 4 les deux sacs (les deux sacs bleus et le nom de l'épicerie au titre; la carte A; sans circulaire : le crochet et le X); 5 Compléter
+    (la feuille cochée verte; 1 le logo de Super C, le presse-papiers, Sans la page = la flèche vers l'avant blanche, le X; 2 la flèche, le
+    crayon = Corriger, le crochet; 3 « L'associer ? » comme la carte A, Suivant = la flèche vers l'avant verte; 4 le +, la flèche, le X, le
+    crochet); 6 Open Food Facts (leur logo au titre; Envoyer = leur logo sur blanc, Plus tard = l'horloge); 7 Réessayer = la flèche qui
+    tourne. « Scanner un autre » (la page du scan) : jamais montré (le filet d'une fiche pas branchée) — à retirer au ménage. **Son avis à venir.**
