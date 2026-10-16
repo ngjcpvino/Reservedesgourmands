@@ -10,7 +10,7 @@
   <!-- Ecran d'accueil iPad : le meme sac, en PNG (iOS n'accepte pas le SVG ici) -->
   <link rel="apple-touch-icon" href="apple-touch-icon.png?v=2">
 
-<link rel="stylesheet" href="CSS/rdg.css?v=175">
+<link rel="stylesheet" href="CSS/rdg.css?v=176">
 </head>
 <body>
 
@@ -38,13 +38,13 @@
       <button class="bouton bouton-grand" id="menu-outils" data-menu="outils" type="button" aria-label="Outils"><span class="icone icone-outils"></span></button>
       <button class="bouton bouton-grand" id="menu-rechercher" data-menu="rechercher" type="button" aria-label="Rechercher"><span class="icone icone-trouver"></span></button>
     </div>
-    <!-- Outils : ses 4 icônes prennent la place des 6 -->
+    <!-- Outils : ses 4 icônes prennent la place des 6; chacune SA couleur, figée (data-outil, le point 25) -->
     <div id="menu-outils-grille" hidden>
       <div class="grille">
-        <button class="bouton bouton-grand" id="menu-bases" type="button" aria-label="Gérer les bases"><span class="icone icone-bases"></span></button>
-        <button class="bouton bouton-grand" id="menu-couleurs" type="button" aria-label="Couleurs"><span class="icone icone-couleurs"></span></button>
-        <button class="bouton bouton-grand" id="menu-qui" type="button" aria-label="Qui entre les articles"><span class="icone icone-qui"></span></button>
-        <button class="bouton bouton-grand" id="menu-deco" type="button" aria-label="Se déconnecter"><span class="icone icone-deco"></span></button>
+        <button class="bouton bouton-grand" id="menu-bases" data-outil="bases" type="button" aria-label="Gérer les bases"><span class="icone icone-bases"></span></button>
+        <button class="bouton bouton-grand" id="menu-couleurs" data-outil="couleurs" type="button" aria-label="Couleurs"><span class="icone icone-couleurs"></span></button>
+        <button class="bouton bouton-grand" id="menu-qui" data-outil="qui" type="button" aria-label="Qui entre les articles"><span class="icone icone-qui"></span></button>
+        <button class="bouton bouton-grand" id="menu-deco" data-outil="deco" type="button" aria-label="Se déconnecter"><span class="icone icone-deco"></span></button>
       </div>
       <button class="bouton bouton-or bouton-pleine bouton-suite" id="menu-outils-retour" type="button" aria-label="Retour"><span class="icone icone-revenir"></span></button>   <!-- un pas en arrière : la grille du menu -->
     </div>
@@ -93,7 +93,7 @@
     <div class="bloc">
       <input class="champ" id="mdp" type="password" autocomplete="current-password" placeholder="Mot de passe">
     </div>
-    <button class="bouton bouton-brun bouton-pleine" id="btn-entrer">Entrer</button>
+    <button class="bouton bouton-pleine bouton-large" data-action="entrer" id="btn-entrer" type="button" aria-label="Entrer"><span class="icone icone-porte"></span></button>   <!-- la flèche qui entre par la porte (RdG-11) -->
     <div class="message message-repli message-erreur" id="msg-connexion"></div>
   </div>
 </div>
@@ -445,8 +445,8 @@
      Toucher une barre ouvre sa palette; ajouter se fait au bas, sur la page même.
 ============================================================ -->
 <div id="vue-pieces" hidden>
-  <div class="entete"><div class="titre">Pièces</div></div>
-  <div class="contenu">
+  <div class="entete"><div class="titre titre-action"><span class="icone icone-pieces"></span>Pièces</div></div>   <!-- l'icône et la couleur de son bouton (RdG-11) -->
+  <div class="contenu niveau-2">
     <div id="liste-pieces"></div>
     <div class="accordeon-item accordeon-item-saisie">
       <input class="champ" id="piece-nouvelle" autocomplete="off" enterkeyhint="done" placeholder="Nouvelle pièce…">
@@ -462,8 +462,8 @@
      Un meuble ouvert : sa pièce, sa couleur, ses espaces, « Nouvel espace… ». La poubelle retire.
 ============================================================ -->
 <div id="vue-meubles" hidden>
-  <div class="entete"><div class="titre">Meubles</div></div>
-  <div class="contenu">
+  <div class="entete"><div class="titre titre-action"><span class="icone icone-meubles"></span>Meubles</div></div>   <!-- l'icône et la couleur de son bouton (RdG-11) -->
+  <div class="contenu niveau-2">
     <div id="liste-meubles"></div>
     <button class="bouton bouton-or bouton-pleine bouton-detache bouton-large" id="meubles-retour" type="button" aria-label="Retour"><span class="icone icone-revenir"></span></button>   <!-- un pas en arrière : la grille des bases -->
   </div>
@@ -474,8 +474,8 @@
      Le JS bâtit tout, « Nouvelle catégorie… » compris (au bout de la liste).
 ============================================================ -->
 <div id="vue-categories" hidden>
-  <div class="entete"><div class="titre">Catégories</div></div>
-  <div class="contenu">
+  <div class="entete"><div class="titre titre-action"><span class="icone icone-categories"></span>Catégories</div></div>   <!-- l'icône et la couleur de son bouton (RdG-11) -->
+  <div class="contenu niveau-2">
     <div id="liste-categories"></div>
     <button class="bouton bouton-or bouton-pleine bouton-detache bouton-large" id="categories-retour" type="button" aria-label="Retour"><span class="icone icone-revenir"></span></button>   <!-- un pas en arrière : la grille des bases -->
   </div>
@@ -486,8 +486,8 @@
      en bandeau et ses aliments dessous. Un aliment ouvert : sa sous-catégorie, ses endroits 1-2-3, ses « Pas aimé ».
 ============================================================ -->
 <div id="vue-aliments" hidden>
-  <div class="entete"><div class="titre">Aliments</div></div>
-  <div class="contenu">
+  <div class="entete"><div class="titre titre-action"><span class="icone icone-aliments"></span>Aliments</div></div>   <!-- l'icône et la couleur de son bouton (RdG-11) -->
+  <div class="contenu niveau-2">
     <div id="liste-aliments"></div>
     <button class="bouton bouton-or bouton-pleine bouton-detache bouton-large" id="aliments-retour" type="button" aria-label="Retour"><span class="icone icone-revenir"></span></button>   <!-- un pas en arrière : la grille des bases -->
   </div>
@@ -498,8 +498,8 @@
      Une barre par nom (couleurs de la suite), le crayon. Magasins seulement : la poubelle et « Nouveau magasin… » au bas.
 ============================================================ -->
 <div id="vue-noms" hidden>
-  <div class="entete"><div class="titre" id="noms-titre"></div></div>
-  <div class="contenu">
+  <div class="entete"><div class="titre titre-action" id="noms-titre"></div></div>   <!-- l'icône et la couleur du bouton (data-page, montrerPageNoms) -->
+  <div class="contenu niveau-2">
     <div class="entete-colonne" id="noms-colonne" hidden><span class="icone icone-circulaires" role="img" aria-label="Circulaire"></span></div>
     <div class="liste-suite" id="liste-noms"></div>
     <div class="accordeon-item accordeon-item-saisie" id="noms-ajout">
@@ -516,8 +516,8 @@
      Quatre barres fermées : À trier (rangé par catégories), Oui, Peut-être, Jamais. Une barre ouverte cache les autres.
 ============================================================ -->
 <div id="vue-circulaires" hidden>
-  <div class="entete"><div class="titre">Circulaires</div></div>
-  <div class="contenu">
+  <div class="entete"><div class="titre titre-action"><span class="icone icone-circulaires"></span>Circulaires</div></div>   <!-- l'icône et la couleur de son bouton (RdG-11) -->
+  <div class="contenu niveau-2">
     <div class="une-a-la-fois" id="liste-tri"></div>
     <button class="bouton bouton-or bouton-pleine bouton-detache bouton-large" id="circulaires-retour" type="button" aria-label="Retour"><span class="icone icone-revenir"></span></button>   <!-- un pas en arrière : l'article, la catégorie, l'épicerie, puis la grille des bases -->
   </div>
@@ -527,11 +527,12 @@
      OUTILS — couleurs : la palette du site. Les lignes sont bâties par le JS.
 ============================================================ -->
 <div id="vue-couleurs" hidden>
-  <div class="entete"><div class="titre">Couleurs</div></div>
-  <div class="contenu">
+  <div class="entete"><div class="titre titre-action"><span class="icone icone-couleurs"></span>Couleurs</div></div>   <!-- l'icône et la couleur de son bouton (RdG-11) -->
+  <div class="contenu niveau-2">
     <div id="liste-couleurs"></div>
     <!-- n'apparait qu'apres un changement ; reste colle au bas de l'ecran -->
     <button class="bouton bouton-pleine bouton-detache bouton-collant" data-action="oui" id="btn-couleurs" type="button" aria-label="Enregistrer les couleurs" hidden><span class="icone icone-oui"></span></button>
+    <button class="bouton bouton-or bouton-pleine bouton-detache bouton-large" id="couleurs-retour" type="button" aria-label="Retour"><span class="icone icone-revenir"></span></button>   <!-- un pas en arrière : Outils -->
   </div>
 </div>
 
@@ -543,7 +544,7 @@
     <div class="bloc">
       <input class="champ" id="qui-nom" autocomplete="off" placeholder="Inscrire son nom">
     </div>
-    <button class="bouton bouton-vert bouton-pleine" id="btn-qui-enr" type="button">Entrer</button>
+    <button class="bouton bouton-pleine bouton-large" data-action="entrer" id="btn-qui-enr" type="button" aria-label="Entrer"><span class="icone icone-porte"></span></button>
     <div class="message message-repli" id="qui-msg"></div>
   </div>
 </div>
@@ -551,7 +552,7 @@
 </div><!-- fin du conteneur -->
 
 <script src="JS/coffre.js?v=20"></script>
-<script src="JS/entree.js?v=214"></script>
+<script src="JS/entree.js?v=215"></script>
 <script src="JS/bientot.js?v=6"></script>
 <script src="JS/prix.js?v=9"></script>
 <script src="JS/epicerie.js?v=38"></script>
