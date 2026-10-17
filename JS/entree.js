@@ -3618,6 +3618,7 @@ function lignesAchats(cote) {
   // saveur — pas un « Pas aimé ») sont écrites en petit, pour choisir au magasin.
   const parAliment = {};
   STOCK.forEach(l => {
+    if (ligneRetiree(l)) return;                       // retiré après le crochet (scanné par erreur) : jamais entré, rien à racheter
     const pid = String(l[1]), q = Number(l[3]) || 0, m = String(l[5] || '').trim(), sv = String(l[9] || '').trim();
     const x = parAliment[pid] = parAliment[pid] || { total: 0, emps: {}, sortes: [], ferme: false };
     if (q > 0) { x.total += q; x.emps[String(l[2] || '')] = true; if (!estOuvert(l)) x.ferme = true; }   // un contenant encore fermé (RdG-09)
@@ -3839,6 +3840,9 @@ function poserPoints() {
   const attend = aCompleter().length > 0;
   document.querySelectorAll(CHEMIN_COMPLETER).forEach(b => b.classList.toggle('point-rouge', attend));
 }
+/* Une ligne retirée après le crochet, aux deux sacs (scannée par erreur : CLAUDE.md, le point 83) — sa col. O dit « Retiré » et le jour, sa
+   quantité est 0 : comme si elle n'avait jamais été scannée (pas une sortie, rien à racheter). */
+const ligneRetiree = l => /^Retir/.test(String(l[14] || ''));
 /* Toute l'épicerie : les listes pas closes qui ont encore un article à compléter (une ligne de STOCK de cette liste, col. N, pas encore
    confirmée par le OK de Compléter, col. O, et dont il reste quelque chose). */
 function aCompleter() {

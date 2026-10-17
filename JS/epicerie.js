@@ -17,6 +17,7 @@ var EPI_CARTE = null;        // l'article à l'écran : { code, pid, nouveau, ma
 var EPI_REFUS = {};          // « Non » à une ligne de la circulaire, pour ce produit : on ne la repropose plus pendant cette épicerie
 var EPI_HABITUELS = [];      // les habituels sans code affichés (Sans code)
 var EPI_SANS = '';           // Sans code : 'habituels', 'entonnoir', ou '' (les deux boutons)
+var EPI_GROUPES = [];        // « Épicerie du … » : ses lignes à l'écran, dans l'ordre (toucher une ligne : sa carte revient, pour corriger)
 var epiJeton = 0;            // un code qui cherche encore quand on passe à autre chose : sa réponse ne compte plus
 const EPI_CACHE_CIRC = 'rdg_circ_epicerie';   // { magasin, jour, lignes } : rouvrir la même épicerie le même jour = instantané
 const EPI_CAMERA = { video: 'epi-video', lu: c => surCodeEpicerie(c) };
@@ -408,6 +409,7 @@ function validerCarte(rep) {
   if (a.sansCode) reinitSansCode(); else reprendreCamera();
 }
 function annulerCarte() {
+  if (EPI_CARTE && EPI_CARTE.correction) { finCorrection(); return; }   // une ligne de la liste rouverte : rien ne change
   const sans = EPI_CARTE && EPI_CARTE.sansCode;
   fermerCarte();
   if (sans || !$('epi-sans').hidden) reinitSansCode(); else reprendreCamera();
@@ -431,26 +433,122 @@ function relierCirculaire(l, pid, marque, saveur, code) {
 
 /* « Épicerie du 14 octobre » (J-C, 2026-10-15 : à la place de « Déjà scanné (13) »; à part des actions, sous un bandeau foncé — 3 sur
    aperçu) : les lignes de STOCK de cette liste, une par produit (même aliment, marque, saveur, format, code), le dernier scanné en haut;
-   rescanner le même article fait monter sa quantité. */
+   rescanner le même article fait monter sa quantité. Une ligne touchée : sa carte revient, pour corriger (ouvrirCorrection). */
+const cleGroupe = r => [r[1], r[5], r[9], r[6], codeNu(r[8])].map(v => String(v == null ? '' : v)).join('|');
 function remplirListeEpicerie() {
   const groupes = [], par = {};
   lignesEpicerie(EPI.id).forEach(r => {
-    const k = [r[1], r[5], r[9], r[6], codeNu(r[8])].map(v => String(v == null ? '' : v)).join('|');
+    if (ligneRetiree(r)) return;                         // retiré après le crochet (scanné par erreur) : plus dans la liste
+    const k = cleGroupe(r);
     let g = par[k];
-    if (!g) g = par[k] = { pid: String(r[1]), marque: r[5], saveur: r[9], format: r[6], code: String(r[8] || ''), qte: 0 };
+    if (!g) g = par[k] = { cle: k, pid: String(r[1]), marque: r[5], saveur: r[9], format: r[6], code: String(r[8] || ''), qte: 0 };
     else groupes.splice(groupes.indexOf(g), 1);
     groupes.push(g);
     g.qte += Number(r[3]) || 0;
   });
   const r = EPICERIES.find(x => String(x[0]) === EPI.id), jour = jourLong(r ? r[2] : dateDuJour());
+  EPI_GROUPES = groupes.reverse();
   $('epi-liste').innerHTML = !groupes.length ? '' : '<div class="bloc-detache"><div class="espace-bandeau bandeau-fonce">' + esc(jour ? 'Épicerie du ' + jour : 'Épicerie') + '</div><div class="liste-blanche">' +
-    groupes.reverse().map(g => {
+    EPI_GROUPES.map((g, i) => {
       const p = PRODUITS.find(x => String(x.id) === g.pid);
-      const det = [nomListe(g.marque), nomListe(g.saveur), g.format].filter(Boolean).join(' · ') || (estPlu(g.code) ? 'PLU ' + g.code : '');
-      return '<div class="item">' + htmlPhotoCode(g.code) + '<div class="item-info"><div class="item-nom">' + esc(p ? p.nom : '') + '</div>' +
+      const det = detailGroupe(g);
+      return '<div class="item" data-epi-ligne="' + i + '">' + htmlPhotoCode(g.code) + '<div class="item-info"><div class="item-nom">' + esc(p ? p.nom : '') + '</div>' +
         (det ? '<div class="item-detail">' + esc(det) + '</div>' : '') + '</div><span class="item-quantite">' + esc(g.qte) + '</span></div>';
     }).join('') + '</div></div>';
   remplirPhotos();
+}
+const detailGroupe = g => [nomListe(g.marque), nomListe(g.saveur), g.format].filter(Boolean).join(' · ') || (estPlu(g.code) ? 'PLU ' + g.code : '');
+
+/* ---------- CORRIGER APRÈS LE CROCHET (J-C, 2026-10-17 : « Une fois que j'ai coché le crochet vert, je ne peux pas corriger ce qui a
+   été entré. Exemple 1 au lieu de 2, pas pris la photo du produit, scanné 2 fois » — « Parfait » sur aperçu) ----------
+   Une ligne de la liste du jour touchée : sa carte revient à la place de la caméra — sa quantité entre le − et le + (un paquet pesé :
+   son poids), la case photo s'il n'a ni vrai nom ni photo, puis le X, la poubelle, le crochet (comme Consommer). INSTANTANÉ, par la file
+   des gestes (« deplacer » : ses lignes de STOCK réécrites) : plus = sa dernière ligne monte; moins = les plus récentes baissent d'abord.
+   La poubelle : sa question à la place des boutons; Oui = ses lignes à 0, marquées « Retiré » (col. O, ligneRetiree) — rien de
+   consommé, rien à racheter, rien à compléter; plus rien de ce code dans la réserve : il quitte aussi la liste « Pour Open Food Facts ». */
+const lignesGroupe = cle => lignesEpicerie(EPI.id).filter(r => !ligneRetiree(r) && cleGroupe(r) === cle);
+function ouvrirCorrection(i) {
+  const g = EPI_GROUPES[i];
+  if (!g || !EPI) return;
+  if ($('epi-carte').innerHTML && !(EPI_CARTE && EPI_CARTE.correction)) { avis('Termine d\'abord l\'article à l\'écran.'); return; }   // jamais perdre un article scanné
+  if (window.stopScanner) window.stopScanner();        // derrière la carte, la caméra ne lit rien (elle reprend après)
+  const p = PRODUITS.find(x => String(x.id) === g.pid), nom = p ? p.nom : g.code, pese = estPese(g.code);
+  EPI_CARTE = { correction: g.cle, code: g.code, pid: g.pid, nom: nom, detail: detailGroupe(g), qte: g.qte, pese: pese,
+                poids: pese ? String(g.format || '').replace(/\s*kg$/i, '') : '', question: false, photoEmb: null,
+                photo: !!g.code && !pese && nomCode(nom) && !aPhoto(g.code) };   // pas reconnu, sans photo : la case revient (RdG-12)
+  afficherCorrection();
+  $('epi-carte').scrollIntoView({ block: 'start', behavior: 'smooth' });   // la ligne touchée peut être loin sous la carte
+}
+function afficherCorrection() {
+  const a = EPI_CARTE;
+  let h = (a.photo && !a.question ? htmlCasePhoto(a) : '') +
+    '<div class="item">' + htmlPhotoCode(a.code) + '<div class="item-info"><div class="item-nom">' + esc(a.nom) + '</div>' +
+    (a.detail ? '<div class="item-detail">' + esc(a.detail) + '</div>' : '') + '</div></div>';
+  if (a.question) h += '<div class="accordeon-item accordeon-item-saisie bloc-suite"><span>' + esc('Retirer ' + a.nom + ' ?') + '</span>' +
+      '<button class="bouton bouton-petit" type="button" data-action="non" data-epi-garder aria-label="Non"><span class="icone icone-non"></span></button>' +
+      '<button class="bouton bouton-petit" type="button" data-action="oui" data-epi-retirer aria-label="Oui"><span class="icone icone-oui"></span></button></div>';
+  else h += (a.pese ? htmlPoids() : htmlQuantite()) + '<div class="grille grille-trois bloc-suite">' + annulerCarteHtml() +
+      boutonCarte('jeter', 'icone-poubelle', 'Retirer', 'data-epi-jeter') + boutonCarte('oui', 'icone-oui', 'OK', 'data-epi-corriger') + '</div>';
+  poserCarte('<div class="carte bloc-suite carte-scan niveau-3">' + h + '</div>');
+  const c = $('epi-carte').firstElementChild;
+  if (!a.question) {
+    if (a.pese) c.querySelector('[data-poids]').value = a.poids;
+    else { c.querySelector('.qte').value = a.qte; brancherPlusMoins(c, 99); }
+  }
+  remplirPhotos();
+}
+function lireCorrection() {                              // ce qui est tapé : gardé le temps de la question de la poubelle
+  const a = EPI_CARTE, c = $('epi-carte').firstElementChild;
+  if (!a || a.question || !c) return;
+  const q = c.querySelector('.qte'), p = c.querySelector('[data-poids]');
+  if (q) a.qte = q.value;
+  if (p) a.poids = p.value;
+}
+function questionCorrection(oui) { lireCorrection(); EPI_CARTE.question = oui; afficherCorrection(); }
+const ligneCorrigee = (r, f) => { const l = r.slice(); while (l.length < 15) l.push(''); l[4] = dateCourte(l[4]); f(l); return { id: String(r[0]), ligne: l }; };
+const retiree = l => { l[3] = 0; l[14] = 'Retiré ' + dateDuJour(); };
+function validerCorrection() {
+  const a = EPI_CARTE;
+  if (!a || !a.correction || a.question) return;
+  lireCorrection();
+  const lignes = lignesGroupe(a.correction), modifs = [];
+  if (a.pese) {
+    const poids = lirePoids(a.poids);
+    if (poids === null) { avis('Le poids en kilos : 1,022, par exemple.', 'erreur'); return; }
+    const format = poids ? poids + ' kg' : '';
+    lignes.forEach(r => { if (String(r[6] || '') !== format) modifs.push(ligneCorrigee(r, l => { l[6] = format; })); });
+  } else if (lignes.length) {
+    const n = Math.max(1, parseInt(a.qte, 10) || 1), q = lignes.reduce((s, r) => s + (Number(r[3]) || 0), 0);
+    if (n > q) modifs.push(ligneCorrigee(lignes[lignes.length - 1], l => { l[3] = (Number(l[3]) || 0) + n - q; }));
+    let moins = q - n;
+    for (let j = lignes.length - 1; j >= 0 && moins > 0; j--) {   // les plus récentes d'abord (le 2e scan)
+      const v = Number(lignes[j][3]) || 0, pris = Math.min(v, moins);
+      if (!pris) continue;
+      moins -= pris;
+      modifs.push(ligneCorrigee(lignes[j], l => { if (v === pris) retiree(l); else l[3] = v - pris; }));
+    }
+  }
+  if (modifs.length) poserGeste({ action: 'deplacer', opId: 'corr-' + idLocal(), ajouts: [], modifs: modifs });
+  if (a.photoEmb && a.code) garderPhotoEmballage(a.code, a.photoEmb);   // la photo prise : comme au premier scan
+  finCorrection();
+}
+function retirerCorrection() {
+  const a = EPI_CARTE;
+  if (!a || !a.correction) return;
+  const modifs = lignesGroupe(a.correction).map(r => ligneCorrigee(r, retiree));
+  if (modifs.length) poserGeste({ action: 'deplacer', opId: 'corr-' + idLocal(), ajouts: [], modifs: modifs });
+  const k = codeNu(a.code);
+  if (k && !STOCK.some(l => codeNu(l[8]) === k && !ligneRetiree(l))) {   // jamais vraiment entré : il quitte la liste d'Open Food Facts
+    const o = OFF_LISTE.find(x => !x[6] && codeNu(x[1]) === k);
+    if (o) retirerOff(o[0]);
+  }
+  finCorrection();
+}
+function finCorrection() {
+  fermerCarte();
+  remplirListeEpicerie();
+  poserPoints();                                         // le point rouge de Compléter suit
+  if ($('epi-sans').hidden) reprendreCamera();
 }
 
 /* ---------- LA PHOTO DE L'EMBALLAGE (J-C, 2026-10-16 et 17 : docs/RdG-12) ----------
@@ -1417,11 +1515,16 @@ function initEpicerie() {
     else montrerEpiceries();                         // la liste du jour reste ouverte : retouchée, l'épicerie y revient; demain, elle attend Compléter
   });
   $('epi-sans-code').addEventListener('click', () => modeSansCode(true));
+  $('epi-liste').addEventListener('click', ev => { const it = ev.target.closest('[data-epi-ligne]'); if (it) ouvrirCorrection(Number(it.dataset.epiLigne)); });
   $('epi-photo').addEventListener('change', surPhotoEmballage);
   $('epi-carte').addEventListener('click', ev => {
     if (ev.target.closest('[data-epi-photo]')) { if (window.stopScanner) window.stopScanner(); return; }   // l'appareil photo de l'iPhone s'ouvre (l'étiquette) : la caméra du scan lui laisse sa place; elle reviendra après le crochet
     const ok = ev.target.closest('[data-epi-ok]');
     if (ok) { validerCarte(ok.dataset.epiOk); return; }
+    if (ev.target.closest('[data-epi-corriger]')) { validerCorrection(); return; }   // une ligne de la liste rouverte
+    if (ev.target.closest('[data-epi-jeter]')) { questionCorrection(true); return; }
+    if (ev.target.closest('[data-epi-garder]')) { questionCorrection(false); return; }
+    if (ev.target.closest('[data-epi-retirer]')) { retirerCorrection(); return; }
     if (ev.target.closest('[data-epi-annuler]')) annulerCarte();
   });
   $('scan-sans-choix').addEventListener('click', ev => { const b = ev.target.closest('[data-sans]'); if (b) choisirSansSeul(b.dataset.sans); });

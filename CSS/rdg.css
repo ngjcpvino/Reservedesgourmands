@@ -1197,6 +1197,7 @@ select.champ {
 /* La quantité entre un − et un + (Déplacer, Consommer — J-C, choix A sur aperçu : petits carrés bruns). Le signe vit ici, pas dans le HTML. */
 .plus-moins, .poids { display: flex; align-items: center; gap: var(--espace-s); }
 .plus-moins > .champ, .poids > .champ { flex: 1; min-width: 0; text-align: center; }
+.plus-moins { justify-content: center; }   /* le − 1 + au centre de sa carte (J-C, 2026-10-17 : « ça fera plus joli ») */
 .plus-moins > .champ { flex: none; width: var(--qte-large); }   /* le nombre : sa largeur, pas toute la ligne (J-C, 2026-10-16) */
 /* Le poids d'un paquet pesé au magasin (la viande, J-C 2026-10-15, choix A sur aperçu) : le champ et son unité, à la place du − + */
 .poids-unite { flex-shrink: 0; font-size: var(--texte-normal); color: var(--couleur-306); }
