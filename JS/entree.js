@@ -150,14 +150,15 @@ function montrerFormulaire(avecCode) {
   preparerFiche(avecCode);
   chargerReferences();                        // catégories + liste des produits
 }
-/* LE SAC SEUL (J-C, 2026-10-09 : « comme les deux sacs ») : la caméra d'abord; « Sans code » dessous : les deux boutons des deux sacs,
-   le cœur et l'entonnoir (J-C, 2026-10-15 : « le même choix pour un sac, sauf qu'il n'a pas de liste » — montrerSansSeul(), epicerie.js);
-   la flèche recule d'un pas (retourSeul()). Un article entré, avec ou sans code, et c'est fini (« c'est fait pour entrer 1 produit ») :
-   le menu (enregistrer). */
+/* LE SAC SEUL (J-C, 2026-10-09 : « comme les deux sacs ») : l'épicerie d'abord, les mêmes tuiles (J-C, 2026-10-17 : « Je cherche juste
+   une cohérence » — montrerEpiceries(true), epicerie.js), puis la caméra, titrée de l'épicerie; « Sans code » dessous : les deux
+   boutons des deux sacs, le cœur et l'entonnoir (J-C, 2026-10-15 : « le même choix pour un sac, sauf qu'il n'a pas de liste » —
+   montrerSansSeul()); la flèche recule d'un pas (retourSeul()). Un article entré, avec ou sans code, et c'est fini (« c'est fait pour
+   entrer 1 produit ») : le menu (enregistrer). */
 function montrerScanProduit() {
   SEUL_SANS = null;
   if (typeof montrerScanner !== 'function') { montrerFormulaire(false); return; }
-  montrerScanner({ lu: ouvrirFicheScan, retour: retourSeul, sansCode: () => montrerSansSeul(''), titre: 'Entrer un article', icone: 'icone-produit', page: 'produit' });
+  montrerScanner({ lu: ouvrirFicheScan, retour: retourSeul, sansCode: () => montrerSansSeul(''), titre: titreSeul(), icone: 'icone-produit', page: 'produit' });
 }
 /* La fiche vierge, sur son chemin. Après une entrée, on revient à celle du départ (à la main) : un seul écran pour entrer. */
 function preparerFiche(avecCode) {
@@ -177,7 +178,7 @@ function ordonnerFiche() {
   const parent = $('vue-app').querySelector('.contenu');
   const ordre = modeManuel
     ? ['bloc-code', 'bloc-cat', 'bloc-souscat', 'bloc-produit', 'bloc-doublons', 'bloc-plu', 'bloc-nom', 'bloc-details', 'bloc-achat', 'bloc-endroits']
-    : ['bloc-code', 'bloc-nom', 'bloc-doublons', 'bloc-details', 'bloc-achat', 'bloc-cat', 'bloc-souscat', 'bloc-produit', 'bloc-plu', 'bloc-endroits'];   // magasin + prix : juste sous le format
+    : ['bloc-code', 'bloc-nom', 'bloc-doublons', 'bloc-details', 'bloc-achat', 'bloc-cat', 'bloc-souscat', 'bloc-produit', 'bloc-plu', 'bloc-endroits'];   // le prix : juste sous le format
   ordre.forEach(id => parent.insertBefore($(id), $('btn-enregistrer').parentElement));   // avant les boutons du bas (le crochet et le X, dans leur grille)
 }
 
@@ -706,8 +707,8 @@ function trouverProduitParNom(nom) {
 /* Remet la fiche à l'état de départ (champs vides, blocs cachés). */
 function reinitFiche() {
   $('nom').value = '';
-  remplirChoix('marque', []); remplirChoix('saveur', []); remplirChoix('magasin', LISTES.Magasins.map(x => x.id));
-  Object.keys(CHOIX_FICHE).forEach(ch => { $(ch + '-neuve').value = ''; });
+  remplirChoix('marque', []); remplirChoix('saveur', []);
+  CHAMPS_FICHE.forEach(ch => { $(ch + '-neuve').value = ''; });
   poserFormat('');
   $('prix').value = '';
   $('cat').value = ''; $('souscat').innerHTML = ''; $('produit').innerHTML = ''; $('endroits').innerHTML = '';
@@ -766,7 +767,7 @@ function surNom() {
     if ($('cat').value && scid && scid !== 'neuve') montrerSuiteFiche();   // sa sous-catégorie est déjà choisie : la suite reste là
   }
 }
-/* Nouveau produit au scan, sous-catégorie choisie : le magasin et le prix, les endroits (une carte vierge au besoin), Enregistrer. */
+/* Nouveau produit au scan, sous-catégorie choisie : le prix, les endroits (une carte vierge au besoin), Enregistrer. */
 function montrerSuiteFiche() {
   montrer('bloc-achat', true); montrer('bloc-endroits', true); montrer('btn-enregistrer', true);
   if (!$('endroits').children.length) ajouterEndroit();
@@ -891,12 +892,11 @@ function pluChoisi() {
   return $('plu').value === 'tape' ? $('plu-tape').value.trim() : $('plu').value;
 }
 
-/* Les choix de la fiche pour un produit : ses marques et ses saveurs déjà vues, tous les magasins, les unités. */
+/* Les choix de la fiche pour un produit : ses marques et ses saveurs déjà vues, les unités. */
 function remplirVariantes(pid) {
   remplirChoix('marque', sortesVues(pid, 'marque'));      // déjà entrées, et apprises au tri
   remplirChoix('saveur', sortesVues(pid, 'saveur'));
   remplirUnites();
-  remplirChoix('magasin', LISTES.Magasins.map(x => x.id), $('magasin').value !== 'neuve' ? $('magasin').value : '');
 }
 
 
@@ -944,10 +944,13 @@ function memoriserVariante(pid, marque, format, endroits, saveur) {
 }
 
 
-/* ---------- Marque, Saveur, Magasin : des listes gérées dans la fiche (2026-09-29) ----------
+/* ---------- Marque, Saveur : des listes gérées dans la fiche (2026-09-29) ----------
    Comme la Catégorie : on choisit, « Nouvelle… » au bout, jamais de texte libre. Marque et saveur : seulement celles
    déjà vues avec CE produit (choix A de J-C : la liste reste courte); « Nouvelle… » retrouve un nom qui existe ailleurs.
-   Un nom neuf reçoit son ID ici et part avec l'entrée (aucun appel de plus). STOCK retient l'ID. */
+   Un nom neuf reçoit son ID ici et part avec l'entrée (aucun appel de plus). STOCK retient l'ID.
+   Le magasin n'est plus dans la fiche (J-C, 2026-10-17 : « Je ne vois pas l'utilité ») : sa tuile, au début du sac seul (SEUL_MAGASIN);
+   « L'ajouter » de Rechercher entre sans magasin. Sa ligne reste ici pour la page Magasins (son titre, « Nouveau magasin… »). */
+const CHAMPS_FICHE = ['marque', 'saveur'];             // les menus de la fiche qui ont un « Nouvelle… »
 const CHOIX_FICHE = {
   marque:  { liste: 'Marques',  vide: '— Aucune marque —', neuve: 'Nouvelle marque…' },
   saveur:  { liste: 'Saveurs',  vide: '— Aucune saveur —', neuve: 'Nouvelle saveur…' },
@@ -1041,7 +1044,7 @@ function choisirParNom(champ, nom) {
    champ, rien d'autre ne change. Certains ont leur façon (data-ajout : la catégorie se crée tout de suite, la marque de la fiche
    entre dans sa liste…). La poubelle ramène le menu comme il était avant « Nouveau… », sans question : rien n'est perdu. */
 const AJOUTS_NEUFS = {
-  choix:   l => ajouterChoix(l.id.replace(/^bloc-/, '').replace(/-neuve$/, '')),   // marque, saveur, magasin de la fiche
+  choix:   l => ajouterChoix(l.id.replace(/^bloc-/, '').replace(/-neuve$/, '')),   // marque, saveur de la fiche
   cat:     () => ajouterCategorie(),
   souscat: () => ajouterSousCategorie(),
   categorie: l => ajouterCategorieAilleurs(l),          // le tri, Compléter, Sans code, Ajouter à la liste
@@ -1454,12 +1457,13 @@ async function enregistrer() {
     if (!endroits.length) { statut('Mets une quantité sur au moins un endroit.', 'erreur'); return; }
   }
 
-  Object.keys(CHOIX_FICHE).forEach(ch => { if ($(ch).value === 'neuve' && !ajouterChoix(ch)) $(ch).value = ''; });   // un nom tapé sans toucher le + compte quand même
-  let marque = $('marque').value, saveur = $('saveur').value, magasin = $('magasin').value;   // des ID des listes gérées
+  CHAMPS_FICHE.forEach(ch => { if ($(ch).value === 'neuve' && !ajouterChoix(ch)) $(ch).value = ''; });   // un nom tapé sans toucher le + compte quand même
+  let marque = $('marque').value, saveur = $('saveur').value;   // des ID des listes gérées
+  const magasin = SEUL_MAGASIN;                       // la tuile touchée au début du sac seul; « L'ajouter » de Rechercher : aucun
   const plu = pluChoisi();
   if (plu && !estPlu(plu)) { statut('Un PLU a 4 ou 5 chiffres.', 'erreur'); $('plu-tape').focus(); return; }
   const format = formatSaisi(), code = $('codebarres').value.trim() || plu, prix = $('prix').value.trim();   // un PLU : la même colonne que le code-barres
-  const nouveaux = LISTES_NEUVES.filter(x => [marque, saveur, magasin].indexOf(x.id) !== -1);   // les noms neufs que l'entrée porte : créés par le même appel
+  const nouveaux = LISTES_NEUVES.filter(x => [marque, saveur].indexOf(x.id) !== -1);   // les noms neufs que l'entrée porte : créés par le même appel
   const qui = localStorage.getItem(QUI) || '';        // posé une fois dans Outils, gardé sur l'appareil
   if (!opCourant) opCourant = 'op-' + Date.now() + '-' + Math.random().toString(36).slice(2, 8);
   statut('Enregistrement…');
@@ -1478,7 +1482,7 @@ async function enregistrer() {
       produitId = r.produitId || produitId; ids = r.ids || [];
       const fin = confirmerNeuves(nouveaux, r.listes || {});   // un nom qui existait déjà (l'autre appareil) : son ID à lui
       oublierNeuves();                                    // ajoutés puis abandonnés (on a changé d'idée) : jamais créés
-      marque = fin(marque); saveur = fin(saveur); magasin = fin(magasin);
+      marque = fin(marque); saveur = fin(saveur);
     }
     else if (r && r.erreur === 'action inconnue') {        // repli si coffre-fort pas encore à jour
       if (nouveau) { const p = await Coffre.ajouter('Produits', ['', nom, scid, '', 'O', '', '']); if (!p.ok) throw new Error(p.erreur || 'refus'); produitId = p.id; }
@@ -4934,12 +4938,15 @@ function surClicRecherche(ev) {
   if (b.hasAttribute('data-entamer')) { ouvrirOuverture(b.dataset.entamer); return; }   // Ouvrir (RdG-09)
   if (b.hasAttribute('data-consommer')) { ouvrirConsommation(b.dataset.consommer); return; }
   if (b.hasAttribute('data-pid')) { montrerRayon(b.dataset.pid); return; }
-  if (b.hasAttribute('data-ajouter-code')) { ouvrirFicheScan(b.dataset.ajouterCode); return; }
-  if (b.hasAttribute('data-ajouter-produit')) {
+  // « L'ajouter » : la fiche, sans magasin (J-C, 2026-10-17 : « Ça sera sans magasin » — pas de tuile sur ce chemin); Annuler recule
+  // d'un pas : Rechercher (pas la caméra du sac seul, qui suppose une épicerie).
+  SEUL_MAGASIN = '';
+  if (b.hasAttribute('data-ajouter-code')) ouvrirFicheScan(b.dataset.ajouterCode);
+  else if (b.hasAttribute('data-ajouter-produit')) {
     const p = PRODUITS.find(x => String(x.id) === String(b.dataset.ajouterProduit));
-    ouvrirFicheNom(p ? p.nom : ''); return;
-  }
-  ouvrirFicheNom($('recherche-texte').value.trim());
+    ouvrirFicheNom(p ? p.nom : '');
+  } else ouvrirFicheNom($('recherche-texte').value.trim());
+  annulerFiche = () => montrerRecherche(false);
 }
 /* Retour : de l'écran de rayon, on revient à la recherche (le texte tapé est gardé); de la recherche, d'où l'on vient. */
 function retourDeRecherche() {
@@ -5613,8 +5620,8 @@ function initEntree() {
     if (ouverte && ouverte === $('liste-inventaire').previousElementSibling && vueInventaire) { vueInventaire = ''; remplirInventaire(); window.scrollTo(0, 0); }
     else if (ouverte) { toggleAccordeon(ouverte); window.scrollTo(0, 0); } else retourAuMenu();
   });
-  $('choix-produit').addEventListener('click', montrerScanProduit);    // le sac seul : la caméra d'abord, « Sans code » : l'entonnoir
-  $('choix-epicerie').addEventListener('click', montrerEpiceries);      // toute l'épicerie : l'épicerie, puis le scan (JS/epicerie.js)
+  $('choix-produit').addEventListener('click', () => montrerEpiceries(true));   // le sac seul : l'épicerie, puis la caméra, « Sans code » : l'entonnoir (JS/epicerie.js)
+  $('choix-epicerie').addEventListener('click', () => montrerEpiceries());      // toute l'épicerie : l'épicerie, puis le scan (JS/epicerie.js)
   $('fiche-scan').addEventListener('click', montrerScanProduit);        // à la main, le scan à côté de la catégorie : retour à la caméra
   $('btn-retour-quoi').addEventListener('click', retourAuMenu);         // retour : choix « quoi » → le menu
   // formulaire d'entrée
@@ -5638,7 +5645,7 @@ function initEntree() {
   $('qui-nom').addEventListener('keydown', e => { if (e.key === 'Enter') enregistrerQui(); });   // comme le mot de passe
   $('cat').addEventListener('change', surCategorie);
   $('souscat').addEventListener('change', surSousCategorie);
-  Object.keys(CHOIX_FICHE).forEach(ch => $(ch).addEventListener('change', () => surChoix(ch)));   // marque, saveur, magasin : « Nouvelle… » puis le +
+  CHAMPS_FICHE.forEach(ch => $(ch).addEventListener('change', () => surChoix(ch)));   // marque, saveur : « Nouvelle… » puis le +
   // « Nouveau… », partout : la poubelle ramène le menu, le + (ou Entrée) ajoute; le menu d'avant est noté pour la poubelle
   document.addEventListener('click', ev => {
     const b = ev.target.closest('.saisie-neuve > .retirer, .saisie-neuve > .ajouter');

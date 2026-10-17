@@ -18,15 +18,20 @@ var EPI_REFUS = {};          // « Non » à une ligne de la circulaire, pour ce
 var EPI_HABITUELS = [];      // les habituels sans code affichés (Sans code)
 var EPI_SANS = '';           // Sans code : 'habituels', 'entonnoir', ou '' (les deux boutons)
 var EPI_GROUPES = [];        // « Épicerie du … » : ses lignes à l'écran, dans l'ordre (toucher une ligne : sa carte revient, pour corriger)
+var EPI_SEUL = false;        // les tuiles servent au sac seul (J-C, 2026-10-17) : l'épicerie touchée ouvre sa caméra, pas le scan en rafale
 var epiJeton = 0;            // un code qui cherche encore quand on passe à autre chose : sa réponse ne compte plus
 const EPI_CACHE_CIRC = 'rdg_circ_epicerie';   // { magasin, jour, lignes } : rouvrir la même épicerie le même jour = instantané
 const EPI_CAMERA = { video: 'epi-video', lu: c => surCodeEpicerie(c) };
 
 /* ---------- 1. L'épicerie ---------- */
-function montrerEpiceries() {
+/* Les tuiles des épiceries : les deux sacs, et le sac seul (seul = true; J-C, 2026-10-17 : « Je cherche juste une cohérence ») — son
+   titre et sa couleur; l'épicerie touchée ouvre sa caméra (choisirSeul). La flèche : le choix des sacs, dans les deux cas. */
+function montrerEpiceries(seul) {
   toutCacher(); $('vue-epicerie').hidden = false; $('btn-burger').hidden = false;
   EPI = null; EPI_CARTE = null; epiJeton++;
-  titreEpicerie("Toute l'épicerie", 'epicerie');
+  EPI_SEUL = seul === true;
+  if (EPI_SEUL) SEUL_MAGASIN = '';
+  titreEpicerie(EPI_SEUL ? 'Entrer un article' : "Toute l'épicerie", EPI_SEUL ? 'produit' : 'epicerie');
   montrer('epi-choix', true); montrer('epi-scan', false); montrer('epi-completer', false);   // Compléter vu juste avant (le + → Compléter → Retour → les deux sacs) ne reste pas dessous
   $('epi-magasin-neuf').value = '';
   fermerListesVides();
@@ -78,7 +83,14 @@ async function ajouterEpicerie() {
   }
   champ.value = '';
   remplirEpiceries();
-  choisirEpicerie(id);
+  ouvrirEpicerie(id);
+}
+/* Une tuile touchée : le scan en rafale (les deux sacs) ou la caméra du sac seul, son magasin retenu pour la fiche. */
+const ouvrirEpicerie = mag => EPI_SEUL ? choisirSeul(mag) : choisirEpicerie(mag);
+function choisirSeul(mag) {
+  if (!LISTES.Magasins.some(x => String(x.id) === String(mag))) return;
+  SEUL_MAGASIN = String(mag);
+  montrerScanProduit();
 }
 /* L'épicerie touchée : sa liste pas encore close, ou une nouvelle (instantanée : elle part dans la file); puis sa circulaire. */
 async function choisirEpicerie(mag) {
@@ -244,9 +256,10 @@ function articleConnu(code) {
 }
 /* Pas à nous : un produit neuf (le nom de la circulaire d'IGA ou d'Open Food Facts), ou inconnu (le code seul). */
 /* Le titre de la page (la ligne directrice, RdG-11 : D) : l'icône de son bouton du + (les deux sacs ou Compléter), sa couleur (data-quoi). */
+const ICONES_EPICERIE = { epicerie: 'icone-epicerie', completer: 'icone-completer', produit: 'icone-produit' };   // les deux sacs, Compléter, le sac seul
 function titreEpicerie(texte, quoi) {
   $('vue-epicerie').dataset.quoi = quoi;
-  $('epi-titre').innerHTML = '<span class="icone ' + (quoi === 'completer' ? 'icone-completer' : 'icone-epicerie') + '"></span>' + esc(texte);
+  $('epi-titre').innerHTML = '<span class="icone ' + ICONES_EPICERIE[quoi] + '"></span>' + esc(texte);
 }
 /* Les boutons d'une carte, en icônes (RdG-11) : le crochet, le X, sur une ligne. */
 const boutonCarte = (action, icone, nom, attr) => '<button class="bouton bouton-grand" type="button" data-action="' + action + '" ' + attr + ' aria-label="' + esc(nom) + '"><span class="icone ' + icone + '"></span></button>';
@@ -744,14 +757,16 @@ function choisirHabituel(i) {
 }
 /* Le sac seul, « Sans code » (J-C, 2026-10-15 : « le même choix pour un sac, sauf qu'il n'a pas de liste ») : la caméra laisse sa place
    aux deux mêmes boutons. Le cœur : les habituels; l'un touché → la fiche, remplie (sa marque, sa saveur, son format; son PLU s'il en a
-   un). L'entonnoir : la fiche à la main. La flèche recule d'un pas (un choix → les deux boutons → la caméra → le choix des sacs);
+   un). L'entonnoir : la fiche à la main. La flèche recule d'un pas (un choix → les deux boutons → la caméra → les tuiles des épiceries);
    Annuler de la fiche ramène d'où elle est venue. */
 var SEUL_SANS = null;        // le sac seul : null (la caméra), '' (les deux boutons), 'habituels'
+var SEUL_MAGASIN = '';       // le sac seul : l'épicerie touchée au début (son ID, pour la fiche); '' : aucune (« L'ajouter » de Rechercher)
+const titreSeul = () => nomListe(SEUL_MAGASIN) || 'Entrer un article';   // la caméra du sac seul : le nom de l'épicerie, comme aux deux sacs
 function montrerSansSeul(quoi) {
   if (window.stopScanner) window.stopScanner();
   if ($('vue-scan').hidden) {                            // revenu de la fiche (Annuler)
     toutCacher(); $('vue-scan').hidden = false; $('btn-burger').hidden = false;
-    $('scan-titre').innerHTML = '<span class="icone icone-produit"></span>Entrer un article'; $('vue-scan').dataset.page = 'produit';   // comme montrerScanner
+    $('scan-titre').innerHTML = '<span class="icone icone-produit"></span>' + esc(titreSeul()); $('vue-scan').dataset.page = 'produit';   // comme montrerScanner
   }
   SEUL_SANS = quoi;
   ['scan-cadre', 'scan-choix'].forEach(id => montrer(id, false));
@@ -764,7 +779,7 @@ function montrerSansSeul(quoi) {
 function retourSeul() {
   if (SEUL_SANS === 'habituels') montrerSansSeul('');
   else if (SEUL_SANS === '') montrerScanProduit();
-  else montrerChoixQuoi();
+  else montrerEpiceries(true);                           // la caméra → les tuiles
 }
 function choisirSansSeul(quoi) {
   if (SEUL_SANS) { montrerSansSeul(''); return; }        // le bouton choisi, retouché : les deux, comme la flèche
@@ -1506,10 +1521,10 @@ function initEpicerie() {
   });
   $('completer-produit').addEventListener('input', ev => { if (ev.target.id === 'cp-texte') lireLaPage(ev.target.value); });   // l'appareil a refusé le presse-papiers : collé dans la case
   $('completer-retour').addEventListener('click', () => { if (EPI_COMPLETER && aCompleter().length) montrerCompleter(); else montrerChoixQuoi(); });   // la liste → les tuiles → l'écran du + : un pas à la fois
-  $('epi-magasins').addEventListener('click', ev => { const b = ev.target.closest('[data-epi-magasin]'); if (b) choisirEpicerie(b.dataset.epiMagasin); });
+  $('epi-magasins').addEventListener('click', ev => { const b = ev.target.closest('[data-epi-magasin]'); if (b) ouvrirEpicerie(b.dataset.epiMagasin); });
   $('btn-epi-magasin').addEventListener('click', ajouterEpicerie);
   $('epi-magasin-neuf').addEventListener('keydown', e => { if (e.key === 'Enter') { e.preventDefault(); ajouterEpicerie(); } });
-  $('epi-choix-retour').addEventListener('click', montrerChoixQuoi);            // Retour recule d'un pas : les deux sacs
+  $('epi-choix-retour').addEventListener('click', montrerChoixQuoi);            // Retour recule d'un pas : le choix des sacs (les deux sacs, le sac seul)
   $('epi-retour').addEventListener('click', () => {   // la flèche recule d'un pas : un choix de Sans code → ses deux boutons → le scan → le choix de l'épicerie
     if (!$('epi-sans').hidden) { if (EPI_SANS) choisirSans(''); else modeSansCode(false); }
     else montrerEpiceries();                         // la liste du jour reste ouverte : retouchée, l'épicerie y revient; demain, elle attend Compléter

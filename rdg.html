@@ -10,7 +10,7 @@
   <!-- Ecran d'accueil iPad : le meme sac, en PNG (iOS n'accepte pas le SVG ici) -->
   <link rel="apple-touch-icon" href="apple-touch-icon.png?v=2">
 
-<link rel="stylesheet" href="CSS/rdg.css?v=188">
+<link rel="stylesheet" href="CSS/rdg.css?v=189">
 </head>
 <body>
 
@@ -216,7 +216,7 @@
 
 <!-- ============================================================
      TOUTE L'ÉPICERIE — Entrer (RdG-01, 3 bis; aperçus du 2026-10-02) : l'épicerie, puis le scan en rafale.
-     Le JS (JS/epicerie.js) bâtit les tuiles des épiceries, la carte de l'article scanné et la liste du jour (« Épicerie du 14 octobre »).
+     Le JS (JS/epicerie.js) bâtit les tuiles des épiceries (elles servent aussi au sac seul), la carte de l'article scanné et la liste du jour (« Épicerie du 14 octobre »).
 ============================================================ -->
 <div id="vue-epicerie" hidden>
   <div class="entete"><div class="titre titre-action" id="epi-titre"><span class="icone icone-epicerie"></span>Toute l'épicerie</div></div>   <!-- les deux sacs ou Compléter : son icône et sa couleur (titreEpicerie) -->
@@ -391,15 +391,8 @@
       </div>
     </div>
 
-    <!-- L'achat : où, et combien payé (le prix reste facultatif) -->
+    <!-- L'achat : combien payé (facultatif). Le magasin : sa tuile, au début du sac seul (JS/epicerie.js) -->
     <div id="bloc-achat" hidden>
-      <div class="bloc">
-        <div class="label">Magasin</div>
-        <select class="champ" id="magasin"></select>
-        <div class="saisie-neuve" id="bloc-magasin-neuve" data-ouvre="neuve" data-ajout="choix" hidden>
-          <input class="champ" id="magasin-neuve" autocomplete="off" enterkeyhint="done" placeholder="Nouveau magasin…"><button class="retirer" type="button" aria-label="Laisser tomber"></button><button class="ajouter" type="button" aria-label="Ajouter"></button>
-        </div>
-      </div>
       <div class="bloc">
         <div class="label">Prix</div>
         <input class="champ" id="prix" inputmode="decimal" autocomplete="off" placeholder="Optionnel">
@@ -551,10 +544,10 @@
 </div><!-- fin du conteneur -->
 
 <script src="JS/coffre.js?v=22"></script>
-<script src="JS/entree.js?v=224"></script>
+<script src="JS/entree.js?v=225"></script>
 <script src="JS/bientot.js?v=6"></script>
 <script src="JS/prix.js?v=9"></script>
-<script src="JS/epicerie.js?v=44"></script>
+<script src="JS/epicerie.js?v=45"></script>
 <script src="JS/off.js?v=13"></script>
 <script src="JS/scan.js?v=25"></script>
 </body>
