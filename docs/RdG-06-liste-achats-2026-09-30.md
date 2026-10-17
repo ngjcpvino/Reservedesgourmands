@@ -102,9 +102,10 @@ J-C : « Ajouter. Ça prendrait au moins les habituels. » Aujourd'hui, le + de 
 2. **Une case par aliment, jamais la marque** (J-C : « c'est souvent quand on décide d'un plat… plus l'aliment qu'une marque en particulier »).
 3. **Un toucher = sur la liste**, et on reste là pour le suivant (un plat = plusieurs ingrédients).
 4. **Ce qui reste à la maison se voit** (« il en reste 1 »), **et on peut l'ajouter quand même** (J-C : « une recette qui prend un contenant entier »).
+5. **Retoucher un aliment qui vient d'être mis sur la liste l'enlève**, sur la même page (J-C : « Oui » — la ricotta touchée au lieu de la mozzarella).
 
 **Les contraintes de J-C** : pas « une liste de 3 km »; **le look : un aperçu quand on sera rendu là** (J-C : « On jase avant de proposer du visuel »).
 
-**Questions ouvertes** (une à la fois) : un aliment déjà sur la liste, retouché, que fait-il ?
+**Questions ouvertes** (une à la fois) : un aliment venu tout seul sur la liste (il n'en reste plus), touché dans les habituels, que fait-il ?
 
 **Noté, pas creusé** : les soldes par magasin dans le + (J-C : « je fouine et clique, ça se retrouve sur la liste; souvent ça influence les achats »). À savoir : Listes → « En solde » le fait déjà, par catégorie (`RdG-08`, le temps 1).
