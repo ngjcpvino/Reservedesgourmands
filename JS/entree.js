@@ -607,7 +607,7 @@ async function chargerReferences() {
     data.stock = data.stock || []; data.pasAimes = data.pasAimes || []; data.epiceries = data.epiceries || [];
     if (data.menage && data.menage !== localStorage.getItem(MENAGE)) {   // le grand ménage (api.gs viderReserve) : ce qui attendait d'avant ne repart pas
       ecrireAttenteGestes([]); ecrireAttenteAchats([]);
-      try { localStorage.setItem(MENAGE, data.menage); localStorage.removeItem('rdg_circ_epicerie'); localStorage.removeItem(CACHE_TRI); } catch (e) {}   // + la circulaire du jour gardée par Entrer, les tris gardés (effacés)
+      try { localStorage.setItem(MENAGE, data.menage); localStorage.removeItem(EPI_CACHE_CIRC); localStorage.removeItem(CACHE_TRI); } catch (e) {}   // + les circulaires gardées (leurs liens au tri), les tris gardés (effacés)
     }
     lireAttenteGestes().forEach(e => appliquerGeste(e, data));   // idem : un geste en route reste fait
     data.achats = data.achats || []; data.speciaux = data.speciaux || [];
@@ -707,6 +707,7 @@ function trouverProduitParNom(nom) {
 /* Remet la fiche à l'état de départ (champs vides, blocs cachés). */
 function reinitFiche() {
   $('nom').value = '';
+  FICHE_CIRC = null; $('fiche-circ').innerHTML = '';   // le prix de la circulaire (le sac seul, epicerie.js)
   remplirChoix('marque', []); remplirChoix('saveur', []);
   CHAMPS_FICHE.forEach(ch => { $(ch + '-neuve').value = ''; });
   poserFormat('');
@@ -729,6 +730,7 @@ function reinitFiche() {
 /* Le Nom pilote : match un produit existant = reconnu; sinon = nouveau. */
 function surNom() {
   const val = $('nom').value.trim();
+  planifierCircFiche();                         // le prix de la circulaire suit le produit (le sac seul), une fois la fiche posée
   if (modeManuel) {                             // à la main : la catégorie est déjà choisie, le nom ne pilote rien
     proposerRessemblances(val);                 // un nom qui ressemble à un produit déjà là ?
     montrer('bloc-achat', !!val); montrer('bloc-endroits', !!val); montrer('btn-enregistrer', !!val);
@@ -770,6 +772,7 @@ function surNom() {
 /* Nouveau produit au scan, sous-catégorie choisie : le prix, les endroits (une carte vierge au besoin), Enregistrer. */
 function montrerSuiteFiche() {
   montrer('bloc-achat', true); montrer('bloc-endroits', true); montrer('btn-enregistrer', true);
+  planifierCircFiche();
   if (!$('endroits').children.length) ajouterEndroit();
 }
 
@@ -1008,6 +1011,7 @@ function remplirChoix(champ, ids, choisi) {
   $(champ).innerHTML = optionsListe(champ, ids, choisi);
   $(champ).value = choisi ? String(choisi) : '';
   montrer('bloc-' + champ + '-neuve', false);
+  planifierCircFiche();                         // une autre marque : peut-être une autre ligne de la circulaire
 }
 function idsProposes(champ) { return [...$(champ).options].map(o => o.value).filter(v => v && v !== 'neuve'); }
 /* « Nouvelle… » choisi : le champ pour la nommer prend la place du menu. */
@@ -1357,6 +1361,7 @@ function poserFormat(txt) {
     $('format-unite').insertAdjacentHTML('beforeend', '<option value="' + esc(u) + '">' + esc(u) + '</option>');
   }
   $('format-unite').value = u;
+  planifierCircFiche();                         // un autre format : peut-être une autre ligne de la circulaire
 }
 
 /* ---------- Endroits ---------- */
@@ -1506,6 +1511,7 @@ async function enregistrer() {
       const c3 = lireCache(); if (c3) { (c3.codes = c3.codes || {})[String(code)] = produitId; ecrireCache(c3); }
     }
     nettoyerAchats(produitId);                           // entré : il quitte la liste d'achats
+    relierCircFiche(produitId, marque, saveur, code);    // la ligne de la circulaire touchée : reliée à lui (le Tri), comme aux deux sacs
     opCourant = null;                                      // succès : le prochain article aura un nouveau jeton
     if (!offApresFiche(code, produitId)) retourAuMenu();   // un produit entré, c'est fini (J-C, 2026-10-09 : « c'est fait pour entrer 1 produit »); les photos pour Open Food Facts d'abord, si on les a demandées
     avis('Ajouté', 'succes');                              // comme Consommé, Déplacé : au centre, par-dessus le menu

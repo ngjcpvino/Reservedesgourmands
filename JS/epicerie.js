@@ -13,6 +13,8 @@
 ============================================================ */
 var EPI = null;              // la liste en cours : { id, magasin, nom }
 var EPI_CIRC = [];           // la circulaire de la semaine de cette épicerie (circulaireMagasin)
+var EPI_CIRC_MAG = '';       // son épicerie (les deux sacs, Compléter, le sac seul)
+var EPI_CIRC_TOUCHEE = 0;    // une ligne reliée ici (relierCirculaire) : une relecture partie avant ne l'écrase pas
 var EPI_CARTE = null;        // l'article à l'écran : { code, pid, nouveau, marque, saveur, format, photo, ligne, auto, sansCode }
 var EPI_REFUS = {};          // « Non » à une ligne de la circulaire, pour ce produit : on ne la repropose plus pendant cette épicerie
 var EPI_HABITUELS = [];      // les habituels sans code affichés (Sans code)
@@ -20,7 +22,7 @@ var EPI_SANS = '';           // Sans code : 'habituels', 'entonnoir', ou '' (les
 var EPI_GROUPES = [];        // « Épicerie du … » : ses lignes à l'écran, dans l'ordre (toucher une ligne : sa carte revient, pour corriger)
 var EPI_SEUL = false;        // les tuiles servent au sac seul (J-C, 2026-10-17) : l'épicerie touchée ouvre sa caméra, pas le scan en rafale
 var epiJeton = 0;            // un code qui cherche encore quand on passe à autre chose : sa réponse ne compte plus
-const EPI_CACHE_CIRC = 'rdg_circ_epicerie';   // { magasin, jour, lignes } : rouvrir la même épicerie le même jour = instantané
+const EPI_CACHE_CIRC = 'rdg_circ_epiceries';   // { magasin: { jour, lignes } } : chaque épicerie gardée jusqu'au jeudi suivant
 const EPI_CAMERA = { video: 'epi-video', lu: c => surCodeEpicerie(c) };
 
 /* ---------- 1. L'épicerie ---------- */
@@ -85,12 +87,15 @@ async function ajouterEpicerie() {
   remplirEpiceries();
   ouvrirEpicerie(id);
 }
-/* Une tuile touchée : le scan en rafale (les deux sacs) ou la caméra du sac seul, son magasin retenu pour la fiche. */
+/* Une tuile touchée : le scan en rafale (les deux sacs) ou la caméra du sac seul, son magasin retenu pour la fiche — et sa circulaire,
+   pour le prix (majCirculaireFiche). */
 const ouvrirEpicerie = mag => EPI_SEUL ? choisirSeul(mag) : choisirEpicerie(mag);
-function choisirSeul(mag) {
-  if (!LISTES.Magasins.some(x => String(x.id) === String(mag))) return;
-  SEUL_MAGASIN = String(mag);
-  montrerScanProduit();
+async function choisirSeul(mag) {
+  const m = LISTES.Magasins.find(x => String(x.id) === String(mag));
+  if (!m) return;
+  SEUL_MAGASIN = String(mag); EPI_REFUS = {};
+  await chargerCirculaire(m);
+  if (SEUL_MAGASIN === String(mag) && !$('vue-epicerie').hidden) montrerScanProduit();
 }
 /* L'épicerie touchée : sa liste pas encore close, ou une nouvelle (instantanée : elle part dans la file); puis sa circulaire. */
 async function choisirEpicerie(mag) {
@@ -106,26 +111,37 @@ async function choisirEpicerie(mag) {
   await chargerCirculaire(m);
   if (EPI && EPI.magasin === String(mag)) montrerScanEpicerie();
 }
-/* La circulaire de la semaine de cette épicerie : un appel (le chariot), gardé pour la journée. Interrupteur à Non, ou pas de
-   réseau : on scanne quand même, sans elle. */
+/* La circulaire de la semaine de cette épicerie (J-C, 2026-10-17 : « Les circulaires changent qu'aux semaines ») : gardée sur l'appareil
+   jusqu'au jeudi suivant, chaque épicerie la sienne — la toucher est instantané, et elle est relue en arrière-plan, sans chariot (ses
+   liens au tri changent quand on trie, ici ou sur l'autre appareil). Le chariot : la première fois de la semaine seulement.
+   Interrupteur à Non, ou pas de réseau : on scanne quand même, sans elle. */
+const lireCircGardees = () => { try { return JSON.parse(localStorage.getItem(EPI_CACHE_CIRC) || '{}') || {}; } catch (e) { return {}; } };
 async function chargerCirculaire(m) {
-  EPI_CIRC = [];
-  const jour = dateDuJour();
-  try {
-    const c = JSON.parse(localStorage.getItem(EPI_CACHE_CIRC) || 'null');
-    if (c && c.magasin === String(m.id) && c.jour === jour) { EPI_CIRC = c.lignes || []; return; }
-  } catch (e) {}
+  const mag = String(m.id), g = lireCircGardees()[mag];
+  EPI_CIRC = []; EPI_CIRC_MAG = mag;
   if (m.circ === false) return;
+  if (g && g.jour && !jeudiPasse(g.jour, dateDuJour())) {
+    EPI_CIRC = g.lignes || [];
+    relireCirculaire(mag);
+    return;
+  }
   montrerVoile(true);
+  try { await relireCirculaire(mag); } finally { montrerVoile(false); }
+}
+async function relireCirculaire(mag) {
+  const touchee = EPI_CIRC_TOUCHEE;
   try {
-    const r = await Coffre.circulaireMagasin(String(m.id));
-    if (r && r.ok) { EPI_CIRC = r.lignes || []; garderCirculaire(); }
-  } catch (e) { /* réseau : sans la circulaire */ }
-  finally { montrerVoile(false); }
+    const r = await Coffre.circulaireMagasin(mag);
+    if (r && r.ok && EPI_CIRC_MAG === mag && EPI_CIRC_TOUCHEE === touchee) { EPI_CIRC = r.lignes || []; garderCirculaire(); }
+  } catch (e) { /* réseau : la circulaire gardée, ou sans elle */ }
 }
 function garderCirculaire() {
-  if (!EPI) return;
-  try { localStorage.setItem(EPI_CACHE_CIRC, JSON.stringify({ magasin: EPI.magasin, jour: dateDuJour(), lignes: EPI_CIRC })); } catch (e) {}
+  if (!EPI_CIRC_MAG) return;
+  const jour = dateDuJour(), g = lireCircGardees();
+  Object.keys(g).forEach(k => { if (!g[k] || jeudiPasse(g[k].jour, jour)) delete g[k]; });   // la semaine passée : partie
+  g[EPI_CIRC_MAG] = { jour: jour, lignes: EPI_CIRC };
+  try { localStorage.setItem(EPI_CACHE_CIRC, JSON.stringify(g)); }
+  catch (e) { try { localStorage.setItem(EPI_CACHE_CIRC, JSON.stringify({ [EPI_CIRC_MAG]: g[EPI_CIRC_MAG] })); } catch (e2) {} }   // trop lourd : celle-ci seulement
 }
 
 /* ---------- 2. Le scan ---------- */
@@ -439,8 +455,11 @@ function relierCirculaire(l, pid, marque, saveur, code) {
   poserGeste({ action: 'trier', opId: 'tri-' + idLocal(), cles: [l.cle], reponse: 'O', produits: [{ produitId: pid, marque: marque, saveur: saveur }],
                code: String(code || ''), qui: localStorage.getItem(QUI) || '', neufs: neuf ? 1 : 0 });
   l.tri = { reponse: 'O', produits: [pid], marques: [marque], saveurs: [saveur], code: String(code || '') };
+  const ici = EPI_CIRC.find(x => x.cle === l.cle);
+  if (ici && ici !== l) ici.tri = l.tri;                 // la circulaire relue entre-temps (en arrière-plan) : la même ligne le sait aussi
   if (code) CODES_TRI[formeCode(code)] = [pid, marque, saveur];
   if (neuf) noterNbATrier(NB_A_TRIER - 1);
+  EPI_CIRC_TOUCHEE++;
   garderCirculaire();
 }
 
@@ -787,6 +806,59 @@ function choisirSansSeul(quoi) {
   montrerFormulaire(false);                              // l'entonnoir : la fiche à la main
   annulerFiche = () => montrerSansSeul('');
 }
+/* LE PRIX DE LA CIRCULAIRE, AU SAC SEUL (J-C, 2026-10-17 : « Bonne idée »; sur aperçu) : dans la fiche, sous le Prix, comme Compléter —
+   sûr (le même code, ou un produit déjà relié au tri) : le prix se remplit tout seul; pas sûr : la ligne qui ressemble, « est-ce lui ? »
+   (la ligne : le prix, et le code se colle à cette ligne au crochet; « Aucun » : elle ne revient pas pour ce produit). Un prix tapé
+   n'est jamais remplacé; celui que l'app a posé part si le produit change. Rechercher → « L'ajouter » : pas d'épicerie, rien. */
+var FICHE_CIRC = null;       // { ligne, auto, assoc ('O' · ''), refus, pose (la ligne dont le prix a été posé), prix (le prix posé) }
+var circFicheMinuterie = 0;
+function planifierCircFiche() { clearTimeout(circFicheMinuterie); circFicheMinuterie = setTimeout(majCirculaireFiche, 0); }   // une fois, quand toute la fiche est posée
+function majCirculaireFiche() {
+  const boite = $('fiche-circ');
+  if (!boite) return;
+  const code = $('codebarres').value.trim() || pluChoisi(), F = FICHE_CIRC || { assoc: '' };
+  const actif = SEUL_MAGASIN && EPI_CIRC_MAG === SEUL_MAGASIN && EPI_CIRC.length && !$('vue-app').hidden && !$('bloc-achat').hidden && !estPese(code);
+  const pid = produitCourant !== null ? String(produitCourant) : '', mv = $('marque').value, nom = $('nom').value.trim();
+  const a = { code: code, pid: pid, marque: mv && mv !== 'neuve' ? mv : '', format: formatSaisi(),
+              nouveau: pid ? null : { nom: nom, inconnu: !nom || nomCode(nom), marqueNom: mv === 'neuve' ? $('marque-neuve').value.trim() : '' } };
+  const m = actif ? trouverCirculaire(a) : null, ligne = m ? m.ligne : null;
+  if ((ligne ? ligne.cle : '') !== (F.ligne ? F.ligne.cle : '')) {   // une autre ligne (le produit a changé) : la question revient
+    F.assoc = '';
+    if (F.prix !== undefined && $('prix').value === F.prix) $('prix').value = '';   // le prix qu'on avait posé ne vaut plus
+    F.pose = ''; F.prix = undefined;
+  }
+  F.ligne = ligne; F.auto = !!(m && m.auto); F.refus = pid || code;
+  FICHE_CIRC = ligne ? F : null;
+  if (ligne && (F.auto || F.assoc === 'O') && F.pose !== ligne.cle) poserPrixCirc(F, !F.auto);
+  const nomMag = esc(nomListe(SEUL_MAGASIN));
+  boite.innerHTML = !ligne ? '' : F.auto
+    ? '<div class="message message-succes">En circulaire chez ' + nomMag + ' : ' + esc(textePrixLigne(ligne)) + '</div>'
+    : F.assoc ? '<div class="bloc"><div class="label">Dans la circulaire de ' + nomMag + '</div>' + htmlLigneCirc(ligne) +
+                '<div class="message">' + (prixUnitaire(ligne) !== '' ? 'Associé : le prix de la circulaire.' : 'Au poids : le prix reste à écrire.') + '</div></div>'
+              : '<div class="bloc"><div class="label">Dans la circulaire de ' + nomMag + ' : est-ce lui ?</div><div class="liste-blanche">' +   // comme la carte des deux sacs et Compléter
+                htmlLigneCirc(ligne, 'data-fc-assoc="O"') + ligneAucun('data-fc-assoc="N"') + '</div></div>';
+}
+/* Le prix de la ligne dans le champ Prix : sûr, seulement s'il est vide (un prix tapé gagne); la ligne touchée : toujours. */
+function poserPrixCirc(F, toujours) {
+  const p = prixUnitaire(F.ligne), champ = $('prix');
+  F.pose = F.ligne.cle;
+  if (p === '' || (!toujours && champ.value.trim())) return;
+  champ.value = textePrix(p); F.prix = champ.value;
+}
+function associerFiche(rep) {
+  const F = FICHE_CIRC;
+  if (!F || !F.ligne) return;
+  if (rep === 'O') { F.assoc = 'O'; poserPrixCirc(F, true); }
+  else EPI_REFUS[F.ligne.cle + '|' + F.refus] = true;     // la même clé que trouverCirculaire : elle ne revient plus pour ce produit
+  majCirculaireFiche();
+}
+/* Le crochet de la fiche : la ligne touchée se relie au produit (le Tri, comme aux deux sacs). */
+function relierCircFiche(pid, marque, saveur, code) {
+  const F = FICHE_CIRC;
+  if (F && F.ligne && F.assoc === 'O' && !F.auto) relierCirculaire(F.ligne, String(pid), marque, saveur, code);
+  FICHE_CIRC = null;
+}
+
 /* Un habituel touché (le sac seul) : la fiche, sa sorte remplie. Un PLU : comme tapé (le code connu donne sa dernière entrée). */
 function ouvrirHabituelSeul(x) {
   if (!x) return;
@@ -890,7 +962,7 @@ function ouvrirCompleter(row) {
   majVueCompleter();
   window.scrollTo(0, 0);
   const m = LISTES.Magasins.find(x => String(x.id) === EPI_COMPLETER.magasin) || { id: EPI_COMPLETER.magasin, circ: true };
-  EPI_CIRC = [];
+  EPI_CIRC = []; EPI_CIRC_MAG = '';
   if (!jeudiPasse(row[2], dateDuJour())) chargerCirculaire(m);   // le prix de la circulaire suit (J-C) — la semaine de l'achat seulement
 }
 function remplirCompleter() {
@@ -1479,6 +1551,9 @@ function reunirProduitsInstant(garde, perdu) {
 }
 
 function initEpicerie() {
+  try { localStorage.removeItem('rdg_circ_epicerie'); } catch (e) {}   // l'ancienne mémoire : une seule épicerie, d'un jour
+  $('fiche-circ').addEventListener('click', ev => { const b = ev.target.closest('[data-fc-assoc]'); if (b) associerFiche(b.dataset.fcAssoc); });
+  ['change', 'input'].forEach(t => $('vue-app').addEventListener(t, ev => { if (!ev.target.closest('#fiche-circ')) planifierCircFiche(); }));   // la marque, le format, le nom… changés à la main
   $('choix-completer').addEventListener('click', montrerCompleter);
   $('completer-listes').addEventListener('click', ev => {
     const b = ev.target.closest('[data-completer]');
