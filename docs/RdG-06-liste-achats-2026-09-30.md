@@ -121,4 +121,5 @@ J-C : « Ajouter. Ça prendrait au moins les habituels. » Aujourd'hui, le + de 
 - **pas acheté à la fin de la semaine du solde : il quitte la liste tout seul**;
 - les articles pas encore triés tomberont parfois dans la mauvaise catégorie, de moins en moins avec l'usage (J-C).
 - J-C : « Le tout se confirme quand je quitte la page des soldes de ce magasin » → **choix A** : quitter la page d'une épicerie garde ses choix (on peut aller voir une autre épicerie, ses habituels); **le crochet du mode met tout sur la liste d'un coup**, soldes et habituels ensemble.
-- **Question ouverte** : choisir un article pas encore trié, est-ce un Oui au tri ?
+- **Choisir un article pas encore trié = un Oui, mais sans le travail du tri sur le coup** (J-C : « Oui mais je veux pas faire toute la job que je fais au tri tout de suite ») : aucune question (aliment, marque, code) dans la page des soldes.
+- **Question ouverte** : où attend le reste du travail — dans « À trier », le feu déjà au vert, ou dans les Oui avec l'aliment proposé par l'app ?
