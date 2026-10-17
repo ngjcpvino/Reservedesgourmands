@@ -21,7 +21,9 @@
    pas ses photos — **toujours avec « Plus tard »**.
 3. **« Plus tard » → une liste des produits pas complétés pour Open Food Facts**, faite à temps perdu…
 4. … **ou quand on consomme le produit** (le produit en main) : **à Consommer et Ouvrir, un rappel qu'on peut ignorer** (J-C : « Yes »).
-5. **La liste vit dans Listes, la 4e** (J-C : « Oui »), une barre à son nom comme les autres.
+5. **La liste vit dans Listes, la 4e** (J-C : « Oui »), une barre à son nom comme les autres. — **Changé le 2026-10-17** (J-C : « devrait
+   plutôt se retrouver dans les outils. Et faire apparaître le ! ») : **un bouton d'Outils**, la forme de leur logo crème sur le brun roux
+   (B sur aperçu), qui ouvre sa page; le coin replié et son ! sur ce bouton et sur Outils tant qu'un produit attend.
 6. **J-C a un compte Open Food Facts** — son nom et son mot de passe vont dans les **Propriétés du script**, à l'ordi, jamais dans
    le dépôt ni la conversation.
 7. **On envoie les 3 photos (le devant, les ingrédients, la valeur nutritive), le nom français, la marque, le format — pas ses

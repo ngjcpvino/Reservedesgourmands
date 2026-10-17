@@ -84,6 +84,7 @@ function toutCacher() {
   $('vue-qui').hidden = true;
   $('vue-accueil').hidden = true;
   $('vue-listes').hidden = true;
+  $('vue-off-liste').hidden = true;
   $('vue-recherche').hidden = true;
   $('vue-choix-quoi').hidden = true;
   $('vue-app').hidden = true;
@@ -131,9 +132,9 @@ async function montrerListes() {
   majRetourListes();
   vueInventaire = '';
   $('liste-bientot').innerHTML = ''; $('liste-special').innerHTML = '';   // À consommer bientôt, En spécial : leurs catégories repartent fermées
-  remplirInventaire(); remplirBientot(); remplirSpecial(); remplirOff();   // instantané : ce qu'on a déjà en mémoire
+  remplirInventaire(); remplirBientot(); remplirSpecial();   // instantané : ce qu'on a déjà en mémoire
   if (!MEUBLES.length) await chargerReferences();
-  remplirInventaire(); remplirBientot(); remplirSpecial(); remplirOff();   // puis la version fraîche, quand elle arrive
+  remplirInventaire(); remplirBientot(); remplirSpecial();   // puis la version fraîche, quand elle arrive
 }
 function montrerAccueil()    { toutCacher(); $('vue-accueil').hidden = false; $('btn-burger').hidden = false; $('entete-photo').hidden = false; }
 /* Le Retour final (J-C, 2026-10-01) : pas l'accueil nu, l'accueil avec le menu ouvert — la prochaine action est là. */
@@ -3833,10 +3834,13 @@ function htmlSoldes(pid) {
    · Jamais : pour corriger (toucher l'article le rouvre sur le feu). En tête d'une catégorie : « Tout ce qui est ici aujourd'hui ».
    Lu en UN appel à l'ouverture (lireTri); chaque réponse est INSTANTANÉE et part par la file des gestes (action trier, rejouable),
    après l'aliment, la marque ou la saveur neufs qu'elle porte. */
-const CHEMIN_TRI = '#menu-outils, #menu-bases, [data-base="circulaires"]';   // le point rouge, sur le chemin (choix B de J-C)
-const CHEMIN_COMPLETER = '#menu-ajouter, #choix-completer';   // le point rouge d'une épicerie à compléter : le +, puis Compléter
+const CHEMIN_TRI = '#menu-bases, [data-base="circulaires"]';   // le coin replié, sur le chemin (choix B de J-C) — Outils aussi (plus bas)
+const CHEMIN_COMPLETER = '#menu-ajouter, #choix-completer';   // le coin replié d'une épicerie à compléter : le +, puis Compléter
 function poserPoints() {
-  document.querySelectorAll(CHEMIN_TRI).forEach(b => b.classList.toggle('point-rouge', NB_A_TRIER > 0));
+  const trier = NB_A_TRIER > 0, off = typeof listeOff === 'function' && listeOff().length > 0;   // Pour Open Food Facts (JS/off.js) : un produit attend ses photos
+  document.querySelectorAll(CHEMIN_TRI).forEach(b => b.classList.toggle('point-rouge', trier));
+  $('menu-off').classList.toggle('point-rouge', off);
+  $('menu-outils').classList.toggle('point-rouge', trier || off);   // Outils mène aux deux
   const attend = aCompleter().length > 0;
   document.querySelectorAll(CHEMIN_COMPLETER).forEach(b => b.classList.toggle('point-rouge', attend));
 }
@@ -5676,7 +5680,8 @@ function redessinerAliments() {
 function redessinerApresLecture() {
   if (!$('vue-listes').hidden && !document.querySelector('#liste-inventaire .endroit')) remplirInventaire();   // pas pendant un rangement
   if (!$('vue-listes').hidden && !document.querySelector('#liste-bientot .endroit')) remplirBientot();          // ni pendant un geste
-  if (!$('vue-listes').hidden) { remplirSpecial(); remplirOff(); }
+  if (!$('vue-listes').hidden) remplirSpecial();
+  if (!$('vue-off-liste').hidden && !$('liste-off').querySelector('[data-confirme], .accordeon-item-saisie')) remplirOff();   // pas pendant la question de la poubelle
   if (!$('vue-pieces').hidden && !Object.keys(ordreModifie).length && !document.querySelector('.champ-renommer')) remplirPieces();
   const saisieMeubles = [...$('liste-meubles').querySelectorAll('input')].some(i => i.value) || $('liste-meubles').querySelector('.champ-renommer, [data-confirme]');
   if (!$('vue-meubles').hidden && !Object.keys(ordreModifie).length && !saisieMeubles) remplirMeubles(true);   // pas pendant une saisie ni une question

@@ -10,7 +10,7 @@
   <!-- Ecran d'accueil iPad : le meme sac, en PNG (iOS n'accepte pas le SVG ici) -->
   <link rel="apple-touch-icon" href="apple-touch-icon.png?v=2">
 
-<link rel="stylesheet" href="CSS/rdg.css?v=187">
+<link rel="stylesheet" href="CSS/rdg.css?v=188">
 </head>
 <body>
 
@@ -38,12 +38,13 @@
       <button class="bouton bouton-grand" id="menu-outils" data-menu="outils" type="button" aria-label="Outils"><span class="icone icone-outils"></span></button>
       <button class="bouton bouton-grand" id="menu-rechercher" data-menu="rechercher" type="button" aria-label="Rechercher"><span class="icone icone-trouver"></span></button>
     </div>
-    <!-- Outils : ses 4 icônes prennent la place des 6; chacune SA couleur, figée (data-outil, le point 25) -->
+    <!-- Outils : ses 5 icônes prennent la place des 9; chacune SA couleur, figée (data-outil, le point 25) -->
     <div id="menu-outils-grille" hidden>
       <div class="grille">
         <button class="bouton bouton-grand" id="menu-bases" data-outil="bases" type="button" aria-label="Gérer les bases"><span class="icone icone-bases"></span></button>
         <button class="bouton bouton-grand" id="menu-couleurs" data-outil="couleurs" type="button" aria-label="Couleurs"><span class="icone icone-couleurs"></span></button>
         <button class="bouton bouton-grand" id="menu-qui" data-outil="qui" type="button" aria-label="Qui entre les articles"><span class="icone icone-qui"></span></button>
+        <button class="bouton bouton-grand" id="menu-off" data-outil="off" type="button" aria-label="Pour Open Food Facts"><span class="icone icone-off"></span></button>   <!-- la liste « Pour Open Food Facts » (J-C, 2026-10-17 : de Listes à Outils, B sur aperçu); le coin replié tant qu'un produit attend -->
         <button class="bouton bouton-grand" id="menu-deco" data-outil="deco" type="button" aria-label="Se déconnecter"><span class="icone icone-deco"></span></button>
       </div>
       <button class="bouton bouton-or bouton-pleine bouton-suite" id="menu-outils-retour" type="button" aria-label="Retour"><span class="icone icone-revenir"></span></button>   <!-- un pas en arrière : la grille du menu -->
@@ -111,7 +112,6 @@
     <div class="accordeon"><div class="accordeon-tete" data-toggle>Inventaire</div><div class="accordeon-corps" id="liste-inventaire" hidden></div></div>
     <div class="accordeon"><div class="accordeon-tete" data-toggle>À consommer bientôt</div><div class="accordeon-corps" id="liste-bientot" hidden></div></div>
     <div class="accordeon"><div class="accordeon-tete" data-toggle>En solde</div><div class="accordeon-corps" id="liste-special" hidden></div></div>
-    <div class="accordeon"><div class="accordeon-tete" data-toggle><span class="off-forme"></span>Pour Open Food Facts</div><div class="accordeon-corps" id="liste-off" hidden></div></div>
     <button class="bouton bouton-or bouton-pleine bouton-suite bouton-large" id="btn-retour-listes" type="button" aria-label="Retour"><span class="icone icone-accueil"></span></button>   <!-- rien d'ouvert : la maison; une liste ouverte : la flèche (majRetourListes) -->
   </div>
 </div>
@@ -517,6 +517,15 @@
 <!-- ============================================================
      OUTILS — couleurs : la palette du site. Les lignes sont bâties par le JS.
 ============================================================ -->
+<!-- POUR OPEN FOOD FACTS — la liste des produits qui attendent leurs photos (JS/off.js), ouverte par son bouton d'Outils -->
+<div id="vue-off-liste" hidden>
+  <div class="entete"><div class="titre titre-action"><span class="icone icone-off"></span>Pour Open Food Facts</div></div>   <!-- l'icône et la couleur de son bouton (RdG-11) -->
+  <div class="contenu niveau-2">
+    <div id="liste-off"></div>
+    <button class="bouton bouton-or bouton-pleine bouton-detache bouton-large" id="off-liste-retour" type="button" aria-label="Retour"><span class="icone icone-revenir"></span></button>   <!-- un pas en arrière : Outils -->
+  </div>
+</div>
+
 <div id="vue-couleurs" hidden>
   <div class="entete"><div class="titre titre-action"><span class="icone icone-couleurs"></span>Couleurs</div></div>   <!-- l'icône et la couleur de son bouton (RdG-11) -->
   <div class="contenu niveau-2">
@@ -542,11 +551,11 @@
 </div><!-- fin du conteneur -->
 
 <script src="JS/coffre.js?v=22"></script>
-<script src="JS/entree.js?v=223"></script>
+<script src="JS/entree.js?v=224"></script>
 <script src="JS/bientot.js?v=6"></script>
 <script src="JS/prix.js?v=9"></script>
 <script src="JS/epicerie.js?v=44"></script>
-<script src="JS/off.js?v=10"></script>
+<script src="JS/off.js?v=11"></script>
 <script src="JS/scan.js?v=25"></script>
 </body>
 </html>

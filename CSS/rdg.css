@@ -96,6 +96,7 @@
   --outil-couleurs:   var(--couleur-803);
   --outil-qui:        var(--couleur-702);
   --outil-deco:       var(--couleur-902);
+  --outil-off:        var(--couleur-304);   /* Pour Open Food Facts : le brun roux (J-C, 2026-10-17, B sur aperçu) */
   /* Le menu principal : chaque bouton SA couleur, figée (J-C, 2026-10-08, avec « Ouvrir » — RdG-09, décision 7 : chacun garde celle
      qu'il avait par sa place; la suite par position ne sert plus au menu). Ouvrir : le bleu pâle, le dessin en brun. */
   --menu-accueil:     var(--couleur-505);
@@ -215,7 +216,8 @@
   --icone-ouvrir-ligne: 20px;  /* le biscuit d'Ouvrir, dans sa pastille */
   /* OPEN FOOD FACTS (J-C, 2026-10-14, sur aperçu) : leur logo en couleurs sur une pastille blanche (L1) — sur la carte des deux sacs,
      la fiche, les lignes de la liste, de Consommer et d'Ouvrir, et en grand dans une case vide de l'écran des photos; sa forme seule,
-     brune sur la pastille beige, sur la barre de Listes (L2). Les deux tirés de l'image envoyée par J-C. */
+     crème sur le brun roux, sur son bouton d'Outils (L2, depuis le 2026-10-17 — la barre de Listes avant). Les deux tirés de l'image
+     envoyée par J-C. */
   --off-logo:   url("data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAMAAAADACAMAAABlApw1AAAASFBMVEX////9jBb9/fsCAgIDYx8Dkx73z5mdoJ5dXV3tp1yQOgGh0qtZoGevTgN0PBPXcRI0k0momSMyc0ZTjRO648V4sIl5xojjuZPT4AgeAAAAGHRSTlMA///////////////////////////////p3EQ2AAAFD0lEQVR42u2d7XbaMAyGHTmJDQ5LCrS9/ztdAnSjYBtIJFlqoz8769nI+/iV5A+KMWaNXxgAxxCcCyEA6BN/dN1Q/4+gTP57V38Pp0l9uFWvygEIQ10rBjh2dTSOWnI/Lr/e62hDkBj+uu6kNPbsQIZ9Sn/9Xlx5+Oi+IjUvhTodoXxuNFcxdO8BXtFfvATG4mxuYvj4xgA5/QJKIAzNXQzdFUJWv4BZALomFt1Xe4d9LTmDphGOAjTD2YR0/xSzEIIhTtB0E4GrpRuQtGAywUAt3oBkFUwROgUGZCxomlp4C7pY8DGPQMgyKFfHWQIvaB16nEMgaieTKYNGg/4ZBOJ2ki+2IidvI/YSgcizlDA8S7AXehKRnpJv+r/Yffx08vOYwEk+h0iZcDX8ws+BIHQ5gE7BOdyIMCQIuqDkMH1kONzqN2rUn065WmPeDoczxfjn4e3NtC1oeDdj1N5uNpvqHG+nuPylGn8+UUhWP4mv8iEXYlJfPRkbeQzweOzlIkxF+5r8Sy6BnLKtZoUIhGn0q7khwIUl8k/xWbQWFssvW86Aob9gKSDJL0aAp39C4E8jTPkFTABk/dwE+PpPaaRbP+OUQKSfLY3I9DNlEbSLdfb9ru9LEWDo3223210hAgT91aR/JCiSRRj6LwDbvgQBSv1mHagqylYEKP3nAQAhASD1z0wRn6cDyQVw6aN9gemAcAJjSSIANv00awq8BHqKgKCDVpyBXwaMCXQuA+FbSHYLuA3AtgBabv3IFhAb0O929zNzq8iAXWxxhGkBsQGX1V1PZgGLAfcbBDwLcA24T/jUDqcVOQnv7sX2iQ0ClgWoBvSx7cz0w8gGQSbANjrc8Q0C0qIUNYMSAJSTGXIP7bf5DSX+qhqwp92n9SP1If5lEHIOaQfgX0jj5hBoByiaQTg5pBygbAYh5NAKUBqgLQywuAjKNqEVwJjNClAWoHQTWtyGBADAbwcoS7BZvqv88z1MSxubm+f9WQpgb8IDbXzePlAbQHv7wMXraWYAhw3gVwBhAJYYwGMDuB8H4GgB7rre4i3ljwPwvDW8/LPflrUICAB42xB6DXNX8Z3fBh/Ac2aQXw4AnEXg8UsgUgSOMYOAAsDzZRAKgOPLIU9QArEicGwZhHOFieeywJNkUCyHHJMBKBkUyyHLVMJYl+B4HgssUQZxWeCpMihqgWdIIIv3W3+RF3f0CYRnQGRTgJ5E3pKVcMICT51AmAZELXC0CWRxLxJztASe2oCoBZZSv8W+yS1mgacrAHQDYnMBFoGLuosOEKszFIKofoqrAB0NQfRlraEIT0EQ10/0UT5r0XtRdFAs1V2S8dFaMh/E9XtDFfHnzU6jxIBYwg8UJwjmmZB8MTr9qTKYY0Jq+C3tZarJx75ogvPJoTCmEMErCEn55PqzBE8ipEefQ3+ewHo3O/e59D8gyDK4R//VGAkEo5AIhMtlDq/+JwguGCPIqHuM5/694Quw+MF7mTZ43fozq4qZUeCmOYcov8yXKeClUbG75J3i4cczofBV/ktNKH+VvNrsQXBAxBe5eN3yZ68pvJRv4fDz1Iu5NBtUq0+8ie+Sq+fTNsGIitSpLHzbB5w3BhLvvHfSptXlJazrG6uh6K6QxACn3ACry4C1hMUZ4FcD1h76i0p47aFrCa/LoNWAtYRRt5KgzAGvO4PM3bk0GH1x/Y67NzrjH4IzWuOSSUZzjDY4ozu0619jUfwF1kyPlWKEWZQAAAAASUVORK5CYII=");
   --off-forme:  url("data:image/png;base64,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");
   --off-fond:   var(--couleur-101);   /* la pastille du logo : blanche (une ombre la détache du blanc d'une liste) */
@@ -274,6 +276,7 @@
   --point-couleur:     var(--couleur-401);   /* … sa couleur */
   --point-signe:       var(--couleur-101);   /* … son ! blanc, mince (--poids-leger) */
   --point-signe-marge: 3px 8px 0 0;          /* … sa place dans le coin */
+  --point-pliure:      var(--couleur-201);   /* … la ligne beige très fine de la pliure, qui le détache du bouton (J-C, 2026-10-17, L4) */
   --point-marge:       8px;    /* le nombre d'une tuile (Par épicerie) : son écart du coin du bouton */
   --plan-collant:      10;     /* un bouton collé au bas de l'écran passe par-dessus la liste */
   --plan-fond:         -1;     /* la photo pâlie des pages de travail : sous tout le reste */
@@ -487,7 +490,7 @@ body:has(.sur-photo:not([hidden]))::before { display: none; }
 #vue-achats { --t: var(--menu-achats); }
 #vue-listes { --t: var(--menu-listes); }
 #vue-pieces { --t: var(--base-pieces); }   #vue-meubles { --t: var(--base-meubles); }   #vue-categories { --t: var(--base-categories); }
-#vue-aliments { --t: var(--base-aliments); }   #vue-circulaires { --t: var(--base-circulaires); }   #vue-couleurs { --t: var(--outil-couleurs); }
+#vue-aliments { --t: var(--base-aliments); }   #vue-circulaires { --t: var(--base-circulaires); }   #vue-couleurs { --t: var(--outil-couleurs); }   #vue-off-liste { --t: var(--outil-off); }
 #vue-noms[data-page="magasins"] { --t: var(--base-magasins); }   #vue-noms[data-page="marques"] { --t: var(--base-marques); }
 #vue-noms[data-page="saveurs"]  { --t: var(--base-saveurs); }    #vue-noms[data-page="unites"]  { --t: var(--base-unites); }
 #vue-app, #vue-scan { --t: var(--quoi-produit); }   #vue-off { --t: var(--couleur-305); }
@@ -621,6 +624,7 @@ body:has(.sur-photo:not([hidden]))::before { display: none; }
 .grille > .bouton-grand[data-outil="couleurs"]   { --c: var(--outil-couleurs); }
 .grille > .bouton-grand[data-outil="qui"]        { --c: var(--outil-qui); }
 .grille > .bouton-grand[data-outil="deco"]       { --c: var(--outil-deco); }
+.grille > .bouton-grand[data-outil="off"]        { --c: var(--outil-off); }
 .grille > .bouton-grand[data-menu="accueil"]     { --c: var(--menu-accueil); }
 .grille > .bouton-grand[data-menu="ajouter"]     { --c: var(--menu-ajouter); }
 .grille > .bouton-grand[data-menu="deplacer"]    { --c: var(--menu-deplacer); }
@@ -1065,12 +1069,6 @@ select.champ {
 .off::after { box-shadow: var(--bouton-ombre); }
 .off::before { content: ''; width: var(--off-logo-taille); height: var(--off-logo-taille); background: var(--off-logo) center / contain no-repeat; }
 .off.off-coin { position: absolute; right: 0; bottom: 0; height: var(--tactile); }
-/* SA FORME (L2), sur la barre « Pour Open Food Facts » de Listes : brune sur la pastille beige, à gauche du nom, sans grandir la barre. */
-.off-forme { flex-shrink: 0; display: flex; align-items: center; justify-content: center; width: var(--pastille-action); height: var(--pastille-action);
-  margin: calc(-1 * var(--espace-xs)) var(--espace-s) calc(-1 * var(--espace-xs)) 0; border-radius: var(--rayon); background: var(--action-base); }
-.off-forme::before { content: ''; width: var(--fleche-deplacer); height: var(--fleche-deplacer); background: var(--icone-trait-pale);
-  -webkit-mask: var(--off-forme) center / contain no-repeat; mask: var(--off-forme) center / contain no-repeat; }
-.accordeon-tete:has(> .off-forme) { justify-content: flex-start; }
 /* L'ÉCRAN DES PHOTOS (B — J-C, 2026-10-14, sur aperçu) : les trois photos côte à côte, leur nom dessous; une case vide (pointillée,
    le logo en grand) se touche pour prendre la photo; le texte qui manque, dans une liste blanche; le merci, Envoyer, Plus tard.
    Le champ de la photo est caché (les cases sont ses étiquettes) : pas « hidden », l'iPhone n'ouvrirait pas l'appareil. */
@@ -1277,6 +1275,7 @@ select.champ {
 .icone-couleurs { --dessin: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='0.8' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M12 22a1 1 0 0 1 0-20 10 9 0 0 1 10 9 5 5 0 0 1-5 5h-2.25a1.75 1.75 0 0 0-1.4 2.8l.3.4a1.75 1.75 0 0 1-1.4 2.8z'/%3E%3Ccircle cx='13.5' cy='6.5' r='1'/%3E%3Ccircle cx='17.5' cy='10.5' r='1'/%3E%3Ccircle cx='6.5' cy='12.5' r='1'/%3E%3Ccircle cx='8.5' cy='7.5' r='1'/%3E%3C/svg%3E"); }   /* Couleurs : la palette de peintre */
 .icone-qui { --dessin: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='0.8' stroke-linecap='round' stroke-linejoin='round'%3E%3Ccircle cx='12' cy='8' r='4'/%3E%3Cpath d='M4.5 21a7.5 7.5 0 0 1 15 0'/%3E%3C/svg%3E"); }   /* Qui entre les articles : une personne */
 .icone-deco { --dessin: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='0.8' stroke-linecap='round' stroke-linejoin='round'%3E%3Crect x='5' y='11' width='14' height='10' rx='1.5'/%3E%3Cpath d='M8 11V7a4 4 0 0 1 7.7-1.5'/%3E%3C/svg%3E"); }   /* Se déconnecter : le cadenas ouvert */
+.icone-off { --dessin: var(--off-forme); }   /* Pour Open Food Facts : la forme de leur logo (L2), crème comme les autres */
 
 /* ============================================================
    LA LISTE D'ACHATS (J-C, 2026-09-30, choix A sur aperçu) — les catégories en barres, chacune à sa couleur,
@@ -1417,7 +1416,7 @@ select.champ {
   justify-content: flex-end;
   border-radius: 0 var(--rayon) 0 0;
   clip-path: polygon(0 0, 100% 0, 100% 100%);
-  background: var(--point-couleur);
+  background: linear-gradient(to top right, transparent 50%, var(--point-pliure) 50%, var(--point-pliure) calc(50% + var(--filet)), var(--point-couleur) calc(50% + var(--filet)));
   color: var(--point-signe);
   font: var(--poids-leger) var(--texte-normal) / 1 var(--police);
 }

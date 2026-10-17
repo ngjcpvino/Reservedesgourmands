@@ -8,7 +8,8 @@
      entre, puis l'écran des photos; pas touché, le produit va sur la liste « Pour Open Food Facts ». Les deux sacs, aucun logo (J-C,
      2026-10-16 : « j'ai pas le temps au moment des scans ») : le produit va sur la liste, tout seul (RdG-12).
    · Un produit pas reconnu photographié au scan (RdG-12) : la photo de son emballage attend dans la case du devant de l'écran des photos.
-   · La liste : la 4e de Listes (sa barre porte la forme du logo, L2), toute la liste, le plus vieux en premier. Sa poubelle (J-C,
+   · La liste : sa page, ouverte par son bouton d'Outils (la forme du logo, L2; le coin replié tant qu'un produit attend — J-C,
+     2026-10-17; la 4e barre de Listes avant), toute la liste, le plus vieux en premier. Sa poubelle (J-C,
      2026-10-16 : « je n'ai pas gardé l'emballage ») : il la quitte (G = « Retiré … »); au prochain achat, Open Food Facts est
      redemandé et le logo reparaît — pas touché, il revient sur la liste.
    · Consommer et Ouvrir : la ligne d'un produit de la liste porte le logo (R1) — le produit en main, on fait les photos; ignoré, rien.
@@ -61,7 +62,7 @@ function texteManque(manque) {
 }
 
 /* ---------- La liste : la mémoire, sa file ---------- */
-function garderOff() { try { localStorage.setItem(OFF_LOCAL, JSON.stringify(OFF_LISTE)); } catch (e) {} }
+function garderOff() { try { localStorage.setItem(OFF_LOCAL, JSON.stringify(OFF_LISTE)); } catch (e) {} poserPoints(); }   // le coin replié d'Outils suit la liste
 function lireAttenteOff() { try { return JSON.parse(localStorage.getItem(OFF_ATTENTE) || '[]'); } catch (e) { return []; } }
 function ecrireAttenteOff(l) { try { localStorage.setItem(OFF_ATTENTE, JSON.stringify(l)); } catch (e) {} }
 function poserLigneOff(ligne) {
@@ -170,12 +171,20 @@ function boutonOff(rows, pid) {
   return r ? '<button class="off" type="button" data-off="' + esc(String(r[8]).trim()) + '" data-off-pid="' + esc(pid) + '" aria-label="Photos pour Open Food Facts"></button>' : '';
 }
 
-/* ---------- La liste « Pour Open Food Facts » (Listes, la 4e) : toute la liste, le plus vieux en premier (Y) ---------- */
+/* ---------- La liste « Pour Open Food Facts » : toute la liste, le plus vieux en premier (Y) — sa page, ouverte par son bouton d'Outils
+   (J-C, 2026-10-17 : « devrait plutôt se retrouver dans les outils. Et faire apparaître le ! » — la 4e barre de Listes avant). Le coin
+   replié et son ! sur ce bouton et sur Outils, tant qu'un produit y attend (poserPoints). ---------- */
+const listeOff = () => OFF_LISTE.filter(l => !l[6] && codeOffOk(l[1])).sort((a, b) =>
+  String(dateCourte(a[4]) || '').localeCompare(String(dateCourte(b[4]) || '')) || String(a[0]).localeCompare(String(b[0])));
+function montrerListeOff() {
+  toutCacher(); $('vue-off-liste').hidden = false; $('btn-burger').hidden = false;
+  remplirOff();
+  window.scrollTo(0, 0);
+}
 function remplirOff() {
   const cible = $('liste-off');
   if (!cible) return;
-  const xs = OFF_LISTE.filter(l => !l[6] && codeOffOk(l[1])).sort((a, b) =>
-    String(dateCourte(a[4]) || '').localeCompare(String(dateCourte(b[4]) || '')) || String(a[0]).localeCompare(String(b[0])));
+  const xs = listeOff();
   cible.innerHTML = xs.length ? '<div class="liste-blanche">' + xs.map(ligneListeOff).join('') + '</div>'
     : '<div class="accordeon-item"><span class="texte-petit texte-pale">Rien à envoyer à Open Food Facts.</span></div>';
   remplirPhotos();                                 // la photo de l'emballage d'un produit pas reconnu (epicerie.js)
@@ -208,11 +217,6 @@ function retirerOff(id) {
 function nomOff(pid) {
   const p = PRODUITS.find(x => String(x.id) === String(pid));
   return p ? String(p.nom).replace(/^Inconnu (?=\d)/, '') : '';
-}
-async function revenirListeOff() {
-  await montrerListes();
-  const t = $('liste-off').previousElementSibling;
-  if (!t.classList.contains('ouvert')) toggleAccordeon(t);
 }
 
 /* ---------- L'écran des photos (B) ---------- */
@@ -435,8 +439,9 @@ function initOff() {
     if (oui) { const k = oui.dataset.retirerOui; retirerOff(k.slice(k.indexOf('|') + 1)); return; }
     if (ev.target.closest('[data-retirer-non]')) { remplirOff(); return; }
     const b = ev.target.closest('[data-off]');
-    if (b) montrerOff(b.dataset.off, revenirListeOff);
+    if (b) montrerOff(b.dataset.off, montrerListeOff);
   });
-  $('liste-off').previousElementSibling.addEventListener('click', function () { if (this.classList.contains('ouvert')) remplirOff(); });
+  $('menu-off').addEventListener('click', montrerListeOff);
+  $('off-liste-retour').addEventListener('click', () => { ouvrirMenu(); montrerGrilleMenu('outils'); });   // un pas en arrière : le menu, sur Outils
 }
 document.addEventListener('DOMContentLoaded', initOff);
