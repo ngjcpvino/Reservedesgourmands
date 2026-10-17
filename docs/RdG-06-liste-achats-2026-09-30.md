@@ -100,12 +100,13 @@ J-C : « Ajouter. Ça prendrait au moins les habituels. » Aujourd'hui, le + de 
 **Décidé :**
 1. **Les habituels = tout ce qui a déjà été acheté**, avec ou sans code-barres (choix B; quand on fait la liste, l'emballage est souvent jeté : rien à scanner). Pas les habituels « sans code » des deux sacs.
 2. **Une case par aliment, jamais la marque** (J-C : « c'est souvent quand on décide d'un plat… plus l'aliment qu'une marque en particulier »).
-3. **Un toucher = sur la liste**, et on reste là pour le suivant (un plat = plusieurs ingrédients).
+3. ~~**Un toucher = sur la liste**, et on reste là pour le suivant~~ (remplacé par le 6).
 4. **Ce qui reste à la maison se voit** (« il en reste 1 »), **et on peut l'ajouter quand même** (J-C : « une recette qui prend un contenant entier »).
-5. **Retoucher un aliment qui vient d'être mis sur la liste l'enlève**, sur la même page (J-C : « Oui » — la ricotta touchée au lieu de la mozzarella).
+5. ~~**Retoucher un aliment qui vient d'être mis sur la liste l'enlève**, sur la même page (J-C : « Oui » — la ricotta touchée au lieu de la mozzarella)~~ (remplacé par le 6).
+6. **Ajouter = un mode à part** (J-C : « on devrait entrer dans un espace d'ajout. On clique, on déclique, sur plein d'items. On confirme et on sort du mode ajouter ») : un toucher choisit un aliment, le retoucher le déchoisit; rien ne va sur la liste avant le crochet, qui met tout d'un coup et sort du mode.
 
 **Les contraintes de J-C** : pas « une liste de 3 km »; **le look : un aperçu quand on sera rendu là** (J-C : « On jase avant de proposer du visuel »).
 
-**Questions ouvertes** (une à la fois) : un aliment venu tout seul sur la liste (il n'en reste plus), touché dans les habituels, que fait-il ?
+**Questions ouvertes** (une à la fois) : dans le mode ajouter, un aliment déjà sur la liste (venu tout seul ou ajouté avant) paraît-il ?
 
 **Noté, pas creusé** : les soldes par magasin dans le + (J-C : « je fouine et clique, ça se retrouve sur la liste; souvent ça influence les achats »). À savoir : Listes → « En solde » le fait déjà, par catégorie (`RdG-08`, le temps 1).
