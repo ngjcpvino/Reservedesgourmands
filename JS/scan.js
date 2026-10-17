@@ -60,7 +60,8 @@
   function reprendreScan(m) {
     if (!continu) { if (m) scanContinu(m); return; }   // la caméra a été fermée entre-temps (l'app en arrière-plan) : on la rouvre
     if (scanning) return;
-    if (!stream) { scanContinu(continu); return; }   // la caméra s'est fermée (l'app est passée en arrière-plan) : on la rouvre
+    var vivante = stream && stream.getVideoTracks().some(function (t) { return t.readyState === 'live'; });
+    if (!vivante) { scanContinu(continu); return; }   // la caméra s'est fermée (l'app en arrière-plan, l'appareil photo de l'iPhone pour un emballage) : on la rouvre
     repriseA = Date.now();
     scanning = true;
     boucle();
