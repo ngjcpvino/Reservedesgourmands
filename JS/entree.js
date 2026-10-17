@@ -3209,9 +3209,10 @@ function htmlBoutonsDeplacer(p) {
     '<button class="bouton bouton-grand ' + p + '-non" type="button" data-action="non" aria-label="Annuler"><span class="icone icone-non"></span></button>' +
     '<button class="bouton bouton-grand ' + p + '-oui" type="button" data-action="deplacer" aria-label="Déplacer" hidden><span class="icone icone-deplacer"></span></button></div>';
 }
-/* La quantité d'une carte (Déplacer, Consommer) : 1 d'office, entre un − et un +. */
+/* La quantité d'une carte (Déplacer, Consommer, les deux sacs) : 1 d'office, entre un − et un +, sans le mot (J-C : « pas utile de
+   voir le mot » — le − et le + le disent). */
 function htmlQuantite() {
-  return '<div class="bloc"><div class="label">Quantité</div><div class="plus-moins">' +
+  return '<div class="bloc"><div class="plus-moins">' +
     '<button class="bouton bouton-brun moins" type="button" aria-label="Moins"></button>' +
     '<input class="champ qte" type="text" inputmode="numeric" pattern="[0-9]*" value="1">' +
     '<button class="bouton bouton-brun plus" type="button" aria-label="Plus"></button></div></div>';
