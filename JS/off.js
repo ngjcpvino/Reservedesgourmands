@@ -350,6 +350,8 @@ async function envoyerOff() {
   if (!v || envoiOff) return;
   const envois = aEnvoyerOff();
   if (!envois.length) return;
+  const texte = envois.find(x => x.champs);
+  if (texte) remplirReserveOff(v.code, texte.champs);  // la marque et le format remplissent aussi la réserve (avant le réseau : Envoyer est touché)
   envoiOff = true;
   montrerVoile(true);
   let erreur = '';
@@ -406,6 +408,31 @@ async function envoyerOff() {
   if (!v.manque.length) { v.fini = true; remplirVueOff(); window.scrollTo(0, 0); return; }   // tout est parti : l'écran reste, le merci en gros (J-C, 2026-10-14, C sur aperçu : 3 s de message, c'était trop court)
   avis('Envoyé. Il reste ' + texteManque(v.manque) + '.', 'succes');
   remplirVueOff();
+}
+/* La marque et le format écrits pour Open Food Facts remplissent aussi la réserve, là où l'entrée de ce code n'en a pas (J-C, 2026-10-17 :
+   « Oui, la marque et le format seulement » — le nom, non : son aliment est général, « Fromage », le leur est le nom du produit). Au
+   toucher d'Envoyer, même si Open Food Facts refuse ensuite; instantané, par la file des gestes (« deplacer » : les lignes réécrites). */
+function remplirReserveOff(code, champs) {
+  const k = codeNu(code), lignes = STOCK.filter(r => codeNu(r[8]) === k && !ligneRetiree(r));   // ligneRetiree : entree.js
+  const sansMarque = lignes.filter(r => !String(r[5] || '').trim()), sansFormat = lignes.filter(r => !String(r[6] || '').trim());
+  const marque = champs.marque && sansMarque.length ? idListeOuNeuve('Marques', champs.marque) : '';   // retrouvée, sinon créée (epicerie.js)
+  const format = champs.format && sansFormat.length ? formatOff(champs.format) : '';
+  const modifs = lignes.filter(r => (marque && sansMarque.indexOf(r) !== -1) || (format && sansFormat.indexOf(r) !== -1))
+    .map(r => ligneCorrigee(r, l => {                // ligneCorrigee : epicerie.js
+      if (marque && !String(l[5] || '').trim()) l[5] = marque;
+      if (format && !String(l[6] || '').trim()) l[6] = format;
+    }));
+  if (!modifs.length) return;
+  poserGeste({ action: 'deplacer', opId: 'offr-' + idLocal(), ajouts: [], modifs: modifs });
+  memoriserVariante(String(modifs[0].ligne[1]), marque, format, [], '');   // proposés au prochain achat
+}
+/* Le format tapé, écrit comme ceux de la réserve : « 540ml » → « 540 ml »; une unité connue garde son écriture (« ML » → « ml »). */
+function formatOff(t) {
+  t = String(t || '').trim().replace(/\s+/g, ' ');
+  const m = t.match(/^(\d+(?:[.,]\d+)?)\s*([^\d\s].*)$/);
+  if (!m) return t;
+  const u = unitesConnues().find(x => x.toLowerCase() === m[2].toLowerCase());
+  return m[1] + ' ' + (u || m[2]);
 }
 /* Un refus pour trop de demandes (« erreur 429 »). */
 const tropDeDemandes = r => !!r && !r.ok && /\b429\b/.test(String(r.erreur || ''));
