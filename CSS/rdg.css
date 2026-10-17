@@ -270,10 +270,11 @@
   --photo-tri:         56px;   /* au tri : la petite photo d'un produit (derrière un code, une proposition) — J-C, 2026-10-02, sur aperçu */
   --photo-grande-haut: 78vh;   /* la photo touchée, en grand : sa hauteur au plus (J-C, 2026-10-08, choix A sur aperçu : « sur iPhone, c'est beaucoup trop petit ») */
   --photo-vide:        color-mix(in srgb, var(--couleur-201) 60%, var(--couleur-101));   /* pas de photo : une case pâle */
-  --point-taille:      14px;   /* le point rouge « du nouveau à trier », sur le chemin (Outils, Gérer les bases, Circulaires) */
-  --point-marge:       8px;    /* son écart du coin du bouton */
-  --point-bord:        2px;    /* son anneau crème : il se voit même sur le bouton rouge */
-  --point-couleur:     var(--couleur-401);
+  --point-coin:        36px;   /* « une action attend » : le coin du bouton replié, sa taille (J-C, 2026-10-17 : G3 sur aperçu — la pastille rouge avant) */
+  --point-couleur:     var(--couleur-401);   /* … sa couleur */
+  --point-signe:       var(--couleur-101);   /* … son ! blanc, mince (--poids-leger) */
+  --point-signe-marge: 3px 8px 0 0;          /* … sa place dans le coin */
+  --point-marge:       8px;    /* le nombre d'une tuile (Par épicerie) : son écart du coin du bouton */
   --plan-collant:      10;     /* un bouton collé au bas de l'écran passe par-dessus la liste */
   --plan-fond:         -1;     /* la photo pâlie des pages de travail : sous tout le reste */
   --plan-pastille:     -1;     /* la pastille d'une petite icône d'action : sous son dessin, dans son bouton */
@@ -1334,7 +1335,7 @@ select.champ {
   font-size: var(--texte-normal);
   font-weight: var(--poids-fort);
 }
-.bouton-grand > .nombre { position: absolute; top: var(--point-marge); right: var(--point-marge); font-size: var(--texte-moyen); }   /* une tuile (comme la page Circulaires) : dans le coin, là où se pose le point rouge */
+.bouton-grand > .nombre { position: absolute; top: var(--point-marge); right: var(--point-marge); font-size: var(--texte-moyen); }   /* une tuile (comme la page Circulaires) : dans le coin, là où se pose le coin replié d'une action qui attend */
 :is(.tuile-logo, .banniere) > .nombre { color: var(--couleur-306); }   /* sur le blanc d'un logo : brun (le crème y disparaîtrait) */
 .partie { padding: var(--espace-s) var(--espace-l) var(--espace-xs); font-size: var(--texte-normal); font-weight: var(--poids-fort); color: var(--couleur-306); border-top: var(--filet) solid var(--champ-bord); }
 .partie:first-child { border-top: none; }
@@ -1398,18 +1399,27 @@ select.champ {
 .photo-grande-x { position: absolute; top: calc(var(--espace-l) + var(--alerte-haut)); right: var(--espace-l); width: var(--coin-taille); height: var(--coin-taille); }
 .photo-grande-x::before, .photo-grande-x::after { content: ''; position: absolute; left: 50%; top: 50%; width: var(--burger-trait-large); height: var(--burger-trait-haut); margin: calc(var(--burger-trait-haut) / -2) 0 0 calc(var(--burger-trait-large) / -2); background: var(--couleur-101); border-radius: var(--rayon); transform: rotate(45deg); }
 .photo-grande-x::after { transform: rotate(-45deg); }
-/* LE POINT ROUGE (choix B de J-C) : quelque chose attend au bout du chemin — du nouveau à trier (Outils, Gérer les bases, Circulaires,
-   tant qu'« À trier » n'est pas vide), une épicerie à compléter (le +, Compléter). Le JS ne pose que la classe (poserPoints). */
+/* UNE ACTION ATTEND (choix B de J-C : sur le chemin) : quelque chose attend au bout — du nouveau à trier (Outils, Gérer les bases,
+   Circulaires, tant qu'« À trier » n'est pas vide), une épicerie à compléter (le +, Compléter). Le coin du bouton replié en rouge, un !
+   blanc mince dedans (J-C, 2026-10-17 : « un ! », « autre chose qu'un rond » — G3 sur aperçu; la pastille rouge avant). Le JS ne pose
+   que la classe (poserPoints; son nom est resté). */
 .point-rouge::after {
-  content: '';
+  content: '!';
   position: absolute;
-  top: var(--point-marge);
-  right: var(--point-marge);
-  width: var(--point-taille);
-  height: var(--point-taille);
-  border-radius: 50%;
+  top: 0;
+  right: 0;
+  width: var(--point-coin);
+  height: var(--point-coin);
+  box-sizing: border-box;
+  padding: var(--point-signe-marge);
+  display: flex;
+  align-items: flex-start;
+  justify-content: flex-end;
+  border-radius: 0 var(--rayon) 0 0;
+  clip-path: polygon(0 0, 100% 0, 100% 100%);
   background: var(--point-couleur);
-  box-shadow: 0 0 0 var(--point-bord) var(--couleur-105);
+  color: var(--point-signe);
+  font: var(--poids-leger) var(--texte-normal) / 1 var(--police);
 }
 
 /* ============================================================
