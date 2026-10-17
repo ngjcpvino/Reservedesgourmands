@@ -106,9 +106,10 @@ J-C : « Ajouter. Ça prendrait au moins les habituels. » Aujourd'hui, le + de 
 6. **Ajouter = un mode à part** (J-C : « on devrait entrer dans un espace d'ajout. On clique, on déclique, sur plein d'items. On confirme et on sort du mode ajouter ») : un toucher choisit un aliment, le retoucher le déchoisit; rien ne va sur la liste avant le crochet, qui met tout d'un coup et sort du mode.
 7. **Un aliment déjà sur la liste paraît dans le mode, « (déjà sur ta liste) », sans se toucher** (J-C : « Oui »).
 8. **Le mode ajouter garde l'entonnoir (« Nouvel aliment… ») et le scan, à côté des habituels** : ce qu'on y choisit part au même crochet (J-C : « On ajoute les habituels et des nouveautés. Et des connus »).
+9. **« Des connus »** = les aliments des bases jamais achetés (nés au tri des circulaires) : l'entonnoir les montre déjà, avec tous ceux de leur sous-catégorie (J-C : « Ah ok »).
 
 **Les contraintes de J-C** : pas « une liste de 3 km »; **le look : un aperçu quand on sera rendu là** (J-C : « On jase avant de proposer du visuel »).
 
-**Questions ouvertes** (une à la fois) : « des connus » = les aliments des bases jamais achetés (nés au tri des circulaires) ? — l'entonnoir les montre déjà.
+**Questions ouvertes** (une à la fois) : après le crochet, où revient-on ?
 
 **Noté, pas creusé** : les soldes par magasin dans le + (J-C : « je fouine et clique, ça se retrouve sur la liste; souvent ça influence les achats »). À savoir : Listes → « En solde » le fait déjà, par catégorie (`RdG-08`, le temps 1).
