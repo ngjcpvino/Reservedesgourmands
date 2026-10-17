@@ -120,4 +120,5 @@ J-C : « Ajouter. Ça prendrait au moins les habituels. » Aujourd'hui, le + de 
 - **sur la liste, sa ligne porte le nom de l'épicerie** (« Veau haché (Super C) ») : un solde choisi exprès;
 - **pas acheté à la fin de la semaine du solde : il quitte la liste tout seul**;
 - les articles pas encore triés tomberont parfois dans la mauvaise catégorie, de moins en moins avec l'usage (J-C).
-- J-C : « Le tout se confirme quand je quitte la page des soldes de ce magasin » — **à préciser** : les choix gardés jusqu'au crochet du mode, ou sur la liste dès qu'on quitte la page de l'épicerie ?
+- J-C : « Le tout se confirme quand je quitte la page des soldes de ce magasin » → **choix A** : quitter la page d'une épicerie garde ses choix (on peut aller voir une autre épicerie, ses habituels); **le crochet du mode met tout sur la liste d'un coup**, soldes et habituels ensemble.
+- **Question ouverte** : choisir un article pas encore trié, est-ce un Oui au tri ?
