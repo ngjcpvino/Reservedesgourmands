@@ -495,6 +495,7 @@ body:has(.sur-photo:not([hidden]))::before { display: none; }
 #vue-noms[data-page="saveurs"]  { --t: var(--base-saveurs); }    #vue-noms[data-page="unites"]  { --t: var(--base-unites); }
 #vue-app, #vue-scan { --t: var(--quoi-produit); }   #vue-off { --t: var(--couleur-305); }
 #vue-epicerie[data-quoi="epicerie"] { --t: var(--quoi-epicerie); }   #vue-epicerie[data-quoi="completer"] { --t: var(--quoi-completer); }
+#vue-epicerie[data-quoi="produit"] { --t: var(--quoi-produit); }   /* le sac seul : ses tuiles */
 #vue-scan[data-page="achats"] { --t: var(--menu-achats); }   #vue-scan[data-page="rechercher"] { --t: var(--menu-rechercher); }
 #vue-scan[data-page="consommer"] { --t: var(--menu-consommer); }   #vue-scan[data-page="deplacer"] { --t: var(--menu-deplacer); }   #vue-scan[data-page="ouvrir"] { --t: var(--menu-ouvrir); }
 #vue-recherche { --t: var(--menu-rechercher); }
