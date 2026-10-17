@@ -189,16 +189,23 @@ function remplirOff() {
     : '<div class="accordeon-item"><span class="texte-petit texte-pale">Rien à envoyer à Open Food Facts.</span></div>';
   remplirPhotos();                                 // la photo de l'emballage d'un produit pas reconnu (epicerie.js)
 }
+/* Une ligne (J-C, 2026-10-17 : « ajoute l'épicerie »; « au lieu du logo pour entrer, juste cliquer sur l'item ») : la toucher ouvre
+   l'écran des photos; la poubelle seule au bout. */
 function ligneListeOff(l) {
   const code = String(l[1]), st = derniereLigneCode(code);
   const det = [st ? nomListe(st[5]) : '', st ? String(st[6] || '') : ''].filter(Boolean).join(' · ') || code;
-  const jour = jourCourt(l[4]);
-  return '<div class="item">' + htmlPhotoCode(code) + '<div class="item-info"><div class="item-nom">' + esc(nomOff(l[2]) || code) + '</div>' +
+  const jour = jourCourt(l[4]), mag = magasinOff(l);
+  return '<div class="item" data-off="' + esc(code) + '">' + htmlPhotoCode(code) + '<div class="item-info"><div class="item-nom">' + esc(nomOff(l[2]) || code) + '</div>' +
     '<div class="item-detail">' + esc(det) + '</div>' +
     '<div class="item-detail">Il manque : ' + esc(texteManque(manqueDe(l))) + '</div>' +
-    (jour ? '<div class="item-detail">Entré le ' + esc(jour) + '</div>' : '') + '</div>' +
-    '<div class="boutons-ligne"><button class="retirer" type="button" data-off-retirer="' + esc(l[0]) + '" aria-label="Retirer de la liste"></button>' +
-    '<button class="off" type="button" data-off="' + esc(code) + '" aria-label="Photos pour Open Food Facts"></button></div></div>';
+    (jour ? '<div class="item-detail">' + esc('Entré le ' + jour + (mag ? ' chez ' + mag : '')) + '</div>' : '') + '</div>' +
+    '<div class="boutons-ligne"><button class="retirer" type="button" data-off-retirer="' + esc(l[0]) + '" aria-label="Retirer de la liste"></button></div></div>';
+}
+/* L'épicerie de l'achat qui l'a mis sur la liste (le même code, le même jour), sinon celle du dernier achat; '' sans magasin. */
+function magasinOff(l) {
+  const k = codeNu(l[1]), jour = dateCourte(l[4]);
+  const r = STOCK.find(x => codeNu(x[8]) === k && dateCourte(x[4]) === jour && String(x[11] || '').trim()) || derniereLigneCode(l[1]);
+  return r ? nomListe(r[11]) : '';
 }
 /* La poubelle (A sur aperçu : avant le logo) : « Retirer … de la liste ? » à la place de la ligne, Oui / Non, comme partout. */
 function demanderRetraitOff(id) {
