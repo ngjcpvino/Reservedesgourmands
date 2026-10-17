@@ -149,8 +149,8 @@
         </div>
       </div>
       <div class="grille bloc-suite">
-        <button class="bouton bouton-grand" data-action="oui" id="achat-ok" type="button" aria-label="Mettre sur la liste"><span class="icone icone-oui"></span></button>
         <button class="bouton bouton-grand" data-action="non" id="achat-annuler" type="button" aria-label="Annuler"><span class="icone icone-non"></span></button>
+        <button class="bouton bouton-grand" data-action="oui" id="achat-ok" type="button" aria-label="Mettre sur la liste"><span class="icone icone-oui"></span></button>
       </div>
     </div>
   </div>
@@ -284,9 +284,9 @@
     <div class="off-trois" id="off-photos"></div>
     <div class="liste-blanche bloc-suite" id="off-textes" hidden></div>
     <input class="fichier-cache" id="off-fichier" type="file" accept="image/*" capture="environment">
-    <div class="grille bloc-suite">   <!-- leur logo (Envoyer) et l'horloge (Plus tard) : la ligne directrice, RdG-11 -->
-      <button class="bouton bouton-grand" data-action="off" id="off-envoyer" type="button" aria-label="Envoyer à Open Food Facts" hidden><span class="logo-off"></span></button>
+    <div class="grille bloc-suite">   <!-- l'horloge (Plus tard) et leur logo (Envoyer) : le geste qui confirme à droite, partout -->
       <button class="bouton bouton-grand" data-action="tard" id="off-plus-tard" type="button" aria-label="Plus tard"><span class="icone icone-horloge"></span></button>
+      <button class="bouton bouton-grand" data-action="off" id="off-envoyer" type="button" aria-label="Envoyer à Open Food Facts" hidden><span class="logo-off"></span></button>
     </div>
     <button class="bouton bouton-or bouton-pleine bouton-detache bouton-large" id="off-retour" type="button" aria-label="Retour" hidden><span class="icone icone-revenir"></span></button>   <!-- la maison s'il mène au menu (le sac seul), sinon la flèche : off.js -->
   </div>
@@ -425,9 +425,9 @@
       </div>
     </div>
 
-    <div class="grille bloc-detache niveau-3">   <!-- le crochet (Enregistrer) et le X (Annuler), sur une ligne -->
-      <button class="bouton bouton-grand" data-action="oui" id="btn-enregistrer" type="button" aria-label="Enregistrer" hidden><span class="icone icone-oui"></span></button>
+    <div class="grille bloc-detache niveau-3">   <!-- le X (Annuler) et le crochet (Enregistrer), sur une ligne : le X à gauche, le crochet à droite, partout -->
       <button class="bouton bouton-grand" data-action="non" id="btn-annuler" type="button" aria-label="Annuler"><span class="icone icone-non"></span></button>
+      <button class="bouton bouton-grand" data-action="oui" id="btn-enregistrer" type="button" aria-label="Enregistrer" hidden><span class="icone icone-oui"></span></button>
     </div>
 
   </div>
@@ -542,10 +542,10 @@
 </div><!-- fin du conteneur -->
 
 <script src="JS/coffre.js?v=22"></script>
-<script src="JS/entree.js?v=220"></script>
+<script src="JS/entree.js?v=221"></script>
 <script src="JS/bientot.js?v=6"></script>
 <script src="JS/prix.js?v=9"></script>
-<script src="JS/epicerie.js?v=42"></script>
+<script src="JS/epicerie.js?v=43"></script>
 <script src="JS/off.js?v=10"></script>
 <script src="JS/scan.js?v=25"></script>
 </body>

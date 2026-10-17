@@ -102,7 +102,8 @@
   Claude : quatre lots, chacun poussé puis testé; « Go 1 »). Le ménage suit chaque lot (le CSS n'avait aucun reste inutile le 2026-10-16).
   - **✅ Lot 1, le 2026-10-16 (partout, les petites choses; pas encore testé, T88)** : **la case verte partout** (`.case` : `--action-oui`;
     avant : rouge hors de la Liste d'achats); **moins / plus plus étroit** (`.plus-moins > .champ` : `--qte-large`, 1,5 × `--tactile`);
-    **Oui / Non = le crochet et le X, petits, à droite de la question** (`ouiNon()` — fini le Oui rouge —, la réunion, les cartes d'un lot
+    **Oui / Non = le crochet et le X, petits, à droite de la question** (**depuis le 2026-10-17 : le X à gauche, le crochet à droite, partout** —
+    J-C : « Cohérence ! »; le geste qui confirme toujours à droite : la carte de Consommer = le X, la poubelle, la fourchette) (`ouiNon()` — fini le Oui rouge —, la réunion, les cartes d'un lot
     de l'Escale et de Compléter : `.question`; `[data-confirme] > :first-child` prend la place, le Oui ne se pose plus au milieu);
     **le crochet** = Enregistrer (la fiche), Enregistrer les couleurs, OK (Compléter); **le X** = Annuler (la fiche). Pièces communes :
     `data-action` vaut désormais pour tout `.bouton` (`:is(.grille > .bouton-grand, .bouton)`), `--icone-reponse` (22) et `--icone-pleine` (28).

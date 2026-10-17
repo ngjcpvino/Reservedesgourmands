@@ -293,7 +293,7 @@ function montrerCarte(a) {
     ? '<div class="bloc-suite"><div class="label">Dans la circulaire de ' + esc(EPI.nom) + ' : est-ce lui ?</div><div class="liste-blanche">' +
       htmlLigneCirc(a.ligne, 'data-epi-ok="O"') + ligneAucun('data-epi-ok="N"') + '</div></div>' +   // ligneAucun : entree.js (le tri)
       '<div class="grille bloc-suite">' + annulerCarteHtml() + '</div>'
-    : '<div class="grille bloc-suite">' + boutonCarte('oui', 'icone-oui', 'OK', 'data-epi-ok=""') + annulerCarteHtml() + '</div>';
+    : '<div class="grille bloc-suite">' + annulerCarteHtml() + boutonCarte('oui', 'icone-oui', 'OK', 'data-epi-ok=""') + '</div>';   // le X à gauche, le crochet à droite, partout (J-C : « Cohérence ! »)
   poserCarte('<div class="carte bloc-suite carte-scan niveau-3">' + h + '</div>');
   if (!pese) brancherPlusMoins($('epi-carte').firstElementChild, 99);
   offCarte(a);                                           // ce qui manque à Open Food Facts (JS/off.js), en arrière-plan : le produit ira sur sa liste
@@ -832,9 +832,9 @@ function ouvrirLotCompleter(btn) {
   carte.className = 'endroit carte';
   carte.innerHTML = htmlChoixEndroit() +
     '<div class="bloc"><div class="label">Quantité</div><input class="champ qte" type="text" inputmode="numeric" pattern="[0-9]*" value="' + esc(lot.qte) + '"></div>' +
-    '<div class="question"><div class="message"></div>' +   // la question, le crochet et le X à sa droite (RdG-11 : D)
-    '<button class="bouton bouton-petit lot-oui" type="button" data-action="oui" aria-label="Oui" hidden><span class="icone icone-oui"></span></button>' +
-    '<button class="bouton bouton-petit lot-non" type="button" data-action="non" aria-label="Non"><span class="icone icone-non"></span></button></div>';
+    '<div class="question"><div class="message"></div>' +   // la question, le X et le crochet à sa droite (RdG-11 : D)
+    '<button class="bouton bouton-petit lot-non" type="button" data-action="non" aria-label="Non"><span class="icone icone-non"></span></button>' +
+    '<button class="bouton bouton-petit lot-oui" type="button" data-action="oui" aria-label="Oui" hidden><span class="icone icone-oui"></span></button></div>';
   item.closest('.item').replaceWith(carte);
   brancherEndroit(carte);
   const cible = () => carte.querySelector('.espace').value || carte.querySelector('.meuble').value;
@@ -966,8 +966,8 @@ function htmlPanneau(lot) {
       (page ? '<div class="grille bloc-suite">' + voir + boutonCarte('coller', 'icone-coller', 'Coller la page', 'data-cp-coller') + '</div>' +
               '<div class="message">Sur sa page : Partager → Copier pour la Réserve, puis reviens ici.</div>' +
               '<textarea class="champ bloc-suite" id="cp-texte" placeholder="Colle le texte de la page ici" hidden></textarea>' +
-              bas(boutonCarte('sans', 'icone-avant', 'Sans la page', 'data-cp-sans'), annuler)
-            : bas(suivant('data-cp-sans'), annuler)) +
+              bas(annuler, boutonCarte('sans', 'icone-avant', 'Sans la page', 'data-cp-sans'))
+            : bas(annuler, suivant('data-cp-sans'))) +
     '</div>' +
     '<div data-etape="2" hidden>' + tete(2, 'Ce que l\'app a lu', 'cp-titre-2') +
       '<div class="liste-blanche bloc-suite" id="cp-lu"></div>' +

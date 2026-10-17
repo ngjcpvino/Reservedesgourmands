@@ -1830,10 +1830,10 @@ function demanderRetrait(type, id) {
   if (cible.firstElementChild.classList.contains('ouvert')) toggleAccordeon(cible.firstElementChild);
   cible.insertAdjacentHTML('afterend', ligne);
 }
-/* Les deux réponses d'un retrait : Oui (rouge) / Non. */
+/* Les deux réponses d'un retrait : le X (Non), puis le crochet (Oui) — partout le X à gauche, le crochet à droite (J-C : « Cohérence ! »). */
 function ouiNon(type, id) {
-  return '<button class="bouton bouton-petit" type="button" data-action="oui" data-retirer-oui="' + type + '|' + esc(id) + '" aria-label="Oui"><span class="icone icone-oui"></span></button>' +
-    '<button class="bouton bouton-petit" type="button" data-action="non" data-retirer-non aria-label="Non"><span class="icone icone-non"></span></button>';   // le crochet et le X (la ligne directrice, RdG-11 : D)
+  return '<button class="bouton bouton-petit" type="button" data-action="non" data-retirer-non aria-label="Non"><span class="icone icone-non"></span></button>' +
+    '<button class="bouton bouton-petit" type="button" data-action="oui" data-retirer-oui="' + type + '|' + esc(id) + '" aria-label="Oui"><span class="icone icone-oui"></span></button>';   // le X et le crochet (la ligne directrice, RdG-11 : D)
 }
 /* Oui : retirer. Ce qu'il contient passe dans « Pas encore rangé » (choix B de J-C). Instantané, comme Déplacer :
    la mémoire change tout de suite, l'envoi part dans la file des gestes. Rien n'est effacé du Sheet :
@@ -2517,8 +2517,8 @@ function demanderReunion(cle, autre) {
   const item = btn && (btn.closest('.aliment') || btn.closest('.liste-suite > .accordeon'));
   if (!item) { rafraichirBases(); return; }
   item.outerHTML = '<div class="accordeon-item accordeon-item-saisie" data-confirme><span>« ' + esc(autre.nom) + ' » existe déjà : les réunir ?</span>' +
-    '<button class="bouton bouton-petit" type="button" data-action="oui" data-reunir="' + esc(cle + '|' + autre.id) + '" aria-label="Oui"><span class="icone icone-oui"></span></button>' +
-    '<button class="bouton bouton-petit" type="button" data-action="non" data-reunir-non aria-label="Non"><span class="icone icone-non"></span></button></div>';
+    '<button class="bouton bouton-petit" type="button" data-action="non" data-reunir-non aria-label="Non"><span class="icone icone-non"></span></button>' +
+    '<button class="bouton bouton-petit" type="button" data-action="oui" data-reunir="' + esc(cle + '|' + autre.id) + '" aria-label="Oui"><span class="icone icone-oui"></span></button></div>';
 }
 async function reunirNoms(val) {
   const k = String(val).split('|'), cle = k[0], garde = k[1], T = TABLES_NOM[cle.charAt(0)], perdu = cle.slice(2);
@@ -2611,9 +2611,9 @@ function ouvrirLot(btn) {
   carte.className = 'endroit carte';
   carte.innerHTML = htmlChoixEndroit() +
     '<div class="bloc"><div class="label">Quantité</div><input class="champ qte" type="text" inputmode="numeric" pattern="[0-9]*" value="' + esc(lot.qte) + '"></div>' +
-    '<div class="question"><div class="message"></div>' +   // la question, le crochet et le X à sa droite (RdG-11 : D)
-    '<button class="bouton bouton-petit lot-oui" type="button" data-action="oui" aria-label="Oui" hidden><span class="icone icone-oui"></span></button>' +
-    '<button class="bouton bouton-petit lot-non" type="button" data-action="non" aria-label="Non"><span class="icone icone-non"></span></button></div>';
+    '<div class="question"><div class="message"></div>' +   // la question, le X et le crochet à sa droite (RdG-11 : D)
+    '<button class="bouton bouton-petit lot-non" type="button" data-action="non" aria-label="Non"><span class="icone icone-non"></span></button>' +
+    '<button class="bouton bouton-petit lot-oui" type="button" data-action="oui" aria-label="Oui" hidden><span class="icone icone-oui"></span></button></div>';
   btn.closest('.item').replaceWith(carte);
   brancherEndroit(carte);
   const cible = () => carte.querySelector('.espace').value || carte.querySelector('.meuble').value;
@@ -3194,19 +3194,20 @@ function htmlLigneLot(prod, l, attr) {
     (detail ? '<div class="item-detail">' + esc(detail) + '</div>' : '') + '</div>' +
     '<span class="item-quantite">' + esc(l.qte) + '</span></div>';
 }
-/* Le bas d'une carte (la ligne directrice, RdG-11; Consommer : B sur aperçu) : les gestes du menu en icônes, à leur couleur, et le X,
-   sur une ligne, au niveau 3. Consommer : la poubelle (Jeter — remplace la case « Jeté »), la fourchette, le X; Déplacer : les flèches,
-   le X. p : le préfixe des classes de la carte (« inv », « conso », « bouger »). */
+/* Le bas d'une carte (la ligne directrice, RdG-11; Consommer : B sur aperçu) : le X, puis les gestes du menu en icônes, à leur couleur,
+   sur une ligne, au niveau 3 — le X à gauche partout, le geste qui confirme à droite (J-C : « Cohérence ! »). Consommer : le X, la
+   poubelle (Jeter — remplace la case « Jeté »), la fourchette; Déplacer : le X, les flèches. p : le préfixe des classes de la carte
+   (« inv », « conso », « bouger »). */
 function htmlBoutonsConso(p) {
   return '<div class="grille grille-trois bloc-suite">' +
+    '<button class="bouton bouton-grand ' + p + '-non" type="button" data-action="non" aria-label="Annuler"><span class="icone icone-non"></span></button>' +
     '<button class="bouton bouton-grand ' + p + '-jeter" type="button" data-action="jeter" aria-label="Jeter"><span class="icone icone-poubelle"></span></button>' +
-    '<button class="bouton bouton-grand ' + p + '-oui" type="button" data-action="consommer" aria-label="Consommer"><span class="icone icone-consommer"></span></button>' +
-    '<button class="bouton bouton-grand ' + p + '-non" type="button" data-action="non" aria-label="Annuler"><span class="icone icone-non"></span></button></div>';
+    '<button class="bouton bouton-grand ' + p + '-oui" type="button" data-action="consommer" aria-label="Consommer"><span class="icone icone-consommer"></span></button></div>';
 }
 function htmlBoutonsDeplacer(p) {
   return '<div class="grille bloc-suite">' +
-    '<button class="bouton bouton-grand ' + p + '-oui" type="button" data-action="deplacer" aria-label="Déplacer" hidden><span class="icone icone-deplacer"></span></button>' +
-    '<button class="bouton bouton-grand ' + p + '-non" type="button" data-action="non" aria-label="Annuler"><span class="icone icone-non"></span></button></div>';
+    '<button class="bouton bouton-grand ' + p + '-non" type="button" data-action="non" aria-label="Annuler"><span class="icone icone-non"></span></button>' +
+    '<button class="bouton bouton-grand ' + p + '-oui" type="button" data-action="deplacer" aria-label="Déplacer" hidden><span class="icone icone-deplacer"></span></button></div>';
 }
 /* La quantité d'une carte (Déplacer, Consommer) : 1 d'office, entre un − et un +. */
 function htmlQuantite() {
@@ -4850,15 +4851,15 @@ async function achatParCode(code) {
 }
 
 /* Gérer les bases → Aliments : « Enlever » retire un « Pas aimé ». */
-/* La poubelle d'un « Pas aimé » : « Enlever … des Pas aimé ? », le crochet et le X à sa place (comme partout). */
+/* La poubelle d'un « Pas aimé » : « Enlever … des Pas aimé ? », le X et le crochet à sa place (comme partout). */
 function demanderEnleverPasAime(cle) {
   remplirPageAliments(true);                       // une seule question à la fois
   const b = [...$('liste-aliments').querySelectorAll('[data-pas-demande]')].find(x => x.dataset.pasDemande === cle);
   if (!b) return;
   const nom = b.previousElementSibling ? b.previousElementSibling.textContent : '';
   b.parentElement.outerHTML = '<div class="accordeon-item accordeon-item-saisie" data-confirme><span>' + esc('Enlever ' + nom + ' des Pas aimé ?') + '</span>' +
-    '<button class="bouton bouton-petit" type="button" data-action="oui" data-pas-aime="' + esc(cle) + '" aria-label="Oui"><span class="icone icone-oui"></span></button>' +
-    '<button class="bouton bouton-petit" type="button" data-action="non" data-retirer-non aria-label="Non"><span class="icone icone-non"></span></button></div>';
+    '<button class="bouton bouton-petit" type="button" data-action="non" data-retirer-non aria-label="Non"><span class="icone icone-non"></span></button>' +
+    '<button class="bouton bouton-petit" type="button" data-action="oui" data-pas-aime="' + esc(cle) + '" aria-label="Oui"><span class="icone icone-oui"></span></button></div>';
 }
 async function enleverPasAime(btn) {
   const k = btn.dataset.pasAime.split('|');
