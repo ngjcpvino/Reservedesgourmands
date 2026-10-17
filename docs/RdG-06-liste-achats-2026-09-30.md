@@ -114,4 +114,10 @@ J-C : « Ajouter. Ça prendrait au moins les habituels. » Aujourd'hui, le + de 
 
 **Questions ouvertes** : plus rien côté comportement (le tour fait le 2026-10-17); reste le look, sur aperçu, quand J-C le dira.
 
-**Noté, pas creusé** : les soldes par magasin dans le + (J-C : « je fouine et clique, ça se retrouve sur la liste; souvent ça influence les achats »). À savoir : Listes → « En solde » le fait déjà, par catégorie (`RdG-08`, le temps 1).
+**Les soldes dans le + — EN RÉFLEXION (2026-10-17)** (J-C : « je fouine et clique, ça se retrouve sur la liste; souvent ça influence les achats »; à savoir : Listes → « En solde » montre déjà ses Oui et Peut-être, par catégorie, `RdG-08`, le temps 1). Décidé (J-C : « En plein ça ») :
+- dans le mode ajouter, **on touche une épicerie : ses soldes de la semaine paraissent, sauf les Jamais**;
+- **un produit qui intéresse se choisit**, du même geste que les habituels;
+- **sur la liste, sa ligne porte le nom de l'épicerie** (« Veau haché (Super C) ») : un solde choisi exprès;
+- **pas acheté à la fin de la semaine du solde : il quitte la liste tout seul**;
+- les articles pas encore triés tomberont parfois dans la mauvaise catégorie, de moins en moins avec l'usage (J-C).
+- J-C : « Le tout se confirme quand je quitte la page des soldes de ce magasin » — **à préciser** : les choix gardés jusqu'au crochet du mode, ou sur la liste dès qu'on quitte la page de l'épicerie ?
