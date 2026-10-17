@@ -222,7 +222,6 @@
   --off-logo-taille: 22px;          /* le logo dans sa pastille */
   --off-grand:  50%;                /* le logo dans une case vide : la moitié de la case */
   --off-colonnes: 3;                /* les trois photos côte à côte (B) */
-  --off-choisi: var(--couleur-702); /* le logo touché sur une carte qui pose encore sa question : les photos suivront la réponse */
   --off-merci-logo: 96px;           /* tout est parti : leur logo en grand… */
   --off-merci-taille: 34px;         /* … et « Merci ! » dessous (J-C, 2026-10-14, C sur aperçu) */
   --action-consommer:  var(--menu-consommer);   /* chaque action, la couleur de son bouton au menu (J-C, 2026-10-09, choix A sur aperçu) */
@@ -267,6 +266,7 @@
   --rond-tri:          48px;   /* les 3 boutons ronds de la page Circulaires : Oui, Peut-être, Jamais (J-C, 2026-10-05, sur aperçu : 48 parmi 32 / 40 / 48; 64 avant) */
   --ronds-ecart:       calc(var(--espace-xl) * 1.5);   /* entre deux ronds */
   --banniere-haut:     calc(var(--tactile) * 2);       /* une épicerie ouverte : son logo en bannière, aussi haute que deux barres */
+  --case-photo-icone:  64px;   /* le produit pas reconnu : l'appareil photo au centre de la case vide (J-C, 2026-10-17, B sur aperçu) */
   --photo-tri:         56px;   /* au tri : la petite photo d'un produit (derrière un code, une proposition) — J-C, 2026-10-02, sur aperçu */
   --photo-grande-haut: 78vh;   /* la photo touchée, en grand : sa hauteur au plus (J-C, 2026-10-08, choix A sur aperçu : « sur iPhone, c'est beaucoup trop petit ») */
   --photo-vide:        color-mix(in srgb, var(--couleur-201) 60%, var(--couleur-101));   /* pas de photo : une case pâle */
@@ -735,6 +735,25 @@ select.champ {
 /* Toute l'épicerie : la carte de l'article scanné — sa ligne (et celle de la circulaire) posée dans la carte, sans trait ni retrait
    (aperçu du 2026-10-02) */
 .carte-scan > .item { border-top: none; padding-left: 0; padding-right: 0; }   /* le produit de la carte; la liste « est-ce lui ? » garde ses lignes */
+/* LE PRODUIT PAS RECONNU (J-C, 2026-10-17, B sur aperçu) : en tête de sa carte, une case de la forme de la caméra, à sa place (la
+   fenêtre ne change pas de forme) — pointillée, l'appareil photo au centre; touchée, l'appareil photo de l'iPhone s'ouvre (la case est
+   l'étiquette du champ caché). La photo prise la remplit, entière; le petit appareil dans le coin la reprend. */
+.case-photo {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  aspect-ratio: var(--scan-forme);
+  overflow: hidden;
+  margin-bottom: var(--espace-s);
+  background: var(--couleur-101);
+  border: var(--filet) dashed var(--couleur-302);
+  border-radius: var(--rayon-video);
+  cursor: pointer;
+}
+.case-photo .icone-photo { width: var(--case-photo-icone); height: var(--case-photo-icone); --icone-trait: var(--couleur-302); }
+.case-pleine { border-style: solid; border-color: var(--couleur-201); }
+.case-pleine img { display: block; width: 100%; height: 100%; object-fit: contain; }
 
 /* ============================================================
    ACCORDÉON — un bloc repliable (tête brune + items)
@@ -948,7 +967,7 @@ select.champ {
    LES DEUX FLÈCHES « ranger » (l'Escale — J-C, 2026-10-01, choix B sur aperçu) : le dessin de Déplacer, au bout de la ligne aussi;
    le crayon ne veut plus dire que « corriger un nom ».
    LA FLÈCHE « revenir » (Liste d'achats → Mis de côté — J-C, 2026-10-01, choix C sur aperçu) : remet sur la liste, au bout de la ligne. */
-.retirer, .ranger, .remettre, .consommer, .entamer, .ajouter, .off {
+.retirer, .ranger, .remettre, .consommer, .entamer, .ajouter, .off, .photo-coin {
   display: flex;
   align-items: center;
   justify-content: center;
@@ -971,14 +990,14 @@ select.champ {
    Le dessin : crème sur une pastille foncée, brun sur une pâle. Le nombre, lui, n'a plus de pastille : il ne fait que dire combien.
    LE TRAIT : aussi fin partout, celui de la poubelle (J-C, 2026-10-14, sur aperçu : « Poubelle partout pareil ») — 1,2 sur un dessin
    de 18 px, 1,1 pour le biscuit (20 px), 0,9 pour la poubelle (24 px), 0,8 pour les flèches ↑↓ (dessinées sur 16). */
-:is(.retirer, .crayon, .fleche, .ranger, .remettre, .consommer, .entamer, .ajouter, .off) { --p: var(--action-base); --i: var(--icone-trait-pale); position: relative; isolation: isolate; flex-shrink: 0; }
+:is(.retirer, .crayon, .fleche, .ranger, .remettre, .consommer, .entamer, .ajouter, .off, .photo-coin) { --p: var(--action-base); --i: var(--icone-trait-pale); position: relative; isolation: isolate; flex-shrink: 0; }
 .consommer { --p: var(--action-consommer); --i: var(--icone-trait); }
 .ranger    { --p: var(--action-deplacer); --i: var(--icone-trait); }
 .remettre  { --p: var(--action-achats); --i: var(--icone-trait); }
 .entamer   { --p: var(--action-ouvrir); }
 .ajouter   { --p: var(--action-ajouter); --i: var(--icone-trait); }
 .off       { --p: var(--off-fond); }
-:is(.retirer, .crayon, .fleche, .ranger, .remettre, .consommer, .entamer, .ajouter, .off)::after {
+:is(.retirer, .crayon, .fleche, .ranger, .remettre, .consommer, .entamer, .ajouter, .off, .photo-coin)::after {
   content: '';
   position: absolute;
   top: 50%;
@@ -990,7 +1009,7 @@ select.champ {
   background: var(--p);
   z-index: var(--plan-pastille);
 }
-.retirer::before, .crayon::before, .ranger::before, .remettre::before, .consommer::before, .entamer::before, .ajouter::before {
+.retirer::before, .crayon::before, .ranger::before, .remettre::before, .consommer::before, .entamer::before, .ajouter::before, .photo-coin::before {
   content: '';
   width: var(--fleche-deplacer);
   height: var(--fleche-deplacer);
@@ -1033,11 +1052,17 @@ select.champ {
   -webkit-mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='1.2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M12 4v16M4 12h16'/%3E%3C/svg%3E") center / contain no-repeat;
           mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='1.2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M12 4v16M4 12h16'/%3E%3C/svg%3E") center / contain no-repeat;
 }
+/* L'APPAREIL PHOTO « reprendre la photo » (le produit pas reconnu, J-C, 2026-10-17 : B sur aperçu) : dans le coin de la photo prise,
+   beige comme le crayon (pas de bouton au menu). */
+.photo-coin { position: absolute; right: 0; bottom: 0; height: var(--tactile); }
+.photo-coin::before {
+  -webkit-mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='1.2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M3 8.5A1.5 1.5 0 0 1 4.5 7h3l1.5-2.5h6L16.5 7h3A1.5 1.5 0 0 1 21 8.5v9a1.5 1.5 0 0 1-1.5 1.5h-15A1.5 1.5 0 0 1 3 17.5z'/%3E%3Ccircle cx='12' cy='13' r='3.5'/%3E%3C/svg%3E") center / contain no-repeat;
+          mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='1.2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M3 8.5A1.5 1.5 0 0 1 4.5 7h3l1.5-2.5h6L16.5 7h3A1.5 1.5 0 0 1 21 8.5v9a1.5 1.5 0 0 1-1.5 1.5h-15A1.5 1.5 0 0 1 3 17.5z'/%3E%3Ccircle cx='12' cy='13' r='3.5'/%3E%3C/svg%3E") center / contain no-repeat;
+}
 /* LE LOGO D'OPEN FOOD FACTS (L1) : une image en couleurs, pas un dessin à teindre; sa pastille blanche a son ombre.
-   Sur une photo prise (l'écran des photos) : dans le coin, pour la reprendre. Touché sur une carte qui pose sa question : un anneau vert. */
+   Sur une photo prise (l'écran des photos) : dans le coin, pour la reprendre. */
 .off::after { box-shadow: var(--bouton-ombre); }
 .off::before { content: ''; width: var(--off-logo-taille); height: var(--off-logo-taille); background: var(--off-logo) center / contain no-repeat; }
-.off[aria-pressed="true"]::after { box-shadow: 0 0 0 var(--halo) var(--off-choisi); }
 .off.off-coin { position: absolute; right: 0; bottom: 0; height: var(--tactile); }
 /* SA FORME (L2), sur la barre « Pour Open Food Facts » de Listes : brune sur la pastille beige, à gauche du nom, sans grandir la barre. */
 .off-forme { flex-shrink: 0; display: flex; align-items: center; justify-content: center; width: var(--pastille-action); height: var(--pastille-action);
@@ -1226,6 +1251,7 @@ select.champ {
 .icone-poubelle { --dessin: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='0.8' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M4 6.5h16M9.5 6.5V4h5v2.5M6.5 6.5l1 13.5h9l1-13.5M10 10.5v6M14 10.5v6'/%3E%3C/svg%3E"); }   /* Jeter, en grand (le dessin de la poubelle d'une ligne) */
 .icone-revenir { --dessin: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='0.8' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M9 14L4 9l5-5'/%3E%3Cpath d='M4 9h10.5a5.5 5.5 0 0 1 0 11H11'/%3E%3C/svg%3E"); }   /* Retour d'un pas : la flèche « revenir » (le scan — J-C, 2026-10-14, C sur aperçu parmi le + / cette flèche / ←; la maison, elle, mène au menu) */
 .icone-avant { --dessin: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='0.8' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M15 14l5-5-5-5'/%3E%3Cpath d='M20 9H9.5a5.5 5.5 0 0 0 0 11H13'/%3E%3C/svg%3E"); }   /* la même, tournée vers l'avant : Suivant, Sans la page (RdG-11, décision 11) */
+.icone-photo { --dessin: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='0.8' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M3 8.5A1.5 1.5 0 0 1 4.5 7h3l1.5-2.5h6L16.5 7h3A1.5 1.5 0 0 1 21 8.5v9a1.5 1.5 0 0 1-1.5 1.5h-15A1.5 1.5 0 0 1 3 17.5z'/%3E%3Ccircle cx='12' cy='13' r='3.5'/%3E%3C/svg%3E"); }   /* l'appareil photo : photographier l'emballage d'un produit pas reconnu (J-C, 2026-10-17) */
 .icone-coller { --dessin: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='0.8' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M9 3.5h6v3H9z'/%3E%3Cpath d='M8 5H5.5v15.5h13V5H16'/%3E%3Cpath d='M8.5 11h7M8.5 14h7M8.5 17h4.5'/%3E%3C/svg%3E"); }   /* le presse-papiers : Coller la page */
 .icone-porte { --dessin: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='0.8' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M13.5 3.5h5v17h-5'/%3E%3Cpath d='M3.5 12h11'/%3E%3Cpath d='M10.5 8l4 4-4 4'/%3E%3C/svg%3E"); }   /* la flèche qui entre par la porte : Entrer */
 .icone-crayon { --dessin: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='0.8' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M4 20.5l1.2-4.4L16.8 4.5l3.2 3.2L8.4 19.3z'/%3E%3Cpath d='M14.3 7l3.2 3.2'/%3E%3C/svg%3E"); }   /* le crayon, en grand : Corriger (Compléter) */

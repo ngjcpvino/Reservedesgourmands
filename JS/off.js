@@ -4,8 +4,10 @@
    Utilise entree.js, prix.js, epicerie.js (chargés avant) et scan.js (chercherOFF).
    · Au premier scan d'un code, à la maison (le sac seul, les deux sacs — jamais Rechercher : au magasin, on n'entre rien), l'app
      demande à Open Food Facts ce qui lui manque : les trois photos (le devant, les ingrédients, la valeur nutritive), le nom
-     français, la marque, le format. S'il manque quelque chose, son logo (L1) paraît sur la carte, sur la fiche. Touché : l'article
-     entre, puis l'écran des photos. Pas touché : l'article entre, et le produit va sur la liste « Pour Open Food Facts » (plus tard).
+     français, la marque, le format. S'il manque quelque chose : le sac seul, son logo (L1) paraît sur la fiche — touché, l'article
+     entre, puis l'écran des photos; pas touché, le produit va sur la liste « Pour Open Food Facts ». Les deux sacs, aucun logo (J-C,
+     2026-10-16 : « j'ai pas le temps au moment des scans ») : le produit va sur la liste, tout seul (RdG-12).
+   · Un produit pas reconnu photographié au scan (RdG-12) : la photo de son emballage attend dans la case du devant de l'écran des photos.
    · La liste : la 4e de Listes (sa barre porte la forme du logo, L2), toute la liste, le plus vieux en premier. Sa poubelle (J-C,
      2026-10-16 : « je n'ai pas gardé l'emballage ») : il la quitte (G = « Retiré … »); au prochain achat, Open Food Facts est
      redemandé et le logo reparaît — pas touché, il revient sur la liste.
@@ -144,38 +146,22 @@ function offApresFiche(code, pid) {
   return true;
 }
 
-/* ---------- Les deux sacs : la carte ---------- */
+/* ---------- Les deux sacs : la carte, sans logo (J-C, 2026-10-16 : « j'ai pas le temps au moment des scans ») ----------
+   Open Food Facts est demandé en arrière-plan; il lui manque quelque chose : le produit va sur la liste, tout seul — même quand la
+   réponse arrive après le crochet (on scanne vite). */
 async function offCarte(a) {
-  if (!a || !codeOffOk(a.code)) return;
-  const deja = ligneOff(a.code);
-  if (deja) { a.off = { manque: manqueDe(deja), surListe: true }; montrerLogoCarte(a); return; }
-  if (completOff(a.code)) return;
+  if (!a || !codeOffOk(a.code) || ligneOff(a.code) || completOff(a.code)) return;
   const d = await etatOff(a.code);
   if (d && !d.manque.length) noterCompletOff(a.code);
-  if (EPI_CARTE !== a || !d || !d.manque.length) return;
-  a.off = { manque: d.manque };
-  montrerLogoCarte(a);
+  if (!d || !d.manque.length) return;
+  if (a.entre) ajouterOff(a.code, a.entre, d.manque);   // l'article est déjà entré
+  else a.off = { manque: d.manque };
 }
-function montrerLogoCarte(a) {
-  const b = EPI_CARTE === a && $('epi-carte').querySelector('[data-off-carte]');
-  if (b) b.hidden = false;
-}
-/* Touché : l'article entre (OK), puis l'écran des photos. La carte pose sa question (« L'associer à ce produit ? ») : le logo reste
-   enfoncé, et la réponse fera le reste. */
-function toucherOffCarte(b) {
-  const a = EPI_CARTE;
-  if (!a || !a.off) return;
-  a.off.photos = true;
-  if ($('epi-carte').querySelector('[data-epi-ok=""]')) { validerCarte(''); return; }
-  b.setAttribute('aria-pressed', 'true');
-}
-/* Après l'entrée d'une carte (validerCarte) : sur la liste; les photos demandées : leur écran, puis on revient scanner (true). */
+/* Après l'entrée d'une carte (validerCarte) : sur la liste, si Open Food Facts a déjà répondu (sinon, offCarte le fera). */
 function offApresCarte(a, pid) {
-  if (!a || !a.off) return false;
-  if (!a.off.surListe) ajouterOff(a.code, pid, a.off.manque);
-  if (!a.off.photos) return false;
-  montrerOff(a.code, montrerScanEpicerie);
-  return true;
+  if (!a) return;
+  a.entre = pid;
+  if (a.off) ajouterOff(a.code, pid, a.off.manque);
 }
 
 /* ---------- Consommer, Ouvrir : le logo sur la ligne (R1) ---------- */
@@ -192,12 +178,13 @@ function remplirOff() {
     String(dateCourte(a[4]) || '').localeCompare(String(dateCourte(b[4]) || '')) || String(a[0]).localeCompare(String(b[0])));
   cible.innerHTML = xs.length ? '<div class="liste-blanche">' + xs.map(ligneListeOff).join('') + '</div>'
     : '<div class="accordeon-item"><span class="texte-petit texte-pale">Rien à envoyer à Open Food Facts.</span></div>';
+  remplirPhotos();                                 // la photo de l'emballage d'un produit pas reconnu (epicerie.js)
 }
 function ligneListeOff(l) {
   const code = String(l[1]), st = derniereLigneCode(code);
   const det = [st ? nomListe(st[5]) : '', st ? String(st[6] || '') : ''].filter(Boolean).join(' · ') || code;
   const jour = jourCourt(l[4]);
-  return '<div class="item"><div class="item-info"><div class="item-nom">' + esc(nomOff(l[2])) + '</div>' +
+  return '<div class="item">' + htmlPhotoCode(code) + '<div class="item-info"><div class="item-nom">' + esc(nomOff(l[2]) || code) + '</div>' +
     '<div class="item-detail">' + esc(det) + '</div>' +
     '<div class="item-detail">Il manque : ' + esc(texteManque(manqueDe(l))) + '</div>' +
     (jour ? '<div class="item-detail">Entré le ' + esc(jour) + '</div>' : '') + '</div>' +
@@ -217,10 +204,10 @@ function retirerOff(id) {
   if (l && !l[6]) { const n = l.slice(); n[6] = 'Retiré ' + dateDuJour(); ecrireOff(n, false); }
   remplirOff();
 }
-/* Le nom de l'aliment (un produit inconnu des deux sacs porte « Inconnu 0626… » tant qu'on ne l'a pas complété). */
+/* Le nom de l'aliment (un produit pas reconnu au scan des deux sacs porte son code tant qu'on ne l'a pas complété — RdG-12). */
 function nomOff(pid) {
   const p = PRODUITS.find(x => String(x.id) === String(pid));
-  return p && !/^Inconnu \d/.test(p.nom) ? p.nom : 'Produit inconnu';
+  return p ? String(p.nom).replace(/^Inconnu (?=\d)/, '') : '';
 }
 async function revenirListeOff() {
   await montrerListes();
@@ -237,6 +224,7 @@ async function montrerOff(code, retour) {
   code = String(ligne[1]);
   const v = OFF_VUE = { code: code, ligne: ligne.slice(), manque: manqueDe(ligne), etat: null, textes: textesDepart(ligne), retour: retour, prise: '', fini: false };
   remplirVueOff();
+  devantEmballage(v);                              // la photo de l'emballage prise au scan : la photo du devant, déjà dans sa case
   const recherche = etatOff(code, true);          // ce qu'Open Food Facts a MAINTENANT (quelqu'un l'a peut-être complété entre-temps)
   chariotPendant(recherche, 'Open Food Facts…');
   const d = await recherche;
@@ -251,10 +239,19 @@ async function montrerOff(code, retour) {
   if (d.manque.join(',') !== v.manque.join(',')) { v.manque = d.manque; v.ligne[3] = d.manque.join(','); ecrireOff(v.ligne, false); }
   remplirVueOff();
 }
+/* Un produit pas reconnu photographié au scan (RdG-12) : sa photo devient celle du devant (J-C : « Oui ») — elle ne part qu'avec Envoyer;
+   on la reprend comme les autres. Déjà une photo du devant prise ici : on n'y touche pas. */
+async function devantEmballage(v) {
+  if (v.manque.indexOf('devant') === -1 || (OFF_PHOTOS[v.code] || {}).devant || !aPhoto(v.code)) return;
+  const d = await donneesPhoto(v.code);
+  if (!d || OFF_VUE !== v || v.fini || v.manque.indexOf('devant') === -1 || (OFF_PHOTOS[v.code] || {}).devant) return;
+  (OFF_PHOTOS[v.code] = OFF_PHOTOS[v.code] || {}).devant = d;
+  remplirVueOff();
+}
 /* Le texte qu'on enverra : le nom de l'aliment (en français), la marque et le format de sa dernière entrée — chacun se corrige. */
 function textesDepart(ligne) {
   const st = derniereLigneCode(ligne[1]), nom = nomOff(ligne[2]);
-  return { nom: nom === 'Produit inconnu' ? '' : nom, marque: st ? nomListe(st[5]) : '', format: st ? String(st[6] || '').trim() : '' };
+  return { nom: nomCode(nom) ? '' : nom, marque: st ? nomListe(st[5]) : '', format: st ? String(st[6] || '').trim() : '' };   // son code n'est pas un nom
 }
 function remplirVueOff() {
   const v = OFF_VUE;

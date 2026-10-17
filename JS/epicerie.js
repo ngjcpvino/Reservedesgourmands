@@ -145,7 +145,13 @@ function choisirSans(quoi) {
   montrer('epi-habituels', quoi === 'habituels'); montrer('epi-entonnoir', quoi === 'entonnoir');
   if (!quoi) fermerCarte();
 }
-function fermerCarte() { EPI_CARTE = null; epiJeton++; $('epi-carte').innerHTML = ''; }
+function fermerCarte() { EPI_CARTE = null; epiJeton++; poserCarte(''); }
+/* La carte d'un article (J-C, 2026-10-16 : « les questions doivent prendre la place de la caméra ») : au scan, elle prend la place de
+   la caméra et de ses deux boutons (Taper le code, Sans code), qui reviennent pour l'article suivant. Dans Sans code, rien ne bouge. */
+function poserCarte(html) {
+  $('epi-carte').innerHTML = html;
+  if ($('epi-sans').hidden) montrer('epi-camera', !html);
+}
 
 /* Un code lu. Ses données d'abord (instantané); sinon la recherche (identifierCode). */
 async function surCodeEpicerie(code) {
@@ -163,8 +169,8 @@ async function surCodeEpicerie(code) {
   }
   const local = codeCirculaire(code);                    // dans une circulaire d'IGA : tout de suite, sans réseau
   if (local) { montrerCarte(articleNouveau(code, local)); return; }
-  $('epi-carte').innerHTML = '<div class="carte bloc-suite carte-scan niveau-3"><div class="message">Recherche du produit…</div>' +
-    '<div class="grille bloc-suite">' + annulerCarteHtml() + '</div></div>';
+  poserCarte('<div class="carte bloc-suite carte-scan niveau-3"><div class="message">Recherche du produit…</div>' +
+    '<div class="grille bloc-suite">' + annulerCarteHtml() + '</div></div>');
   const recherche = identifierCode(code);
   chariotPendant(recherche, 'Recherche du produit…');   // le chariot : on voit qu'elle travaille (5 s au plus, elle continue derrière)
   const r = await recherche;
@@ -245,7 +251,7 @@ function titreEpicerie(texte, quoi) {
 const boutonCarte = (action, icone, nom, attr) => '<button class="bouton bouton-grand" type="button" data-action="' + action + '" ' + attr + ' aria-label="' + esc(nom) + '"><span class="icone ' + icone + '"></span></button>';
 const annulerCarteHtml = () => boutonCarte('non', 'icone-non', 'Annuler', 'data-epi-annuler');
 function articleNouveau(code, r) {
-  if (!r || !r.source || !String(r.texte || r.marque || '').trim()) return { code: code, pid: null, nouveau: { nom: 'Inconnu ' + code, inconnu: true }, format: '' };
+  if (!r || !r.source || !String(r.texte || r.marque || '').trim()) return { code: code, pid: null, nouveau: { nom: code, inconnu: true }, format: '' };   // pas reconnu : son code pour nom, sans « Inconnu » (J-C, 2026-10-16)
   const marqueNom = adoucir(r.marque || '');
   let nom = adoucir(r.texte || r.marque);
   if (marqueNom) {                                       // la marque garde son écriture dans le nom (« SUCRE REDPATH » → « Sucre Redpath »)
@@ -274,13 +280,12 @@ function montrerCarte(a) {
   const m = trouverCirculaire(a);
   a.ligne = m ? m.ligne : null; a.auto = !!(m && m.auto);
   const prod = a.pid ? PRODUITS.find(p => String(p.id) === String(a.pid)) : null;
-  const nom = a.nouveau ? (a.nouveau.inconnu ? 'Produit inconnu' : a.nouveau.nom) : (prod ? prod.nom : '');
+  const nom = a.nouveau ? a.nouveau.nom : (prod ? prod.nom : '');   // pas reconnu : son code
   const marqueNom = a.marque ? nomListe(a.marque) : (a.nouveau ? a.nouveau.marqueNom : '');
   const detail = [marqueNom, a.saveur ? nomListe(a.saveur) : '', a.format].filter(Boolean).join(' · ') || (estPlu(a.code) ? 'PLU ' + a.code : '');
-  let h = '<div class="item">' + (a.photo ? '<img class="tri-photo" src="' + esc(a.photo) + '" alt="">' : '') +
-    '<div class="item-info"><div class="item-nom">' + esc(nom) + '</div>' + (detail ? '<div class="item-detail">' + esc(detail) + '</div>' : '') +
-    (a.nouveau && a.nouveau.inconnu ? '<div class="code-barres">' + esc(a.code) + '</div>' : '') + '</div>' +
-    '<button class="off" type="button" data-off-carte hidden aria-label="Photos pour Open Food Facts"></button></div>';   // le logo d'Open Food Facts : quand il lui manque quelque chose (offCarte)
+  let h = (a.nouveau && a.nouveau.inconnu ? htmlCasePhoto(a) : '') +   // pas reconnu : la case pour photographier l'emballage (B sur aperçu)
+    '<div class="item">' + (a.photo ? '<img class="tri-photo" src="' + esc(a.photo) + '" alt="">' : '') +
+    '<div class="item-info"><div class="item-nom">' + esc(nom) + '</div>' + (detail ? '<div class="item-detail">' + esc(detail) + '</div>' : '') + '</div></div>';
   if (a.ligne && a.auto) h += '<div class="message message-succes">En circulaire : ' + esc(textePrixLigne(a.ligne)) + '</div>';
   if (a.prixPese !== '') h += '<div class="message message-succes">Prix payé : ' + esc(textePrix(a.prixPese)) + ' $</div>';
   h += pese ? htmlPoids() : htmlQuantite();             // un paquet pesé : toujours 1; son poids à la place (choix A sur aperçu)
@@ -289,9 +294,9 @@ function montrerCarte(a) {
       htmlLigneCirc(a.ligne, 'data-epi-ok="O"') + ligneAucun('data-epi-ok="N"') + '</div></div>' +   // ligneAucun : entree.js (le tri)
       '<div class="grille bloc-suite">' + annulerCarteHtml() + '</div>'
     : '<div class="grille bloc-suite">' + boutonCarte('oui', 'icone-oui', 'OK', 'data-epi-ok=""') + annulerCarteHtml() + '</div>';
-  $('epi-carte').innerHTML = '<div class="carte bloc-suite carte-scan niveau-3">' + h + '</div>';
+  poserCarte('<div class="carte bloc-suite carte-scan niveau-3">' + h + '</div>');
   if (!pese) brancherPlusMoins($('epi-carte').firstElementChild, 99);
-  offCarte(a);                                           // ce qui manque à Open Food Facts (JS/off.js) : son logo, s'il y a lieu
+  offCarte(a);                                           // ce qui manque à Open Food Facts (JS/off.js), en arrière-plan : le produit ira sur sa liste
 }
 /* Une ligne de la circulaire, au complet (J-C : « sinon je peux pas répondre ») : sa photo, son nom, son format, son prix (le régulier). */
 function htmlLigneCirc(l, attr) {
@@ -389,6 +394,7 @@ function validerCarte(rep) {
               opId: opId, epicerie: EPI.id, endroits: [{ id: id, emp: emp, qte: qte }] } });
   if (l && rep === 'O') relierCirculaire(l, pid, marque, saveur, code);
   if (l && rep === 'N') EPI_REFUS[l.cle + '|' + String(a.pid || a.code || '')] = true;
+  if (a.photoEmb && code) garderPhotoEmballage(code, a.photoEmb);   // la photo de l'emballage : sur l'appareil, puis au coffre-fort
   if (code) {                                            // son code est à nous tout de suite : le prochain scan le reconnaît
     CODES[code] = pid;
     const c = lireCache(); if (c) { (c.codes = c.codes || {})[code] = pid; ecrireCache(c); }
@@ -398,7 +404,7 @@ function validerCarte(rep) {
   fermerCarte();
   remplirListeEpicerie();
   poserPoints();                                         // le point rouge de Compléter : il y a du nouveau à placer
-  if (offApresCarte(a, pid)) return;                     // Open Food Facts : sur sa liste; son logo touché : l'écran des photos, puis on revient scanner
+  offApresCarte(a, pid);                                 // Open Food Facts : sur sa liste (les photos, plus tard — J-C : « j'ai pas le temps au moment des scans »)
   if (a.sansCode) reinitSansCode(); else reprendreCamera();
 }
 function annulerCarte() {
@@ -441,9 +447,160 @@ function remplirListeEpicerie() {
     groupes.reverse().map(g => {
       const p = PRODUITS.find(x => String(x.id) === g.pid);
       const det = [nomListe(g.marque), nomListe(g.saveur), g.format].filter(Boolean).join(' · ') || (estPlu(g.code) ? 'PLU ' + g.code : '');
-      return '<div class="item"><div class="item-info"><div class="item-nom">' + esc(p ? p.nom : '') + '</div>' +
+      return '<div class="item">' + htmlPhotoCode(g.code) + '<div class="item-info"><div class="item-nom">' + esc(p ? p.nom : '') + '</div>' +
         (det ? '<div class="item-detail">' + esc(det) + '</div>' : '') + '</div><span class="item-quantite">' + esc(g.qte) + '</span></div>';
     }).join('') + '</div></div>';
+  remplirPhotos();
+}
+
+/* ---------- LA PHOTO DE L'EMBALLAGE (J-C, 2026-10-16 et 17 : docs/RdG-12) ----------
+   Un produit pas reconnu au scan (son code pour nom) : la case en tête de sa carte (B sur aperçu), de la forme de la caméra, ouvre
+   l'appareil photo de l'iPhone. La photo (réduite comme celles d'Open Food Facts : reduirePhoto, off.js) entre avec l'article : gardée
+   sur l'appareil (IndexedDB : trop lourde pour localStorage), puis envoyée au coffre-fort en arrière-plan, par SA file
+   (rdg_photos_attente) — le Google Drive de J-C, privé. L'autre appareil la demande au coffre-fort (references.photos dit lesquelles
+   existent), puis la garde. Une par code (codeNu : le 0 du début mangé ou pas). On la revoit dans la liste du jour, dans Compléter,
+   et sur l'écran Open Food Facts (la photo du devant, à envoyer ou pas). */
+const PHOTOS_ATTENTE = 'rdg_photos_attente';   // les codes dont la photo n'est pas encore au coffre-fort
+const PHOTOS_ICI = 'rdg_photos_ici';           // { codeNu: ID du fichier, ou '' pas encore envoyée } : ce que l'appareil garde
+var PHOTOS_SERVEUR = {};     // references.photos : { codeNu: { code, fichier } }
+var PHOTOS_MEMO = {};        // { codeNu: adresse à afficher (blob:) } : déjà lues
+var PHOTOS_PRISES = {};      // { codeNu: data:… } : prises, pas encore au coffre-fort (au cas où l'appareil ne les garde pas)
+const photosEnCours = {};    // { codeNu: Promise } : une seule lecture à la fois par code
+const photosRatees = {};     // { codeNu: quand } : le coffre-fort n'a pas répondu — pas de nouvel essai avant 2 minutes (la file des appels ne s'engorge pas)
+let basePhotos = null, expeditionPhotos = false;
+const lireJson = (cle, vide) => { try { return JSON.parse(localStorage.getItem(cle) || 'null') || vide; } catch (e) { return vide; } };
+const ecrireJson = (cle, v) => { try { localStorage.setItem(cle, JSON.stringify(v)); } catch (e) {} };
+function noterIci(k, fichier) { const x = lireJson(PHOTOS_ICI, {}); x[k] = fichier || ''; ecrireJson(PHOTOS_ICI, x); }
+const aPhoto = code => { const k = codeNu(code); return !!k && (!!PHOTOS_MEMO[k] || k in lireJson(PHOTOS_ICI, {}) || !!PHOTOS_SERVEUR[k]); };
+
+function poserPhotosServeur(p) {
+  PHOTOS_SERVEUR = {};
+  Object.keys(p || {}).forEach(code => { const k = codeNu(code); if (k) PHOTOS_SERVEUR[k] = { code: String(code), fichier: String(p[code] || '') }; });
+}
+function ouvrirBasePhotos() {
+  if (!basePhotos) basePhotos = new Promise((ok, non) => {
+    if (!window.indexedDB) { non(new Error('pas de base')); return; }
+    const r = indexedDB.open('rdg', 1);
+    r.onupgradeneeded = () => r.result.createObjectStore('photos');
+    r.onsuccess = () => ok(r.result);
+    r.onerror = () => non(r.error);
+  }).catch(e => { basePhotos = null; throw e; });
+  return basePhotos;
+}
+async function lirePhotoLocale(k) {               // { code, data (data:image/jpeg;base64,…), fichier } ou null
+  const db = await ouvrirBasePhotos();
+  return new Promise((ok, non) => { const r = db.transaction('photos').objectStore('photos').get(k); r.onsuccess = () => ok(r.result || null); r.onerror = () => non(r.error); });
+}
+async function ecrirePhotoLocale(k, val) {
+  const db = await ouvrirBasePhotos();
+  return new Promise((ok, non) => { const t = db.transaction('photos', 'readwrite'); t.objectStore('photos').put(val, k); t.oncomplete = () => ok(); t.onerror = () => non(t.error); });
+}
+/* Une photo (data:…) en adresse courte à afficher : une liste qui se redessine à chaque scan ne recopie pas des centaines de Ko. */
+function adressePhoto(k, data) {
+  const b = atob(data.split(',')[1] || ''), o = new Uint8Array(b.length);
+  for (let i = 0; i < b.length; i++) o[i] = b.charCodeAt(i);
+  if (PHOTOS_MEMO[k]) URL.revokeObjectURL(PHOTOS_MEMO[k]);
+  return PHOTOS_MEMO[k] = URL.createObjectURL(new Blob([o], { type: 'image/jpeg' }));
+}
+/* La photo d'un code, à afficher ('' : aucune). Celle de l'appareil d'abord; l'autre appareil l'a prise (ou reprise) : le coffre-fort. */
+function photoDe(code) {
+  const k = codeNu(code), s = PHOTOS_SERVEUR[k];
+  if (!k) return Promise.resolve('');
+  const ici = lireJson(PHOTOS_ICI, {});
+  if (PHOTOS_MEMO[k] && (!s || !ici[k] || ici[k] === s.fichier)) return Promise.resolve(PHOTOS_MEMO[k]);
+  if (photosEnCours[k]) return photosEnCours[k];
+  return photosEnCours[k] = (async () => {
+    let rec = null;
+    try { rec = await lirePhotoLocale(k); } catch (e) {}
+    if (rec && rec.data && (!s || !rec.fichier || rec.fichier === s.fichier)) return adressePhoto(k, rec.data);   // la sienne, à jour (ou pas encore envoyée)
+    if (s && !(Date.now() - (photosRatees[k] || 0) < 120000)) {
+      let r = null;
+      try { r = await Coffre.photo(s.code); } catch (e) {}
+      if (!(r && r.ok)) photosRatees[k] = Date.now();
+      if (r && r.ok && r.image) {
+        const data = 'data:image/jpeg;base64,' + r.image, fichier = String(r.fichier || s.fichier);
+        try { await ecrirePhotoLocale(k, { code: s.code, data: data, fichier: fichier }); noterIci(k, fichier); } catch (e) {}
+        return adressePhoto(k, data);
+      }
+    }
+    return rec && rec.data ? adressePhoto(k, rec.data) : '';   // pas de réseau : la vieille, si on l'a
+  })().finally(() => { delete photosEnCours[k]; });
+}
+/* La même, telle quelle (data:…) : pour l'écran Open Food Facts, qui l'envoie. */
+async function donneesPhoto(code) {
+  const k = codeNu(code);
+  if (PHOTOS_PRISES[k]) return PHOTOS_PRISES[k];
+  if (!(await photoDe(code))) return '';
+  try { const rec = await lirePhotoLocale(k); return rec && rec.data || ''; } catch (e) { return ''; }
+}
+/* Sa place sur une ligne : la photo déjà lue, sinon une case pâle que remplirPhotos() remplit quand elle arrive. Pas de photo : rien. */
+function htmlPhotoCode(code) {
+  const k = codeNu(code);
+  if (!aPhoto(k)) return '';
+  return PHOTOS_MEMO[k] ? '<img class="tri-photo" src="' + esc(PHOTOS_MEMO[k]) + '" alt="">'
+    : '<span class="tri-photo tri-photo-vide" data-photo-code="' + esc(k) + '"></span>';
+}
+function remplirPhotos() {
+  document.querySelectorAll('[data-photo-code]').forEach(c => {
+    photoDe(c.dataset.photoCode).then(src => {
+      if (!src || !c.isConnected) return;
+      const img = document.createElement('img');
+      img.className = 'tri-photo'; img.alt = ''; img.src = src;
+      c.replaceWith(img);
+    });
+  });
+}
+/* La case de la carte : vide (l'appareil photo au centre), ou la photo prise (le petit appareil dans le coin la reprend). La case est
+   l'étiquette du champ caché (#epi-photo) : la toucher ouvre l'appareil photo de l'iPhone. */
+const htmlCasePhoto = a => a.photoEmb
+  ? '<label class="case-photo case-pleine" for="epi-photo" data-epi-photo aria-label="Reprendre la photo de l\'emballage"><img src="' + esc(a.photoEmb) + '" alt=""><span class="photo-coin"></span></label>'
+  : '<label class="case-photo" for="epi-photo" data-epi-photo aria-label="Photographier l\'emballage"><span class="icone icone-photo"></span></label>';
+async function surPhotoEmballage() {
+  const champ = $('epi-photo'), f = champ.files && champ.files[0], a = EPI_CARTE;
+  champ.value = '';                                    // la même case retouchée rouvre l'appareil
+  if (!f || !a) return;
+  let data;
+  try { data = await reduirePhoto(f); } catch (e) { avis('Photo illisible — reprends-la.', 'erreur'); return; }
+  if (EPI_CARTE !== a) return;                         // la carte est partie entre-temps
+  a.photoEmb = data;
+  const c = $('epi-carte').querySelector('[data-epi-photo]');
+  if (c) c.outerHTML = htmlCasePhoto(a);
+}
+/* L'article entré avec sa photo : affichée tout de suite (la liste du jour), gardée sur l'appareil, puis envoyée. */
+function garderPhotoEmballage(code, data) {
+  const k = codeNu(code);
+  if (!k) return;
+  PHOTOS_PRISES[k] = data;
+  adressePhoto(k, data);
+  noterIci(k, '');
+  const att = lireJson(PHOTOS_ATTENTE, []).filter(c => codeNu(c) !== k);
+  ecrireJson(PHOTOS_ATTENTE, att.concat([String(code).trim()]));
+  ecrirePhotoLocale(k, { code: String(code).trim(), data: data, fichier: '' }).catch(() => {}).then(expedierPhotos);
+}
+/* La file des photos : une à la fois, au coffre-fort (garderPhoto). Le coffre-fort ne la connaît pas encore (« action inconnue »), ou le
+   réseau : elle attend, et repart à la prochaine lecture de la réserve. Une fois partie : l'autre appareil la voit. */
+async function expedierPhotos() {
+  if (expeditionPhotos || !Coffre.motDePasse()) return;
+  expeditionPhotos = true;
+  try {
+    while (lireJson(PHOTOS_ATTENTE, []).length) {
+      const code = lireJson(PHOTOS_ATTENTE, [])[0], k = codeNu(code);
+      const retirer = () => ecrireJson(PHOTOS_ATTENTE, lireJson(PHOTOS_ATTENTE, []).filter(c => codeNu(c) !== k));
+      let data = PHOTOS_PRISES[k];
+      if (!data) { try { const rec = await lirePhotoLocale(k); data = rec && rec.data; } catch (e) {} }
+      if (!data) { retirer(); continue; }              // l'appareil ne l'a plus : rien à envoyer
+      let r = null;
+      try { r = await Coffre.garderPhoto({ code: code, image: data.split(',')[1], qui: localStorage.getItem(QUI) || '' }); } catch (e) {}
+      if (r && !r.ok && r.definitif) { retirer(); continue; }
+      if (!(r && r.ok)) break;
+      retirer();
+      const fichier = String(r.fichier || '');
+      PHOTOS_SERVEUR[k] = { code: code, fichier: fichier };
+      noterIci(k, fichier);
+      try { await ecrirePhotoLocale(k, { code: code, data: data, fichier: fichier }); } catch (e) {}
+      delete PHOTOS_PRISES[k];
+    }
+  } finally { expeditionPhotos = false; }
 }
 
 /* ---------- 3. Sans code : les habituels, l'entonnoir ---------- */
@@ -640,7 +797,7 @@ function remplirCompleter() {
   const ligne = lot => {
     const i = LOTS_COMPLETER.indexOf(lot), prix = prixDuLot(lot);
     const det = [[detailLot(lot), prix ? textePrix(prix) : ''].filter(Boolean).join(' · '), aCategorie(lot.pid) ? '' : '(sans catégorie)'].filter(Boolean).join(' ');
-    return '<div class="item" data-completer-item="' + i + '"><div class="item-info"><div class="item-nom">' + esc(nom(lot)) + '</div>' + (det ? '<div class="item-detail">' + esc(det) + '</div>' : '') + '</div>' +
+    return '<div class="item" data-completer-item="' + i + '">' + htmlPhotoCode(codeDuLot(lot)) + '<div class="item-info"><div class="item-nom">' + esc(nom(lot)) + '</div>' + (det ? '<div class="item-detail">' + esc(det) + '</div>' : '') + '</div>' +
       '<button class="ranger" type="button" data-completer-lot="' + i + '" aria-label="Placer"></button><span class="item-quantite">' + esc(lot.qte) + '</span></div>';
   };
   const parNom = (a, b) => nom(a).localeCompare(nom(b), 'fr');
@@ -661,6 +818,7 @@ function remplirCompleter() {
     h += groupe(String(m.id), m.nom, teinte ? ' style="--meuble:' + esc(teinte) + '"' : '', teinte && couleurPale(teinte) ? ' tete-pale' : '', corps, floconDe(m));   // la couleur du meuble est une DONNÉE; un congélateur, son flocon
   });
   $('completer-liste').innerHTML = h || '<div class="vide"><div class="vide-titre">Tout est complété</div></div>';
+  remplirPhotos();                                       // la photo de l'emballage d'un produit pas reconnu, à côté de son code
   montrer('completer-ok', !!h && !PANNEAU);              // une carte ouverte : la liste attend derrière
 }
 /* Les deux flèches d'un article : la carte de l'Escale (la pièce, le meuble, l'espace, la quantité — le total d'avance). Une partie
@@ -762,7 +920,7 @@ function ouvrirProduit(i) {
   const rid = p.catId ? rayonDe(p.catId) : '';
   $('cp-cat').innerHTML = optionsCats(); $('cp-cat').value = rid;
   remplirSousCatPanneau(p.catId);
-  remplirAlimentsPanneau(p.catId ? lot.pid : 'nouveau', p.nom);
+  remplirAlimentsPanneau(p.catId ? lot.pid : 'nouveau', nomCode(p.nom) ? '' : p.nom);   // son code n'est pas un nom : rien de proposé
   $('cp-marque').innerHTML = optionsListe('marque', sortesVues(lot.pid, 'marque'), lot.marque); $('cp-marque').value = lot.marque || '';
   $('cp-saveur').innerHTML = optionsListe('saveur', sortesVues(lot.pid, 'saveur'), lot.saveur); $('cp-saveur').value = lot.saveur || '';
   poserFormatPanneau(lot.formats[0] || '');
@@ -770,6 +928,7 @@ function ouvrirProduit(i) {
   const prix = prixDuLot(lot);
   $('cp-prix').value = prix !== '' ? textePrix(prix) : '';
   allerEtape(1);
+  remplirPhotos();                                       // la photo de l'emballage (sinon, celle d'Open Food Facts : photoProduitPanneau)
   photoProduitPanneau();
 }
 /* La carte ouverte, ou la liste : jamais les deux (le reste de la liste se cache, comme au tri). */
@@ -802,7 +961,7 @@ function htmlPanneau(lot) {
   const detail = detailLot(lot);
   return '<div class="carte niveau-3">' +
     '<div data-etape="1">' + tete(1, 'Le produit') +
-      '<div class="liste-blanche bloc-suite"><div class="item" id="cp-produit"><div class="item-info"><div class="item-nom">' + esc(p.nom) + '</div>' +
+      '<div class="liste-blanche bloc-suite"><div class="item" id="cp-produit">' + htmlPhotoCode(code) + '<div class="item-info"><div class="item-nom">' + esc(p.nom) + '</div>' +
         (detail ? '<div class="item-detail">' + esc(detail) + '</div>' : '') + (code ? '<div class="code-barres">' + esc(code) + '</div>' : '') + '</div></div></div>' +
       (page ? '<div class="grille bloc-suite">' + voir + boutonCarte('coller', 'icone-coller', 'Coller la page', 'data-cp-coller') + '</div>' +
               '<div class="message">Sur sa page : Partager → Copier pour la Réserve, puis reviens ici.</div>' +
@@ -955,7 +1114,7 @@ function remplirAlimentsPanneau(choisi, nom) {
   const v = !ok ? '' : choisi === 'nouveau' || ps.some(p => String(p.id) === String(choisi)) ? String(choisi) : 'nouveau';
   $('cp-aliment').value = v;
   if (nom !== undefined) $('cp-nom').value = nom;
-  else if (!$('cp-nom').value) $('cp-nom').value = (PRODUITS.find(p => String(p.id) === PANNEAU.lot.pid) || {}).nom || '';
+  else if (!$('cp-nom').value) { const n = (PRODUITS.find(p => String(p.id) === PANNEAU.lot.pid) || {}).nom || ''; $('cp-nom').value = nomCode(n) ? '' : n; }
   montrer('cp-bloc-aliment', ok);
   surAlimentPanneau();
 }
@@ -1258,9 +1417,9 @@ function initEpicerie() {
     else montrerEpiceries();                         // la liste du jour reste ouverte : retouchée, l'épicerie y revient; demain, elle attend Compléter
   });
   $('epi-sans-code').addEventListener('click', () => modeSansCode(true));
+  $('epi-photo').addEventListener('change', surPhotoEmballage);
   $('epi-carte').addEventListener('click', ev => {
-    const off = ev.target.closest('[data-off-carte]');
-    if (off) { toucherOffCarte(off); return; }
+    if (ev.target.closest('[data-epi-photo]')) { if (window.stopScanner) window.stopScanner(); return; }   // l'appareil photo de l'iPhone s'ouvre (l'étiquette) : la caméra du scan lui laisse sa place; elle reviendra après le crochet
     const ok = ev.target.closest('[data-epi-ok]');
     if (ok) { validerCarte(ok.dataset.epiOk); return; }
     if (ev.target.closest('[data-epi-annuler]')) annulerCarte();
@@ -1273,9 +1432,11 @@ function initEpicerie() {
   $('epi-souscat').addEventListener('change', surEpiSousCat);
   $('epi-produit').addEventListener('change', surEpiProduit);
   AJOUTS_NEUFS.epi = ajouterEpiNeuf;                                             // le + de « Nouveau produit… » (Sans code)
-  // l'app passe en arrière-plan pendant le scan : la caméra se ferme; au retour, elle se rouvre (sauf si un article attend son OK)
+  poserPhotosServeur((lireCache() || {}).photos);    // appliquer() est passé avant ce fichier : les photos gardées par le coffre-fort, d'après la mémoire
+  // l'app passe en arrière-plan pendant le scan (ou l'appareil photo de l'iPhone s'ouvre) : la caméra se ferme; au retour, elle se rouvre
+  // (sauf si un article attend son OK : sa carte est à la place de la caméra). Sans code : pas de caméra.
   document.addEventListener('visibilitychange', () => {
-    if ($('vue-epicerie').hidden || $('epi-scan').hidden || $('epi-camera').hidden) return;
+    if ($('vue-epicerie').hidden || $('epi-scan').hidden || !$('epi-sans').hidden) return;
     if (document.hidden) { if (window.stopScanner) window.stopScanner(); }
     else if (!EPI_CARTE) demarrerCamera();
   });

@@ -34,6 +34,8 @@
    s'ouvre, la photo se pose dans sa case.
 10. **Les deux sacs ne s'arrêtent pas** (J-C : « Si j'ai pas le temps, oui ») : sur la carte d'un produit qu'Open Food Facts ne
     connaît pas (ou sans ses photos), son logo paraît; touché = l'écran des photos; OK sans le toucher = sur la liste, tout seul.
+    **Remplacée le 2026-10-17** (`RdG-12`, J-C : « j'ai pas le temps au moment des scans ») : plus de logo sur la carte des deux sacs; le
+    produit va sur la liste tout seul.
 11. **Le sac seul, pareil** (J-C : « Oui, pareil partout ») : le logo sur la fiche; Enregistrer sans le toucher = sur la liste.
 12. ~~L'icône = A, l'appareil photo simple~~ — **remplacée par 15**.
 13. **La liste = Y, toute la liste** (sur aperçu, contre X par catégorie) : une seule liste blanche, le plus vieux en premier;

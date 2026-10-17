@@ -95,6 +95,8 @@ const Coffre = {
   circulaireMagasin(mag)    { return this.appel({ action: 'circulaireMagasin', magasin: mag }, this.DELAI_LECTURE); },        // toute l'épicerie : la circulaire de la semaine d'une épicerie (une lecture)
   codesCirculaires()        { return this.appel({ action: 'codesCirculaires' }, this.DELAI_LECTURE); },                      // tous les codes des circulaires (la semaine + l'archive d'un an), en une liste compacte (une lecture, en arrière-plan)
   envoyerOFF(charge)        { return this.appel(Object.assign({}, charge, { action: 'envoyerOFF' })); },   // Open Food Facts : une photo, ou le texte qui lui manque, au nom du compte de J-C (JS/off.js; une écriture : jamais abandonnée)
+  garderPhoto(charge)       { return this.appel(Object.assign({}, charge, { action: 'garderPhoto' })); },  // la photo de l'emballage d'un produit pas reconnu → le Google Drive de J-C, privé (RdG-12; une écriture : jamais abandonnée)
+  photo(code)               { return this.appel({ action: 'photo', code: code }, 20000); },               // la même, pour l'autre appareil (une lecture : quelques centaines de Ko)
 
   // Enregistre le mot de passe et vérifie qu'il est bon.
   async connexion(m) {

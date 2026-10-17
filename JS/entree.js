@@ -557,6 +557,7 @@ function appliquer(d) {
   SPECIAUX = d.speciaux || [];
   PRIX_REGULIERS = d.prixReguliers || [];
   EPICERIES = d.epiceries || [];
+  if (typeof poserPhotosServeur === 'function') poserPhotosServeur(d.photos);   // les photos d'emballage gardées par le coffre-fort (JS/epicerie.js, chargé après); absent : aucune
   if (typeof poserListeOff === 'function') poserListeOff(d.off);   // « Pour Open Food Facts » (JS/off.js, chargé après : pas encore là au tout premier appel); absent du coffre-fort : celle de l'appareil
   NB_A_TRIER = Number(d.nbATrier) || 0; poserPoints();
   // une couleur pas encore confirmée (attente) ou en cours d'essai (écran) l'emporte sur le Sheet
@@ -612,12 +613,13 @@ async function chargerReferences() {
     data.nbATrier = Math.max(0, (Number(data.nbATrier) || 0) - triesEnRoute());   // idem : un tri en route n'est plus « à trier »
     appliquer(data); ecrireCache(data); remplirListes(); statut('');
     marquerPasAJour(false);                       // relue : le bandeau rouge part
-    try { poserLogosDepart(); sans102(); } catch (e) {}   // TEMPORAIRE (les 5 logos de J-C; la 102 devient la 101) : un raté ici ne dit pas « pas à jour »
+    try { poserLogosDepart(); sans102(); sansInconnu(); } catch (e) {}   // TEMPORAIRE (les 5 logos de J-C; la 102 devient la 101; « Inconnu » quitte les noms) : un raté ici ne dit pas « pas à jour »
     expedierOrdre();                              // le réseau répond : on en profite pour renvoyer l'attente
     expedierCouleurs();                           // idem pour les couleurs (sinon un appareil garde les siennes)
     expedierGestes();                             // idem pour les consommations
     expedierAchats();                             // idem pour la liste d'achats
     expedierOff();                                // la liste « Pour Open Food Facts » (sa propre file)
+    if (typeof expedierPhotos === 'function') expedierPhotos();   // les photos d'emballage pas encore au coffre-fort (leur propre file)
     expedierErreurs();                            // et le journal des erreurs (en dernier : rien ne l'attend)
     if (typeof chargerCodesCirculaires === 'function') chargerCodesCirculaires();   // les codes des circulaires sur l'appareil (une fois par jour, en arrière-plan)
     return true;
@@ -662,7 +664,7 @@ async function chargerData(suivi) {
     if (suivi) suivi(i);
     try {
       const r = await Coffre.references(ESSAIS_LECTURE[i]);
-      if (r && r.ok && r.categories !== undefined) return { cats: r.categories, emps: r.emplacements, prods: r.produits, stock: r.stock, variantes: r.variantes, codes: r.codes, codesTri: r.codesTri, couleurs: r.couleurs, listes: r.listes, pasAimes: r.pasAimes, achats: r.achats, speciaux: r.speciaux, prixReguliers: r.prixReguliers, nbATrier: r.nbATrier, epiceries: r.epiceries, menage: r.menage, off: r.off };   // tout ce que l'app lit : un oubli ici = une donnée qui n'arrive jamais
+      if (r && r.ok && r.categories !== undefined) return { cats: r.categories, emps: r.emplacements, prods: r.produits, stock: r.stock, variantes: r.variantes, codes: r.codes, codesTri: r.codesTri, couleurs: r.couleurs, listes: r.listes, pasAimes: r.pasAimes, achats: r.achats, speciaux: r.speciaux, prixReguliers: r.prixReguliers, nbATrier: r.nbATrier, epiceries: r.epiceries, menage: r.menage, off: r.off, sortesTri: r.sortesTri, photos: r.photos };   // tout ce que l'app lit : un oubli ici = une donnée qui n'arrive jamais
       if (r && r.erreur === 'non autorisé') throw new Error('non autorisé');   // inutile de réessayer
       err = new Error((r && r.erreur) || 'refus'); err.refus = true;          // le coffre-fort a répondu, mais pas oui
     } catch (e) { if (e.message === 'non autorisé') throw e; err = e; }
@@ -1681,6 +1683,17 @@ function sans102() {
   const mags = ((c.listes || {}).Magasins || []).filter(r => String(r[5] || '').trim() === '102').map(r => { const l = r.slice(); l[5] = '101'; return l; });
   if (mags.length) poserGeste({ action: 'lignes', table: 'Magasins', opId: 'sans102-g-' + Date.now(), lignes: mags });
   LISTES.Magasins.forEach(x => { if (x.couleur === '102') x.couleur = '101'; });
+}
+/* TEMPORAIRE (2026-10-17) : un produit pas reconnu au scan s'appelait « Inconnu 0059749940146 »; désormais son code seul (J-C : « ça fuck
+   le mot inconnu dans ça »). Les vieux perdent « Inconnu » une fois (Produits col. B). À RETIRER avec LOGOS_DEPART. */
+function sansInconnu() {
+  const c = lireCache();
+  if (!c) return;
+  const lignes = (c.prods || []).filter(r => /^Inconnu \d{4,14}$/.test(String(r[1] || '').trim())).map(r => { const l = r.slice(); l[1] = String(r[1]).trim().slice(8); return l; });
+  if (!lignes.length) return;
+  poserGeste({ action: 'lignes', table: 'Produits', opId: 'sans-inconnu-' + Date.now(), lignes: lignes });
+  lignes.forEach(l => { const p = PRODUITS.find(x => String(x.id) === String(l[0])); if (p) p.nom = l[1]; });
+  remplirProduitsDatalist();
 }
 /* Une pastille touchée (Gérer les bases → Catégories) = la couleur de la catégorie, partout tout de suite;
    envoyée en arrière-plan (geste « lignes » : la ligne de Categories réécrite, col. H). */
@@ -3074,6 +3087,9 @@ function nomCategorie(id) {
    Un format en unités (« 6 unité », le reste « 5 unité ») est la même sorte, quel que soit le nombre.
    Aucune ligne ne porte le code (ne devrait pas arriver) : la sorte est inconnue, tout l'aliment s'affiche. */
 function codeNu(c) { return String(c || '').trim().replace(/^0+/, ''); }   // le 0 du début : mangé par le Sheet, remis ou pas
+/* Un aliment qui n'a pour nom que son code (un produit pas reconnu au scan des deux sacs, J-C, 2026-10-16 : « ça fuck le mot inconnu
+   dans ça ») : pas encore de vrai nom — Compléter et Open Food Facts n'en proposent pas. « Inconnu 0059… » : les vieux, d'avant. */
+const nomCode = nom => /^(?:Inconnu )?\d{4,14}$/.test(String(nom || '').trim());
 function sortesDuCode(code) {
   const nu = codeNu(code), sortes = [];
   if (!nu) return sortes;
