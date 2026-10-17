@@ -92,3 +92,19 @@ paraît sur l'iPhone (la liste est partagée entre les deux appareils).*
 **✅ `api.gs` — ÉCRIT le 30 septembre (conversation sur l'ordi; essayé à blanc : 1er envoi, reclic, décocher, deux fois le même ID dans un envoi, onglet absent). ⚠️ Reste : J-C colle `api.gs` → Nouvelle version.** Ce qui est fait :
 1. `references` renvoie **`achats`** : les lignes de l'onglet Achats dont Actif ≠ N (onglet absent = `[]`, **sans le créer**, comme `pasAimes`).
 2. Nouvelle action **`achats { lignes: [ligne] }`** : pour chaque ligne (8 colonnes, A = l'ID donné par l'app), **par ID : existe → réécrite; sinon → ajoutée**. Valeurs finales : un 2e envoi ne change rien (à l'épreuve du reclic). L'onglet **se crée tout seul** au premier usage, avec ses en-têtes. Sous verrou, comme les autres écritures.
+
+## 5. AJOUTER : LES HABITUELS — EN RÉFLEXION (J-C, 2026-10-17, zéro code)
+
+J-C : « Ajouter. Ça prendrait au moins les habituels. » Aujourd'hui, le + de la liste n'a que l'entonnoir et le scan.
+
+**Décidé :**
+1. **Les habituels = tout ce qui a déjà été acheté**, avec ou sans code-barres (choix B; quand on fait la liste, l'emballage est souvent jeté : rien à scanner). Pas les habituels « sans code » des deux sacs.
+2. **Une case par aliment, jamais la marque** (J-C : « c'est souvent quand on décide d'un plat… plus l'aliment qu'une marque en particulier »).
+3. **Un toucher = sur la liste**, et on reste là pour le suivant (un plat = plusieurs ingrédients).
+4. **Ce qui reste à la maison se voit** (« il en reste 1 »), **et on peut l'ajouter quand même** (J-C : « une recette qui prend un contenant entier »).
+
+**Les contraintes de J-C** : pas « une liste de 3 km »; **le look : un aperçu quand on sera rendu là** (J-C : « On jase avant de proposer du visuel »).
+
+**Questions ouvertes** (une à la fois) : un aliment déjà sur la liste, retouché, que fait-il ?
+
+**Noté, pas creusé** : les soldes par magasin dans le + (J-C : « je fouine et clique, ça se retrouve sur la liste; souvent ça influence les achats »). À savoir : Listes → « En solde » le fait déjà, par catégorie (`RdG-08`, le temps 1).
