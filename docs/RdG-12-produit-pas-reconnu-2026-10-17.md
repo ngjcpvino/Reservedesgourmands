@@ -3,7 +3,7 @@
 > Les points 78 et 79 de la liste numérotée de `CLAUDE.md`. J-C, au retour de l'épicerie, sur l'iPhone (2026-10-16 au soir) :
 > « les questions doivent prendre la place de la caméra »; « si le produit n'est pas reconnu, j'ai juste un inconnu avec des
 > chiffres. Quand je fais la suite après, je ne sais pas c'est quoi ». **Réflexion finie le 2026-10-17** (section 2, aperçu vu et
-> tranché : B). **L'app : section 3. Le coffre-fort : section 4, À ÉCRIRE À L'ORDI** (la session du nuage ne voit pas `gas/`).
+> tranché : B). **L'app : section 3, bâtie le 2026-10-17. Le coffre-fort : section 4, ✅ écrit par la conversation de l'ordi et collé par J-C le même jour** (la session du nuage ne voit pas `gas/`).
 
 ## 1. Ce qu'on a vu
 
@@ -108,6 +108,10 @@ l'appareil qui l'a prise, dans sa file (`rdg_photos_attente`), et repart à chaq
 
 Une fois écrit et essayé : l'inscrire ici et dans `CLAUDE.md` (« écrit, à coller »); J-C colle → `autoriserPhotos()` → **Nouvelle
 version** (même URL).
+
+**✅ ÉCRIT À L'ORDI ET COLLÉ PAR J-C le 2026-10-17** (J-C : « L'autre claude a fait gs et c'est collé »). Le détail de ce qui a été écrit
+est dans la conversation de l'ordi (rien n'a été poussé ici). À vérifier au premier usage : le dossier « Réserve des Gourmands — photos »
+dans son Drive, la photo nommée par son code (T104).
 
 ## 5. À voir à l'usage
 
