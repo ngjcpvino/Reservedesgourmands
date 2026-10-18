@@ -155,4 +155,6 @@ J-C, sa capture de « Par épicerie » sur l'iPhone à l'appui : « je suis à l
 
 11. **La marque et le format du solde restent** (« Old El Paso · 24 g »; J-C : « Oui ») : c'est ce qui dit quel paquet prendre.
 
-**Questions ouvertes** (une à la fois) : « (format ?) » quand la circulaire ne donne pas de format clair (pas de prix au 100 g possible) ?
+12. **« (format ?) » ne s'écrit plus** (J-C : « Oui ») : pas de prix au 100 g sous le prix = on ne peut pas comparer.
+
+**Questions ouvertes** (une à la fois) : un article coché : rayé sur place (aujourd'hui), ou rayé et descendu au bas, comme AnyList ?
