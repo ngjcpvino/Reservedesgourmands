@@ -40,6 +40,7 @@
 2. **La catégorie posée d'office** : Garde-manger → Fines herbes, épices ? — ✅ **J-C : « Oui »** (décision 5).
 3. **Le format** : leur site en donne deux (50 g, 200 g), le code QR aucun. Le plus petit (le pot) d'office ? La recharge en sachet
    a-t-elle le même code QR ? — **demandé à J-C le 2026-10-18** : achète-t-il seulement les pots, ou aussi les 200 g ? — **J-C : « Aussi »**. **Demandé ensuite** : le 200 g porte-t-il le même code QR, avec le même numéro (10722) ? (leur recherche « 10722 » rend un seul produit pour les deux formats : sans doute le même numéro — alors l'app ne peut pas savoir lequel au scan.)
+   — **J-C : « J'en ai pas en main »**. **Proposé par Claude** (marche dans les deux cas) : sur la carte du scan, **les formats de leur site côte à côte** (50 g · 200 g), **le dernier acheté de cette épice déjà choisi** (la première fois : le plus petit, le pot), un toucher pour changer; une seule offerte = rien à choisir. Le look : aperçu d'abord. — **demandé à J-C.**
 4. **Le prix** : celui de leur site remplit-il le prix payé (comme la circulaire) ?
 5. **Où il est rangé** la première fois : l'Escale, ou l'endroit habituel des épices ?
 6. **Noté, pas creusé** : la date du lot dit l'âge de l'épice — « À consommer bientôt » pourrait compter de là.
@@ -76,6 +77,7 @@ peut prendre quelques secondes) :
   sans doute bilingue : la page française.
 - `formats` : chaque format vendu, « 50 g » (un nombre, une espace, l'unité — la forme de la Réserve), son prix en nombre. Le plus
   petit d'abord.
+- **À regarder pendant l'essai** : chaque format a-t-il **son propre numéro** sur leur site (le SKU d'une variation : « 10722 » le 50 g, un autre le 200 g ?) — si oui, le noter : l'app saurait le format au scan, sans le demander. Le noter aussi s'ils partagent le même.
 - Rien n'est écrit dans le Sheet (une lecture). Pas de mémoire non plus : l'app ne demande qu'au premier scan d'un numéro.
 
 **Essayer à blanc** : 10722, 10262, un numéro qui n'existe pas (99999), un numéro mal formé, leur site qui ne répond pas (un faux
