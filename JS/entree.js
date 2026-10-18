@@ -49,7 +49,9 @@ var COULEURS = [];                                  // lignes de l'onglet Couleu
 var PAS_AIMES = [];                                 // onglet PasAimes : [ID, ProduitID, Marque, Saveur, Date, Qui] — « Ne pas racheter », pour la maison
 const ATTENTE_GESTES = 'rdg_consos_attente';        // consommations et déplacements pas encore confirmés, dans l'ordre (le nom date de Consommer seul)
 var envoiGestes = false;                            // la file des gestes est en route
-var ACHATS = [];                                    // onglet Achats : [ID, ProduitID, Marque, Saveur, Etat, Date, Qui, Actif] — la liste d'achats
+var ACHATS = [];                                    // onglet Achats : [ID, ProduitID, Marque, Saveur, Etat, Date, Qui, Actif] — la liste d'achats;
+                                                    // un solde choisi (Etat « solde ») en a plus : · Magasin · Fin · Cle · Texte · Categorie · Prix · Regulier · Unite · Format
+var CAT_CIRC = {};                                  // references.categoriesCirc : { clé d'un article de circulaire : sa catégorie, corrigée au crayon } (JS/prix.js)
 const MENAGE = 'rdg_menage';                        // l'heure du dernier grand ménage vu par CET appareil (references.menage)
 const ATTENTE_ACHATS = 'rdg_achats_attente';        // ce qui a été coché, ajouté, mis de côté, pas encore confirmé
 var envoiAchats = false;                            // la file de la liste d'achats est en route
@@ -94,6 +96,7 @@ function toutCacher() {
   $('vue-noms').hidden = true;
   $('vue-achats').hidden = true;
   $('vue-plus').hidden = true;
+  $('vue-soldes').hidden = true;
   $('vue-circulaires').hidden = true;
   const vs = $('vue-scan'); if (vs) vs.hidden = true;
   const ve = $('vue-epicerie'); if (ve) ve.hidden = true;   // toute l'épicerie (JS/epicerie.js)
@@ -556,7 +559,9 @@ function appliquer(d) {
   STOCK = d.stock || [];
   COULEURS = d.couleurs || [];                        // [ID, SecteurID, Nom, Valeur]
   PAS_AIMES = d.pasAimes || [];
-  ACHATS = d.achats || [];
+  ACHATS = completerAchats(d.achats || []);          // un solde choisi : ce que le coffre-fort n'a pas gardé, l'appareil le sait
+  CAT_CIRC = d.categoriesCirc || {};
+  if (typeof reposerCatCirc === 'function') reposerCatCirc();   // une correction pas encore partie l'emporte (JS/prix.js)
   SPECIAUX = d.speciaux || [];
   PRIX_REGULIERS = d.prixReguliers || [];
   EPICERIES = d.epiceries || [];
@@ -621,6 +626,7 @@ async function chargerReferences() {
     expedierCouleurs();                           // idem pour les couleurs (sinon un appareil garde les siennes)
     expedierGestes();                             // idem pour les consommations
     expedierAchats();                             // idem pour la liste d'achats
+    if (typeof expedierCatCirc === 'function') expedierCatCirc();   // la catégorie d'un article de circulaire, corrigée au crayon (JS/prix.js, sa propre file)
     expedierOff();                                // la liste « Pour Open Food Facts » (sa propre file)
     if (typeof expedierPhotos === 'function') expedierPhotos();   // les photos d'emballage pas encore au coffre-fort (leur propre file)
     expedierErreurs();                            // et le journal des erreurs (en dernier : rien ne l'attend)
@@ -667,7 +673,7 @@ async function chargerData(suivi) {
     if (suivi) suivi(i);
     try {
       const r = await Coffre.references(ESSAIS_LECTURE[i]);
-      if (r && r.ok && r.categories !== undefined) return { cats: r.categories, emps: r.emplacements, prods: r.produits, stock: r.stock, variantes: r.variantes, codes: r.codes, codesTri: r.codesTri, couleurs: r.couleurs, listes: r.listes, pasAimes: r.pasAimes, achats: r.achats, speciaux: r.speciaux, prixReguliers: r.prixReguliers, nbATrier: r.nbATrier, epiceries: r.epiceries, menage: r.menage, off: r.off, sortesTri: r.sortesTri, photos: r.photos };   // tout ce que l'app lit : un oubli ici = une donnée qui n'arrive jamais
+      if (r && r.ok && r.categories !== undefined) return { cats: r.categories, emps: r.emplacements, prods: r.produits, stock: r.stock, variantes: r.variantes, codes: r.codes, codesTri: r.codesTri, couleurs: r.couleurs, listes: r.listes, pasAimes: r.pasAimes, achats: r.achats, speciaux: r.speciaux, prixReguliers: r.prixReguliers, nbATrier: r.nbATrier, epiceries: r.epiceries, menage: r.menage, off: r.off, sortesTri: r.sortesTri, photos: r.photos, categoriesCirc: r.categoriesCirc };   // tout ce que l'app lit : un oubli ici = une donnée qui n'arrive jamais
       if (r && r.erreur === 'non autorisé') throw new Error('non autorisé');   // inutile de réessayer
       err = new Error((r && r.erreur) || 'refus'); err.refus = true;          // le coffre-fort a répondu, mais pas oui
     } catch (e) { if (e.message === 'non autorisé') throw e; err = e; }
@@ -3619,10 +3625,16 @@ const cleAchat = pid => String(pid == null ? '' : pid).trim() + '||';   // la cl
 const achatActif = r => String(r[7]) !== 'N';
 const ligneAchat = (pid, etat) => [idLocal(), String(pid), '', '', etat, dateDuJour(), localStorage.getItem(QUI) || '', 'O'];
 const lignesDeAliment = (pid, etat) => ACHATS.filter(r => achatActif(r) && r[4] === etat && String(r[1]) === String(pid));
-/* Ce qui est sur la liste : [{ cle, pid, sortes, auto: '' | 'zero' | 'pas' | 'ouvert' (le dernier ouvert, RdG-09), main, coche }].
-   Ce qui est mis de côté (« plustard ») n'y est pas : il revient par le + (RdG-06, décision 21). */
+/* Ce qui est sur la liste : [{ cle, pid, sortes, auto: '' | 'zero' | 'pas' | 'ouvert' (le dernier ouvert, RdG-09), main, coche, soldes }].
+   Ce qui est mis de côté (« plustard ») n'y est pas : il revient par le + (RdG-06, décision 21).
+   LES SOLDES CHOISIS (le + des soldes, RdG-06, section 5) : leurs lignes d'Achats (Etat « solde »), jusqu'à la fin du solde — pas acheté,
+   il part tout seul; mais seulement ce qui était là À CAUSE du solde : un aliment qui manque reste, sans son épicerie. Un article pas
+   encore trié (sans aliment : « un Oui, sans le travail du tri ») a sa ligne à lui — son texte de circulaire, sa catégorie devinée —,
+   sa clé : « s: » + sa clé de circulaire (une par épicerie). */
+const soldeEnCoursAchat = (r, auj) => { const f = String(dateCourte(r[9]) || '').slice(0, 10); return !!String(r[8] == null ? '' : r[8]) && (!f || f >= auj); };
+const ligneDeCle = (r, k) => !String(r[1] || '') && 's:' + String(r[10] == null ? '' : r[10]) === k;   // une ligne d'un solde pas encore trié
 function lignesAchats() {
-  const actifs = ACHATS.filter(achatActif);
+  const actifs = ACHATS.filter(achatActif), auj = dateDuJour();
   const a = (pid, etat) => actifs.some(r => r[4] === etat && String(r[1]) === String(pid));   // par aliment (une vieille ligne par sorte compte pour son aliment)
   const existe = pid => PRODUITS.some(p => String(p.id) === String(pid));   // un aliment retiré : plus rien à racheter
   // PAR ALIMENT (J-C, 2026-10-05 : « c'est inscrit du lait mais il m'en reste 1, d'une autre marque » — choix A) : il manque quand il
@@ -3639,10 +3651,11 @@ function lignesAchats() {
   });
   const items = {};
   const mettre = (pid, quoi) => {
-    if (a(pid, 'plustard')) return;                    // mis de côté (venu tout seul ou ajouté à la main) : il revient par le +
+    if (a(pid, 'plustard')) return null;               // mis de côté (venu tout seul ou ajouté à la main) : il revient par le +
     const k = cleAchat(pid);
-    const it = items[k] = items[k] || { cle: k, pid: String(pid), auto: '', main: false, sortes: (parAliment[pid] || {}).sortes || [] };
-    if (quoi === 'main') it.main = true; else it.auto = quoi;
+    const it = items[k] = items[k] || { cle: k, pid: String(pid), auto: '', main: false, sortes: (parAliment[pid] || {}).sortes || [], soldes: [] };
+    if (quoi === 'main') it.main = true; else if (quoi !== 'solde') it.auto = quoi;
+    return it;
   };
   Object.keys(parAliment).forEach(pid => {
     if (!existe(pid)) return;
@@ -3652,7 +3665,14 @@ function lignesAchats() {
     else if (hab.length >= 2 && Object.keys(x.emps).every(e => e === String(hab[0]))) mettre(pid, 'pas');
   });
   actifs.forEach(r => { if (r[4] === 'main' && existe(r[1])) mettre(String(r[1]), 'main'); });
-  return Object.values(items).map(it => Object.assign(it, { coche: a(it.pid, 'coche') }));
+  actifs.forEach(r => {
+    if (r[4] !== 'solde' || !soldeEnCoursAchat(r, auj)) return;
+    const pid = String(r[1] || '');
+    if (pid) { const it = existe(pid) && mettre(pid, 'solde'); if (it) it.soldes.push(r); return; }
+    const k = 's:' + r[10];
+    (items[k] = items[k] || { cle: k, pid: '', auto: '', main: false, sortes: [], soldes: [], texte: String(r[11] || ''), cat: String(r[12] || '') }).soldes.push(r);
+  });
+  return Object.values(items).map(it => Object.assign(it, { coche: it.pid ? a(it.pid, 'coche') : actifs.some(r => r[4] === 'coche' && ligneDeCle(r, it.cle)) }));
 }
 /* LA LISTE D'ÉPICERIE (J-C, 2026-10-18 : « liste d'achat que je renommerais la liste d'épicerie »; docs/RdG-06, section 6, sur aperçus) —
    UNE seule liste pour la maison et le magasin (le modèle : AnyList, sur l'iPhone). Ses catégories dans l'ordre de J-C, chacune à sa
@@ -3663,21 +3683,24 @@ function lignesAchats() {
    dessous, une ligne par épicerie dont le prix est connu (lignesPrixAchat). La case au bout : toucher la ligne la coche, barrée, SUR
    PLACE (K1 : rien ne bouge sous le doigt). Mettre de côté : on glisse la ligne vers la gauche, la flèche brune paraît (S2, décision 36).
    « Par épicerie » quitte la page, son code reste (décision 18 : htmlParEpicerie, JS/prix.js); la barre « Mis de côté » aussi : un
-   article mis de côté revient par le + (décision 21). Sans catégorie : au bout (brune). */
+   article mis de côté revient par le + (décision 21). Sans catégorie : au bout (brune). Le 3e bouton, rouge : le + des soldes (JS/prix.js).
+   Un solde choisi porte le nom de son épicerie (« Veau haché (Super C) »; choisi à deux places : la moins chère au 100 g); un article pas
+   encore trié : son texte de circulaire, dans la catégorie devinée (ou corrigée au crayon), au bout de sa catégorie. */
 var ACHATS_FERMEES = {};                               // les catégories fermées à la main, le temps de la visite (data-groupe)
 function remplirAchats() {
   const cible = $('liste-achats');
   const items = lignesAchats();
   const nomDe = pid => (PRODUITS.find(p => String(p.id) === String(pid)) || {}).nom || '';
-  const tri = (x, y) => nomDe(x.pid).localeCompare(nomDe(y.pid), 'fr');
+  const nomIt = it => (it.pid ? nomDe(it.pid) : adoucir(it.texte)) + (it.soldes.length ? ' (' + nomListe(magasinSoldeChoisi(it.soldes)) + ')' : '');
+  const tri = (x, y) => nomIt(x).localeCompare(nomIt(y), 'fr');
   const ligne = it => {
-    const pas = pasAimesDe(it.pid), quand = it.main ? '' : it.auto === 'pas' ? '(pour réserve)' : it.auto === 'ouvert' ? '(dernier ouvert)' : '';
+    const pas = it.pid ? pasAimesDe(it.pid) : [], quand = it.main ? '' : it.auto === 'pas' ? '(pour réserve)' : it.auto === 'ouvert' ? '(dernier ouvert)' : '';
     const det = (it.sortes.length ? '<div class="item-detail">' + esc(it.sortes.join(' · ')) + '</div>' : '') +
       (pas.length ? '<div class="item-detail pas-aime">' + esc('pas : ' + pas.join(' · ')) + '</div>' : '') +
       (quand ? '<div class="item-detail">' + quand + '</div>' : '');
-    const prix = lignesPrixAchat(it.pid);
+    const prix = lignesPrixAchat(it.pid, it.soldes);
     return '<div class="glisse"><div class="item achat' + (it.coche ? ' achat-coche' : '') + '" data-achat="' + esc(it.cle) + '">' +
-        '<div class="item-info"><div class="item-nom">' + esc(nomDe(it.pid)) + '</div>' + det + '</div>' +
+        '<div class="item-info"><div class="item-nom">' + esc(nomIt(it)) + '</div>' + det + '</div>' +
         '<input class="case" type="checkbox" tabindex="-1"' + (it.coche ? ' checked' : '') + '>' +
         (prix ? '<div class="soldes-ligne">' + prix + '</div>' : '') + '</div>' +
       '<div class="glisse-zone"><button class="remettre ecarter" type="button" data-achat-cote="' + esc(it.cle) + '" aria-label="Mettre de côté"></button></div></div>';
@@ -3689,19 +3712,21 @@ function remplirAchats() {
       '<div class="accordeon-tete' + t.pale + (ferme ? '' : ' ouvert') + '"><span>' + esc(nom) + '</span></div>' +
       '<div class="liste-blanche achats-groupe"' + (ferme ? ' hidden' : '') + '>' + lignes.map(ligne).join('') + '</div></div>';
   };
-  const places = {};
+  const places = {}, rayonIt = it => groupeTri(catCirc(it.soldes[0][10]) || it.cat);   // un solde pas trié : sa catégorie (corrigée au crayon d'abord)
   let html = RAYONS.map(r => {
     const lignes = [];
     (SOUSCATS[r.id] || []).forEach(sc => {
-      items.filter(it => String((PRODUITS.find(p => String(p.id) === it.pid) || {}).catId) === String(sc.id)).sort(tri)
+      items.filter(it => it.pid && String((PRODUITS.find(p => String(p.id) === it.pid) || {}).catId) === String(sc.id)).sort(tri)
         .forEach(it => { places[it.cle] = true; lignes.push(it); });
     });
+    items.filter(it => !it.pid && rayonIt(it) === String(r.id)).sort(tri).forEach(it => { places[it.cle] = true; lignes.push(it); });
     return groupe(r.nom, lignes, String(r.id));
   }).join('');
   html += groupe('Sans catégorie', items.filter(it => !places[it.cle]).sort(tri), '');
   const ouverte = /accordeon-tete[^"]* ouvert/.test(html);
-  cible.innerHTML = '<div class="grille choix-vue">' + (items.length ? boutonTout(ouverte) : '') +
-      '<button class="bouton bouton-grand" type="button" data-action="ajouter" data-achat-ajout aria-label="Ajouter"><span class="icone icone-plus"></span></button></div>' +
+  cible.innerHTML = '<div class="grille choix-vue' + (items.length ? ' grille-trois' : '') + '">' + (items.length ? boutonTout(ouverte) : '') +
+      '<button class="bouton bouton-grand" type="button" data-action="ajouter" data-achat-ajout aria-label="Ajouter"><span class="icone icone-plus"></span></button>' +
+      '<button class="bouton bouton-grand" type="button" data-action="soldes" data-achat-soldes aria-label="En solde"><span class="icone icone-soldes"></span></button></div>' +
     (html || '<div class="accordeon-item"><span class="texte-petit texte-pale">Rien à acheter.</span></div>');
 }
 /* Tout ouvrir / tout fermer (décision 19) : une seule action qui bascule — une catégorie au moins ouverte : il ferme tout; tout fermé :
@@ -3723,16 +3748,22 @@ function pasAimesDe(pid) {
     .map(r => [nomListe(String(r[2] || '').trim()), nomListe(String(r[3] || '').trim())].filter(Boolean).join(' ')).filter(Boolean))];
 }
 /* Un solde d'une marque qu'on ne rachète pas (toute la marque : sans saveur) est caché (décision 10) : l'avertissement suffit. */
-const soldePasAime = (pid, r) => PAS_AIMES.some(x => String(x[1]) === String(pid) && !String(x[3] || '').trim() &&
-  String(x[2] || '').trim() && cleNom(nomListe(String(x[2]).trim())) === cleNom(nomListe(String(r[14] || '').trim())));
+const marquePasAimee = (pid, marque) => !!String(marque || '').trim() && PAS_AIMES.some(x => String(x[1]) === String(pid) &&
+  !String(x[3] || '').trim() && String(x[2] || '').trim() && cleNom(nomListe(String(x[2]).trim())) === cleNom(nomListe(String(marque).trim())));
+const soldePasAime = (pid, r) => marquePasAimee(pid, r[14]);
 /* Sous l'aliment, au magasin (décisions 3, 4, 11, 12, 33, 34) : une ligne par épicerie dont le prix est connu — son solde de la semaine
    (le meilleur au 100 g, s'il y en a deux), ou un prix régulier (payé) plus bas au 100 g que tous les soldes (« souvent le grand format
    non en solde est moins cher que le solde »). « Super C · Natrel 4 L · 7,99 rég. · 0,20 / 100 ml », « IGA · Québon 2 L · 4,99 (6,49) ·
    0,25 / 100 ml »; seule la quantité reste des conditions (« 2 pour 22 $ »; les cartes et prix membres ne s'écrivent plus : décision 1).
    La moins chère au 100 g en rouge, les autres en vert; sans format, pas de prix au 100 g (« (format ?) » ne s'écrit plus) et personne
-   en rouge. Rien en solde : rien. */
-function lignesPrixAchat(pid) {
-  const soldes = soldesDe(pid).filter(r => !soldePasAime(pid, r));
+   en rouge. Rien en solde : rien. choisis : ses soldes choisis (lignes d'Achats) — celui que la semaine lue ne montre pas (pas encore trié,
+   ou trié depuis la lecture) prend sa place d'après sa ligne. */
+function lignesPrixAchat(pid, choisis) {
+  const soldes = pid ? soldesDe(pid).filter(r => !soldePasAime(pid, r)) : [];
+  (choisis || []).forEach(c => {
+    if (soldes.some(r => String(r[1]) === String(c[8]) && cleNom(r[3]) === cleNom(c[11]))) return;
+    soldes.push(['', c[8], pid, c[11], c[13], c[14], c[15], c[16], '', c[9], c[10], 'O', '', '', c[2]]);   // la forme de SPECIAUX
+  });
   if (!soldes.length) return '';
   const par = prixConnus(pid, soldes);
   const ds = Object.keys(par).filter(m => par[m].source === 'solde').map(m => par[m].detail);
@@ -3743,16 +3774,28 @@ function lignesPrixAchat(pid) {
   const rouge = comp && cents.filter(c => c === Math.min(...cents)).length === 1 ? mags[cents.indexOf(Math.min(...cents))] : '';
   if (comp) mags.sort((a, b) => centsDe(par[a].detail) - centsDe(par[b].detail));
   return mags.map(m => {
-    const x = par[m], n = Number((String(x.unite || '').match(/^\s*(\d+)\s*\//) || [])[1]) || 1;   // « 2/ » : 2 pour ce prix
-    const p = Number(String(x.prix == null ? '' : x.prix).trim().replace(',', '.'));
-    const cond = n > 1 && isFinite(p) ? n + ' pour ' + textePrix(p) + ' $' : '';
-    const prix = (n > 1 && isFinite(p) ? textePrix(Math.round(p / n * 100) / 100) : prixAvecUnite(x.prix, unitePoids(x.unite))) +
-      (x.source === 'solde' ? (x.regulier ? ' (' + textePrix(x.regulier) + ')' : '') : x.source === 'paye' ? ' payé' : ' rég.');
+    const x = par[m], c = prixSoldeCourt(x.prix, x.unite);
+    const prix = c.prix + (x.source === 'solde' ? (x.regulier ? ' (' + textePrix(x.regulier) + ')' : '') : x.source === 'paye' ? ' payé' : ' rég.');
     const sorte = [nomListe(x.marque), x.format].filter(Boolean).join(' ');
-    const avant = [nomListe(m), cond, sorte].filter(Boolean).map(esc).join(' · ');
+    const avant = [nomListe(m), c.cond, sorte].filter(Boolean).map(esc).join(' · ');
     return '<div class="solde' + (m === rouge ? ' solde-meilleur' : '') + '">' + avant + ' · <span class="solde-prix">' + esc(prix) + '</span>' +
       (x.detail && x.detail.val != null ? ' · ' + esc(texteUnite(x.detail)) : '') + '</div>';
   }).join('');
+}
+/* Le prix d'un solde, court (décision 1 : seule la quantité reste des conditions) : « 2/ » 22 $ → { cond: « 2 pour 22 $ », prix: « 11,00 » };
+   au poids, « 3,99/lb ». */
+function prixSoldeCourt(prix, unite) {
+  const n = Number((String(unite || '').match(/^\s*(\d+)\s*\//) || [])[1]) || 1;   // « 2/ » : 2 pour ce prix
+  const p = Number(String(prix == null ? '' : prix).trim().replace(',', '.'));
+  return n > 1 && isFinite(p) ? { cond: n + ' pour ' + textePrix(p) + ' $', prix: textePrix(Math.round(p / n * 100) / 100) }
+                              : { cond: '', prix: prixAvecUnite(prix, unitePoids(unite)) };
+}
+/* Un aliment choisi en solde dans deux épiceries : sa ligne porte celle où il coûte le moins cher au 100 g (la règle de « Par épicerie »). */
+function magasinSoldeChoisi(rows) {
+  const ds = rows.map(r => prixAuDetail(r[13], r[15], r[16]));
+  if (rows.length < 2 || !comparables(ds)) return rows[0][8];
+  const c = ds.map(centsDe);
+  return rows[c.indexOf(Math.min(...c))][8];
 }
 async function montrerAchats() {
   toutCacher(); $('vue-achats').hidden = false; $('btn-burger').hidden = false;
@@ -3788,6 +3831,7 @@ async function relireAchats() {
     if (!r || !r.ok || !Array.isArray(r.lignes)) { if (r && !r.ok) { clearInterval(minuterieAchats); minuterieAchats = null; } return; }
     const rows = r.lignes.filter(l => Array.isArray(l) && l[0] && String(l[0]) !== 'ID' && achatActif(l)).map(l => l.map(v => v == null ? '' : v));
     lireAttenteAchats().forEach(e => { if (e.lignes) poserLignesAchats(e.lignes, rows); });   // le geste d'ici pas encore parti l'emporte
+    completerAchats(rows);
     if (signatureAchats(rows) === signatureAchats(ACHATS)) return;
     ACHATS = rows;
     const c = lireCache(); if (c) { c.achats = rows.slice(); ecrireCache(c); }
@@ -3798,8 +3842,10 @@ async function relireAchats() {
 function cocherAchat(k) {
   const it = lignesAchats().find(x => x.cle === k);
   if (!it) return;
-  const coches = lignesDeAliment(it.pid, 'coche');
-  poserAchats(coches.length ? coches.map(r => { const l = r.slice(); l[7] = 'N'; return l; }) : [ligneAchat(it.pid, 'coche')]);
+  const s = it.soldes[0];                              // un solde pas encore trié : sa coche porte sa clé (pas d'aliment)
+  const coches = it.pid ? lignesDeAliment(it.pid, 'coche') : ACHATS.filter(r => achatActif(r) && r[4] === 'coche' && ligneDeCle(r, k));
+  poserAchats(coches.length ? coches.map(r => { const l = r.slice(); l[7] = 'N'; return l; })
+                            : [it.pid ? ligneAchat(it.pid, 'coche') : ligneAchat('', 'coche').concat([s[8], s[9], s[10]])]);
   remplirAchats();
 }
 /* Mettre de côté (la ligne glissée, la flèche brune — décisions 21, 34) : « pas pour l'instant », jusqu'à ce qu'il soit racheté ou remis
@@ -3808,6 +3854,10 @@ function cocherAchat(k) {
 function mettreDeCote(k) {
   const it = lignesAchats().find(x => x.cle === k);
   if (!it) return;
+  if (!it.pid) {                                       // un solde pas encore trié : il quitte la liste (son choix et sa coche s'en vont)
+    poserAchats(ACHATS.filter(r => achatActif(r) && ligneDeCle(r, k)).map(r => { const l = r.slice(); l[7] = 'N'; return l; }));
+    remplirAchats(); return;
+  }
   const lignes = lignesDeAliment(it.pid, 'coche').map(r => { const l = r.slice(); l[7] = 'N'; return l; });
   lignes.push(ligneAchat(it.pid, 'plustard'));
   poserAchats(lignes);
@@ -3862,6 +3912,15 @@ function toucherGlisse(racine, ev) {
 function nettoyerAchats(pid) {
   poserAchats(ACHATS.filter(r => achatActif(r) && String(r[1]) === String(pid)).map(r => { const l = r.slice(); l[7] = 'N'; return l; }));
 }
+/* Un solde pas encore trié, acheté : l'article de la circulaire est associé au produit scanné (toute l'épicerie) — il quitte la liste. */
+/* Choisi au + des soldes, pas encore trié : sur la liste, jusqu'à la fin de son solde (le feu déjà au vert, au tri). */
+function soldeChoisiCles(cles) {
+  const auj = dateDuJour(), ks = cles.map(c => 's:' + c);
+  return ACHATS.some(r => achatActif(r) && r[4] === 'solde' && soldeEnCoursAchat(r, auj) && ks.some(k => ligneDeCle(r, k)));
+}
+function nettoyerAchatsCle(cle) {
+  poserAchats(ACHATS.filter(r => achatActif(r) && ligneDeCle(r, 's:' + cle)).map(r => { const l = r.slice(); l[7] = 'N'; return l; }));
+}
 /* ---- Ce qui s'écrit : SA PROPRE FILE, à part de Consommer/Déplacer (rien n'y dépend de STOCK, et un coffre-fort pas encore
    à jour — « action inconnue » — ne doit pas bloquer les consommations). La mémoire change tout de suite; l'envoi, un à la fois;
    un échec reste en attente, sans bruit, et repart au prochain geste ou au prochain chargement. ---- */
@@ -3872,10 +3931,33 @@ function poserLignesAchats(lignes, rows) {             // par ID, en valeurs fin
 }
 function poserAchats(lignes) {
   if (!lignes.length) return;
+  retenirAchats(lignes);
   ecrireAttenteAchats(lireAttenteAchats().concat([{ lignes: lignes }]));   // gardé AVANT tout : un appareil éteint en route ne perd rien
   poserLignesAchats(lignes, ACHATS);
   const c = lireCache(); if (c) { poserLignesAchats(lignes, c.achats = c.achats || []); ecrireCache(c); }
   expedierAchats();
+}
+/* UN SOLDE CHOISI A DES COLONNES DE PLUS (son épicerie, la fin du solde, l'article : I à Q). Gardées aussi sur l'appareil, par l'ID de sa
+   ligne : un coffre-fort qui ne les garde pas encore (api.gs, RdG-06, section 7) ne les efface pas ici à la relecture. Un solde fini : oublié. */
+const ACHATS_SOLDES = 'rdg_achats_soldes';
+function lireMemoAchats() { try { return JSON.parse(localStorage.getItem(ACHATS_SOLDES) || '{}') || {}; } catch (e) { return {}; } }
+function retenirAchats(lignes) {
+  const longues = lignes.filter(l => l.length > 8);
+  if (!longues.length) return;
+  const m = lireMemoAchats(), auj = dateDuJour();
+  Object.keys(m).forEach(id => { const f = String(dateCourte(m[id][1]) || '').slice(0, 10); if (f && f < auj) delete m[id]; });
+  longues.forEach(l => { m[l[0]] = l.slice(8); });
+  try { localStorage.setItem(ACHATS_SOLDES, JSON.stringify(m)); } catch (e) {}
+}
+function completerAchats(rows) {
+  const m = lireMemoAchats();
+  rows.forEach(r => {
+    const x = Array.isArray(r) && m[r[0]];
+    if (!x || String(r[8] == null ? '' : r[8])) return;
+    while (r.length < 8) r.push('');
+    r.splice(8, x.length, ...x);
+  });
+  return rows;
 }
 async function expedierAchats() {
   if (envoiAchats) return;
@@ -3886,6 +3968,9 @@ async function expedierAchats() {
       let r = null;
       if (!e.lignes) r = { ok: true };                  // une vieille réponse « C'est le bon aliment ? » (retirée le 2026-10-02 : le tri la remplace)
       else try { r = await Coffre.achats({ lignes: e.lignes }); } catch (x) {}
+      if (r && !r.ok && !r.definitif && e.lignes.some(l => l.length > 8)) {   // les colonnes d'un solde refusées (coffre-fort pas encore à jour) :
+        try { r = await Coffre.achats({ lignes: e.lignes.map(l => l.slice(0, 8)) }); } catch (x) { r = null; }   // les 8 d'avant partent, l'appareil garde le reste
+      }
       if (!(r && (r.ok || r.definitif))) break;         // réseau, ou coffre-fort pas encore à jour : tout reste, ça repartira
       ecrireAttenteAchats(lireAttenteAchats().slice(1));
     }
@@ -4121,21 +4206,24 @@ function ordreMagasins(items) {
   items.forEach(x => { const s = st[x.magasin] = st[x.magasin] || { n: 0, c: 0 }; s.n++; if (x.code) s.c++; });
   return Object.keys(st).sort((a, b) => (st[b].c / st[b].n) - (st[a].c / st[a].n) || nomListe(a).localeCompare(nomListe(b), 'fr'));
 }
-/* Les articles rangés par catégorie (leurs couleurs, dans l'ordre de J-C), « Autres » (brune) au bout. */
-function htmlGroupesTri(items, rid, ligne) {
+/* Les articles rangés par catégorie (leurs couleurs, dans l'ordre de J-C), « Autres » (brune) au bout. compte : ce qui s'écrit au bout
+   d'une barre (le + des soldes : ses choisis). */
+function htmlGroupesTri(items, rid, ligne, compte) {
   const par = {};
   items.forEach(x => { const k = groupeTri(rid(x)); (par[k] = par[k] || []).push(x); });
   const groupe = (k, nom) => {
     if (!par[k]) return '';
     const t = teinteCategorie(k === 'autres' ? '' : k);
-    return '<div class="accordeon" data-groupe="' + esc(k) + '"' + t.style + '><div class="accordeon-tete' + t.pale + '"><span>' + esc(nom) + '</span></div>' +
+    return '<div class="accordeon" data-groupe="' + esc(k) + '"' + t.style + '><div class="accordeon-tete' + t.pale + '"><span>' + esc(nom) + '</span>' + (compte ? compte(k) : '') + '</div>' +
       '<div class="liste-blanche achats-groupe" hidden>' + par[k].map(ligne).join('') + '</div></div>';
   };
   return RAYONS.map(r => groupe(String(r.id), r.nom)).join('') + groupe('autres', 'Autres');
 }
-/* Une ligne = le nom de l'article, et dessous ce qui aide à décider (ni prix ni magasin). Une réponse dit à quoi elle est reliée. */
-function ligneTri(art, texte, detail) {
-  return '<div class="item tri-article" data-art="' + esc(art) + '"><div class="item-info"><div class="item-nom">' + esc(adoucir(texte)) + '</div>' +
+/* Une ligne = le nom de l'article, et dessous ce qui aide à décider (ni prix ni magasin). Une réponse dit à quoi elle est reliée.
+   feu : le rond devant le nom (« oui » : choisi au + des soldes, son tri attend). */
+function ligneTri(art, texte, detail, feu) {
+  return '<div class="item tri-article" data-art="' + esc(art) + '"><div class="item-info"><div class="item-nom">' +
+    (feu ? '<span class="feu-point feu-point-' + feu + '"></span>' : '') + esc(adoucir(texte)) + '</div>' +
     (detail ? '<div class="item-detail">' + esc(detail) + '</div>' : '') + '</div></div>';
 }
 /* Un texte de circulaire écrit en MAJUSCULES crie (J-C, 2026-10-02 : « capitale au début seulement, là ça fait agressif »).
@@ -4245,6 +4333,13 @@ function tuileMagasin(m, attr, classe, dedans) {
   return logo ? '<button class="bouton bouton-grand tuile-logo' + c + '" type="button" ' + attr + ' aria-label="' + esc(nomListe(m)) + '"><span class="logo"' + logo + '></span>' + (dedans || '') + '</button>'
               : '<button class="bouton bouton-grand tuile-nom' + c + (t.pale ? ' tuile-pale' : '') + '" type="button" ' + attr + t.style + '>' + esc(nomListe(m)) + (dedans || '') + '</button>';
 }
+/* Une épicerie ouverte, en bannière (la page Circulaires, Par épicerie, le + des soldes) : son logo sur blanc, sinon sa barre à sa couleur.
+   dedans : le nombre, au bout. */
+function banniereMagasin(m, dedans) {
+  const logo = styleLogo(m), t = teinteMagasin(m);
+  return logo ? '<div class="accordeon-tete ouvert banniere"><span class="logo"' + logo + ' aria-label="' + esc(nomListe(m)) + '"></span>' + (dedans || '') + '</div>'
+              : '<div class="accordeon-tete ouvert' + t.pale + '"' + t.style + '><span>' + esc(nomListe(m)) + '</span>' + (dedans || '') + '</div>';
+}
 /* LA PAGE VISUELLE (J-C, 2026-10-05, sur aperçu : A, les ronds en 48) : en arrivant, les épiceries en 2 colonnes — leur logo, sinon leur
    nom sur leur couleur; le point rouge = il y a quelque chose à trier chez elle —, puis 3 boutons ronds sur une ligne : Oui, Peut-être,
    Jamais (ce qui est déjà trié). Une épicerie touchée : les autres et les ronds se cachent; elle en bannière, ses catégories dessous,
@@ -4265,10 +4360,10 @@ function remplirTri() {
   const ouverte = (classe, tete, corps) => '<div class="accordeon' + classe + '" data-vue="' + esc(TRI_VUE) + '">' + tete +
     '<div class="accordeon-corps une-a-la-fois">' + corps + '</div></div>';
   if (TRI_VUE.slice(0, 2) === 'm:') {
-    const m = TRI_VUE.slice(2), ici = aTrier.filter(x => x.magasin === m), logo = styleLogo(m), t = teinteMagasin(m);
-    const tete = logo ? '<div class="accordeon-tete ouvert banniere"><span class="logo"' + logo + ' aria-label="' + esc(nomListe(m)) + '"></span></div>'
-                      : '<div class="accordeon-tete ouvert' + t.pale + '"' + t.style + '><span>' + esc(nomListe(m)) + '</span></div>';
-    cible.innerHTML = ouverte('', tete, ici.length ? htmlGroupesTri(ici, x => x.categorie, x => ligneTri('a:' + x.cle, x.texte, detailATrier(x))) : vide('Rien à trier cette semaine.'));
+    const m = TRI_VUE.slice(2), ici = aTrier.filter(x => x.magasin === m);
+    // la catégorie corrigée au crayon des soldes l'emporte (JS/prix.js); choisi au + des soldes : le feu déjà au vert, son tri attend ici (RdG-06, section 5)
+    cible.innerHTML = ouverte('', banniereMagasin(m), ici.length ? htmlGroupesTri(ici, x => catCirc(x.cle) || x.categorie,
+      x => ligneTri('a:' + x.cle, x.texte, detailATrier(x), soldeChoisiCles(x.cles && x.cles.length ? x.cles : [x.cle]) ? 'oui' : '')) : vide('Rien à trier cette semaine.'));
   } else if (TRI_VUE.slice(0, 2) === 'b:') {
     const b = TRI_VUE.slice(2), rond = RONDS_TRI.find(r => r[0] === b) || RONDS_TRI[0], reps = b === 'J' ? ['J', 'M'] : [b];
     const vus = {}, rs = TRI.tri.filter(r => reps.indexOf(String(r[2])) !== -1 && !vus[cleDoublon(r)] && (vus[cleDoublon(r)] = 1))
@@ -5548,6 +5643,7 @@ function initEntree() {
       remplirAchats(); return;
     }
     if (ev.target.closest('[data-achat-ajout]')) { montrerPlus(); return; }   // le + : Ajouter
+    if (ev.target.closest('[data-achat-soldes]')) { montrerSoldes(); return; }   // le + des soldes (JS/prix.js)
     const tete = ev.target.closest('.accordeon-tete');     // une catégorie : elle seule se ferme (ou s'ouvre)
     if (tete) { basculerBarre(tete, ACHATS_FERMEES); remplirAchats(); return; }
     const l = ev.target.closest('[data-achat]');

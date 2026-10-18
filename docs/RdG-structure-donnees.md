@@ -250,10 +250,35 @@ saveur s'écrivent vides (une vieille ligne par sorte compte pour son aliment). 
 | B | ProduitID | lien vers PRODUITS |
 | C | Marque | ID dans MARQUES — vide depuis le 2026-10-05 |
 | D | Saveur | ID dans SAVEURS — vide depuis le 2026-10-05 |
-| E | Etat | `main` ajouté à la main · `coche` dans le panier · `plustard` mis de côté |
+| E | Etat | `main` ajouté à la main · `coche` dans le panier · `plustard` mis de côté · `solde` choisi au + des soldes (2026-10-18) |
 | F | Date | le jour du geste |
 | G | Qui | qui l'a fait |
 | H | Actif | O / N |
+| I | Magasin | **un solde choisi** (2026-10-18, RdG-06 section 7) : son épicerie (ID dans MAGASINS) — aussi sur la coche d'un solde pas encore trié |
+| J | Fin | … le dernier jour du solde (sinon le mercredi de la semaine) : passé, la ligne ne compte plus — l'article quitte la liste tout seul |
+| K | Cle | … l'article de la circulaire (la clé du Tri, « IDmagasin ~ … »); un article pas encore trié (B vide) se reconnaît par elle |
+| L | Texte | … le nom de l'article dans la circulaire (la ligne d'un article pas encore trié) |
+| M | Categorie | … sa catégorie racine au moment du choix (devinée, ou corrigée au crayon) |
+| N | Prix | … le prix de la circulaire |
+| O | Regulier | … son prix régulier |
+| P | Unite | … ce qui entoure le prix (« 2/ », « /lb ») |
+| Q | Format | … le format (« 454 g ») — pour le prix au 100 g |
+
+*Un solde choisi : C = sa marque (ID dans MARQUES, sinon le texte de Flipp). Tant que le coffre-fort ne garde pas I à Q, l'app les
+garde sur l'appareil (par l'ID de la ligne, `rdg_achats_soldes`).*
+
+### CATEGORIESCIRC — la catégorie d'un article de circulaire, corrigée au crayon (2026-10-18, RdG-06 section 7)
+*Écrit par l'app (`ajouter`, l'ID de l'app : rejouable), par sa propre file. Une ligne par correction; la plus récente d'une clé
+l'emporte. Flipp ne donne pas de rayon : le coffre-fort devine (SPECIAUX col. L); le crayon du + des soldes corrige, pour les
+semaines suivantes aussi.*
+
+| Col | Nom | Sens |
+|-----|-----|------|
+| A | ID | date/heure, donné par l'app |
+| B | Cle | l'article (la clé du Tri) |
+| C | Categorie | sa catégorie racine (ID dans CATEGORIES), ou `autres` |
+| D | Date | le jour de la correction |
+| E | Qui | qui l'a faite |
 
 ### PRIXREGULIERS — le dernier prix régulier vu en circulaire, par aliment et épicerie (2026-10-07, RdG-08 section 4)
 *Créé et **refait en entier** à la fin de chaque lecture du jeudi (`finirLecture`), d'après l'archive Circulaires gardée un an;

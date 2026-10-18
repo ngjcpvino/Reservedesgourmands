@@ -243,7 +243,9 @@
   --action-tout:       var(--action-base);      /* tout ouvrir / tout fermer (la Liste d'épicerie, son +) : beige, le dessin brun — RdG-06, décision 23 */
   --action-scanner:    var(--couleur-305);      /* le scan, en grand (le + de la Liste d'épicerie) : brun, comme le bouton scanner collé à un champ */
   --action-habituel:   var(--couleur-702);      /* le cœur : un habituel, un raccourci que J-C marque lui-même (le + de la Liste d'épicerie, RdG-06, décisions 25, 35) */
+  --action-soldes:     var(--base-circulaires);   /* le + des soldes (la Liste d'épicerie) : le rouge de Circulaires — RdG-06, décision 23 */
   --glisse-large:      64px;   /* une ligne glissée vers la gauche : la place de ce qu'elle cachait (la flèche « mettre de côté » — RdG-06, décision 34) */
+  --glisse-deux:       96px;   /* … deux gestes cachés (le + des soldes : le crayon et le rond rouge — décision 32) : deux doigts (--tactile) et leur écart. En px : le script le lit */
   --glisse-duree:      0.2s;   /* … le temps qu'elle revient, ou qu'elle s'ouvre */
   --poubelle-taille:   24px;   /* la poubelle « retirer », un peu plus grosse que le crayon : elle tient tête à l'interrupteur (J-C, 2026-10-03, choix F sur aperçu parmi 22 / 24 / 26) */
   --icone-colonne:     28px;   /* Magasins : l'icône des circulaires au-dessus des interrupteurs, à la place du mot (J-C, 2026-10-03, choix A sur aperçu) */
@@ -493,7 +495,7 @@ body:has(.sur-photo:not([hidden]))::before { display: none; }
   border-bottom: var(--filet-titre-action) solid var(--t, var(--couleur-205));
 }
 .titre-action .icone { width: var(--titre-action-icone); height: var(--titre-action-icone); --icone-trait: var(--t, var(--couleur-306)); }
-#vue-achats { --t: var(--menu-achats); }   #vue-plus { --t: var(--action-ajouter); }
+#vue-achats { --t: var(--menu-achats); }   #vue-plus { --t: var(--action-ajouter); }   #vue-soldes { --t: var(--action-soldes); }
 #vue-listes { --t: var(--menu-listes); }
 #vue-pieces { --t: var(--base-pieces); }   #vue-meubles { --t: var(--base-meubles); }   #vue-categories { --t: var(--base-categories); }
 #vue-aliments { --t: var(--base-aliments); }   #vue-circulaires { --t: var(--base-circulaires); }   #vue-couleurs { --t: var(--outil-couleurs); }   #vue-off-liste { --t: var(--outil-off); }
@@ -662,6 +664,7 @@ body:has(.sur-photo:not([hidden]))::before { display: none; }
 :is(.grille > .bouton-grand, .bouton)[data-action="off"]        { --c: var(--action-off); }
 :is(.grille > .bouton-grand, .bouton)[data-action="tout"]       { --c: var(--action-tout); --icone-trait: var(--icone-trait-pale); }   /* tout ouvrir / tout fermer : beige */
 :is(.grille > .bouton-grand, .bouton)[data-action="scanner"]    { --c: var(--action-scanner); }
+:is(.grille > .bouton-grand, .bouton)[data-action="soldes"]     { --c: var(--action-soldes); }   /* le + des soldes : rouge */
 .logo-off { display: block; height: var(--icone-part); aspect-ratio: 1; background: var(--off-logo) center / contain no-repeat; }   /* leur logo, en couleurs, dans un bouton (Envoyer) et au titre */
 .titre-action .logo-off { height: var(--titre-action-icone); }
 .endroit > .endroit-retirer { margin-left: auto; height: var(--tactile); }   /* la poubelle d'un endroit de la fiche : au bout de sa carte */
@@ -1281,6 +1284,7 @@ select.champ {
 .icone-aliments { --dessin: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='0.8' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M12 20.94c1.5 0 2.75 1.06 4 1.06 3 0 6-8 6-12.22A4.91 4.91 0 0 0 17 5c-2.22 0-4 1.44-5 2-1-.56-2.78-2-5-2a4.9 4.9 0 0 0-5 4.78C2 14 5 22 8 22c1.25 0 2.5-1.06 4-1.06Z'/%3E%3Cpath d='M10 2c1 .5 2 2 2 5'/%3E%3C/svg%3E"); }   /* Aliments : la pomme */
 .icone-magasins { --dessin: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='0.8' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M2 7l4.41-4.41A2 2 0 0 1 7.83 2h8.34a2 2 0 0 1 1.42.59L22 7'/%3E%3Cpath d='M4 12v8a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-8'/%3E%3Cpath d='M15 22v-4a2 2 0 0 0-2-2h-2a2 2 0 0 0-2 2v4'/%3E%3Cpath d='M2 7h20'/%3E%3Cpath d='M22 7v3a2 2 0 0 1-2 2 2.7 2.7 0 0 1-1.59-.63.7.7 0 0 0-.82 0A2.7 2.7 0 0 1 16 12a2.7 2.7 0 0 1-1.59-.63.7.7 0 0 0-.82 0A2.7 2.7 0 0 1 12 12a2.7 2.7 0 0 1-1.59-.63.7.7 0 0 0-.82 0A2.7 2.7 0 0 1 8 12a2.7 2.7 0 0 1-1.59-.63.7.7 0 0 0-.82 0A2.7 2.7 0 0 1 4 12a2 2 0 0 1-2-2V7'/%3E%3C/svg%3E"); }   /* Magasins : la devanture */
 .icone-circulaires { --dessin: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='0.8' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M20.6 13.4l-7.2 7.2a2 2 0 0 1-2.8 0L3 13V4a1 1 0 0 1 1-1h9l7.6 7.6a2 2 0 0 1 0 2.8z'/%3E%3Ccircle cx='7.5' cy='7.5' r='1.3'/%3E%3Cpath d='M14.6 10.3c-.4-.6-1.1-.9-1.9-.9-1 0-1.8.6-1.8 1.4 0 1.9 3.9 1 3.9 3 0 .8-.8 1.4-1.9 1.4-.9 0-1.7-.4-2.1-1M12.7 8.4v1M12.7 15.2v1'/%3E%3C/svg%3E"); }   /* Circulaires : l'étiquette de prix et son $ (J-C, 2026-10-01, choix B sur aperçu, le % remplacé par $) */
+.icone-soldes { --dessin: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='0.8' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M18.6 13.4l-6.2 6.2a2 2 0 0 1-2.8 0L2 12V4a1 1 0 0 1 1-1h8l7.6 7.6a2 2 0 0 1 0 2.8z'/%3E%3Ccircle cx='6.5' cy='7.5' r='1.3'/%3E%3Cpath d='M13.6 10.3c-.4-.6-1.1-.9-1.9-.9-1 0-1.8.6-1.8 1.4 0 1.9 3.9 1 3.9 3 0 .8-.8 1.4-1.9 1.4-.9 0-1.7-.4-2.1-1M11.7 8.4v1M11.7 15.2v1'/%3E%3Cpath d='M19.5 1.5v6M16.5 4.5h6'/%3E%3C/svg%3E"); }   /* le + des soldes : l'étiquette, son $ et un + (RdG-06, décision 23 : 2 sur aperçu) */
 .icone-marques { --dessin: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='0.8' stroke-linecap='round' stroke-linejoin='round'%3E%3Ccircle cx='12' cy='12' r='9'/%3E%3Cpath d='M9.5 16.5v-9h3.5a2.5 2.5 0 0 1 0 5H9.5M12.5 12.5l3 4'/%3E%3C/svg%3E"); }   /* Marques : le ® de la marque déposée */
 .icone-saveurs { --dessin: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='0.8' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M12 21.5c-4 0-7-5.5-7-9.5 0-2.5 2-4 4-4 1 0 2 .5 3 .5s2-.5 3-.5c2 0 4 1.5 4 4 0 4-3 9.5-7 9.5z'/%3E%3Cpath d='M12 8.5C11 6.5 9 5.5 7 5.5c1.5-.5 3.5 0 5 1.5 1.5-1.5 3.5-2 5-1.5-2 0-4 1-5 3zM12 6.5V2.5'/%3E%3Ccircle cx='9.5' cy='12' r='0.35'/%3E%3Ccircle cx='14.5' cy='12' r='0.35'/%3E%3Ccircle cx='12' cy='14.5' r='0.35'/%3E%3Ccircle cx='9.5' cy='17' r='0.35'/%3E%3Ccircle cx='14.5' cy='17' r='0.35'/%3E%3C/svg%3E"); }   /* Saveurs : la fraise */
 .icone-unites { --dessin: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='0.8' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M16 16l3-8 3 8c-.87.65-1.92 1-3 1s-2.13-.35-3-1Z'/%3E%3Cpath d='M2 16l3-8 3 8c-.87.65-1.92 1-3 1s-2.13-.35-3-1Z'/%3E%3Cpath d='M7 21h10M12 3v18M3 7h2c2 0 5-1 7-2 2 1 5 2 7 2h2'/%3E%3C/svg%3E"); }   /* Unités : la balance à plateaux */
@@ -1313,9 +1317,18 @@ select.champ {
 .glisse:is(.glissee, .glissant) > .item { background: var(--couleur-101); }
 .glisse.glissee > .item { transform: translateX(calc(-1 * var(--glisse-large))); }
 .glisse.glissant > .item { transform: translateX(var(--glisse-x)); transition: none; }
-.glisse-zone { position: absolute; top: 0; right: 0; bottom: 0; width: var(--glisse-large); display: flex; align-items: center; justify-content: center; visibility: hidden; }
+.glisse-zone { position: absolute; top: 0; right: 0; bottom: 0; width: var(--glisse-large); display: flex; align-items: center; justify-content: center; gap: var(--espace-s); visibility: hidden; }
 .glisse:is(.glissee, .glissant) > .glisse-zone { visibility: visible; }
 .glisse-zone .remettre { align-self: center; height: var(--pastille-action); }
+/* LE + DES SOLDES (décisions 26, 31, 32) : une ligne par article, la case au bout (C3) — la ligne entière se touche; glissée, deux gestes :
+   le crayon (sa catégorie) et le rond rouge du feu (Jamais), chacun aussi grand qu'un doigt. */
+#soldes-liste { --glisse-large: var(--glisse-deux); }
+[data-solde] { cursor: pointer; }
+[data-solde] .case { pointer-events: none; }
+.glisse-zone .crayon { flex: none; align-self: center; height: var(--tactile); margin: 0; }
+.jamais { -webkit-appearance: none; appearance: none; position: relative; flex-shrink: 0; width: var(--tactile); height: var(--tactile); padding: 0; background: none; border: none; cursor: pointer; }
+.jamais::after { content: ''; position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); width: var(--pastille-action); height: var(--pastille-action);
+  border-radius: 50%; background: var(--tri-jamais); box-shadow: var(--feu-relief); }
 /* LE + DE LA LISTE D'ÉPICERIE (décisions 25 à 30) : ses habituels en cases sur 2 colonnes, la case à cocher dans le coin (C3); déjà sur
    la liste : le rond vert coché, à la place de la case (décision 29); le cœur, sur une ligne trouvée; « Nouvel aliment : … » en bleu. */
 #plus-cherche { margin-top: var(--espace-s); }

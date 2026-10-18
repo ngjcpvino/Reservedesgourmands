@@ -129,7 +129,7 @@ J-C : « Ajouter. Ça prendrait au moins les habituels. » Aujourd'hui, le + de 
 - **Le même aliment choisi en solde dans deux épiceries : sa ligne porte celle où il coûte le moins cher au 100 g, l'autre prix en petit dessous** (la règle de « Par épicerie »; J-C : « Oui »).
 - **Le comportement : le tour est fait (2026-10-18).** J-C, le même jour : « faut revoir le visuel de la liste, car là… pas conviviale du tout » — **le look de la Liste d'achats, à revoir** (aperçu d'abord; ce qui dérange : à préciser avec J-C).
 
-## 6. LE LOOK DE LA LISTE, À L'ÉPICERIE (J-C, 2026-10-18) — RÉFLEXION FINIE; LA PAGE ET LE + BÂTIS LE MÊME JOUR, LE + DES SOLDES À VENIR
+## 6. LE LOOK DE LA LISTE, À L'ÉPICERIE (J-C, 2026-10-18) — RÉFLEXION FINIE; LA PAGE, LE + ET LE + DES SOLDES BÂTIS LE MÊME JOUR
 
 J-C, sa capture de « Par épicerie » sur l'iPhone à l'appui : « je suis à l'épicerie, j'ai pas le temps d'analyser toutes ces infos »; « faut travailler avec le format iPhone, c'est avec cet appareil qu'on va travailler à l'épicerie »; « regarder en dehors de la boîte ». **Le modèle : AnyList** (J-C : « Exact ») — par rayon, le nom, une petite note grise au besoin, un toucher raye l'article et l'envoie au bas. **D'abord : ce qu'on a à montrer sur un petit écran, une info à la fois** (J-C : « avant tout, regardons ce que nous avons à montrer »). Le look : un aperçu ensuite, à la largeur de l'iPhone.
 
@@ -190,11 +190,29 @@ J-C, sa capture de « Par épicerie » sur l'iPhone à l'appui : « je suis à l
 **✅ BÂTI le 2026-10-18 (J-C : « Sûrement pas lol mais go »), pas encore testé en ligne (T117 à T121)** — la page et le +, ensemble (sans le +, un
 article mis de côté n'aurait plus de chemin pour revenir) : `remplirAchats()`, `lignesPrixAchat()`, `brancherGlisse()`, `relireAchats()`,
 `montrerPlus()` / `remplirPlus()` (`vue-plus`), `basculerHabituel()` (Produits col. M). Essai dans un Chromium, le coffre-fort imité : 40
-vérifications. **Pas encore : le + des soldes** (le 3e bouton, rouge) — à bâtir ensuite; une partie demande l'ordi (section 7).
+vérifications. ~~**Pas encore : le + des soldes**~~ — bâti le même jour, ci-dessous.
 Choix de Claude en bâtissant (à revoir si J-C le veut autrement) : un prix régulier (ou payé) ne paraît que **plus bas au 100 g que tous
 les soldes** de l'aliment, et rien du tout sans solde (« en solde, ou un régulier plus bas »); un solde caché pour « Ne pas racheter » =
 toute la marque (sans saveur) — « pas : Liberté fraise » laisse paraître un solde Liberté vanille; « il en reste N » compte les
 contenants (les pots d'un paquet); « Choisis (N) » paraît dès qu'un choisi n'est pas un habituel, et montre tout ce qui est choisi.
+
+**✅ LE + DES SOLDES BÂTI le 2026-10-18** (J-C : « Oui », à « je continue avec lui ? »), pas encore testé en ligne (T122 à T126) — le 3e
+bouton de la page (rouge, l'étiquette et son +), la page « En solde » de l'aperçu `soldes2.py` (décisions 31, 32), `JS/prix.js`
+(`montrerSoldes()`, `remplirSoldes()`, `validerSoldes()`). Essai dans un Chromium, le coffre-fort imité (et pas encore à jour) : 48
+vérifications. Choix de Claude en bâtissant (à revoir si J-C le veut autrement) :
+- **les articles viennent de la circulaire de l'épicerie**, celle des deux sacs (`circulaireMagasin`, gardée sur l'appareil jusqu'au jeudi) :
+  la toucher est instantané, sauf la 1re fois de la semaine (le chariot). Ses catégories : une seule ouverte à la fois (la règle de
+  partout; l'exception de la décision 37 ne vaut que pour la liste et son +);
+- **un solde choisi va dans l'onglet Achats** (Etat « solde »), avec son épicerie, la fin du solde (sinon le mercredi), l'article
+  (sa clé, son texte, sa catégorie, son prix) : il quitte la liste tout seul quand le solde finit, ou quand on l'entre (un aliment), ou
+  quand l'article est associé au scan des deux sacs (un article pas trié);
+- **un article pas encore trié, choisi** : une ligne à lui sur la liste (son nom de circulaire adouci, « (Super C) », son prix), dans sa
+  catégorie devinée, au bout de la catégorie; il se coche et se met de côté comme les autres; **au tri, un rond vert devant son nom**
+  (« le feu déjà au vert ») tant qu'il est sur la liste — il se trie comme les autres; rien n'est écrit au Tri d'avance;
+- **le Jamais** : le geste du tri (`trier`, J), tout de suite; caché aussi chez les autres épiceries (le même genre);
+- **le crayon** : le menu des catégories à la place de la ligne, le X pour laisser tomber; le choix vaut au + des soldes, sur la liste et
+  au tri (À trier), et pour les semaines suivantes (l'onglet CategoriesCirc, section 7);
+- **pas de prix régulier** sur la ligne d'un solde, ici (l'aperçu : le prix et le prix au 100 g); il est sur la liste (P2).
 
 26. **Une case choisie = C3, une case à cocher dans le coin de chacune** (J-C : « C3 »), au + comme aux soldes. **Jamais, sur la même ligne que choisir : « dangereux avec mes gros doigts »** (J-C) — proposé par Claude : le rond rouge reste, mais il demande d'abord « Jamais : Foie de porc ? » (le X, le crochet) à la place de la ligne, comme la poubelle partout; un mauvais toucher sur la ligne ne fait que choisir (se défait d'un autre toucher). J-C : « Je sais pas… » → **aperçu de trois façons** (`scratchpad/apercu-epicerie/jamais.py`) : J1 le rond rouge, puis la question · J2 le rond rouge à gauche, la case à droite (toute la ligne entre les deux), sans question · J3 rien à l'écran, la ligne glissée vers la gauche montre « Jamais » (comme un courriel sur l'iPhone). **Choix de J-C : J3, « mais avec le rond rouge à cliquer »** — la ligne glissée vers la gauche fait paraître **le rond rouge du feu** (le Jamais du tri, pas le mot), qu'on touche : Jamais, sans autre question; rien sur la ligne au repos. (Les habituels : marqués par J-C, décision 25.)
 21. **La barre « Mis de côté » quitte la liste** (J-C : « 2 items ça va, mais une série… bonne chance pour le retrouver rapidement et le remettre dans la liste »; « Oui » à la reco de Claude) : la flèche écarte toujours un article (« pas pour l'instant »); **le ramener = le +**, où il paraît parmi les habituels comme les autres, rangé par catégorie (décision 11 de la section 5), avec l'entonnoir et le scan.
@@ -208,5 +226,20 @@ contenants (les pots d'un paquet); « Choisis (N) » paraît dès qu'un choisi n
 2. **`lire` sur l'onglet Achats** — la relecture aux 30 s (décision 38) appelle `{ action: 'lire', table: 'Achats' }` et attend
    `{ ok: true, lignes: [...] }` (l'en-tête peut y être : l'app le saute). Vérifier qu'elle passe (aucune liste d'onglets permis qui
    l'exclurait); onglet absent : `{ ok: true, lignes: [] }`. Un refus (`ok: false`) : l'app cesse de relire pour cette visite, sans bruit.
-3. *(À venir, avec le + des soldes : garder l'épicerie et la fin d'un solde choisi sur sa ligne d'Achats; la catégorie corrigée au crayon
-   d'un article de circulaire.)*
+3. **Achats : la ligne d'un solde choisi a 17 colonnes** (le + des soldes, 2026-10-18) — A à H comme avant, puis **I Magasin · J Fin ·
+   K Cle · L Texte · M Categorie · N Prix · O Regulier · P Unite · Q Format** (`RdG-structure-donnees.md`, ACHATS). L'action `achats`
+   doit écrire **la ligne entière** telle qu'elle arrive (8 ou 17 colonnes; une coche d'un solde pas encore trié en a 11 : A à H, puis
+   I, J, K), poser les en-têtes I à Q, et `references.achats` / `lire('Achats')` les rendre. Les textes en texte (`TOUT_TEXTE` : K
+   « 2026… ~ … », un prix « 2/ »). Aujourd'hui : un refus → l'app renvoie les 8 premières colonnes et garde le reste sur l'appareil
+   (l'autre appareil ne voit pas le solde tant que ce n'est pas fait).
+4. **`circulaireMagasin` : chaque ligne porte aussi `categorie`** (SPECIAUX col. L, la correction de CategoriesCirc l'emportant),
+   **`genre`** (col. M), **`debut`** et **`fin`** (J, K) — et un article dont le genre est Jamais dans une autre épicerie arrive avec
+   `tri.reponse` = 'J'. D'ici là : l'app lit `lireTri` en arrière-plan pour connaître la catégorie des articles pas triés (TEMPORAIRE,
+   `categoriesPourSoldes()` de `JS/prix.js`, à retirer quand `categorie` arrive : point 92 de `CLAUDE.md`), et la fin d'un solde choisi
+   est le mercredi de la semaine.
+5. **Un onglet `CategoriesCirc`** (A ID · B Cle · C Categorie · D Date · E Qui), connu d'`ajouter` (`ENTETES`, tout en texte; l'ID de
+   l'app : le même = `dejaFait`). **`references.categoriesCirc`** = `{ Cle : Categorie }` (la plus récente d'une clé); **`lireTri`**
+   (son `aTrier`) et **`circulaireMagasin`** prennent cette catégorie pour l'article. D'ici là, l'app garde la correction sur l'appareil
+   (sa propre file, `rdg_catcirc_attente`) et l'envoie à chaque chargement, sans bruit.
+6. Rien d'autre : le Jamais du + des soldes est l'action `trier` d'aujourd'hui.
+
