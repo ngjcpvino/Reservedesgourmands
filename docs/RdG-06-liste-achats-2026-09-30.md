@@ -138,4 +138,6 @@ J-C, sa capture de « Par épicerie » sur l'iPhone à l'appui : « je suis à l
 
 2. **Au magasin, l'autre épicerie reste** (J-C : « Oui, car les épiceries sont proches et je fais souvent 2 dans une course »).
 
-**Questions ouvertes** (une à la fois) : pour l'autre épicerie, qu'est-ce qui suffit pour décider dans l'allée — son prix, le prix au 100 g, ou le verdict (« moins cher au Super C ») ?
+3. **On compare au 100 g, les deux épiceries** (J-C : « Au g, car souvent le grand format non en solde est moins cher que le solde. Encore une supercherie marketing ») — pas le verdict seul. À savoir pour la suite : le solde n'est pas toujours le meilleur prix; un format régulier plus gros peut le battre au 100 g.
+
+**Questions ouvertes** (une à la fois) : sur la ligne, le prix ET le prix au 100 g (« IGA 1,49 · 6,21 / 100 g »), ou le prix au 100 g seul ?
