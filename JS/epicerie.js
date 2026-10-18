@@ -13,6 +13,7 @@
 ============================================================ */
 var EPI = null;              // la liste en cours : { id, magasin, nom }
 var EPI_CIRC = [];           // la circulaire de la semaine de cette épicerie (circulaireMagasin)
+var EPI_CIRC_RELUE = null;   // sa relecture en arrière-plan, en route (le + des soldes se redessine quand elle arrive : JS/prix.js)
 var EPI_CIRC_MAG = '';       // son épicerie (les deux sacs, Compléter, le sac seul)
 var EPI_CIRC_TOUCHEE = 0;    // une ligne reliée ici (relierCirculaire) : une relecture partie avant ne l'écrase pas
 var EPI_CARTE = null;        // l'article à l'écran : { code, pid, nouveau, marque, saveur, format, photo, ligne, auto, sansCode }
@@ -118,11 +119,11 @@ async function choisirEpicerie(mag) {
 const lireCircGardees = () => { try { return JSON.parse(localStorage.getItem(EPI_CACHE_CIRC) || '{}') || {}; } catch (e) { return {}; } };
 async function chargerCirculaire(m) {
   const mag = String(m.id), g = lireCircGardees()[mag];
-  EPI_CIRC = []; EPI_CIRC_MAG = mag;
+  EPI_CIRC = []; EPI_CIRC_MAG = mag; EPI_CIRC_RELUE = null;
   if (m.circ === false) return;
   if (g && g.jour && !jeudiPasse(g.jour, dateDuJour())) {
     EPI_CIRC = g.lignes || [];
-    relireCirculaire(mag);
+    EPI_CIRC_RELUE = relireCirculaire(mag);
     return;
   }
   montrerVoile(true);
@@ -423,6 +424,7 @@ function validerCarte(rep) {
     charge: { produitId: pid, marque: marque, format: format, saveur: saveur, code: code, magasin: EPI.magasin, prix: prix, qui: qui,
               opId: opId, epicerie: EPI.id, endroits: [{ id: id, emp: emp, qte: qte }] } });
   if (l && rep === 'O') relierCirculaire(l, pid, marque, saveur, code);
+  if (l && avecCirc) nettoyerAchatsCle(l.cle);         // choisi au + des soldes sans être trié : acheté, il quitte la liste
   if (l && rep === 'N') EPI_REFUS[l.cle + '|' + String(a.pid || a.code || '')] = true;
   if (a.photoEmb && code) garderPhotoEmballage(code, a.photoEmb);   // la photo de l'emballage : sur l'appareil, puis au coffre-fort
   if (code) {                                            // son code est à nous tout de suite : le prochain scan le reconnaît

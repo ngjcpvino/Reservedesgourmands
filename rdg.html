@@ -10,7 +10,7 @@
   <!-- Ecran d'accueil iPad : le meme sac, en PNG (iOS n'accepte pas le SVG ici) -->
   <link rel="apple-touch-icon" href="apple-touch-icon.png?v=2">
 
-<link rel="stylesheet" href="CSS/rdg.css?v=190">
+<link rel="stylesheet" href="CSS/rdg.css?v=191">
 </head>
 <body>
 
@@ -162,6 +162,22 @@
       <div class="grille bloc-detache" id="plus-bas">
         <button class="bouton bouton-grand" data-action="non" id="plus-non" type="button" aria-label="Annuler"><span class="icone icone-non"></span></button>
         <button class="bouton bouton-grand" data-action="oui" id="plus-oui" type="button" aria-label="Mettre sur la liste"><span class="icone icone-oui"></span></button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ============================================================
+     LE + DES SOLDES — les épiceries; une touchée, ses soldes par catégorie; le crochet met les choisis sur la liste.
+============================================================ -->
+<div id="vue-soldes" hidden>
+  <div class="entete"><div class="titre titre-action"><span class="icone icone-soldes"></span>En solde</div></div>
+  <div class="contenu">
+    <div class="niveau-2">
+      <div id="soldes-liste"></div>   <!-- les épiceries en tuiles, ou celle touchée : sa bannière, ses catégories (remplirSoldes, JS/prix.js) -->
+      <div class="grille bloc-detache" id="soldes-bas">
+        <button class="bouton bouton-grand" data-action="non" id="soldes-non" type="button" aria-label="Annuler"><span class="icone icone-non"></span></button>
+        <button class="bouton bouton-grand" data-action="oui" id="soldes-oui" type="button" aria-label="Mettre sur la liste"><span class="icone icone-oui"></span></button>
       </div>
     </div>
   </div>
@@ -556,10 +572,10 @@
 </div><!-- fin du conteneur -->
 
 <script src="JS/coffre.js?v=22"></script>
-<script src="JS/entree.js?v=227"></script>
+<script src="JS/entree.js?v=228"></script>
 <script src="JS/bientot.js?v=6"></script>
-<script src="JS/prix.js?v=10"></script>
-<script src="JS/epicerie.js?v=46"></script>
+<script src="JS/prix.js?v=11"></script>
+<script src="JS/epicerie.js?v=47"></script>
 <script src="JS/off.js?v=13"></script>
 <script src="JS/scan.js?v=25"></script>
 </body>
