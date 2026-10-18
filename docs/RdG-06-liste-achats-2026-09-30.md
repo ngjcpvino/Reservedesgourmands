@@ -151,4 +151,6 @@ J-C, sa capture de « Par épicerie » sur l'iPhone à l'appui : « je suis à l
 8. **Une marque « Ne pas racheter » se MONTRE sur la ligne, en avertissement** (« pas : Liberté fraise », en rouge; le look à l'aperçu) — J-C : « l'app ne le montre pas, mais moi je vois ça comment de ne pas prendre cette marque ? Surtout quand c'est pas la même personne qui indique ne pas racheter » — remplace « cachée » (`lignesAchats()` la saute aujourd'hui).
 9. **« Ne pas racheter » garde sa portée : la marque et la saveur, tous formats** (J-C : « Oups. Tu as raison », après « le pot et le paquet de 12 ont deux codes-barres : par le code, le pot laisserait passer le paquet »).
 
-**Questions ouvertes** (une à la fois) : un solde d'une marque « Ne pas racheter » (sous l'aliment, et dans la page des soldes du +) : caché, ou montré avec l'avertissement ?
+10. **Un solde d'une marque « Ne pas racheter » est caché** (sous l'aliment et dans la page des soldes du +; J-C : « Ok ») : l'avertissement sous le nom suffit.
+
+**Questions ouvertes** (une à la fois) : la marque et le format du solde (« Old El Paso · 24 g »), pour le trouver sur la tablette ?
