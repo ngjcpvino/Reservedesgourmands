@@ -115,17 +115,29 @@
         canvas.width = sw; canvas.height = sh;
         ctx.drawImage(video, Math.round((vw - sw) / 2), Math.round((vh - sh) / 2), sw, sh, 0, 0, sw, sh);
         var img = ctx.getImageData(0, 0, canvas.width, canvas.height);
-        var res = await readBarcodes(img, { tryHarder: true, maxNumberOfSymbols: 1 });
-        var lu = res && res.length && res[0].text;
+        var res = await readBarcodes(img, { tryHarder: true, maxNumberOfSymbols: 3 });
+        var lu = codeUtile(res);
         if (lu && !(continu && lu === dernierLu && Date.now() - repriseA < MEME_CODE_MS)) { trouve(lu); return; }
       }
     } catch (e) { /* image/wasm ponctuel : on continue */ }
     if (scanning) timer = setTimeout(boucle, 200);
   }
 
+  /* Le code qui sert, parmi ceux de l'image : des chiffres (un code-barres), ou le Lot d'un pot d'Épices de Cru (son code QR, RdG-13).
+     Tout autre code (souvent un code QR qui mène au site du fabricant, sur bien des boîtes) est ignoré : la lecture continue et trouve
+     le code-barres à côté. */
+  function codeUtile(res) {
+    for (var i = 0; res && i < res.length; i++) {
+      var t = String(res[i].text || '').trim();
+      if (/^\d+$/.test(t) || (typeof estLotEpice === 'function' && estLotEpice(t))) return t;
+    }
+    return '';
+  }
+
   function trouve(code) {
     var lu = code;                               // tel que lu (le même paquet relu tout de suite : pas deux fois)
     if (typeof lirePese === 'function') code = lirePese(code);   // un paquet pesé au magasin (la viande) : sa clé, le prix lu à côté
+    if (typeof lireEpice === 'function') code = lireEpice(code);   // un pot d'Épices de Cru : sa clé, « EDC-10722 » (RdG-13)
     if (continu) {                               // toute l'épicerie : la caméra reste ouverte, la lecture attend l'article suivant
       scanning = false; if (timer) { clearTimeout(timer); timer = null; }
       dernierLu = lu;
@@ -144,7 +156,7 @@
   var MEMO_OFF_MS = 120000, memoOFF = {};
   var TOUT_MANQUE = ['devant', 'ingredients', 'nutrition', 'nom', 'marque', 'format'];
   async function chercherOFF(code, frais) {
-    if (typeof estPese === 'function' && estPese(code))   // un code de magasin (la viande pesée) : Open Food Facts ne l'a pas, et ne doit pas l'avoir
+    if ((typeof estPese === 'function' && estPese(code)) || (typeof estEpice === 'function' && estEpice(code)))   // un code de magasin (la viande pesée), un pot d'Épices de Cru : Open Food Facts ne l'a pas, et ne doit pas l'avoir
       return { code: code, nom: '', nomAutre: '', marque: '', format: '', photo: '', trouve: false, manque: [], photos: {} };
     var m = memoOFF[code];
     if (!frais && m && Date.now() - m.a < MEMO_OFF_MS) return m.d;
