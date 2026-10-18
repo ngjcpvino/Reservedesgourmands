@@ -198,7 +198,7 @@ function ouvrirFicheScan(code) {
    (J-C, 2026-10-09 : avant, rien ne le disait — le code s'inscrivait, c'est tout). */
 async function surCode() {
   let code = $('codebarres').value.trim();
-  const cle = code && lirePese(code);               // un paquet pesé au magasin : sa clé (le prix lu, à côté)
+  const cle = code && lireEpice(lirePese(code));    // un paquet pesé au magasin : sa clé (le prix lu, à côté); un pot d'Épices de Cru : la sienne (RdG-13)
   if (cle && cle !== code) { $('codebarres').value = cle; code = cle; }
   codeScan = code;
   $('msg-code').textContent = '';
@@ -221,6 +221,7 @@ async function surCode() {
         if (nomListe(l[9])) choisirParNom('saveur', nomListe(l[9]));   // comme toute l'épicerie
         if (String(l[6] || '').trim()) poserFormat(String(l[6]).trim());
       }
+      if (estEpice(code)) poserPrixEpiceFiche(code);   // un pot d'Épices de Cru : le prix de leur site pour ce format
       offFiche(code);                               // déjà sur la liste « Pour Open Food Facts » : son logo
       return;
     }
@@ -243,6 +244,7 @@ async function surCode() {
   if (ailleurs()) return;
   offFiche(code);                                   // la recherche finie : ce qui manque à Open Food Facts (JS/off.js)
   if ($('nom').value !== nomAvant) { $('msg-code').textContent = ''; return; }   // il a écrit le nom pendant la recherche : le sien gagne
+  if (a.epice) { remplirEpiceFiche(a); return; }   // un pot d'Épices de Cru : tout d'office (RdG-13)
   if (a.nouveau.inconnu) { $('msg-code').textContent = 'Inconnu'; return; }   // il écrit le nom à la main
   $('msg-code').textContent = '';
   const n = a.nouveau;
@@ -254,6 +256,30 @@ async function surCode() {
     if (n.saveurId && NOMS_LISTES[n.saveurId]) choisirParNom('saveur', NOMS_LISTES[n.saveurId]);
     if (a.format) poserFormat(a.format);            // « 2 L » : réparti dans les deux champs
   }
+}
+/* Un pot d'Épices de Cru pas encore à nous, au sac seul (RdG-13) : le nom de leur site (pas trouvé : son numéro, « Inconnu » sous le
+   code, J-C l'écrit), la marque Épices de Cru, le plus petit format, son prix, la sous-catégorie « Fines herbes, épices » et la
+   Porte d'épices d'office — tout reste modifiable. */
+function remplirEpiceFiche(a) {
+  const n = a.nouveau;
+  $('msg-code').textContent = n.inconnu ? 'Inconnu' : '';
+  if (!n.inconnu) { $('nom').value = n.nom; surNom(); }
+  if (produitCourant !== null) { poserPrixEpiceFiche(a.code); return; }   // le même nom déjà à nous : c'est lui (prefillProduit)
+  choisirParNom('marque', MARQUE_EPICES);
+  if (a.format) poserFormat(a.format);
+  poserPrixEpiceFiche(a.code);
+  const scid = sousCatEpices(), rid = scid && Object.keys(SOUSCATS).find(r => SOUSCATS[r].some(x => String(x.id) === scid));
+  if (rid) { $('cat').value = rid; remplirSousCategories(rid); $('souscat').value = scid; }
+  const emp = meubleEpices(), pref = emp && resoudreEmp(emp);
+  if (pref && !$('endroits').children.length) ajouterEndroit(pref);
+  if (n.inconnu) return;                            // sans nom : la suite paraît avec celui qu'il écrit (surNom la garde)
+  montrer('bloc-cat', true); montrer('bloc-souscat', !!rid);
+  if (rid) montrerSuiteFiche();
+}
+function poserPrixEpiceFiche(code) {                // rien de tapé : le prix de leur site pour le format de la fiche
+  if ($('prix').value.trim()) return;
+  const p = prixEpice(code, formatSaisi());
+  if (p !== '') $('prix').value = textePrix(p);
 }
 /* Un paquet pesé au magasin (la viande) : déjà à nous → son aliment, sa marque, sa saveur; sinon « Inconnu » (J-C écrit le nom), sans
    chercher ailleurs — ni les circulaires d'IGA ni Open Food Facts ne connaissent un code de magasin. Toujours : « kg » choisi, le poids
@@ -4166,6 +4192,63 @@ function lirePese(code) {
   return cle;
 }
 function prixPese(cle) { return PESE && PESE.cle === cle ? PESE.prix : ''; }
+/* LES ÉPICES D'ÉPICES DE CRU (J-C, 2026-10-18; RdG-13) : pas de code-barres, un code QR sous le pot = son Lot, « 10722 - 201025 » —
+   les 5 premiers chiffres = l'épice (J-C : « Chaque épice a ses 5 propres premiers chiffres »), la fin = la date de mise en pot (JJMMAA).
+   Elle se range sous sa clé, « EDC-10722 », la même pour tous ses pots (STOCK col. I : reconnue partout comme un code). Jamais un PLU,
+   jamais proposée à Open Food Facts. Leur site trouve l'épice par son numéro : le coffre-fort le lui demande (`epiceDeCru`), l'appareil
+   retient la réponse (le nom, les formats et leurs prix) — le même pot rescanné n'appelle plus personne. */
+const RE_LOT_EPICE = /^\s*(\d{5})\s*-\s*\d{6}\s*$/;
+const estLotEpice = t => RE_LOT_EPICE.test(String(t || ''));
+const estEpice = c => /^EDC-\d{5}$/.test(String(c || '').trim());
+const numeroEpice = c => estEpice(c) ? String(c).trim().slice(4) : '';
+function lireEpice(code) { const m = String(code || '').match(RE_LOT_EPICE); return m ? 'EDC-' + m[1] : code; }   // une clé déjà faite reste elle-même
+const MARQUE_EPICES = 'Épices de Cru';
+const CACHE_EPICES = 'rdg_epices';
+var EPICES_CRU = (() => { try { return JSON.parse(localStorage.getItem(CACHE_EPICES) || '{}') || {}; } catch (e) { return {}; } })();   // { numéro: { nom, formats: [{ format, prix }] } }
+const epicesEnRoute = {};
+/* Leur site, par le coffre-fort : { nom, formats } (le plus petit d'abord), ou null (pas trouvé, leur site ou le coffre-fort qui ne
+   répond pas — l'épice prend alors son numéro pour nom, comme un produit pas reconnu). Une réponse trouvée est gardée sur l'appareil. */
+function chercherEpice(code) {
+  const n = numeroEpice(code);
+  if (!n) return Promise.resolve(null);
+  if (EPICES_CRU[n]) return Promise.resolve(EPICES_CRU[n]);
+  if (epicesEnRoute[n]) return epicesEnRoute[n];
+  return epicesEnRoute[n] = (async () => {
+    let r = null;
+    try { r = await Coffre.epiceDeCru(n); } catch (e) {}
+    delete epicesEnRoute[n];
+    if (!(r && r.ok && r.trouve && String(r.nom || '').trim())) return null;
+    const formats = (r.formats || []).map(f => ({ format: formatStock(f.format), prix: Number(String(f.prix == null ? '' : f.prix).replace(',', '.')) || '' }))
+      .filter(f => f.format).sort((a, b) => grammesFormat(a.format) - grammesFormat(b.format));
+    const x = { nom: adoucir(r.nom), formats: formats };
+    EPICES_CRU[n] = x;
+    try { localStorage.setItem(CACHE_EPICES, JSON.stringify(EPICES_CRU)); } catch (e) {}
+    return x;
+  })();
+}
+function grammesFormat(f) {
+  const m = formatCle(f).split(' + ')[0].match(/^(\d+(?:\.\d+)?) (kg|g|ml|l)$/);
+  return m ? Number(m[1]) * (m[2] === 'kg' || m[2] === 'l' ? 1000 : 1) : Infinity;
+}
+/* Le prix de leur site pour ce format ('' : pas connu). */
+function prixEpice(code, format) {
+  const x = EPICES_CRU[numeroEpice(code)], f = x && x.formats.find(y => formatCle(y.format) === formatCle(format));
+  return f && f.prix !== '' ? f.prix : '';
+}
+/* D'office (RdG-13, décisions 5 et 8) : la sous-catégorie « Fines herbes, épices » (Garde-manger) et le meuble « Porte d'épices »
+   (Cuisine), trouvés par leur nom; renommés autrement, rien d'office — Compléter s'en charge, comme pour un autre produit. Posée sur
+   le meuble, jamais sur une tablette (J-C : « en ordre alphabétique, si j'ajoute, ça décale »). */
+function sousCatEpices() {
+  for (const rid in SOUSCATS) {
+    const s = SOUSCATS[rid].find(x => cleNom(x.nom).indexOf('finesherbesepices') === 0);
+    if (s) return String(s.id);
+  }
+  return '';
+}
+function meubleEpices() {
+  const m = MEUBLES.find(x => cleNom(x.nom) === 'portedepices') || MEUBLES.find(x => cleNom(x.nom).indexOf('portedepices') !== -1);
+  return m ? String(m.id) : '';
+}
 /* Le poids tapé, en kilos : « 1,022 » ou « 1.022 » → « 1,022 »; vide → ''; pas un nombre, ou plus de 30 kg (des grammes ?) → null. */
 function lirePoids(v) {
   const t = String(v || '').trim();
@@ -5093,6 +5176,15 @@ function scannerPourAchat() {
   if (typeof montrerScanner !== 'function') return;
   montrerScanner({ lu: plusParCode, retour: () => montrerPlus(true), titre: 'Ajouter', icone: 'icone-plus', page: 'produit' });
 }
+/* Le nom derrière un code qui n'est pas à nous, pour Rechercher et le + : Open Food Facts — un pot d'Épices de Cru : leur site, par le
+   coffre-fort (RdG-13; retenu sur l'appareil). La forme de chercherOFF : { trouve, nom, marque, format, photo }. */
+async function chercherNomCode(code) {
+  if (estEpice(code)) {
+    const x = await chercherEpice(code);
+    return x ? { trouve: true, nom: x.nom, nomAutre: '', marque: MARQUE_EPICES, format: (x.formats[0] || {}).format || '', photo: '' } : { trouve: false };
+  }
+  return typeof window.chercherOFF === 'function' ? window.chercherOFF(code) : { trouve: false };
+}
 async function plusParCode(code) {
   code = String(code || '').trim();
   const pid = CODES[code] || (CODES_TRI[formeCode(code)] || CODES_TRI[code] || [])[0];   // ses données d'abord : entrées, puis apprises au tri
@@ -5106,7 +5198,7 @@ async function plusParCode(code) {
   montrerPlus(true);
   avis('Recherche du produit…');
   let d = null;
-  if (typeof window.chercherOFF === 'function') { try { d = await window.chercherOFF(code); } catch (e) {} }
+  try { d = await chercherNomCode(code); } catch (e) {}
   if ($('vue-plus').hidden || PLUS.neuf) return;   // il est passé à autre chose entre-temps
   const nomLu = (d && d.trouve && (d.nom || d.nomAutre)) || '';   // pas de nom français : l'anglais, à corriger (comme la fiche)
   if (!nomLu) { avis('Produit inconnu — cherche-le par son nom.', 'erreur'); return; }
@@ -5188,7 +5280,7 @@ async function chercherParCode(code) {
   const jeton = ++rechercheJeton;
   $('recherche-resultats').innerHTML = htmlVide('', 'Recherche du produit…');
   let d = null;
-  if (typeof window.chercherOFF === 'function') { try { d = await window.chercherOFF(code); } catch (e) {} }
+  try { d = await chercherNomCode(code); } catch (e) {}
   if (jeton !== rechercheJeton || $('vue-recherche').hidden) return;   // il est passé à autre chose entre-temps
   const nomOFF = d && (d.nom || d.nomAutre);
   const connu = nomOFF && trouverProduitParNom(nomOFF);                // le code n'est pas noté, mais le nom est à nous

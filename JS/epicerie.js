@@ -185,7 +185,7 @@ function poserCarte(html) {
 
 /* Un code lu. Ses données d'abord (instantané); sinon la recherche (identifierCode). */
 async function surCodeEpicerie(code) {
-  code = lirePese(String(code || '').trim());           // un paquet pesé au magasin : sa clé (le prix lu, à côté)
+  code = lireEpice(lirePese(String(code || '').trim()));   // un paquet pesé au magasin : sa clé (le prix lu, à côté); un pot d'Épices de Cru : la sienne
   if (!code || !EPI) return;
   const jeton = ++epiJeton;
   const connu = articleConnu(code);
@@ -211,6 +211,10 @@ async function surCodeEpicerie(code) {
    à jour : Open Food Facts directement. La même recherche pour les deux sacs et pour Ajouter (J-C, 2026-10-09). */
 async function identifierCode(code) {
   if (estPese(code)) return { source: '' };              // un code de magasin (la viande) : ni IGA ni Open Food Facts
+  if (estEpice(code)) {                                  // un pot d'Épices de Cru : leur site, par le coffre-fort (RdG-13) — ni IGA ni Open Food Facts
+    const x = await chercherEpice(code);
+    return { source: x ? 'epices' : '', epice: true, texte: x ? x.nom : '', marque: MARQUE_EPICES, formats: x ? x.formats : [] };
+  }
   let r = null;
   if (!CODES_CIRC.complet) {                             // l'archive d'IGA pas encore sur l'appareil : le coffre-fort la lit
     try { r = await Coffre.identifier(code); } catch (e) {}
@@ -264,8 +268,8 @@ function articleConnu(code) {
   const k = formeCode(code), pid = CODES[code] || CODES[k];
   if (pid && produitActif(pid)) {
     const l = derniereLigneCode(code);
-    return { code: code, pid: String(pid), marque: l ? String(l[5] || '') : '', saveur: l ? String(l[9] || '') : '',
-             format: l && !estPese(code) ? String(l[6] || '') : '' };   // un paquet pesé : son poids, J-C le tape
+    return poserEpice({ code: code, pid: String(pid), marque: l ? String(l[5] || '') : '', saveur: l ? String(l[9] || '') : '',
+             format: l && !estPese(code) ? String(l[6] || '') : '' });   // un paquet pesé : son poids, J-C le tape
   }
   const t = CODES_TRI[k] || CODES_TRI[code];
   if (t && produitActif(t[0])) return { code: code, pid: String(t[0]), marque: String(t[1] || ''), saveur: String(t[2] || ''), format: '' };
@@ -282,6 +286,8 @@ function titreEpicerie(texte, quoi) {
 const boutonCarte = (action, icone, nom, attr) => '<button class="bouton bouton-grand" type="button" data-action="' + action + '" ' + attr + ' aria-label="' + esc(nom) + '"><span class="icone ' + icone + '"></span></button>';
 const annulerCarteHtml = () => boutonCarte('non', 'icone-non', 'Annuler', 'data-epi-annuler');
 function articleNouveau(code, r) {
+  if (r && r.epice) return poserEpice({ code: code, pid: null, format: '', photo: '',   // un pot d'Épices de Cru (RdG-13) : le nom de leur site; pas trouvé, son numéro
+    nouveau: { nom: r.texte || numeroEpice(code), inconnu: !r.texte, marqueNom: MARQUE_EPICES, marqueId: '', saveurId: '' } });
   if (!r || !r.source || !String(r.texte || r.marque || '').trim()) return { code: code, pid: null, nouveau: { nom: code, inconnu: true }, format: '' };   // pas reconnu : son code pour nom, sans « Inconnu » (J-C, 2026-10-16)
   const marqueNom = adoucir(r.marque || '');
   let nom = adoucir(r.texte || r.marque);
@@ -313,10 +319,11 @@ function montrerCarte(a) {
   const prod = a.pid ? PRODUITS.find(p => String(p.id) === String(a.pid)) : null;
   const nom = a.nouveau ? a.nouveau.nom : (prod ? prod.nom : '');   // pas reconnu : son code
   const marqueNom = a.marque ? nomListe(a.marque) : (a.nouveau ? a.nouveau.marqueNom : '');
-  const detail = [marqueNom, a.saveur ? nomListe(a.saveur) : '', a.format].filter(Boolean).join(' · ') || (estPlu(a.code) ? 'PLU ' + a.code : '');
-  let h = (a.nouveau && a.nouveau.inconnu ? htmlCasePhoto(a) : '') +   // pas reconnu : la case pour photographier l'emballage (B sur aperçu)
+  const detail = detailCarte(a, marqueNom);
+  let h = (a.nouveau && a.nouveau.inconnu && !a.epice ? htmlCasePhoto(a) : '') +   // pas reconnu : la case pour photographier l'emballage (B sur aperçu); pas une épice : son étiquette dit son nom
     '<div class="item">' + (a.photo ? '<img class="tri-photo" src="' + esc(a.photo) + '" alt="">' : '') +
     '<div class="item-info"><div class="item-nom">' + esc(nom) + '</div>' + (detail ? '<div class="item-detail">' + esc(detail) + '</div>' : '') + '</div></div>';
+  if (a.epice) h += '<div data-formats-epice></div>';   // ses formats (A sur aperçu) et le prix de leur site : poserFormatsEpice
   if (a.ligne && a.auto) h += '<div class="message message-succes">En circulaire : ' + esc(textePrixLigne(a.ligne)) + '</div>';
   if (a.prixPese !== '') h += '<div class="message message-succes">Prix payé : ' + esc(textePrix(a.prixPese)) + ' $</div>';
   h += pese ? htmlPoids() : htmlQuantite();             // un paquet pesé : toujours 1; son poids à la place (choix A sur aperçu)
@@ -327,6 +334,12 @@ function montrerCarte(a) {
     : '<div class="grille bloc-suite">' + annulerCarteHtml() + boutonCarte('oui', 'icone-oui', 'OK', 'data-epi-ok=""') + '</div>';   // le X à gauche, le crochet à droite, partout (J-C : « Cohérence ! »)
   poserCarte('<div class="carte bloc-suite carte-scan niveau-3">' + h + '</div>');
   if (!pese) brancherPlusMoins($('epi-carte').firstElementChild, 99);
+  if (a.epice) {
+    poserFormatsEpice(a);
+    if (!EPICES_CRU[numeroEpice(a.code)]) chercherEpice(a.code).then(x => {   // connue, mais leur site pas encore lu sur cet appareil : en arrière-plan
+      if (x && EPI_CARTE === a) { poserEpice(a); poserFormatsEpice(a); }
+    });
+  }
   offCarte(a);                                           // ce qui manque à Open Food Facts (JS/off.js), en arrière-plan : le produit ira sur sa liste
 }
 /* Une ligne de la circulaire, au complet (J-C : « sinon je peux pas répondre ») : sa photo, son nom, son format, son prix (le régulier). */
@@ -336,6 +349,45 @@ function htmlLigneCirc(l, attr) {
   return '<div class="item"' + (attr ? ' ' + attr : '') + '>' + (l.photo ? '<img class="tri-photo" src="' + esc(l.photo) + '" alt="">' : '<span class="tri-photo tri-photo-vide"></span>') +
     '<div class="item-info"><div class="item-nom">' + esc(adoucir(l.texte)) + '</div><div class="item-detail">' +
     esc([fmt, prix + (reg ? ' (' + reg + ')' : '')].filter(Boolean).join(' · ')) + '</div></div></div>';
+}
+/* ---------- UN POT D'ÉPICES DE CRU SUR LA CARTE (RdG-13; J-C, 2026-10-18 : A sur aperçu, sans photo) ----------
+   Leur site vend souvent deux formats (50 g, 200 g), le code QR ne dit pas lequel : les deux en cases, la case dans le coin (comme le +
+   de la Liste d'épicerie); le dernier acheté de cette épice déjà choisi — la première fois, le plus petit (le pot); un toucher pour
+   changer. Un seul format : rien à choisir. Le prix payé = celui de leur site pour ce format (décision 7), sinon le dernier payé pour
+   ce format. */
+function poserEpice(a) {
+  if (!estEpice(a.code)) return a;
+  const x = EPICES_CRU[numeroEpice(a.code)];
+  a.epice = true;
+  a.formats = x ? x.formats : [];
+  if (!a.format && a.formats.length) a.format = a.formats[0].format;
+  return a;
+}
+const plusieursFormats = a => !!a.epice && (a.formats || []).length > 1;
+function detailCarte(a, marqueNom) {
+  return [marqueNom, a.saveur ? nomListe(a.saveur) : '', plusieursFormats(a) ? '' : a.format].filter(Boolean).join(' · ') || (estPlu(a.code) ? 'PLU ' + a.code : '');
+}
+function prixEpiceCarte(a) {
+  const p = prixEpice(a.code, a.format);
+  if (p !== '') return p;
+  const l = derniereLigneCode(a.code);                   // leur site pas encore lu sur cet appareil : le dernier prix payé, s'il est de ce format
+  return l && formatCle(l[6]) === formatCle(a.format) && String(l[12] == null ? '' : l[12]).trim() !== '' ? l[12] : '';
+}
+function poserFormatsEpice(a) {
+  const carte = $('epi-carte').firstElementChild, place = carte && carte.querySelector('[data-formats-epice]');
+  if (!place) return;
+  const prix = prixEpiceCarte(a), det = carte.querySelector('.item .item-detail');
+  if (det) det.textContent = detailCarte(a, a.marque ? nomListe(a.marque) : (a.nouveau ? a.nouveau.marqueNom : ''));
+  place.innerHTML = (plusieursFormats(a) ? '<div class="bloc"><div class="liste-blanche liste-cases cases-coin">' + a.formats.map(f =>
+      '<div class="item" data-format-epice="' + esc(f.format) + '"><div class="item-info"><div class="item-nom">' + esc(f.format) + '</div></div>' +
+      '<input type="checkbox" class="case" tabindex="-1"' + (formatCle(f.format) === formatCle(a.format) ? ' checked' : '') + '></div>').join('') + '</div></div>' : '') +
+    (prix !== '' ? '<div class="message message-succes">Prix payé : ' + esc(textePrix(prix)) + ' $</div>' : '');
+}
+function choisirFormatEpice(f) {
+  const a = EPI_CARTE;
+  if (!a || !a.epice) return;
+  a.format = f;
+  poserFormatsEpice(a);
 }
 /* Le poids d'un paquet pesé au magasin, à la place de la quantité (J-C, 2026-10-15, choix A sur aperçu : le poids seul). Vide, il
    entre quand même. */
@@ -409,14 +461,14 @@ function validerCarte(rep) {
   let pid = a.pid, marque = a.marque || '', saveur = a.saveur || '';
   if (!pid) {
     const n = a.nouveau, deja = !n.inconnu && PRODUITS.find(p => cleNom(p.nom) === cleNom(n.nom));   // le même nom déjà à nous : lui
-    pid = deja ? String(deja.id) : creerAlimentInstant(n.nom, '');    // sans catégorie : Compléter (ou Gérer les bases → Aliments)
+    pid = deja ? String(deja.id) : creerAlimentInstant(n.nom, a.epice ? sousCatEpices() : '');   // sans catégorie : Compléter (ou Gérer les bases → Aliments); une épice : « Fines herbes, épices » d'office
     marque = n.marqueId || idListeOuNeuve('Marques', n.marqueNom);   // la marque d'un produit neuf : retrouvée, sinon créée
     saveur = n.saveurId || '';
   }
   pid = String(pid);
   const l = a.ligne, avecCirc = !!l && (a.auto || rep === 'O');
-  const prix = champPoids ? a.prixPese : avecCirc ? prixUnitaire(l) : '';   // un paquet pesé : le prix de son code, toujours
-  const emp = premierEndroit(pid), id = idLocal(), opId = 'epi-' + id, qui = localStorage.getItem(QUI) || '', code = a.code || '';
+  const prix = champPoids ? a.prixPese : avecCirc ? prixUnitaire(l) : a.epice ? prixEpiceCarte(a) : '';   // un paquet pesé : le prix de son code, toujours; une épice : celui de leur site
+  const emp = premierEndroit(pid) || (a.epice ? meubleEpices() : ''), id = idLocal(), opId = 'epi-' + id, qui = localStorage.getItem(QUI) || '', code = a.code || '';
   const format = champPoids ? (poids ? poids + ' kg' : '') : a.format || '';
   // Stock : ID · ProduitID · Emp · Qte · Date · Marque · Format · OpId · CodeBarres · Saveur · QuiEntre · Magasin · Prix · Epicerie
   const ligne = [id, pid, emp, qte, dateDuJour(), marque, format, opId, code, saveur, qui, EPI.magasin, prix, EPI.id];
@@ -509,7 +561,7 @@ function ouvrirCorrection(i) {
   const p = PRODUITS.find(x => String(x.id) === g.pid), nom = p ? p.nom : g.code, pese = estPese(g.code);
   EPI_CARTE = { correction: g.cle, code: g.code, pid: g.pid, nom: nom, detail: detailGroupe(g), qte: g.qte, pese: pese,
                 poids: pese ? String(g.format || '').replace(/\s*kg$/i, '') : '', question: false, photoEmb: null,
-                photo: !!g.code && !pese && nomCode(nom) && !aPhoto(g.code) };   // pas reconnu, sans photo : la case revient (RdG-12)
+                photo: !!g.code && !pese && !estEpice(g.code) && nomCode(nom) && !aPhoto(g.code) };   // pas reconnu, sans photo : la case revient (RdG-12)
   afficherCorrection();
   $('epi-carte').scrollIntoView({ block: 'start', behavior: 'smooth' });   // la ligne touchée peut être loin sous la carte
 }
@@ -1611,6 +1663,8 @@ function initEpicerie() {
   $('epi-photo').addEventListener('change', surPhotoEmballage);
   $('epi-carte').addEventListener('click', ev => {
     if (ev.target.closest('[data-epi-photo]')) { if (window.stopScanner) window.stopScanner(); return; }   // l'appareil photo de l'iPhone s'ouvre (l'étiquette) : la caméra du scan lui laisse sa place; elle reviendra après le crochet
+    const fmt = ev.target.closest('[data-format-epice]');
+    if (fmt) { ev.preventDefault(); choisirFormatEpice(fmt.dataset.formatEpice); return; }   // un pot d'Épices de Cru : son format
     const ok = ev.target.closest('[data-epi-ok]');
     if (ok) { validerCarte(ok.dataset.epiOk); return; }
     if (ev.target.closest('[data-epi-corriger]')) { validerCorrection(); return; }   // une ligne de la liste rouverte
