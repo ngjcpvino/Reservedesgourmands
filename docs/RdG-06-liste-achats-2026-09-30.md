@@ -148,4 +148,7 @@ J-C, sa capture de « Par épicerie » sur l'iPhone à l'appui : « je suis à l
 
 7. **Les marques déjà achetées restent sous le nom, en petit** (J-C : « Oui en petit, car il y a des marques que je ne veux plus racheter pour un produit. Faut prendre ça en considération aussi »). Lu dans le code : une sorte « Pas aimé » n'y paraît déjà pas (`lignesAchats()`); les soldes de l'app (`soldesDe()`) ne la filtrent pas eux-mêmes (le coffre-fort est censé l'écarter des spéciaux : à vérifier à la construction).
 
-**Questions ouvertes** (une à la fois) : une marque « Ne pas racheter » cachée partout — sous le nom (déjà), dans les soldes, dans la page des soldes du + ?
+8. **Une marque « Ne pas racheter » se MONTRE sur la ligne, en avertissement** (« pas : Liberté fraise », en rouge; le look à l'aperçu) — J-C : « l'app ne le montre pas, mais moi je vois ça comment de ne pas prendre cette marque ? Surtout quand c'est pas la même personne qui indique ne pas racheter » — remplace « cachée » (`lignesAchats()` la saute aujourd'hui).
+9. **« Ne pas racheter » garde sa portée : la marque et la saveur, tous formats** (J-C : « Oups. Tu as raison », après « le pot et le paquet de 12 ont deux codes-barres : par le code, le pot laisserait passer le paquet »).
+
+**Questions ouvertes** (une à la fois) : un solde d'une marque « Ne pas racheter » (sous l'aliment, et dans la page des soldes du +) : caché, ou montré avec l'avertissement ?
