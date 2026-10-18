@@ -29,13 +29,14 @@
    et l'app écrit le nom et le format elle-même. **B en secours** si leur site refuse Google (comme Super C) : « Voir chez Épices de
    Cru », Copier pour la Réserve, Coller la page — le chemin de Super C dans Compléter.
 3. **Les autres codes QR sont ignorés** (proposé par Claude, avec la direction) : la caméra continue de chercher le code-barres.
+4. **Le nom de leur site devient l'aliment**, chaque épice la sienne (« Sept-épices d'Alep », « Curcuma Lakadong »), **Épices de Cru la marque** (J-C : « Oui »). Le curcuma Lakadong fini va sur la Liste d'épicerie, même s'il reste un curcuma ordinaire.
 
 ## 3. Questions ouvertes, dans l'ordre (une à la fois)
 
 1. **Le nom de leur site devient-il l'aliment** (« Sept-épices d'Alep », « Curcuma Lakadong » : chaque épice la sienne), Épices de
    Cru la marque ? Conséquence : le curcuma Lakadong fini va sur la Liste d'épicerie, même s'il reste un curcuma ordinaire.
-   (Reco de Claude : oui.) — **demandé à J-C le 2026-10-18.**
-2. **La catégorie posée d'office** : Garde-manger → Fines herbes, épices et sauces ?
+   (Reco de Claude : oui.) — ✅ **J-C : « Oui »** (décision 4).
+2. **La catégorie posée d'office** : Garde-manger → Fines herbes, épices et sauces ? — **demandé à J-C le 2026-10-18.**
 3. **Le format** : leur site en donne deux (50 g, 200 g), le code QR aucun. Le plus petit (le pot) d'office ? La recharge en sachet
    a-t-elle le même code QR ?
 4. **Le prix** : celui de leur site remplit-il le prix payé (comme la circulaire) ?
