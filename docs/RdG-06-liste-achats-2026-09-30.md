@@ -161,4 +161,9 @@ J-C, sa capture de « Par épicerie » sur l'iPhone à l'appui : « je suis à l
 
 14. **Pas de photo de l'emballage** (J-C : « Non. Photo pas utile »).
 
+**Repartir de zéro pour la présentation** (J-C, 2026-10-18 : « ce qui est bâti présentement est laid, pas convivial, faut explorer un autre moyen de présentation »; « je vais peut-être revenir sur des décisions déjà validées, mais c'est l'utilisation qui prime »). **Son usage, à la maison, en trois temps** (J-C : « listes d'achat devrait afficher les catégories que j'ouvre pour consulter ma liste actuelle qui se fait presque auto. Ensuite j'ajoute selon ce que je veux manger, ensuite j'ajoute les soldes qui me semblent intéressants ») :
+15. **La Liste d'achats s'ouvre sur les catégories** (pour consulter ce qui s'est mis tout seul) — remplace, pour cette page, « les actions seulement à l'ouverture » (`RdG-11`) et les deux boutons Par catégorie / Par épicerie d'abord.
+16. **Puis le + : les habituels (ce qu'on veut manger), puis les soldes** (section 5).
+- **Question ouverte** : rendu à l'épicerie, la même liste par catégories, ou une vue de l'épicerie où il est ?
+
 **Le tour des infos est fait. La ligne, au magasin** : le nom; dessous en petit, les marques habituelles, l'avertissement « pas : … » en rouge, « (pour réserve) » / « (dernier ouvert) »; pour chaque épicerie en solde : la marque et le format, le prix et le prix au 100 g, les conditions de quantité seulement. **Sur l'aperçu** (iPhone, 375) : le prix régulier avec / sans; l'article coché sur place / au bas.
