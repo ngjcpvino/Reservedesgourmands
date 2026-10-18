@@ -123,3 +123,16 @@ qui rend `references.codes` et `stock`) doit la rendre **telle quelle** — elle
 **L'app attend déjà cette action** (bâtie le 2026-10-18) : tant que le coffre-fort répond « action inconnue », une épice d'Épices de Cru
 entre quand même — nommée par son numéro (« 10722 »), Épices de Cru, dans Fines herbes, épices, sur la Porte d'épices; Compléter la
 nommera. Une épice trouvée une fois est retenue sur l'appareil : le même pot rescanné n'appelle plus personne.
+
+## 5. La date du lot (le point 94) — EN RÉFLEXION, zéro code
+
+- La fin du Lot = **la date de mise en pot, JJMMAA** (« 10722 - 070619 » = le 7 juin 2019; « 10722 - 201025 » = le 20 octobre 2025).
+  Aujourd'hui l'app ne la garde pas : la clé ne retient que les 5 premiers chiffres.
+- J-C, 2026-10-18 : **« oui on va se servir de la date »**.
+- Lu dans le code : « À consommer bientôt » compte de l'entrée (STOCK col. E, ou le dernier passage congélo ↔ frais, col. P); une épice
+  y a **un an** (Garde-manger, 365 jours : la proposée « Fines herbes, épices et sauces » ne s'applique pas à son nom à lui, « Fines
+  herbes, épices »). **À penser** : comptée de la mise en pot, sa Sept-épices de 2019 serait « date passée », en rouge — et sans doute
+  bien de ses 50 pots : la liste pourrait s'en remplir.
+- **Demandé à J-C (2026-10-18)** : que doit dire la date ? À consommer bientôt, comme le lait (même si la liste s'allonge) · son âge
+  sous son nom (« mis en pot en juin 2019 »), sans alerte · quel pot prendre d'abord quand il y en a deux (le plus vieux) — un ou
+  plusieurs. — sa réponse à venir.
