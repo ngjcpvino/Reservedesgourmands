@@ -240,6 +240,11 @@
   --action-entrer:     var(--couleur-305);      /* la flèche qui entre par la porte : Entrer (le mot de passe, Qui entre) */
   --action-tard:       var(--couleur-305);      /* l'horloge : Plus tard (Open Food Facts) */
   --action-off:        var(--off-fond);         /* leur logo sur blanc : Envoyer à Open Food Facts */
+  --action-tout:       var(--action-base);      /* tout ouvrir / tout fermer (la Liste d'épicerie, son +) : beige, le dessin brun — RdG-06, décision 23 */
+  --action-scanner:    var(--couleur-305);      /* le scan, en grand (le + de la Liste d'épicerie) : brun, comme le bouton scanner collé à un champ */
+  --action-habituel:   var(--couleur-702);      /* le cœur : un habituel, un raccourci que J-C marque lui-même (le + de la Liste d'épicerie, RdG-06, décisions 25, 35) */
+  --glisse-large:      64px;   /* une ligne glissée vers la gauche : la place de ce qu'elle cachait (la flèche « mettre de côté » — RdG-06, décision 34) */
+  --glisse-duree:      0.2s;   /* … le temps qu'elle revient, ou qu'elle s'ouvre */
   --poubelle-taille:   24px;   /* la poubelle « retirer », un peu plus grosse que le crayon : elle tient tête à l'interrupteur (J-C, 2026-10-03, choix F sur aperçu parmi 22 / 24 / 26) */
   --icone-colonne:     28px;   /* Magasins : l'icône des circulaires au-dessus des interrupteurs, à la place du mot (J-C, 2026-10-03, choix A sur aperçu) */
   --interrupteur-large:  40px;   /* l'interrupteur « Circulaire » (Magasins) : sa piste */
@@ -281,6 +286,7 @@
   --plan-collant:      10;     /* un bouton collé au bas de l'écran passe par-dessus la liste */
   --plan-fond:         -1;     /* la photo pâlie des pages de travail : sous tout le reste */
   --plan-pastille:     -1;     /* la pastille d'une petite icône d'action : sous son dessin, dans son bouton */
+  --plan-glisse:       1;      /* une ligne qu'on glisse : par-dessus ce qu'elle cache */
   --plan-menu:         220;    /* le menu : par-dessus la page, sous le X */
   --plan-coin:         230;    /* le burger (le X) : par-dessus le menu */
   --plan-alerte:       235;    /* le bandeau « Réserve pas à jour » : par-dessus le menu et le X, sous un message */
@@ -487,7 +493,7 @@ body:has(.sur-photo:not([hidden]))::before { display: none; }
   border-bottom: var(--filet-titre-action) solid var(--t, var(--couleur-205));
 }
 .titre-action .icone { width: var(--titre-action-icone); height: var(--titre-action-icone); --icone-trait: var(--t, var(--couleur-306)); }
-#vue-achats { --t: var(--menu-achats); }
+#vue-achats { --t: var(--menu-achats); }   #vue-plus { --t: var(--action-ajouter); }
 #vue-listes { --t: var(--menu-listes); }
 #vue-pieces { --t: var(--base-pieces); }   #vue-meubles { --t: var(--base-meubles); }   #vue-categories { --t: var(--base-categories); }
 #vue-aliments { --t: var(--base-aliments); }   #vue-circulaires { --t: var(--base-circulaires); }   #vue-couleurs { --t: var(--outil-couleurs); }   #vue-off-liste { --t: var(--outil-off); }
@@ -654,6 +660,8 @@ body:has(.sur-photo:not([hidden]))::before { display: none; }
 :is(.grille > .bouton-grand, .bouton)[data-action="corriger"]   { --c: var(--action-base); --icone-trait: var(--icone-trait-pale); }   /* le crayon, en grand */
 :is(.grille > .bouton-grand, .bouton)[data-action="tard"]       { --c: var(--action-tard); }
 :is(.grille > .bouton-grand, .bouton)[data-action="off"]        { --c: var(--action-off); }
+:is(.grille > .bouton-grand, .bouton)[data-action="tout"]       { --c: var(--action-tout); --icone-trait: var(--icone-trait-pale); }   /* tout ouvrir / tout fermer : beige */
+:is(.grille > .bouton-grand, .bouton)[data-action="scanner"]    { --c: var(--action-scanner); }
 .logo-off { display: block; height: var(--icone-part); aspect-ratio: 1; background: var(--off-logo) center / contain no-repeat; }   /* leur logo, en couleurs, dans un bouton (Envoyer) et au titre */
 .titre-action .logo-off { height: var(--titre-action-icone); }
 .endroit > .endroit-retirer { margin-left: auto; height: var(--tactile); }   /* la poubelle d'un endroit de la fiche : au bout de sa carte */
@@ -972,8 +980,8 @@ select.champ {
 /* LA POUBELLE « retirer » (un meuble, un espace — J-C, 2026-09-30) : le jumeau du crayon, au bout de la ligne.
    LES DEUX FLÈCHES « ranger » (l'Escale — J-C, 2026-10-01, choix B sur aperçu) : le dessin de Déplacer, au bout de la ligne aussi;
    le crayon ne veut plus dire que « corriger un nom ».
-   LA FLÈCHE « revenir » (Liste d'achats → Mis de côté — J-C, 2026-10-01, choix C sur aperçu) : remet sur la liste, au bout de la ligne. */
-.retirer, .ranger, .remettre, .consommer, .entamer, .ajouter, .off, .photo-coin {
+   LA FLÈCHE « revenir » (J-C, 2026-10-01, choix C sur aperçu) : met sur la liste (En solde); inversée, met de côté (la Liste d'épicerie). */
+.retirer, .ranger, .remettre, .consommer, .entamer, .ajouter, .off, .photo-coin, .coeur {
   display: flex;
   align-items: center;
   justify-content: center;
@@ -996,14 +1004,15 @@ select.champ {
    Le dessin : crème sur une pastille foncée, brun sur une pâle. Le nombre, lui, n'a plus de pastille : il ne fait que dire combien.
    LE TRAIT : aussi fin partout, celui de la poubelle (J-C, 2026-10-14, sur aperçu : « Poubelle partout pareil ») — 1,2 sur un dessin
    de 18 px, 1,1 pour le biscuit (20 px), 0,9 pour la poubelle (24 px), 0,8 pour les flèches ↑↓ (dessinées sur 16). */
-:is(.retirer, .crayon, .fleche, .ranger, .remettre, .consommer, .entamer, .ajouter, .off, .photo-coin) { --p: var(--action-base); --i: var(--icone-trait-pale); position: relative; isolation: isolate; flex-shrink: 0; }
+:is(.retirer, .crayon, .fleche, .ranger, .remettre, .consommer, .entamer, .ajouter, .off, .photo-coin, .coeur) { --p: var(--action-base); --i: var(--icone-trait-pale); position: relative; isolation: isolate; flex-shrink: 0; }
 .consommer { --p: var(--action-consommer); --i: var(--icone-trait); }
 .ranger    { --p: var(--action-deplacer); --i: var(--icone-trait); }
 .remettre  { --p: var(--action-achats); --i: var(--icone-trait); }
 .entamer   { --p: var(--action-ouvrir); }
 .ajouter   { --p: var(--action-ajouter); --i: var(--icone-trait); }
 .off       { --p: var(--off-fond); }
-:is(.retirer, .crayon, .fleche, .ranger, .remettre, .consommer, .entamer, .ajouter, .off, .photo-coin)::after {
+.coeur     { --p: var(--action-habituel); --i: var(--icone-trait); }
+:is(.retirer, .crayon, .fleche, .ranger, .remettre, .consommer, .entamer, .ajouter, .off, .photo-coin, .coeur)::after {
   content: '';
   position: absolute;
   top: 50%;
@@ -1015,7 +1024,7 @@ select.champ {
   background: var(--p);
   z-index: var(--plan-pastille);
 }
-.retirer::before, .crayon::before, .ranger::before, .remettre::before, .consommer::before, .entamer::before, .ajouter::before, .photo-coin::before {
+.retirer::before, .crayon::before, .ranger::before, .remettre::before, .consommer::before, .entamer::before, .ajouter::before, .photo-coin::before, .coeur::before {
   content: '';
   width: var(--fleche-deplacer);
   height: var(--fleche-deplacer);
@@ -1249,6 +1258,8 @@ select.champ {
 .icone-plus { --dessin: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='0.8' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M12 5v14M5 12h14'/%3E%3C/svg%3E"); }   /* entrer un article : le + , pas le scan */
 .icone-oui { --dessin: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='0.8' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M5 12.5l4.5 4.5L19 7.5'/%3E%3C/svg%3E"); }   /* le crochet : je confirme (la ligne directrice, RdG-11, D sur aperçu) */
 .icone-non { --dessin: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='0.8' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M6.5 6.5l11 11M17.5 6.5l-11 11'/%3E%3C/svg%3E"); }   /* le X : je laisse tomber */
+.icone-tout-fermer { --dessin: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='0.8' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M6 11l6-6 6 6'/%3E%3Cpath d='M6 18l6-6 6 6'/%3E%3C/svg%3E"); }   /* tout fermer : les doubles chevrons vers le haut (RdG-06, décision 23, C sur aperçu) */
+.icone-tout-ouvrir { --dessin: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='0.8' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M6 6l6 6 6-6'/%3E%3Cpath d='M6 13l6 6 6-6'/%3E%3C/svg%3E"); }   /* tout ouvrir : vers le bas — l'icône dit ce qu'il va faire */
 .icone-poubelle { --dessin: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='0.8' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M4 6.5h16M9.5 6.5V4h5v2.5M6.5 6.5l1 13.5h9l1-13.5M10 10.5v6M14 10.5v6'/%3E%3C/svg%3E"); }   /* Jeter, en grand (le dessin de la poubelle d'une ligne) */
 .icone-revenir { --dessin: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='0.8' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M9 14L4 9l5-5'/%3E%3Cpath d='M4 9h10.5a5.5 5.5 0 0 1 0 11H11'/%3E%3C/svg%3E"); }   /* Retour d'un pas : la flèche « revenir » (le scan — J-C, 2026-10-14, C sur aperçu parmi le + / cette flèche / ←; la maison, elle, mène au menu) */
 .icone-avant { --dessin: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='0.8' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M15 14l5-5-5-5'/%3E%3Cpath d='M20 9H9.5a5.5 5.5 0 0 0 0 11H13'/%3E%3C/svg%3E"); }   /* la même, tournée vers l'avant : Suivant, Sans la page (RdG-11, décision 11) */
@@ -1279,17 +1290,53 @@ select.champ {
 .icone-off { --dessin: var(--off-forme); }   /* Pour Open Food Facts : la forme de leur logo (L2), crème comme les autres */
 
 /* ============================================================
-   LA LISTE D'ACHATS (J-C, 2026-09-30, choix A sur aperçu) — les catégories en barres, chacune à sa couleur,
-   TOUT FERMÉ à l'ouverture (J-C, 2026-10-01), une seule ouverte à la fois. Toucher une ligne la coche (dans le panier) : grise et barrée.
+   LA LISTE D'ÉPICERIE (la Liste d'achats jusqu'au 2026-10-18; RdG-06, section 6) — les catégories en barres, chacune à sa couleur,
+   TOUTES OUVERTES en arrivant (une exception voulue : décision 37), une touchée se ferme seule. Toucher une ligne la coche (dans le
+   panier) : grise et barrée, sur place.
 ============================================================ */
 .achats-groupe { margin-bottom: var(--espace-m); }   /* l'espace du haut : la règle des barres (accordéon) */
 .achat { cursor: pointer; align-items: flex-start; }   /* l'aliment et la case alignés par le haut (J-C, 2026-10-02) */
 .achat .case { pointer-events: none; }   /* la ligne entière se touche : la case suit */
-/* En haut à droite, côte à côte (J-C, 2026-10-02, choix C sur aperçu) : la flèche « mettre de côté », puis la case « dans le panier ». */
+/* Les boutons au bout d'une ligne, côte à côte (Open Food Facts : la poubelle; Par épicerie : la case). */
 .boutons-ligne { display: flex; align-items: center; gap: var(--espace-xs); }
-.boutons-ligne .remettre { height: var(--pastille-action); }
-.ecarter::before { transform: scaleX(-1); }   /* « mettre de côté » = la flèche « revenir » de « Mis de côté », inversée (plus de poubelle) */
+.ecarter::before { transform: scaleX(-1); }   /* « mettre de côté » = la flèche « revenir », inversée (plus de poubelle) */
 .achat-coche .item-nom, .achat-coche .item-detail { color: var(--couleur-205); text-decoration: line-through; }
+/* « pas : Liberté fraise » : une marque qu'on ne rachète pas, en rouge sous le nom (RdG-06, décision 8) */
+.item-detail.pas-aime { color: var(--couleur-402); }
+/* Une ligne de prix au magasin (décisions 33, 34) : « IGA · Québon 2 L · 4,99 (6,49) · 0,25 / 100 ml » — le prix en gras */
+.solde-prix { font-weight: var(--poids-fort); }
+/* GLISSER UNE LIGNE VERS LA GAUCHE (décisions 34, 36) : la ligne s'écarte de --glisse-large et montre ce qu'elle cachait (la flèche
+   « mettre de côté »); au repos, rien ne se voit dessous. Elle suit le doigt (--glisse-x, posé par le script le temps du geste). */
+.glisse { position: relative; overflow: hidden; border-top: var(--filet) solid var(--separateur); }
+.liste-blanche > .glisse:first-child { border-top: none; }
+.glisse > .item { position: relative; z-index: var(--plan-glisse); border-top: none; transition: transform var(--glisse-duree); touch-action: pan-y; }
+.glisse:is(.glissee, .glissant) > .item { background: var(--couleur-101); }
+.glisse.glissee > .item { transform: translateX(calc(-1 * var(--glisse-large))); }
+.glisse.glissant > .item { transform: translateX(var(--glisse-x)); transition: none; }
+.glisse-zone { position: absolute; top: 0; right: 0; bottom: 0; width: var(--glisse-large); display: flex; align-items: center; justify-content: center; visibility: hidden; }
+.glisse:is(.glissee, .glissant) > .glisse-zone { visibility: visible; }
+.glisse-zone .remettre { align-self: center; height: var(--pastille-action); }
+/* LE + DE LA LISTE D'ÉPICERIE (décisions 25 à 30) : ses habituels en cases sur 2 colonnes, la case à cocher dans le coin (C3); déjà sur
+   la liste : le rond vert coché, à la place de la case (décision 29); le cœur, sur une ligne trouvée; « Nouvel aliment : … » en bleu. */
+#plus-cherche { margin-top: var(--espace-s); }
+.cases-coin { --cases-colonnes: 2; }
+.liste-blanche.cases-coin > .item { position: relative; padding-right: calc(var(--case-taille) + 2 * var(--espace-xs)); }
+.cases-coin > .item > :is(.case, .sur-liste) { position: absolute; top: var(--espace-xs); right: var(--espace-xs); }
+[data-plus] { cursor: pointer; }
+[data-plus] .case { pointer-events: none; }   /* la ligne entière se touche : la case suit */
+.sur-liste { position: relative; flex-shrink: 0; width: var(--case-taille); height: var(--case-taille); border-radius: 50%; background: var(--action-oui); }
+.sur-liste::before { content: ''; position: absolute; inset: 0; background: var(--couleur-101);
+  -webkit-mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='1.6' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M5 12.5l4.5 4.5L19 7.5'/%3E%3C/svg%3E") center / contain no-repeat;
+          mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='1.6' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M5 12.5l4.5 4.5L19 7.5'/%3E%3C/svg%3E") center / contain no-repeat; }
+.coeur::before {
+  -webkit-mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='1.2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M12 20s-7.5-4.6-7.5-10A4.2 4.2 0 0 1 12 7.6 4.2 4.2 0 0 1 19.5 10c0 5.4-7.5 10-7.5 10z'/%3E%3C/svg%3E") center / contain no-repeat;
+          mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='1.2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M12 20s-7.5-4.6-7.5-10A4.2 4.2 0 0 1 12 7.6 4.2 4.2 0 0 1 19.5 10c0 5.4-7.5 10-7.5 10z'/%3E%3C/svg%3E") center / contain no-repeat;
+}
+.coeur.plein::before { -webkit-mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='black' stroke='black' stroke-width='1.2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M12 20s-7.5-4.6-7.5-10A4.2 4.2 0 0 1 12 7.6 4.2 4.2 0 0 1 19.5 10c0 5.4-7.5 10-7.5 10z'/%3E%3C/svg%3E"); mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='black' stroke='black' stroke-width='1.2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M12 20s-7.5-4.6-7.5-10A4.2 4.2 0 0 1 12 7.6 4.2 4.2 0 0 1 19.5 10c0 5.4-7.5 10-7.5 10z'/%3E%3C/svg%3E"); }
+.nouvel { cursor: pointer; }
+.nouvel .item-info { color: var(--action-ajouter); font-weight: var(--poids-fort); }
+.nouvel .ajouter { align-self: center; height: var(--pastille-action); }
+.form-neuf { padding: var(--espace-s) var(--espace-l) var(--espace-l); border-top: var(--filet) solid var(--separateur); }
 /* LES SOLDES (J-C, 2026-10-02 : « trop d'info ») : sous l'aliment, une ligne courte par magasin — « IGA · Québon · 2 L · 4,99 (6,49) »,
    en vert (J-C : « j'aime les verts du lettrage des soldes »); LE MEILLEUR PRIX EN ROUGE. Seulement ce qui est trié Oui ou Peut-être
    (Gérer les bases → Circulaires). Dessous, le prix au 100 g (au 100 ml, à l'unité). */

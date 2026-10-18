@@ -45,6 +45,7 @@ endroits en même temps).*
 | J | OrdreEmp | ses endroits dans l'ordre choisi (ID d'EMPLACEMENTS séparés par des virgules) : le 1er = celui que Déplacer regarnit et la 1re carte à l'entrée. Vide = l'ordre d'apparition dans STOCK. Changé par les flèches de Gérer les bases → Aliments (2026-09-29) |
 | K | DureeVieJours | À consommer bientôt (2026-10-06, RdG-07) : sa durée au frais, en jours, choisie dans Gérer les bases → Aliments. Vide = la proposée par l'app (un fruit, un légume, un fromage qu'elle connaît), sinon celle de sa sous-catégorie. 0 = Aucune (jamais dans la liste) |
 | L | DureeOuvert | « Entamé » (2026-10-08, RdG-09) : sa durée une fois ouvert, en jours, choisie dans Gérer les bases → Aliments (« Une fois ouvert »). Vide = la proposée par l'app (le lait, la crème, le ketchup… d'après le nom), sinon celle de sa sous-catégorie. 0 = Pas de changement (les pâtes, le riz : pas de bouton « Ouvrir ») |
+| M | Habituel | O = un habituel, un raccourci du + de la Liste d'épicerie (2026-10-18, RdG-06, décision 25) : J-C le marque lui-même, le cœur sur sa ligne quand il le cherche. Vide = non |
 
 ### EMPLACEMENTS — les rangements, en arbre (Meuble → Espace)
 

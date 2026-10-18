@@ -129,7 +129,7 @@ J-C : « Ajouter. Ça prendrait au moins les habituels. » Aujourd'hui, le + de 
 - **Le même aliment choisi en solde dans deux épiceries : sa ligne porte celle où il coûte le moins cher au 100 g, l'autre prix en petit dessous** (la règle de « Par épicerie »; J-C : « Oui »).
 - **Le comportement : le tour est fait (2026-10-18).** J-C, le même jour : « faut revoir le visuel de la liste, car là… pas conviviale du tout » — **le look de la Liste d'achats, à revoir** (aperçu d'abord; ce qui dérange : à préciser avec J-C).
 
-## 6. LE LOOK DE LA LISTE, À L'ÉPICERIE — EN RÉFLEXION (J-C, 2026-10-18, zéro code)
+## 6. LE LOOK DE LA LISTE, À L'ÉPICERIE (J-C, 2026-10-18) — RÉFLEXION FINIE; LA PAGE ET LE + BÂTIS LE MÊME JOUR, LE + DES SOLDES À VENIR
 
 J-C, sa capture de « Par épicerie » sur l'iPhone à l'appui : « je suis à l'épicerie, j'ai pas le temps d'analyser toutes ces infos »; « faut travailler avec le format iPhone, c'est avec cet appareil qu'on va travailler à l'épicerie »; « regarder en dehors de la boîte ». **Le modèle : AnyList** (J-C : « Exact ») — par rayon, le nom, une petite note grise au besoin, un toucher raye l'article et l'envoie au bas. **D'abord : ce qu'on a à montrer sur un petit écran, une info à la fois** (J-C : « avant tout, regardons ce que nous avons à montrer »). Le look : un aperçu ensuite, à la largeur de l'iPhone.
 
@@ -186,7 +186,27 @@ J-C, sa capture de « Par épicerie » sur l'iPhone à l'appui : « je suis à l
 36. **Glisser une ligne : gardé** (J-C, 2026-10-18, « A »; le 2e écart de cohérence : aucune autre page ne le fait, partout ailleurs les petites actions sont des pastilles visibles) — il protège des gros doigts (le Jamais, le crayon, mettre de côté restent cachés tant qu'on ne glisse pas). Le tour du site (point 90 de `CLAUDE.md`) dira si d'autres pages le prennent (l'Inventaire, chargé de pastilles ?). Un geste caché ne se découvre pas : le conjoint l'apprendra du mode d'emploi (J-C : « De toute façon tu vas lui écrire un mode d'emploi »; point 91).
 37. **Les catégories toutes ouvertes : une exception voulue** (J-C, 2026-10-18, « A »; le 3e écart de cohérence : la règle de J-C partout, un seul accordéon ouvert à la fois) — au magasin, on parcourt toute la liste d'un coup (AnyList); ailleurs la règle reste (on y cherche une chose à la fois). Comme l'Inventaire, exception à la règle des listes.
 38. **Les coches de l'autre, pendant la course** (J-C, 2026-10-18 : « on est habitués aux mises à jour habituelles avec nos iPhone » — « Ben oui » à la proposition de Claude) — le coffre-fort ne peut pas avertir un téléphone : **tant que la Liste d'épicerie est ouverte, elle relit la liste seule (l'onglet Achats), sans chariot, toutes les 30 s**; ce que l'autre coche paraît en moins d'une demi-minute; ses propres coches restent instantanées. (Le point 19 de `CLAUDE.md`, la question du §3.)
+
+**✅ BÂTI le 2026-10-18 (J-C : « Sûrement pas lol mais go »), pas encore testé en ligne (T117 à T121)** — la page et le +, ensemble (sans le +, un
+article mis de côté n'aurait plus de chemin pour revenir) : `remplirAchats()`, `lignesPrixAchat()`, `brancherGlisse()`, `relireAchats()`,
+`montrerPlus()` / `remplirPlus()` (`vue-plus`), `basculerHabituel()` (Produits col. M). Essai dans un Chromium, le coffre-fort imité : 40
+vérifications. **Pas encore : le + des soldes** (le 3e bouton, rouge) — à bâtir ensuite; une partie demande l'ordi (section 7).
+Choix de Claude en bâtissant (à revoir si J-C le veut autrement) : un prix régulier (ou payé) ne paraît que **plus bas au 100 g que tous
+les soldes** de l'aliment, et rien du tout sans solde (« en solde, ou un régulier plus bas »); un solde caché pour « Ne pas racheter » =
+toute la marque (sans saveur) — « pas : Liberté fraise » laisse paraître un solde Liberté vanille; « il en reste N » compte les
+contenants (les pots d'un paquet); « Choisis (N) » paraît dès qu'un choisi n'est pas un habituel, et montre tout ce qui est choisi.
+
 26. **Une case choisie = C3, une case à cocher dans le coin de chacune** (J-C : « C3 »), au + comme aux soldes. **Jamais, sur la même ligne que choisir : « dangereux avec mes gros doigts »** (J-C) — proposé par Claude : le rond rouge reste, mais il demande d'abord « Jamais : Foie de porc ? » (le X, le crochet) à la place de la ligne, comme la poubelle partout; un mauvais toucher sur la ligne ne fait que choisir (se défait d'un autre toucher). J-C : « Je sais pas… » → **aperçu de trois façons** (`scratchpad/apercu-epicerie/jamais.py`) : J1 le rond rouge, puis la question · J2 le rond rouge à gauche, la case à droite (toute la ligne entre les deux), sans question · J3 rien à l'écran, la ligne glissée vers la gauche montre « Jamais » (comme un courriel sur l'iPhone). **Choix de J-C : J3, « mais avec le rond rouge à cliquer »** — la ligne glissée vers la gauche fait paraître **le rond rouge du feu** (le Jamais du tri, pas le mot), qu'on touche : Jamais, sans autre question; rien sur la ligne au repos. (Les habituels : marqués par J-C, décision 25.)
 21. **La barre « Mis de côté » quitte la liste** (J-C : « 2 items ça va, mais une série… bonne chance pour le retrouver rapidement et le remettre dans la liste »; « Oui » à la reco de Claude) : la flèche écarte toujours un article (« pas pour l'instant »); **le ramener = le +**, où il paraît parmi les habituels comme les autres, rangé par catégorie (décision 11 de la section 5), avec l'entonnoir et le scan.
 
 **Le tour des infos est fait. La ligne, au magasin** : le nom; dessous en petit, les marques habituelles, l'avertissement « pas : … » en rouge, « (pour réserve) » / « (dernier ouvert) »; pour chaque épicerie en solde : la marque et le format, le prix et le prix au 100 g, les conditions de quantité seulement. **Sur l'aperçu** (iPhone, 375) : le prix régulier avec / sans; l'article coché sur place / au bas.
+
+## 7. POUR L'ORDI — `api.gs` (Claude de l'ordi; J-C colle → Nouvelle version)
+
+1. **Produits : l'en-tête M `Habituel`** (comme `OrdreEmp`, `DureeOuvert`). L'app l'écrit déjà (`modifier`, la ligne entière; `references`
+   lit Produits jusqu'à la dernière colonne) : seulement l'en-tête qui manque.
+2. **`lire` sur l'onglet Achats** — la relecture aux 30 s (décision 38) appelle `{ action: 'lire', table: 'Achats' }` et attend
+   `{ ok: true, lignes: [...] }` (l'en-tête peut y être : l'app le saute). Vérifier qu'elle passe (aucune liste d'onglets permis qui
+   l'exclurait); onglet absent : `{ ok: true, lignes: [] }`. Un refus (`ok: false`) : l'app cesse de relire pour cette visite, sans bruit.
+3. *(À venir, avec le + des soldes : garder l'épicerie et la fin d'un solde choisi sur sa ligne d'Achats; la catégorie corrigée au crayon
+   d'un article de circulaire.)*

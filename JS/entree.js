@@ -68,7 +68,6 @@ var TRI = null;                                     // la page de tri, lue à l'
 var TRI_LU = 0;                                     // quand TRI a été lu (lireTri) pour la dernière fois, sur cet appareil; 0 = pas encore depuis l'ouverture de l'app
 var TRI_RETOUR = null;                              // { cat, pid } : venu de Gérer les bases → Aliments corriger un tri — la réponse donnée (ou Retour), on y revient
 var TRI_ALIMENTS = {};                              // Gérer les bases → Aliments : { produitId: { lignes: [{ r, i, avert }], revoir } } (triParAliment)
-var nomScanne = '';                                 // un code inconnu scanné pour la liste : son nom (Open Food Facts), prêt pour « Nouvel aliment… »
 var couleursModif = { site: {}, meubles: {} };      // changées à l'écran, pas encore envoyées
 var envoiCouleurs = false;                          // un envoi de couleurs est en route
 var dernierChargement = 0;                          // quand les listes ont été relues (pour ne pas appeler pour rien)
@@ -94,6 +93,7 @@ function toutCacher() {
   $('vue-aliments').hidden = true;
   $('vue-noms').hidden = true;
   $('vue-achats').hidden = true;
+  $('vue-plus').hidden = true;
   $('vue-circulaires').hidden = true;
   const vs = $('vue-scan'); if (vs) vs.hidden = true;
   const ve = $('vue-epicerie'); if (ve) ve.hidden = true;   // toute l'épicerie (JS/epicerie.js)
@@ -523,9 +523,10 @@ function appliquer(d) {
     const p = String(r[2] || '');
     if (p && estMeuble[p]) (ESPACES[p] = ESPACES[p] || []).push({ id: r[0], nom: r[1] });
   });
-  PRODUITS = (d.prods || [])              // [ID,Nom,CategorieID,Unite,Actif,Marque,Format,MarqueCompte,SaveurCompte,OrdreEmp,DureeVieJours]
+  PRODUITS = (d.prods || [])              // [ID,Nom,CategorieID,Unite,Actif,Marque,Format,MarqueCompte,SaveurCompte,OrdreEmp,DureeVieJours,DureeOuvert,Habituel]
     .filter(r => String(r[4]) !== 'N')
-    .map(r => ({ id: r[0], nom: r[1], catId: r[2], ordre: String(r[9] || ''), duree: valeurDuree(r[10]), dureeOuvert: valeurDuree(r[11]) }));   // ordre = ses endroits, le 1er d'abord (J-C, flèches); K : sa durée; L : une fois ouvert (RdG-09)
+    .map(r => ({ id: r[0], nom: r[1], catId: r[2], ordre: String(r[9] || ''), duree: valeurDuree(r[10]), dureeOuvert: valeurDuree(r[11]),
+                 habituel: String(r[12] || '').trim() === 'O' }));   // ordre = ses endroits, le 1er d'abord (J-C, flèches); K : sa durée; L : une fois ouvert (RdG-09); M : un habituel, le cœur du + de la Liste d'épicerie (RdG-06, décision 25)
   LISTES = { Magasins: [], Marques: [], Saveurs: [] }; NOMS_LISTES = {};
   const L = d.listes || {};
   Object.keys(LISTES).forEach(n => (L[n] || []).forEach(r => {   // [ID, Nom, Actif] — Magasins : + Circulaire (D), Trouvee (E), Couleur (F)
@@ -3619,8 +3620,8 @@ const achatActif = r => String(r[7]) !== 'N';
 const ligneAchat = (pid, etat) => [idLocal(), String(pid), '', '', etat, dateDuJour(), localStorage.getItem(QUI) || '', 'O'];
 const lignesDeAliment = (pid, etat) => ACHATS.filter(r => achatActif(r) && r[4] === etat && String(r[1]) === String(pid));
 /* Ce qui est sur la liste : [{ cle, pid, sortes, auto: '' | 'zero' | 'pas' | 'ouvert' (le dernier ouvert, RdG-09), main, coche }].
-   cote : ce que la flèche a mis de côté (« plustard ») — le groupe « Mis de côté » (J-C, 2026-10-01, choix C). */
-function lignesAchats(cote) {
+   Ce qui est mis de côté (« plustard ») n'y est pas : il revient par le + (RdG-06, décision 21). */
+function lignesAchats() {
   const actifs = ACHATS.filter(achatActif);
   const a = (pid, etat) => actifs.some(r => r[4] === etat && String(r[1]) === String(pid));   // par aliment (une vieille ligne par sorte compte pour son aliment)
   const existe = pid => PRODUITS.some(p => String(p.id) === String(pid));   // un aliment retiré : plus rien à racheter
@@ -3636,10 +3637,11 @@ function lignesAchats(cote) {
     const s = estPasAime(pid, m, sv) ? '' : [nomListe(m), nomListe(sv)].filter(Boolean).join(' ');
     if (s && x.sortes.indexOf(s) === -1) x.sortes.push(s);
   });
-  const items = {}, ecartes = {};
+  const items = {};
   const mettre = (pid, quoi) => {
-    const k = cleAchat(pid), ou = a(pid, 'plustard') ? ecartes : items;   // mis de côté (venu tout seul ou ajouté à la main)
-    const it = ou[k] = ou[k] || { cle: k, pid: String(pid), auto: '', main: false, sortes: (parAliment[pid] || {}).sortes || [] };
+    if (a(pid, 'plustard')) return;                    // mis de côté (venu tout seul ou ajouté à la main) : il revient par le +
+    const k = cleAchat(pid);
+    const it = items[k] = items[k] || { cle: k, pid: String(pid), auto: '', main: false, sortes: (parAliment[pid] || {}).sortes || [] };
     if (quoi === 'main') it.main = true; else it.auto = quoi;
   };
   Object.keys(parAliment).forEach(pid => {
@@ -3650,94 +3652,149 @@ function lignesAchats(cote) {
     else if (hab.length >= 2 && Object.keys(x.emps).every(e => e === String(hab[0]))) mettre(pid, 'pas');
   });
   actifs.forEach(r => { if (r[4] === 'main' && existe(r[1])) mettre(String(r[1]), 'main'); });
-  if (cote) return Object.values(ecartes).filter(it => !items[it.cle]);   // rajouté à la main entre-temps : il est déjà sur la liste
   return Object.values(items).map(it => Object.assign(it, { coche: a(it.pid, 'coche') }));
 }
-/* La page : dans l'ordre des catégories (comme J-C les a classées), puis des sous-catégories; les aliments par nom.
-   « Sans catégorie » au bout (brune). Puis « Mis de côté » (sans compteur : J-C) : ce que la poubelle a écarté, chacun avec
-   la flèche « revenir » (J-C, 2026-10-01 : une poubelle touchée par erreur se répare).
-   TOUT FERMÉ à l'ouverture de la page (J-C, 2026-10-01 : « une vraie épicerie, je vais trop scroller »), une barre ouverte à la fois.
-   Les soldes (J-C, 2026-10-01) : sous chaque aliment, partout (catégories, « Mis de côté »). (La barre « En circulaire » du bas,
-   « Il y a aussi ceci », est retirée le 2026-10-07 : les idées se cherchent dans Listes → « En solde du … au … », RdG-08.)
-   DEUX VUES (J-C, 2026-10-07; RdG-08) : « Par catégorie » pour bâtir la liste, « Par épicerie » pour faire les courses (JS/prix.js :
-   les épiceries, ce qui est moins cher où; la case seulement).
-   LA LIGNE DIRECTRICE (RdG-11, J-C, 2026-10-16) : en arrivant, les actions seulement — Par catégorie, Par épicerie (les icônes de
-   Gérer les bases) et le + (Ajouter à la liste), au niveau 2 — « tant que j'ai pas touché un bouton d'action, on ne devrait pas voir
-   les accordéons » (avant : toujours Par catégorie à l'ouverture, RdG-08). Un choix touché : l'autre disparaît, ce qu'il ouvre paraît
-   dessous; retouché, ou la flèche du Retour : les deux choix (comme Sans code).
-   ouvrir : le groupe à ouvrir (data-groupe : l'ID de la catégorie, 'sans', 'cote' — Par catégorie s'ouvre); sinon celui qui l'était
-   reste ouvert. Par épicerie : epicerieOuverte (la tuile touchée). */
-var vueAchats = '';                                    // '' (les actions seulement) | 'categorie' | 'epicerie'
-var epicerieOuverte = '';                              // Par épicerie : l'épicerie touchée ('' = les tuiles)
-const CHOIX_ACHATS = [['categorie', 'Par catégorie', 'categories'], ['epicerie', 'Par épicerie', 'magasins']];   // [vue, son nom, son action (icône et couleur de Gérer les bases)]
-function remplirAchats(ouvrir) {
-  if (ouvrir) vueAchats = 'categorie';                 // un aliment ajouté ou remis : sa catégorie s'ouvre, on le voit sur la liste
+/* LA LISTE D'ÉPICERIE (J-C, 2026-10-18 : « liste d'achat que je renommerais la liste d'épicerie »; docs/RdG-06, section 6, sur aperçus) —
+   UNE seule liste pour la maison et le magasin (le modèle : AnyList, sur l'iPhone). Ses catégories dans l'ordre de J-C, chacune à sa
+   couleur, TOUTES OUVERTES en arrivant (décision 19) — une exception voulue à « un seul accordéon ouvert à la fois » (décision 37 : au
+   magasin, on parcourt toute la liste); une catégorie touchée se ferme seule, les autres restent. En haut (décision 23) : tout ouvrir /
+   tout fermer (les doubles chevrons, beige — l'icône dit ce qu'il va faire) et le + (bleu : le mode Ajouter, plus bas). Une ligne
+   (décisions 33, 34) : le nom; en petit, ses marques, en rouge « pas : … » (ce qu'on ne rachète pas), (pour réserve) / (dernier ouvert);
+   dessous, une ligne par épicerie dont le prix est connu (lignesPrixAchat). La case au bout : toucher la ligne la coche, barrée, SUR
+   PLACE (K1 : rien ne bouge sous le doigt). Mettre de côté : on glisse la ligne vers la gauche, la flèche brune paraît (S2, décision 36).
+   « Par épicerie » quitte la page, son code reste (décision 18 : htmlParEpicerie, JS/prix.js); la barre « Mis de côté » aussi : un
+   article mis de côté revient par le + (décision 21). Sans catégorie : au bout (brune). */
+var ACHATS_FERMEES = {};                               // les catégories fermées à la main, le temps de la visite (data-groupe)
+function remplirAchats() {
   const cible = $('liste-achats');
-  const ouverte = cible.querySelector(':scope > .accordeon > .accordeon-tete.ouvert'), garde = ouverte ? ouverte.parentElement.dataset.groupe : '';   // on coche l'un après l'autre : elle reste ouverte
-  ouvrir = ouvrir || garde;
-  const items = lignesAchats(), cote = lignesAchats(true), rien = '<div class="accordeon-item"><span class="texte-petit texte-pale">Rien à acheter.</span></div>';
-  if (!items.length && !cote.length) vueAchats = '';   // plus rien : rien à choisir
-  iconeRetour('achats-retour', !vueAchats);            // rien de choisi : la maison (le menu); un choix pris : la flèche (un pas)
-  const actions = '<div class="grille choix-vue">' + (items.length || cote.length ? CHOIX_ACHATS.filter(v => !vueAchats || v[0] === vueAchats).map(v =>
-      '<button class="bouton bouton-grand" type="button" data-action="' + v[2] + '" data-vue-achats="' + v[0] + '" aria-label="' + v[1] + '"><span class="icone icone-' + v[2] + '"></span></button>').join('') : '') +
-    '<button class="bouton bouton-grand" type="button" data-action="ajouter" data-achat-ajout aria-label="Ajouter à la liste"><span class="icone icone-plus"></span></button></div>';
-  if (!vueAchats) { cible.innerHTML = actions + (items.length || cote.length ? '' : rien); return; }
-  if (vueAchats === 'epicerie') {                      // l'épicerie touchée le reste (on coche l'un après l'autre)
-    cible.innerHTML = actions + (items.length ? htmlParEpicerie(items, epicerieOuverte) : rien);
-    return;
-  }
+  const items = lignesAchats();
   const nomDe = pid => (PRODUITS.find(p => String(p.id) === String(pid)) || {}).nom || '';
   const tri = (x, y) => nomDe(x.pid).localeCompare(nomDe(y.pid), 'fr');
-  // UNE ligne par aliment (J-C, 2026-10-05) : son nom; en petit, ses sortes (« Natrel 2 % · Lactantia » : pour choisir au magasin) et
-  // « (pour réserve) »; ses soldes dessous
-  const detail = it => [it.sortes.join(' · '), it.main ? '' : it.auto === 'pas' ? '(pour réserve)' : it.auto === 'ouvert' ? '(dernier ouvert)' : ''].filter(Boolean).join(' ');
-  const ligne = it =>
-    // en haut à droite, côte à côte (J-C, 2026-10-02, choix C sur aperçu) : la flèche « mettre de côté » (celle de « revenir »,
-    // inversée — plus de poubelle), puis la case « dans le panier »; l'aliment et la case alignés par le haut
-    '<div class="item achat' + (it.coche ? ' achat-coche' : '') + '" data-achat="' + esc(it.cle) + '">' +
-      '<div class="item-info"><div class="item-nom">' + esc(nomDe(it.pid)) + '</div>' + (detail(it) ? '<div class="item-detail">' + esc(detail(it)) + '</div>' : '') + '</div>' +
-      '<div class="boutons-ligne"><button class="remettre ecarter" type="button" data-achat-cote="' + esc(it.cle) + '" aria-label="Mettre de côté"></button>' +
-      '<input class="case" type="checkbox" tabindex="-1"' + (it.coche ? ' checked' : '') + '></div>' + soldesSous(it.pid) + '</div>';
-  // les soldes d'un aliment : SOUS sa ligne, sur toute la largeur (J-C, 2026-10-02 : « sur une même ligne si possible »)
-  const soldesSous = pid => { const h = htmlSoldes(pid); return h ? '<div class="soldes-ligne">' + h + '</div>' : ''; };
-  // une ligne de « Mis de côté » : pas de case (on ne coche pas ce qui est écarté), la flèche « revenir » au bout
-  const ligneCote = it =>
-    '<div class="item"><div class="item-info"><div class="item-nom">' + esc(nomDe(it.pid)) + '</div>' +
-      (detail(it) ? '<div class="item-detail">' + esc(detail(it)) + '</div>' : '') + '</div>' +
-      '<button class="remettre" type="button" data-achat-remettre="' + esc(it.cle) + '" aria-label="Remettre sur la liste"></button>' + soldesSous(it.pid) + '</div>';
-  const groupe = (nom, lignes, rid) => { const t = teinteCategorie(rid); return lignes.length ? '<div class="accordeon" data-groupe="' + esc(rid || 'sans') + '"' + t.style + '>' +
-    '<div class="accordeon-tete' + t.pale + '"><span>' + esc(nom) + '</span></div>' +
-    '<div class="liste-blanche achats-groupe" hidden>' + lignes.map(ligne).join('') + '</div></div>' : ''; };
+  const ligne = it => {
+    const pas = pasAimesDe(it.pid), quand = it.main ? '' : it.auto === 'pas' ? '(pour réserve)' : it.auto === 'ouvert' ? '(dernier ouvert)' : '';
+    const det = (it.sortes.length ? '<div class="item-detail">' + esc(it.sortes.join(' · ')) + '</div>' : '') +
+      (pas.length ? '<div class="item-detail pas-aime">' + esc('pas : ' + pas.join(' · ')) + '</div>' : '') +
+      (quand ? '<div class="item-detail">' + quand + '</div>' : '');
+    const prix = lignesPrixAchat(it.pid);
+    return '<div class="glisse"><div class="item achat' + (it.coche ? ' achat-coche' : '') + '" data-achat="' + esc(it.cle) + '">' +
+        '<div class="item-info"><div class="item-nom">' + esc(nomDe(it.pid)) + '</div>' + det + '</div>' +
+        '<input class="case" type="checkbox" tabindex="-1"' + (it.coche ? ' checked' : '') + '>' +
+        (prix ? '<div class="soldes-ligne">' + prix + '</div>' : '') + '</div>' +
+      '<div class="glisse-zone"><button class="remettre ecarter" type="button" data-achat-cote="' + esc(it.cle) + '" aria-label="Mettre de côté"></button></div></div>';
+  };
+  const groupe = (nom, lignes, gid) => {
+    if (!lignes.length) return '';
+    const t = teinteCategorie(gid), ferme = !!ACHATS_FERMEES[gid || 'sans'];
+    return '<div class="accordeon" data-groupe="' + esc(gid || 'sans') + '"' + t.style + '>' +
+      '<div class="accordeon-tete' + t.pale + (ferme ? '' : ' ouvert') + '"><span>' + esc(nom) + '</span></div>' +
+      '<div class="liste-blanche achats-groupe"' + (ferme ? ' hidden' : '') + '>' + lignes.map(ligne).join('') + '</div></div>';
+  };
   const places = {};
   let html = RAYONS.map(r => {
     const lignes = [];
     (SOUSCATS[r.id] || []).forEach(sc => {
-      const ici = items.filter(it => String((PRODUITS.find(p => String(p.id) === it.pid) || {}).catId) === String(sc.id)).sort(tri);
-      ici.forEach(it => { places[it.cle] = true; lignes.push(it); });
+      items.filter(it => String((PRODUITS.find(p => String(p.id) === it.pid) || {}).catId) === String(sc.id)).sort(tri)
+        .forEach(it => { places[it.cle] = true; lignes.push(it); });
     });
-    return groupe(r.nom, lignes, r.id);
+    return groupe(r.nom, lignes, String(r.id));
   }).join('');
   html += groupe('Sans catégorie', items.filter(it => !places[it.cle]).sort(tri), '');
-  html = html || rien;
-  if (cote.length) html += '<div class="accordeon" data-groupe="cote"><div class="accordeon-tete">Mis de côté</div>' +
-    '<div class="liste-blanche achats-groupe" hidden>' + cote.sort(tri).map(ligneCote).join('') + '</div></div>';
-  cible.innerHTML = actions + html;
-  const acc = [...cible.querySelectorAll(':scope > .accordeon')].find(a => ouvrir && a.dataset.groupe === ouvrir);
-  if (acc) toggleAccordeon(acc.firstElementChild);
+  const ouverte = /accordeon-tete[^"]* ouvert/.test(html);
+  cible.innerHTML = '<div class="grille choix-vue">' + (items.length ? boutonTout(ouverte) : '') +
+      '<button class="bouton bouton-grand" type="button" data-action="ajouter" data-achat-ajout aria-label="Ajouter"><span class="icone icone-plus"></span></button></div>' +
+    (html || '<div class="accordeon-item"><span class="texte-petit texte-pale">Rien à acheter.</span></div>');
+}
+/* Tout ouvrir / tout fermer (décision 19) : une seule action qui bascule — une catégorie au moins ouverte : il ferme tout; tout fermé :
+   il ouvre tout. Les doubles chevrons (C sur aperçu) : vers le haut = tout fermer, vers le bas = tout ouvrir. */
+const boutonTout = ouverte => '<button class="bouton bouton-grand" type="button" data-action="tout" data-tout aria-label="' + (ouverte ? 'Tout fermer' : 'Tout ouvrir') + '">' +
+  '<span class="icone icone-tout-' + (ouverte ? 'fermer' : 'ouvrir') + '"></span></button>';
+/* Une barre touchée se ferme seule (ou s'ouvre), les autres restent (décision 19). fermees : où retenir l'état, le temps de la visite. */
+function basculerBarre(tete, fermees) {
+  const acc = tete.closest('.accordeon'), corps = tete.nextElementSibling;
+  if (!acc || !corps) return;
+  const ouvrir = !tete.classList.contains('ouvert');
+  tete.classList.toggle('ouvert', ouvrir); corps.hidden = !ouvrir;
+  fermees[acc.dataset.groupe || 'sans'] = !ouvrir;
+}
+/* Les marques qu'on ne rachète pas pour cet aliment (« Ne pas racheter » : la marque et la saveur, tous formats — décision 9) :
+   écrites en rouge sous son nom (décision 8 : surtout quand ce n'est pas la même personne qui l'a décidé). */
+function pasAimesDe(pid) {
+  return [...new Set(PAS_AIMES.filter(r => String(r[1]) === String(pid))
+    .map(r => [nomListe(String(r[2] || '').trim()), nomListe(String(r[3] || '').trim())].filter(Boolean).join(' ')).filter(Boolean))];
+}
+/* Un solde d'une marque qu'on ne rachète pas (toute la marque : sans saveur) est caché (décision 10) : l'avertissement suffit. */
+const soldePasAime = (pid, r) => PAS_AIMES.some(x => String(x[1]) === String(pid) && !String(x[3] || '').trim() &&
+  String(x[2] || '').trim() && cleNom(nomListe(String(x[2]).trim())) === cleNom(nomListe(String(r[14] || '').trim())));
+/* Sous l'aliment, au magasin (décisions 3, 4, 11, 12, 33, 34) : une ligne par épicerie dont le prix est connu — son solde de la semaine
+   (le meilleur au 100 g, s'il y en a deux), ou un prix régulier (payé) plus bas au 100 g que tous les soldes (« souvent le grand format
+   non en solde est moins cher que le solde »). « Super C · Natrel 4 L · 7,99 rég. · 0,20 / 100 ml », « IGA · Québon 2 L · 4,99 (6,49) ·
+   0,25 / 100 ml »; seule la quantité reste des conditions (« 2 pour 22 $ »; les cartes et prix membres ne s'écrivent plus : décision 1).
+   La moins chère au 100 g en rouge, les autres en vert; sans format, pas de prix au 100 g (« (format ?) » ne s'écrit plus) et personne
+   en rouge. Rien en solde : rien. */
+function lignesPrixAchat(pid) {
+  const soldes = soldesDe(pid).filter(r => !soldePasAime(pid, r));
+  if (!soldes.length) return '';
+  const par = prixConnus(pid, soldes);
+  const ds = Object.keys(par).filter(m => par[m].source === 'solde').map(m => par[m].detail);
+  const min = comparables(ds) ? Math.min(...ds.map(centsDe)) : null;
+  const mags = Object.keys(par).filter(m => par[m].source === 'solde' ||
+    (min !== null && comparables(ds.concat([par[m].detail])) && centsDe(par[m].detail) < min));
+  const comp = comparables(mags.map(m => par[m].detail)), cents = comp ? mags.map(m => centsDe(par[m].detail)) : [];
+  const rouge = comp && cents.filter(c => c === Math.min(...cents)).length === 1 ? mags[cents.indexOf(Math.min(...cents))] : '';
+  if (comp) mags.sort((a, b) => centsDe(par[a].detail) - centsDe(par[b].detail));
+  return mags.map(m => {
+    const x = par[m], n = Number((String(x.unite || '').match(/^\s*(\d+)\s*\//) || [])[1]) || 1;   // « 2/ » : 2 pour ce prix
+    const p = Number(String(x.prix == null ? '' : x.prix).trim().replace(',', '.'));
+    const cond = n > 1 && isFinite(p) ? n + ' pour ' + textePrix(p) + ' $' : '';
+    const prix = (n > 1 && isFinite(p) ? textePrix(Math.round(p / n * 100) / 100) : prixAvecUnite(x.prix, unitePoids(x.unite))) +
+      (x.source === 'solde' ? (x.regulier ? ' (' + textePrix(x.regulier) + ')' : '') : x.source === 'paye' ? ' payé' : ' rég.');
+    const sorte = [nomListe(x.marque), x.format].filter(Boolean).join(' ');
+    const avant = [nomListe(m), cond, sorte].filter(Boolean).map(esc).join(' · ');
+    return '<div class="solde' + (m === rouge ? ' solde-meilleur' : '') + '">' + avant + ' · <span class="solde-prix">' + esc(prix) + '</span>' +
+      (x.detail && x.detail.val != null ? ' · ' + esc(texteUnite(x.detail)) : '') + '</div>';
+  }).join('');
 }
 async function montrerAchats() {
   toutCacher(); $('vue-achats').hidden = false; $('btn-burger').hidden = false;
-  fermerAjoutAchat();
-  vueAchats = ''; epicerieOuverte = '';           // les actions seulement à l'ouverture (la ligne directrice, RdG-11)
-  $('liste-achats').innerHTML = '';                // une nouvelle visite : tout repart fermé
+  ACHATS_FERMEES = {};                             // une nouvelle visite : tout ouvert (décision 19)
+  $('liste-achats').innerHTML = '';
   if (!RAYONS.length) {                            // pas encore chargé → on charge (même patron que les bases)
     $('liste-achats').innerHTML = '<div class="texte-petit texte-pale">Chargement…</div>';
     await chargerReferences();
   }
   remplirAchats();
+  window.scrollTo(0, 0);
   expedierAchats();                                // ce qui attendait repart
+  relireAchatsSouvent();
 }
-/* Toucher une ligne : dans le panier (grise et barrée) — ou l'inverse. Instantané. */
+/* LES COCHES DE L'AUTRE, PENDANT LA COURSE (J-C, 2026-10-18 : « on est habitués aux mises à jour habituelles avec nos iPhone »; décision
+   38) : le coffre-fort ne peut pas avertir un téléphone — tant que la Liste d'épicerie est à l'écran, elle relit l'onglet Achats seul, sans
+   chariot, toutes les 30 s (ACHATS_RELIRE). Ce que l'appareil a fait et qui n'est pas encore parti y est reposé; rien de changé : rien de
+   redessiné. Une ligne glissée (mettre de côté) n'est pas refermée sous le doigt : le dessin attend le tour suivant. Le coffre-fort ne
+   sait pas lire Achats : on cesse pour cette visite (l'app relit quand même en revenant au premier plan). */
+const ACHATS_RELIRE = 30000;
+let minuterieAchats = null, relectureAchats = false;
+function relireAchatsSouvent() {
+  clearInterval(minuterieAchats);
+  minuterieAchats = setInterval(relireAchats, ACHATS_RELIRE);
+}
+const signatureAchats = rows => rows.filter(achatActif).map(r => r[0] + '|' + r[1] + '|' + r[4]).sort().join(',');
+async function relireAchats() {
+  if ($('vue-achats').hidden) { clearInterval(minuterieAchats); minuterieAchats = null; return; }
+  if (document.hidden || relectureAchats || !Coffre.motDePasse()) return;
+  relectureAchats = true;
+  try {
+    const r = await Coffre.lire('Achats');
+    if (!r || !r.ok || !Array.isArray(r.lignes)) { if (r && !r.ok) { clearInterval(minuterieAchats); minuterieAchats = null; } return; }
+    const rows = r.lignes.filter(l => Array.isArray(l) && l[0] && String(l[0]) !== 'ID' && achatActif(l)).map(l => l.map(v => v == null ? '' : v));
+    lireAttenteAchats().forEach(e => { if (e.lignes) poserLignesAchats(e.lignes, rows); });   // le geste d'ici pas encore parti l'emporte
+    if (signatureAchats(rows) === signatureAchats(ACHATS)) return;
+    ACHATS = rows;
+    const c = lireCache(); if (c) { c.achats = rows.slice(); ecrireCache(c); }
+    if (!$('vue-achats').hidden && !$('liste-achats').querySelector('.glisse.glissee')) remplirAchats();
+  } catch (e) { /* réseau : au prochain tour */ } finally { relectureAchats = false; }
+}
+/* Toucher une ligne : dans le panier (barrée, sur place) — ou l'inverse. Instantané. */
 function cocherAchat(k) {
   const it = lignesAchats().find(x => x.cle === k);
   if (!it) return;
@@ -3745,9 +3802,9 @@ function cocherAchat(k) {
   poserAchats(coches.length ? coches.map(r => { const l = r.slice(); l[7] = 'N'; return l; }) : [ligneAchat(it.pid, 'coche')]);
   remplirAchats();
 }
-/* La flèche « mettre de côté » (la poubelle avant le 2026-10-02) : « pas pour l'instant » — il passe dans « Mis de côté », d'où la
-   flèche « revenir » le ramène. Ajouté à la main aussi (avant : il disparaissait) : son ajout reste, le « plus tard » le cache.
-   Sa coche s'en va avec lui. */
+/* Mettre de côté (la ligne glissée, la flèche brune — décisions 21, 34) : « pas pour l'instant », jusqu'à ce qu'il soit racheté ou remis
+   par le + (son « plus tard » s'en va : surLaListe). Ajouté à la main aussi : son ajout reste, le « plus tard » le cache. Sa coche s'en
+   va avec lui. */
 function mettreDeCote(k) {
   const it = lignesAchats().find(x => x.cle === k);
   if (!it) return;
@@ -3756,11 +3813,49 @@ function mettreDeCote(k) {
   poserAchats(lignes);
   remplirAchats();
 }
-/* La flèche « revenir » (Mis de côté) : il revient sur la liste. Instantané; un 2e toucher ne trouve plus rien à défaire. */
-function remettreAchat(k) {
-  const pid = String(k).split('|')[0];
-  poserAchats(lignesDeAliment(pid, 'plustard').map(r => { const l = r.slice(); l[7] = 'N'; return l; }));
-  remplirAchats();
+/* GLISSER UNE LIGNE VERS LA GAUCHE (J-C, 2026-10-18 : « bonne idée le glissement » — décisions 26, 32, 34, 36) : ce qui se fait moins souvent
+   (mettre de côté; aux soldes, le crayon et le Jamais) est caché sous la ligne, à l'abri des gros doigts — glissée, la ligne montre sa zone
+   (.glisse-zone), une seule à la fois; glissée vers la droite, ou touchée, elle revient. La ligne suit le doigt (--glisse-x, posé ici :
+   une position, pas un décor). Le toucher qui finit un glissement ne coche rien. Une racine : ses lignes .glisse > .item. */
+const GLISSE = { el: null, x: 0, y: 0, dx: 0, sens: '', fin: 0 };
+const GLISSE_SEUIL = 8, GLISSE_CLIC = 400;          // le doigt a bougé (px) : un glissement ou un défilement; le toucher qui suit un glissement (ms) ne compte pas
+function brancherGlisse(racine) {
+  const large = () => parseFloat(getComputedStyle(racine).getPropertyValue('--glisse-large'));   // au root
+  racine.addEventListener('pointerdown', ev => {
+    const it = ev.target.closest('.glisse > .item');
+    GLISSE.el = it ? it.parentElement : null; GLISSE.sens = ''; GLISSE.dx = 0;
+    if (it) { GLISSE.x = ev.clientX; GLISSE.y = ev.clientY; }
+  });
+  racine.addEventListener('pointermove', ev => {
+    const g = GLISSE.el;
+    if (!g) return;
+    const dx = ev.clientX - GLISSE.x, dy = ev.clientY - GLISSE.y;
+    if (!GLISSE.sens && (Math.abs(dx) > GLISSE_SEUIL || Math.abs(dy) > GLISSE_SEUIL)) GLISSE.sens = Math.abs(dx) > Math.abs(dy) ? 'h' : 'v';
+    if (GLISSE.sens !== 'h') return;
+    const depart = g.classList.contains('glissee') ? -large() : 0;
+    GLISSE.dx = dx;
+    g.classList.add('glissant');
+    g.style.setProperty('--glisse-x', Math.max(-large(), Math.min(0, depart + dx)) + 'px');
+  });
+  const finir = () => {
+    const g = GLISSE.el;
+    GLISSE.el = null;
+    if (!g || GLISSE.sens !== 'h') return;
+    GLISSE.fin = Date.now();
+    g.classList.remove('glissant'); g.style.removeProperty('--glisse-x');
+    const ouvrir = g.classList.contains('glissee') ? GLISSE.dx < large() / 3 : GLISSE.dx < -large() / 3;
+    racine.querySelectorAll('.glisse.glissee').forEach(x => { if (x !== g) x.classList.remove('glissee'); });
+    g.classList.toggle('glissee', ouvrir);
+  };
+  racine.addEventListener('pointerup', finir);
+  racine.addEventListener('pointercancel', finir);
+}
+/* Un toucher dans la liste : la fin d'un glissement ne fait rien; une ligne glissée revient d'abord (sauf sa zone, qui agit). */
+function toucherGlisse(racine, ev) {
+  if (Date.now() - GLISSE.fin < GLISSE_CLIC) return true;
+  const g = racine.querySelector('.glisse.glissee');
+  if (g && !ev.target.closest('.glisse-zone')) { g.classList.remove('glissee'); return true; }
+  return false;
 }
 /* Une entrée réussie : l'aliment quitte la liste — son ajout à la main, sa coche, son « pas pour l'instant » (par aliment, depuis
    le 2026-10-05 : une sorte entrée suffit). Le prochain passage à zéro repart de rien. */
@@ -4763,49 +4858,165 @@ function appliquerTri(e, T) {
   });
   if (jamais.length) T.aTrier = T.aTrier.filter(y => jamais.indexOf(String(y.genre || '')) === -1);   // un Jamais vaut dans toutes les épiceries
 }
-/* ---- « Ajouter à la liste » : l'entonnoir (catégorie → sous-catégorie → aliment, « Nouvel aliment… » au bout) et le scan,
-   à la place de la liste. L'aliment seul (sans marque ni saveur). ---- */
-function ouvrirAjoutAchat() {
-  montrer('achats-page', false); montrer('achats-ajout', true);
+/* ---------- LE + DE LA LISTE D'ÉPICERIE : AJOUTER (J-C, 2026-10-17 et 2026-10-18; docs/RdG-06, section 5 et décisions 25 à 30) ----------
+   UN MODE À PART (« on clique, on déclique, sur plein d'items; on confirme et on sort ») : rien ne va sur la liste avant le crochet, qui
+   met tout d'un coup et ramène à la liste (« 4 aliments sur la liste »); le X sort sans rien ajouter. En haut : tout ouvrir / tout fermer,
+   le scan, le champ pour chercher (AnyList : « avec un cherche, ça fonctionne »). En arrivant : SES HABITUELS seulement — des raccourcis,
+   ce qui s'achète au moins une fois par semaine, que J-C marque lui-même d'un cœur (Produits col. M) —, par catégorie, ouverts, en cases
+   sur 2 colonnes, la case à cocher dans le coin (C3), « il en reste 1 » dessous; déjà sur la liste : le rond vert coché, il ne se touche
+   pas (décision 29). Pendant qu'on tape : tout aliment connu qui colle (acheté, ou né au tri), son cœur et sa case, puis « Nouvel aliment :
+   … » (l'entonnoir quitte le + : décision 27) — touché, sa catégorie et sa sous-catégorie sur place; la sous-catégorie choisie, il est créé,
+   choisi, et on revient. Le champ vidé : « Choisis (N) » en haut dès qu'un choisi n'est pas un habituel (une case décochée l'enlève). Un
+   article mis de côté revient par ici (décision 21 : choisi, son « plus tard » s'en va). */
+var PLUS = { choix: [], fermees: {}, neuf: '' };       // ce qui est choisi (ID d'aliments), les catégories fermées, le nom d'un nouvel aliment
+function montrerPlus(garder) {
+  if (!garder) PLUS = { choix: [], fermees: {}, neuf: '' };
+  toutCacher(); $('vue-plus').hidden = false; $('btn-burger').hidden = false;
+  if (!garder) $('plus-cherche').value = '';
+  fermerNeufPlus();
+  remplirPlus();
+  window.scrollTo(0, 0);
+}
+const prodPlus = id => PRODUITS.find(p => String(p.id) === String(id));
+function remplirPlus() {
+  const texte = $('plus-cherche').value.trim(), requete = nomNu(texte).split(' ').filter(Boolean);
+  const surListe = {}, par = lotsParProduit();
+  lignesAchats().forEach(it => { surListe[it.pid] = true; });
+  const reste = id => { const n = totalLots(par[String(id)]); return n > 0 ? 'il en reste ' + n : ''; };
+  const choisi = id => PLUS.choix.indexOf(String(id)) !== -1;
+  const fin = (id, deja) => deja ? '<span class="sur-liste" aria-label="Déjà sur la liste"></span>'
+    : '<input class="case" type="checkbox" tabindex="-1"' + (choisi(id) ? ' checked' : '') + '>';
+  const info = (p, det) => '<div class="item-info"><div class="item-nom">' + esc(p.nom) + '</div>' + (det ? '<div class="item-detail">' + esc(det) + '</div>' : '') + '</div>';
+  let html = '';
+  if (requete.length && nomNu(texte).length >= 2) {    // ce qui colle remplace les habituels (comme Rechercher : la faute permise en dernier recours)
+    let trouves = PRODUITS.filter(p => texteColle(requete, p.nom, false));
+    if (!trouves.length) trouves = PRODUITS.filter(p => texteColle(requete, p.nom, true));
+    trouves.sort((a, b) => String(a.nom).localeCompare(String(b.nom), 'fr'));
+    const exact = PRODUITS.some(p => cleNom(p.nom) === cleNom(texte));   // le même nom à nous : pas de « Nouvel aliment »
+    html = '<div class="liste-blanche">' + trouves.map(p => {
+      const deja = !!surListe[String(p.id)];
+      return '<div class="item resultat" data-plus="' + esc(p.id) + '"' + (deja ? ' data-deja' : '') + '>' + info(p, reste(p.id)) +
+        '<button class="coeur' + (p.habituel ? ' plein' : '') + '" type="button" data-coeur="' + esc(p.id) + '" aria-label="Habituel" aria-pressed="' + !!p.habituel + '"></button>' +
+        fin(p.id, deja) + '</div>';
+    }).join('') + (exact ? '' : '<div class="item nouvel" data-plus-neuf><span class="ajouter" aria-hidden="true"></span><div class="item-info">' +
+      esc('Nouvel aliment : « ' + texte + ' »') + '</div></div>') + '</div>';
+    $('plus-tout').hidden = true;
+  } else {
+    const habs = PRODUITS.filter(p => p.habituel);
+    if (PLUS.choix.some(id => !(prodPlus(id) || {}).habituel)) {
+      html += '<div class="espace-bandeau bandeau-fonce">' + esc('Choisis (' + PLUS.choix.length + ')') + '</div><div class="liste-blanche">' +
+        PLUS.choix.map(prodPlus).filter(Boolean).map(p => '<div class="item" data-plus="' + esc(p.id) + '">' + info(p, '') + fin(p.id, false) + '</div>').join('') + '</div>';
+    }
+    const groupe = (nom, ps, gid) => {
+      if (!ps.length) return '';
+      const t = teinteCategorie(gid), ferme = !!PLUS.fermees[gid || 'sans'];
+      return '<div class="accordeon" data-groupe="' + esc(gid || 'sans') + '"' + t.style + '>' +
+        '<div class="accordeon-tete' + t.pale + (ferme ? '' : ' ouvert') + '"><span>' + esc(nom) + '</span></div>' +
+        '<div class="liste-blanche liste-cases cases-coin"' + (ferme ? ' hidden' : '') + '>' + ps.sort((a, b) => String(a.nom).localeCompare(String(b.nom), 'fr')).map(p => {
+          const deja = !!surListe[String(p.id)];
+          return '<div class="item" data-plus="' + esc(p.id) + '"' + (deja ? ' data-deja' : '') + '>' + info(p, reste(p.id)) + fin(p.id, deja) + '</div>';
+        }).join('') + '</div></div>';
+    };
+    const places = {};
+    const cats = RAYONS.map(r => {
+      const ps = habs.filter(p => rayonDe(p.catId) === String(r.id));
+      ps.forEach(p => { places[p.id] = true; });
+      return groupe(r.nom, ps, String(r.id));
+    }).join('') + groupe('Sans catégorie', habs.filter(p => !places[p.id]), '');
+    html += cats || '<div class="vide"><div class="texte texte-pale">Aucun habituel encore : cherche un aliment, son cœur en fait un habituel.</div></div>';
+    const ouverte = /accordeon-tete[^"]* ouvert/.test(cats);
+    $('plus-tout').hidden = !cats;
+    $('plus-tout').setAttribute('aria-label', ouverte ? 'Tout fermer' : 'Tout ouvrir');
+    $('plus-tout').firstElementChild.className = 'icone icone-tout-' + (ouverte ? 'fermer' : 'ouvrir');
+  }
+  $('plus-liste').innerHTML = html;
+}
+/* Un aliment touché : choisi, retouché : déchoisi. Déjà sur la liste : rien (il ne se touche pas). */
+function choisirPlus(id) {
+  id = String(id);
+  const i = PLUS.choix.indexOf(id);
+  if (i === -1) PLUS.choix.push(id); else PLUS.choix.splice(i, 1);
+  remplirPlus();
+}
+/* Le cœur (décision 25 : « Moi » — J-C marque lui-même ses habituels, dans le +) : plein = un habituel, il paraîtra en arrivant la prochaine
+   fois; retouché, il ne l'est plus. Instantané, Produits col. M (O) par la file des gestes. */
+function basculerHabituel(pid) {
+  const p = prodPlus(pid), c = lireCache(), row = c && (c.prods || []).find(r => String(r[0]) === String(pid));
+  if (!p || !row) { avis('Pas changé — réessaie', 'erreur'); return; }
+  const l = row.slice(); while (l.length < 13) l.push('');
+  l[12] = p.habituel ? '' : 'O';
+  poserGeste({ action: 'lignes', table: 'Produits', opId: 'habituel-' + idLocal(), lignes: [l] });
+  p.habituel = !p.habituel;
+  remplirPlus();
+}
+/* Le crochet : tout ce qui est choisi va sur la liste d'un coup (un « mis de côté » revient), et on sort du mode. */
+function validerPlus() {
+  const n = PLUS.choix.filter(id => prodPlus(id) && surLaListe(id)).length;
+  PLUS = { choix: [], fermees: {}, neuf: '' };
+  montrerAchats();
+  if (n) avis(n + (n > 1 ? ' aliments' : ' aliment') + ' sur la liste', 'succes');
+}
+/* « Nouvel aliment : … » touché : sa catégorie et sa sous-catégorie, sur place (la liste et le X / le crochet laissent leur place; la
+   flèche revient sans rien créer). */
+function ouvrirNeufPlus() {
+  PLUS.neuf = $('plus-cherche').value.trim();
+  if (!PLUS.neuf) return;
+  $('plus-neuf-nom').textContent = 'Nouvel aliment : « ' + PLUS.neuf + ' »';
   $('achat-cat').innerHTML = optionsCats();
   majSaisie($('achat-cat'));
-  montrer('bloc-achat-souscat', false); montrer('bloc-achat-aliment', false); montrer('bloc-achat-nom', false);
-  $('achat-nom').value = '';
-  msgAchat(nomScanne ? 'Nouveau : « ' + nomScanne + ' ». Choisis sa catégorie et sa sous-catégorie.' : '');
+  montrer('bloc-achat-souscat', false);
+  montrer('plus-liste', false); montrer('plus-bas', false); montrer('plus-actions', false); montrer('plus-cherche', false);
+  montrer('plus-neuf', true);
 }
-function fermerAjoutAchat() { montrer('achats-ajout', false); montrer('achats-page', true); nomScanne = ''; msgAchat(''); }
-function msgAchat(txt, erreur) { if (txt) avis(txt, erreur ? 'erreur' : 'avis'); }   // au centre, comme tous les messages (J-C, 2026-10-16 : « C'est une règle de base »)
+function fermerNeufPlus() {
+  PLUS.neuf = '';
+  montrer('plus-neuf', false);
+  montrer('plus-liste', true); montrer('plus-bas', true); montrer('plus-actions', true); montrer('plus-cherche', true);
+}
 function surAchatCat() {
   const rid = $('achat-cat').value, ok = vraieCat(rid);
   majSaisie($('achat-cat'), true);                 // « Nouvelle catégorie… » : son nom à la place du menu
   $('achat-souscat').innerHTML = optionsCats(ok ? rid : '');
   majSaisie($('achat-souscat'));
-  montrer('bloc-achat-souscat', ok); montrer('bloc-achat-aliment', false); montrer('bloc-achat-nom', false);
+  montrer('bloc-achat-souscat', ok);
 }
+/* La sous-catégorie choisie : le nouvel aliment est créé (instantané; un nom qui existe déjà est repris), choisi, et on revient — le
+   champ vidé, « Choisis (N) » le montre. */
 function surAchatSousCat() {
-  const scid = $('achat-souscat').value, ok = vraieCat(scid);
-  majSaisie($('achat-souscat'), true);
-  const ps = ok ? PRODUITS.filter(p => String(p.catId) === String(scid)).sort((a, b) => String(a.nom).localeCompare(String(b.nom), 'fr')) : [];
-  $('achat-aliment').innerHTML = options(ps, '— Aliment —') + '<option value="neuf">Nouvel aliment…</option>';
-  montrer('bloc-achat-aliment', ok);
-  if (ok && nomScanne) { $('achat-aliment').value = 'neuf'; $('achat-nom').value = nomScanne; }   // le nom lu au scan, prêt
-  surAchatAliment();
+  const scid = $('achat-souscat').value;
+  if (majSaisie($('achat-souscat'), true) || !vraieCat(scid) || !PLUS.neuf) return;
+  const deja = PRODUITS.find(p => cleNom(p.nom) === cleNom(PLUS.neuf));
+  const pid = String(deja ? deja.id : creerAlimentInstant(PLUS.neuf, scid));
+  if (PLUS.choix.indexOf(pid) === -1 && !lignesAchats().some(it => it.pid === pid)) PLUS.choix.push(pid);
+  $('plus-cherche').value = '';
+  fermerNeufPlus();
+  remplirPlus();
 }
-function surAchatAliment() { majSaisie($('achat-aliment'), true); }   // « Nouvel aliment… » : son nom à la place du menu
-/* « Mettre sur la liste » : un aliment choisi, ou nouveau (créé dans sa sous-catégorie; un nom qui existe déjà est repris). */
-async function validerAjoutAchat() {
-  if ($('achat-ok').disabled) return;
-  if (!await poserCatsTapees($('achats-ajout'))) return;            // une catégorie tapée sans le + : créée d'abord
-  let pid = $('achat-aliment').value;
-  const manque = manqueEntonnoir($('achat-cat').value, $('achat-souscat').value, pid);
-  if (manque) { msgAchat(manque, true); return; }
-  if (pid === 'neuf') {
-    const nom = $('achat-nom').value.trim(), scid = $('achat-souscat').value;
-    if (!nom) { msgAchat('Donne un nom au nouvel aliment.', true); $('achat-nom').focus(); return; }
-    const deja = PRODUITS.find(p => cleNom(p.nom) === cleNom(nom));
-    pid = deja ? deja.id : creerAlimentInstant(nom, scid);   // un 2e toucher retrouve l'aliment par son nom : jamais en double
+/* Le scan : un code à nous → son aliment choisi, et on revient; sinon le nom d'Open Food Facts va dans le champ (ce qui colle, ou
+   « Nouvel aliment : … »). */
+function scannerPourAchat() {
+  if (typeof montrerScanner !== 'function') return;
+  montrerScanner({ lu: plusParCode, retour: () => montrerPlus(true), titre: 'Ajouter', icone: 'icone-plus', page: 'produit' });
+}
+async function plusParCode(code) {
+  code = String(code || '').trim();
+  const pid = CODES[code] || (CODES_TRI[formeCode(code)] || CODES_TRI[code] || [])[0];   // ses données d'abord : entrées, puis apprises au tri
+  const p = pid && prodPlus(pid);
+  if (p) {
+    montrerPlus(true);
+    if (lignesAchats().some(it => it.pid === String(p.id))) avis('Déjà sur la liste : ' + p.nom);
+    else { if (PLUS.choix.indexOf(String(p.id)) === -1) PLUS.choix.push(String(p.id)); avis('Choisi : ' + p.nom, 'succes'); remplirPlus(); }
+    return;
   }
-  mettreSurListe(pid);
+  montrerPlus(true);
+  avis('Recherche du produit…');
+  let d = null;
+  if (typeof window.chercherOFF === 'function') { try { d = await window.chercherOFF(code); } catch (e) {} }
+  if ($('vue-plus').hidden || PLUS.neuf) return;   // il est passé à autre chose entre-temps
+  const nomLu = (d && d.trouve && (d.nom || d.nomAutre)) || '';   // pas de nom français : l'anglais, à corriger (comme la fiche)
+  if (!nomLu) { avis('Produit inconnu — cherche-le par son nom.', 'erreur'); return; }
+  $('plus-cherche').value = nomLu;
+  remplirPlus();
 }
 /* Un nouvel aliment, INSTANTANÉ (J-C, 2026-10-01 : « on explore beaucoup les cuisines du monde, on achète des nouveautés
    régulièrement ») : son ID est donné ici, il entre tout de suite dans la mémoire, le cache et la liste; sa création part
@@ -4836,39 +5047,6 @@ function surLaListe(pid) {
   poserAchats(cote.concat(main ? [] : [ligneAchat(pid, 'main')]));
   return true;
 }
-function mettreSurListe(pid) {
-  const p = PRODUITS.find(x => String(x.id) === String(pid)) || {}, nom = p.nom || '';
-  fermerAjoutAchat();
-  if (surLaListe(pid)) avis('Sur la liste : ' + nom, 'succes'); else avis('Déjà sur la liste : ' + nom);
-  const r = RAYONS.find(x => (SOUSCATS[x.id] || []).some(sc => String(sc.id) === String(p.catId)));
-  remplirAchats(r ? String(r.id) : 'sans');        // sa catégorie s'ouvre : on le voit sur la liste
-}
-/* Le scan : un code à nous -> sur la liste; sinon le nom d'Open Food Facts, pour « Nouvel aliment… » (sa catégorie à choisir). */
-function scannerPourAchat() {
-  if (typeof montrerScanner !== 'function') return;
-  montrerScanner({ lu: achatParCode, retour: montrerPageAchatsAjout, titre: 'Liste d\'achats', icone: 'icone-chariot', page: 'achats' });
-}
-function montrerPageAchatsAjout() {                    // revenir du scan sur l'entonnoir, tel quel
-  toutCacher(); $('vue-achats').hidden = false; $('btn-burger').hidden = false;
-  ouvrirAjoutAchat();
-}
-async function achatParCode(code) {
-  code = String(code || '').trim();
-  const pid = CODES[code] || (CODES_TRI[formeCode(code)] || CODES_TRI[code] || [])[0];   // ses données d'abord : entrées, puis apprises au tri
-  toutCacher(); $('vue-achats').hidden = false; $('btn-burger').hidden = false;
-  if (pid && PRODUITS.some(p => String(p.id) === String(pid))) { mettreSurListe(pid); return; }
-  ouvrirAjoutAchat(); msgAchat('Recherche du produit…');
-  let d = null;
-  if (typeof window.chercherOFF === 'function') { try { d = await window.chercherOFF(code); } catch (e) {} }
-  if ($('vue-achats').hidden || $('achats-ajout').hidden) return;    // il est passé à autre chose entre-temps
-  const nomLu = (d && d.trouve && (d.nom || d.nomAutre)) || '';   // pas de nom français : l'anglais, à corriger (comme la fiche)
-  const connu = nomLu && trouverProduitParNom(nomLu);             // le code n'est pas noté, mais le nom est à nous
-  if (connu) { mettreSurListe(connu.id); return; }
-  nomScanne = nomLu;
-  ouvrirAjoutAchat();
-  if (!nomScanne) msgAchat('Produit inconnu — choisis-le à la main.', true);
-}
-
 /* Gérer les bases → Aliments : « Enlever » retire un « Pas aimé ». */
 /* La poubelle d'un « Pas aimé » : « Enlever … des Pas aimé ? », le X et le crochet à sa place (comme partout). */
 function demanderEnleverPasAime(cle) {
@@ -5356,36 +5534,51 @@ function initEntree() {
   $('menu-listes').addEventListener('click', montrerListes);
   $('menu-achats').addEventListener('click', montrerAchats);
   $('menu-rechercher').addEventListener('click', ouvrirRecherche);   // la loupe : le 8e bouton du menu (J-C, 2026-10-01; plus de loupe dans le coin)
-  // la liste d'achats : toucher une ligne la coche; la poubelle la met de côté; la flèche « revenir » la remet;
-  // « Ajouter à la liste » ouvre l'entonnoir
+  // la Liste d'épicerie : toucher une ligne la coche; glissée, la flèche brune la met de côté; une catégorie touchée se ferme seule;
+  // tout ouvrir / tout fermer; le + : le mode Ajouter
+  brancherGlisse($('liste-achats'));
   $('liste-achats').addEventListener('click', function (ev) {
-    const mc = ev.target.closest('[data-achat-cote]');     // la flèche « mettre de côté »
+    if (toucherGlisse($('liste-achats'), ev)) return;    // la fin d'un glissement, ou une ligne glissée qui revient
+    const mc = ev.target.closest('[data-achat-cote]');     // la flèche « mettre de côté », sous la ligne glissée
     if (mc) { mettreDeCote(mc.dataset.achatCote); return; }
-    const rv = ev.target.closest('[data-achat-remettre]');
-    if (rv) { remettreAchat(rv.dataset.achatRemettre); return; }
-    const vue = ev.target.closest('[data-vue-achats]');    // « Par catégorie » / « Par épicerie » : l'autre disparaît; retouché, les deux reviennent
-    if (vue) { vueAchats = vue.dataset.vueAchats === vueAchats ? '' : vue.dataset.vueAchats; epicerieOuverte = ''; remplirAchats(); return; }
-    if (ev.target.closest('[data-achat-ajout]')) { nomScanne = ''; ouvrirAjoutAchat(); return; }   // le + : Ajouter à la liste
-    const epi = ev.target.closest('[data-epicerie]');      // Par épicerie : une tuile touchée — elle seule, en bannière
-    if (epi) { epicerieOuverte = epi.dataset.epicerie; remplirAchats(); window.scrollTo(0, 0); return; }
-    if (ev.target.closest('[data-epicerie-ouverte] > .accordeon-tete')) { epicerieOuverte = ''; remplirAchats(); return; }   // sa bannière touchée : les tuiles
-    const tete = ev.target.closest('.accordeon-tete');     // une catégorie, « Mis de côté » : une seule ouverte à la fois
-    if (tete) { toggleAccordeon(tete); return; }
+    if (ev.target.closest('[data-tout]')) {                // une catégorie ouverte : tout se ferme; tout fermé : tout s'ouvre
+      const ouverte = !!$('liste-achats').querySelector('.accordeon-tete.ouvert');
+      ACHATS_FERMEES = {};
+      if (ouverte) $('liste-achats').querySelectorAll('[data-groupe]').forEach(a => { ACHATS_FERMEES[a.dataset.groupe] = true; });
+      remplirAchats(); return;
+    }
+    if (ev.target.closest('[data-achat-ajout]')) { montrerPlus(); return; }   // le + : Ajouter
+    const tete = ev.target.closest('.accordeon-tete');     // une catégorie : elle seule se ferme (ou s'ouvre)
+    if (tete) { basculerBarre(tete, ACHATS_FERMEES); remplirAchats(); return; }
     const l = ev.target.closest('[data-achat]');
     if (l) cocherAchat(l.dataset.achat);
   });
-  $('achats-retour').addEventListener('click', () => {   // Retour recule d'un pas : l'épicerie touchée → ses tuiles; un choix → les deux choix; puis le menu
-    if (vueAchats === 'epicerie' && epicerieOuverte) epicerieOuverte = '';
-    else if (vueAchats) vueAchats = '';
-    else { retourAuMenu(); return; }
-    remplirAchats(); window.scrollTo(0, 0);
+  $('achats-retour').addEventListener('click', retourAuMenu);
+  // le + : toucher un aliment le choisit (retouché : déchoisi); son cœur en fait un habituel; « Nouvel aliment : … »; tout ouvrir / tout
+  // fermer ses habituels; le scan; le X sort sans rien ajouter, le crochet met tout sur la liste
+  $('plus-liste').addEventListener('click', function (ev) {
+    const c = ev.target.closest('[data-coeur]');
+    if (c) { basculerHabituel(c.dataset.coeur); return; }
+    if (ev.target.closest('[data-plus-neuf]')) { ouvrirNeufPlus(); return; }
+    const tete = ev.target.closest('.accordeon-tete');
+    if (tete) { basculerBarre(tete, PLUS.fermees); remplirPlus(); return; }
+    const l = ev.target.closest('[data-plus]');
+    if (l && !l.hasAttribute('data-deja')) choisirPlus(l.dataset.plus);
   });
-  $('achat-annuler').addEventListener('click', () => { fermerAjoutAchat(); remplirAchats(); });
+  $('plus-cherche').addEventListener('input', remplirPlus);
+  $('plus-cherche').addEventListener('keydown', ev => { if (ev.key === 'Enter') { ev.preventDefault(); ev.target.blur(); } });   // Entrée : le clavier se ferme
+  $('plus-tout').addEventListener('click', () => {
+    const ouverte = !!$('plus-liste').querySelector('.accordeon-tete.ouvert');
+    PLUS.fermees = {};
+    if (ouverte) $('plus-liste').querySelectorAll('[data-groupe]').forEach(a => { PLUS.fermees[a.dataset.groupe] = true; });
+    remplirPlus();
+  });
+  $('plus-scan').addEventListener('click', scannerPourAchat);
+  $('plus-non').addEventListener('click', () => { PLUS = { choix: [], fermees: {}, neuf: '' }; montrerAchats(); });
+  $('plus-oui').addEventListener('click', validerPlus);
+  $('plus-neuf-retour').addEventListener('click', () => { fermerNeufPlus(); remplirPlus(); });   // la flèche : on revient, rien de créé
   $('achat-cat').addEventListener('change', surAchatCat);
   $('achat-souscat').addEventListener('change', surAchatSousCat);
-  $('achat-aliment').addEventListener('change', surAchatAliment);
-  $('achat-ok').addEventListener('click', validerAjoutAchat);
-  $('achat-scan').addEventListener('click', scannerPourAchat);
   // Outils → Couleurs
   $('liste-couleurs').addEventListener('input', ev => { if (ev.target.classList.contains('couleur-nouvelle')) ev.target.classList.remove('champ-erreur'); else surHex(ev); });
   $('liste-couleurs').addEventListener('click', function (ev) {
@@ -5703,7 +5896,8 @@ function redessinerApresLecture() {
   redessinerAliments();
   const saisieNoms = $('nom-nouveau').value || $('liste-noms').querySelector('.champ-renommer, [data-confirme]') || (document.activeElement && document.activeElement.classList.contains('champ-logo'));   // (un logo qu'on colle)
   if (!$('vue-noms').hidden && !saisieNoms) remplirPageNoms();
-  if (!$('vue-achats').hidden && $('achats-ajout').hidden) remplirAchats();   // pas pendant « Ajouter à la liste »
+  if (!$('vue-achats').hidden && !$('liste-achats').querySelector('.glisse.glissee')) remplirAchats();   // pas sous une ligne glissée
+  if (!$('vue-plus').hidden && !PLUS.neuf && document.activeElement !== $('plus-cherche')) remplirPlus();   // pas pendant un nom ni un nouvel aliment
 }
 
 document.addEventListener('DOMContentLoaded', initEntree);

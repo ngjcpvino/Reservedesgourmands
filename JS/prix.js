@@ -73,10 +73,11 @@ const unitePoids = u => /lb|kg|100\s*g/i.test(String(u || '')) ? String(u) : '';
 
 /* LE PRIX CONNU d'un aliment dans chaque épicerie : { magasin: { source: 'solde' | 'paye' | 'regulier', prix, unite, regulier, marque,
    format, date, detail } }. Le solde de la semaine l'emporte (le meilleur au détail, s'il y en a deux); sinon le plus récent des prix payés
-   et des prix réguliers vus en circulaire (à date égale : le payé). */
-function prixConnus(pid) {
+   et des prix réguliers vus en circulaire (à date égale : le payé). soldes : ceux à compter (la Liste d'épicerie cache ceux d'une marque
+   qu'on ne rachète pas); sans : tous ceux de la semaine. */
+function prixConnus(pid, soldes) {
   const par = {};
-  soldesDe(pid).forEach(r => {
+  (soldes || soldesDe(pid)).forEach(r => {
     const m = String(r[1]), x = { source: 'solde', prix: r[4], unite: r[6], regulier: r[5], marque: r[14], date: '',
       format: formatAffiche(formatCle(r[7])).replace(/(\d)x(\d)/g, '$1 x $2').replace(/ \+ /g, ' ou '), detail: prixAuDetail(r[4], r[6], r[7]) };
     const a = par[m];
@@ -116,6 +117,8 @@ function lignePrix(avant, x, court, rouge) {
 }
 
 /* ---------- La Liste d'achats « Par épicerie » (décisions 13 à 19, 28, 30, 31, 34) ----------
+   ⚠️ DÉBRANCHÉE le 2026-10-18 : « Par épicerie » quitte la Liste d'épicerie, mais son code reste (J-C : « On retire, mais efface rien car
+   je ne suis pas certain » — RdG-06, section 6, décision 18). Rien ne l'appelle; la rebrancher = un bouton sur la page, qui la montre.
    COMME LA PAGE CIRCULAIRES (J-C, 2026-10-07 : « faudrait être cohérent… respecter ce qui a déjà été décidé dans les autres pages »;
    aperçu « Oui ») : les épiceries dont la circulaire est lue en tuiles, 2 colonnes — leur logo sur une carte blanche, sinon leur nom sur
    leur couleur —, le nombre dans le coin (là où se pose le point rouge sur Circulaires) = ce qu'on va chercher là; la plus garnie en
