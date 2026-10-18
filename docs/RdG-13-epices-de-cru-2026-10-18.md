@@ -141,4 +141,11 @@ nommera. Une épice trouvée une fois est retenue sur l'appareil : le même pot 
   distingue.
 - **Proposé par Claude, demandé à J-C** : c'est dans **Ouvrir** que ça sert (ouvrir le prochain pot) — tu scannes celui que tu tiens;
   s'il y en a un plus vieux : « Il y en a un plus vieux : mis en pot le 7 juin 2019 » (tu prends l'autre, ou tu ouvres celui-ci
-  quand même); sans scanner, le nom tapé : la ligne dit la date du plus vieux, celui qu'Ouvrir ouvrira. — sa réponse à venir.
+  quand même); sans scanner, le nom tapé : la ligne dit la date du plus vieux, celui qu'Ouvrir ouvrira. — sa réponse : il demande
+  « quelle est la formule des 5 chiffres pour une date ? » (expliqué : les 5 premiers = l'épice et son format, la date = les 6 après le
+  tiret, JJMMAA — une déduction, pas dite par Épices de Cru), puis **« ouin, ça me surprendrait que ce soit une date alors »**.
+- **Pas vérifié que c'est une date.** Les trois lus (070619, 201025, 081123) sont des dates valides en JJMMAA (et en AAMMJJ aussi :
+  2007, 2020, 2008 — moins plausible). Un numéro de lot qui ne serait pas une date reste utile pour montrer QUEL pot prendre (« prends
+  celui du lot 070619 » : il le lit sous le pot), mais pas pour dire lequel est le plus vieux quand deux pots entrent le même jour
+  (ses 50 pots, entrés d'un coup). **Demandé à J-C** : un pot acheté il y a peu — ses 6 derniers chiffres donnent-ils une date juste
+  avant l'achat ? — sa réponse à venir.
