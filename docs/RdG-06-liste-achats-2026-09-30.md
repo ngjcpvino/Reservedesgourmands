@@ -125,4 +125,5 @@ J-C : « Ajouter. Ça prendrait au moins les habituels. » Aujourd'hui, le + de 
 - **Le reste du travail attend dans « À trier », le feu déjà au vert** (choix A, J-C : « Oui ») : il se finit à la prochaine séance de tri.
 - **Jamais se fait tout de suite, dans la page des soldes** (J-C : « le jamais peut faire sa job maintenant. Exemple aliment pour chat… j'en ai pas d'animaux ») : un toucher, comme au tri; il vaut partout et l'article ne revient plus.
 - **Un aliment déjà sur la liste et choisi en solde = une seule ligne, « Lait (Super C) »** (J-C : « Oui ») : un aliment, une ligne; dans « Par épicerie », il va chez Super C.
-- **Question ouverte** : à la fin du solde, ce lait-là reste-t-il sur la liste (il n'en reste toujours plus), seulement « (Super C) » effacé ?
+- **À la fin du solde, seul ce qui a été ajouté À CAUSE du solde part tout seul** (J-C : « Oui ») : un aliment déjà sur la liste pour une autre raison (il n'en reste plus) y reste, seul « (Super C) » s'efface.
+- **Question ouverte** : le même aliment choisi en solde dans deux épiceries (Super C et IGA) : quelle épicerie sur sa ligne ?
