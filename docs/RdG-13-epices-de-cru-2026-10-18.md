@@ -135,4 +135,10 @@ nommera. Une épice trouvée une fois est retenue sur l'appareil : le même pot 
   bien de ses 50 pots : la liste pourrait s'en remplir.
 - **Demandé à J-C (2026-10-18)** : que doit dire la date ? À consommer bientôt, comme le lait (même si la liste s'allonge) · son âge
   sous son nom (« mis en pot en juin 2019 »), sans alerte · quel pot prendre d'abord quand il y en a deux (le plus vieux) — un ou
-  plusieurs. — sa réponse à venir.
+  plusieurs. — ✅ **J-C : « c »** : **quel pot prendre d'abord, le plus vieux** — ni alerte dans À consommer bientôt, ni âge sous le nom.
+- Ce que ça demande (Claude) : **chaque pot garde sa date** (une ligne de STOCK par pot, sa date de mise en pot à côté — une colonne de
+  plus, `api.gs` à l'ordi), lue dans le code QR au scan; deux pots de la même épice ont la même clé (« EDC-10722 »), seule la date les
+  distingue.
+- **Proposé par Claude, demandé à J-C** : c'est dans **Ouvrir** que ça sert (ouvrir le prochain pot) — tu scannes celui que tu tiens;
+  s'il y en a un plus vieux : « Il y en a un plus vieux : mis en pot le 7 juin 2019 » (tu prends l'autre, ou tu ouvres celui-ci
+  quand même); sans scanner, le nom tapé : la ligne dit la date du plus vieux, celui qu'Ouvrir ouvrira. — sa réponse à venir.
