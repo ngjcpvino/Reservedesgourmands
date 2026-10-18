@@ -136,4 +136,6 @@ J-C, sa capture de « Par épicerie » sur l'iPhone à l'appui : « je suis à l
 **Décidé :**
 1. **Les avantages membres et les cartes (« avec carte Scene+ », « prix membre ») ne s'écrivent plus** (J-C : « je les ai tous pour tous les magasins, donc inutile ») : le prix montré est le prix membre. **Seules restent les conditions de quantité** (« 2 pour 7 $ », « à l'achat de 3 »).
 
-**Questions ouvertes** (une à la fois) : au magasin, le prix de l'autre épicerie (« au Super C : … ») ?
+2. **Au magasin, l'autre épicerie reste** (J-C : « Oui, car les épiceries sont proches et je fais souvent 2 dans une course »).
+
+**Questions ouvertes** (une à la fois) : pour l'autre épicerie, qu'est-ce qui suffit pour décider dans l'allée — son prix, le prix au 100 g, ou le verdict (« moins cher au Super C ») ?
