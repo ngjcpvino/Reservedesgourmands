@@ -159,4 +159,6 @@ J-C, sa capture de « Par épicerie » sur l'iPhone à l'appui : « je suis à l
 
 13. **Un article coché, rayé sur place ou descendu au bas comme AnyList : à voir sur l'aperçu** (J-C : « Peut-être, à voir au visuel »).
 
-**Questions ouvertes** (une à la fois) : la photo de l'emballage à côté du nom (la circulaire pour un solde, Open Food Facts sinon) ?
+14. **Pas de photo de l'emballage** (J-C : « Non. Photo pas utile »).
+
+**Le tour des infos est fait. La ligne, au magasin** : le nom; dessous en petit, les marques habituelles, l'avertissement « pas : … » en rouge, « (pour réserve) » / « (dernier ouvert) »; pour chaque épicerie en solde : la marque et le format, le prix et le prix au 100 g, les conditions de quantité seulement. **Sur l'aperçu** (iPhone, 375) : le prix régulier avec / sans; l'article coché sur place / au bas.
