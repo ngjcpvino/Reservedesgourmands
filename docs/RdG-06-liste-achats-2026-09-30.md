@@ -142,4 +142,6 @@ J-C, sa capture de « Par épicerie » sur l'iPhone à l'appui : « je suis à l
 
 4. **Pour chaque épicerie : le prix ET le prix au 100 g** (« IGA 1,49 · 6,21 / 100 g »; J-C : « Les 2 »).
 
-**Questions ouvertes** (une à la fois) : le prix régulier entre parenthèses (« (1,99) »), au magasin ?
+5. **Le prix régulier entre parenthèses : pas tranché** (J-C : « Oui et non, car un régulier chez l'un est un solde chez l'autre. Pas évident à trancher, j'avoue ») → **l'aperçu le montrera avec et sans**, et peut-être une petite marque « solde » à la place du chiffre.
+
+**Questions ouvertes** (une à la fois) : « (pour réserve) » et « (dernier ouvert) », au magasin ?
