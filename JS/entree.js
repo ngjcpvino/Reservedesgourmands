@@ -221,7 +221,7 @@ async function surCode() {
         if (nomListe(l[9])) choisirParNom('saveur', nomListe(l[9]));   // comme toute l'épicerie
         if (String(l[6] || '').trim()) poserFormat(String(l[6]).trim());
       }
-      if (estEpice(code)) poserPrixEpiceFiche(code);   // un pot d'Épices de Cru : le prix de leur site pour ce format
+      if (estEpice(code)) poserPrixEpiceFiche(code);   // un pot d'Épices de Cru : le prix de leur site pour ce numéro
       offFiche(code);                               // déjà sur la liste « Pour Open Food Facts » : son logo
       return;
     }
@@ -258,7 +258,7 @@ async function surCode() {
   }
 }
 /* Un pot d'Épices de Cru pas encore à nous, au sac seul (RdG-13) : le nom de leur site (pas trouvé : son numéro, « Inconnu » sous le
-   code, J-C l'écrit), la marque Épices de Cru, le plus petit format, son prix, la sous-catégorie « Fines herbes, épices » et la
+   code, J-C l'écrit), la marque Épices de Cru, le format et le prix de ce numéro, la sous-catégorie « Fines herbes, épices » et la
    Porte d'épices d'office — tout reste modifiable. */
 function remplirEpiceFiche(a) {
   const n = a.nouveau;
@@ -276,9 +276,9 @@ function remplirEpiceFiche(a) {
   montrer('bloc-cat', true); montrer('bloc-souscat', !!rid);
   if (rid) montrerSuiteFiche();
 }
-function poserPrixEpiceFiche(code) {                // rien de tapé : le prix de leur site pour le format de la fiche
+function poserPrixEpiceFiche(code) {                // rien de tapé : le prix de leur site pour ce numéro
   if ($('prix').value.trim()) return;
-  const p = prixEpice(code, formatSaisi());
+  const p = prixEpice(code);
   if (p !== '') $('prix').value = textePrix(p);
 }
 /* Un paquet pesé au magasin (la viande) : déjà à nous → son aliment, sa marque, sa saveur; sinon « Inconnu » (J-C écrit le nom), sans
@@ -4195,8 +4195,9 @@ function prixPese(cle) { return PESE && PESE.cle === cle ? PESE.prix : ''; }
 /* LES ÉPICES D'ÉPICES DE CRU (J-C, 2026-10-18; RdG-13) : pas de code-barres, un code QR sous le pot = son Lot, « 10722 - 201025 » —
    les 5 premiers chiffres = l'épice (J-C : « Chaque épice a ses 5 propres premiers chiffres »), la fin = la date de mise en pot (JJMMAA).
    Elle se range sous sa clé, « EDC-10722 », la même pour tous ses pots (STOCK col. I : reconnue partout comme un code). Jamais un PLU,
-   jamais proposée à Open Food Facts. Leur site trouve l'épice par son numéro : le coffre-fort le lui demande (`epiceDeCru`), l'appareil
-   retient la réponse (le nom, les formats et leurs prix) — le même pot rescanné n'appelle plus personne. */
+   jamais proposée à Open Food Facts. Leur site trouve l'épice par son numéro, et CHAQUE FORMAT A LE SIEN (vu à l'ordi : 10722 le 50 g,
+   30722 le 200 g) : le coffre-fort le lui demande (`epiceDeCru`), l'appareil retient la réponse (le nom, le format et le prix de ce
+   numéro) — le même pot rescanné n'appelle plus personne, et le format se sait au scan, sans le demander. */
 const RE_LOT_EPICE = /^\s*(\d{5})\s*-\s*\d{6}\s*$/;
 const estLotEpice = t => RE_LOT_EPICE.test(String(t || ''));
 const estEpice = c => /^EDC-\d{5}$/.test(String(c || '').trim());
@@ -4204,10 +4205,11 @@ const numeroEpice = c => estEpice(c) ? String(c).trim().slice(4) : '';
 function lireEpice(code) { const m = String(code || '').match(RE_LOT_EPICE); return m ? 'EDC-' + m[1] : code; }   // une clé déjà faite reste elle-même
 const MARQUE_EPICES = 'Épices de Cru';
 const CACHE_EPICES = 'rdg_epices';
-var EPICES_CRU = (() => { try { return JSON.parse(localStorage.getItem(CACHE_EPICES) || '{}') || {}; } catch (e) { return {}; } })();   // { numéro: { nom, formats: [{ format, prix }] } }
+var EPICES_CRU = (() => { try { return JSON.parse(localStorage.getItem(CACHE_EPICES) || '{}') || {}; } catch (e) { return {}; } })();   // { numéro: { nom, format, prix } }
+const EPICES_SOLDE = {};                           // { numéro: prix en solde } : vu à ce scan-ci seulement (un solde finit; l'appareil garde le régulier)
 const epicesEnRoute = {};
-/* Leur site, par le coffre-fort : { nom, formats } (le plus petit d'abord), ou null (pas trouvé, leur site ou le coffre-fort qui ne
-   répond pas — l'épice prend alors son numéro pour nom, comme un produit pas reconnu). Une réponse trouvée est gardée sur l'appareil. */
+/* Leur site, par le coffre-fort : { nom, format, prix } de CE numéro, ou null (pas trouvé, leur site ou le coffre-fort qui ne répond
+   pas — l'épice prend alors son numéro pour nom, comme un produit pas reconnu). Une réponse trouvée est gardée sur l'appareil. */
 function chercherEpice(code) {
   const n = numeroEpice(code);
   if (!n) return Promise.resolve(null);
@@ -4218,22 +4220,20 @@ function chercherEpice(code) {
     try { r = await Coffre.epiceDeCru(n); } catch (e) {}
     delete epicesEnRoute[n];
     if (!(r && r.ok && r.trouve && String(r.nom || '').trim())) return null;
-    const formats = (r.formats || []).map(f => ({ format: formatStock(f.format), prix: Number(String(f.prix == null ? '' : f.prix).replace(',', '.')) || '' }))
-      .filter(f => f.format).sort((a, b) => grammesFormat(a.format) - grammesFormat(b.format));
-    const x = { nom: adoucir(r.nom), formats: formats };
+    const nb = v => Number(String(v == null ? '' : v).replace(',', '.')) || '';
+    const f = (r.formats || []).find(y => String(y.numero || '') === n) || {};   // son format parmi ceux de l'épice (chacun son numéro)
+    const prix = nb(r.prix != null ? r.prix : f.prix), solde = nb(r.solde != null ? r.solde : f.solde);
+    const x = { nom: adoucir(r.nom), format: formatStock(r.format || f.format || ''), prix: prix };
+    if (solde && (!prix || solde < prix)) EPICES_SOLDE[n] = solde;
     EPICES_CRU[n] = x;
     try { localStorage.setItem(CACHE_EPICES, JSON.stringify(EPICES_CRU)); } catch (e) {}
     return x;
   })();
 }
-function grammesFormat(f) {
-  const m = formatCle(f).split(' + ')[0].match(/^(\d+(?:\.\d+)?) (kg|g|ml|l)$/);
-  return m ? Number(m[1]) * (m[2] === 'kg' || m[2] === 'l' ? 1000 : 1) : Infinity;
-}
-/* Le prix de leur site pour ce format ('' : pas connu). */
-function prixEpice(code, format) {
-  const x = EPICES_CRU[numeroEpice(code)], f = x && x.formats.find(y => formatCle(y.format) === formatCle(format));
-  return f && f.prix !== '' ? f.prix : '';
+/* Le prix de leur site pour ce numéro ('' : pas connu) — en solde à ce scan-ci : le prix du solde. */
+function prixEpice(code) {
+  const n = numeroEpice(code), x = EPICES_CRU[n];
+  return EPICES_SOLDE[n] || (x && x.prix !== '' ? x.prix : '');
 }
 /* D'office (RdG-13, décisions 5 et 8) : la sous-catégorie « Fines herbes, épices » (Garde-manger) et le meuble « Porte d'épices »
    (Cuisine), trouvés par leur nom; renommés autrement, rien d'office — Compléter s'en charge, comme pour un autre produit. Posée sur
@@ -5181,7 +5181,7 @@ function scannerPourAchat() {
 async function chercherNomCode(code) {
   if (estEpice(code)) {
     const x = await chercherEpice(code);
-    return x ? { trouve: true, nom: x.nom, nomAutre: '', marque: MARQUE_EPICES, format: (x.formats[0] || {}).format || '', photo: '' } : { trouve: false };
+    return x ? { trouve: true, nom: x.nom, nomAutre: '', marque: MARQUE_EPICES, format: x.format, photo: '' } : { trouve: false };
   }
   return typeof window.chercherOFF === 'function' ? window.chercherOFF(code) : { trouve: false };
 }

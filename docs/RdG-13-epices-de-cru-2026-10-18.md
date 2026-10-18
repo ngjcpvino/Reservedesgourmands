@@ -31,11 +31,11 @@
 3. **Les autres codes QR sont ignorés** (proposé par Claude, avec la direction) : la caméra continue de chercher le code-barres.
 4. **Le nom de leur site devient l'aliment**, chaque épice la sienne (« Sept-épices d'Alep », « Curcuma Lakadong »), **Épices de Cru la marque** (J-C : « Oui »). Le curcuma Lakadong fini va sur la Liste d'épicerie, même s'il reste un curcuma ordinaire.
 5. **Classée d'office dans Garde-manger → Fines herbes, épices** (J-C : « Oui »), même pour les 50 premiers pots; elle se change ensuite dans Gérer les bases → Aliments. (Le nom de sa sous-catégorie chez J-C : « Fines herbes, épices » — pas « … et sauces » de la liste semée : J-C l'a corrigé.)
-6. **Le format sur la carte du scan** (J-C : « Oui ») : les formats de leur site côte à côte (50 g · 200 g), **le dernier acheté de cette épice déjà choisi** (la première fois : le plus petit, le pot), un toucher pour changer; un seul format = rien à choisir. Si chaque format a son propre numéro sur leur site (l'essai le dira), l'app le sait sans demander. Le look : aperçu d'abord.
+6. ~~**Le format sur la carte du scan**~~ (**remplacé le même soir : chaque format a son numéro** — vu à l'ordi, 10722 le 50 g, 30722 le 200 g —, donc le format se sait au scan, rien à choisir : la condition de la décision elle-même) (J-C : « Oui ») : les formats de leur site côte à côte (50 g · 200 g), **le dernier acheté de cette épice déjà choisi** (la première fois : le plus petit, le pot), un toucher pour changer; un seul format = rien à choisir. Si chaque format a son propre numéro sur leur site (l'essai le dira), l'app le sait sans demander. Le look : aperçu d'abord.
 7. **Le prix de leur site remplit le prix payé**, comme la circulaire (J-C : « Ok »); il suit le format choisi sur la carte.
 8. **La place, la première fois : Cuisine → Porte d'épices** (J-C : « Toujours cuisine, meuble = porte d'épices »). Ensuite, l'endroit habituel de l'épice, comme tout aliment.
 9. **Posée directement sur la Porte d'épices, jamais sur une tablette** (J-C : « comme elles sont en ordre alphabétique, si j'ajoute, ça décale. Donc pas de tablettes nommées »). Lu dans le code : une carte d'endroit sans espace choisi pose le lot sur le meuble lui-même (`emp: eid || mid`), même si le meuble a des espaces; l'Inventaire le montre « posé sur le meuble ».
-10. **Le format sur la carte = A, deux cases, la case dans le coin** (comme le + de la Liste d'épicerie), **sans photo** (J-C : « A. Sans photo » — compris : pas la photo de l'épice de leur site sur la carte; tous ses pots se ressemblent, la photo d'un tas d'épices n'aide pas). — **Demandé à J-C : je bâtis ?** — **« oui »** (section 3 bis).
+10. ~~**Le format sur la carte = A, deux cases, la case dans le coin**~~ (sans objet depuis la décision 6 remplacée : bâties, puis retirées le même soir) (comme le + de la Liste d'épicerie), **sans photo** (J-C : « A. Sans photo » — compris : pas la photo de l'épice de leur site sur la carte; tous ses pots se ressemblent, la photo d'un tas d'épices n'aide pas). — **Demandé à J-C : je bâtis ?** — **« oui »** (section 3 bis).
 
 ## 3. Questions ouvertes, dans l'ordre (une à la fois)
 
@@ -49,7 +49,7 @@
 4. **Le prix** : celui de leur site remplit-il le prix payé (comme la circulaire) ? — ✅ **J-C : « Ok »** (décision 7).
 5. **Où il est rangé** la première fois : l'Escale, ou l'endroit habituel des épices ? — **demandé à J-C le 2026-10-18.** Proposé par Claude : l'endroit où la plupart de ses autres « Fines herbes, épices » sont rangées (leur endroit 1); aucune encore : l'Escale. — ✅ **J-C : « Toujours cuisine, meuble = porte d'épices »** (décision 8). **Demandé ensuite** : dans l'app, la Porte d'épices a-t-elle des espaces (des tablettes) ? Sinon, l'épice est posée sur le meuble. — ✅ décision 9 : sur le meuble, sans tablette.
 6. **Noté, pas creusé** : la date du lot dit l'âge de l'épice — « À consommer bientôt » pourrait compter de là.
-7. **Le look du format sur la carte** — aperçu envoyé le 2026-10-18 (`scratchpad/apercu-epices/fait.py`) : A deux cases, la case dans le coin · B deux boutons, le choisi brun, l'autre blanc · C un menu déroulant · D une ligne par format, le rond vert. Reco de Claude : B (un toucher, de gros doigts, se lit d'un coup d'œil pendant la rafale). — ✅ **J-C : « A. Sans photo »** (décision 10).
+7. ~~**Le look du format sur la carte**~~ (sans objet : chaque format a son numéro, décision 6) — aperçu envoyé le 2026-10-18 (`scratchpad/apercu-epices/fait.py`) : A deux cases, la case dans le coin · B deux boutons, le choisi brun, l'autre blanc · C un menu déroulant · D une ligne par format, le rond vert. Reco de Claude : B (un toucher, de gros doigts, se lit d'un coup d'œil pendant la rafale). — ✅ **J-C : « A. Sans photo »** (décision 10).
 
 ## 3 bis. Ce qui est bâti (l'app, 2026-10-18; pas encore testé en ligne, T127 à T132)
 
@@ -57,22 +57,22 @@
   code-barres) ou **le Lot d'un pot** (« 10722 - 201025 », `estLotEpice()`); tout autre code (un code QR qui mène à un site) est ignoré,
   la lecture continue. Le Lot devient **la clé « EDC-10722 »** (`lireEpice()`, comme `lirePese()` pour la viande) : partout où un code
   entre (la caméra, la fiche, les deux sacs). Open Food Facts n'est jamais appelé pour une épice (`chercherOFF`; `codeOffOk` la refuse).
-- **Leur site, par le coffre-fort** (`Coffre.epiceDeCru`, `chercherEpice()` d'`entree.js`) : le nom (adouci), les formats et leurs prix,
-  le plus petit d'abord; **retenu sur l'appareil** (`rdg_epices`, `EPICES_CRU`). Pas trouvé, « action inconnue », pas de réseau : rien
+- **Leur site, par le coffre-fort** (`Coffre.epiceDeCru`, `chercherEpice()` d'`entree.js`) : le nom (adouci), le format et le prix de ce
+  numéro (`format`, `prix`, `solde` de la réponse, sinon de sa ligne dans `formats`); **retenu sur l'appareil** (`rdg_epices`, `EPICES_CRU`). Pas trouvé, « action inconnue », pas de réseau : rien
   de retenu, l'épice prend son numéro pour nom (`nomCode()` le reconnaît : Compléter ne le propose pas comme nom).
 - **Les deux sacs** (`epicerie.js`) : `identifierCode()` passe par `chercherEpice()` (jamais IGA ni Open Food Facts); `articleNouveau()`
-  rend son nom, la marque Épices de Cru (retrouvée, sinon créée); **pas de case photo** (ni à la correction). **La carte** : sous le
-  produit, **les formats en deux cases** (`poserFormatsEpice()` : `.liste-cases.cases-coin`, `data-format-epice`), le dernier acheté
-  coché (sa dernière ligne de STOCK), la première fois le plus petit; un toucher change (`choisirFormatEpice()`); un seul format : rien à
-  choisir, le format dans le détail. **« Prix payé : 13,75 $ »** (le prix de leur site pour ce format; pas encore lu sur cet appareil :
-  le dernier payé pour ce format — et leur site est relu en arrière-plan, les cases paraissent). Le crochet : **la sous-catégorie
+  rend son nom, la marque Épices de Cru (retrouvée, sinon créée); **pas de case photo** (ni à la correction). **La carte** : son nom,
+  « Épices de Cru · 50 g » — **le format de CE numéro** (chaque format a le sien : 10722 le 50 g, 30722 le 200 g, deux clés pour le même
+  aliment, comme deux codes-barres), rien à choisir; **« Prix payé : 13,75 $ »** (`poserPrixEpice()` : le prix de leur site pour ce
+  numéro — en solde à ce scan-là : le solde; pas encore lu sur cet appareil : le dernier payé pour ce numéro, et leur site est relu en
+  arrière-plan). Le crochet : **la sous-catégorie
   « Fines herbes, épices »** pour un aliment neuf (`sousCatEpices()`, par son nom), **posée sur le meuble « Porte d'épices »** quand
   l'épice n'a pas d'endroit habituel (`meubleEpices()`, par son nom; pas d'espace), le prix.
-- **Le sac seul** (`entree.js`, `remplirEpiceFiche()`) : le nom, la marque, le plus petit format, le prix, la catégorie et la
+- **Le sac seul** (`entree.js`, `remplirEpiceFiche()`) : le nom, la marque, le format et le prix de ce numéro, la catégorie et la
   sous-catégorie, une carte d'endroit sur la Porte d'épices (l'espace vide); une épice déjà à nous : son prix (`poserPrixEpiceFiche()`).
 - **Rechercher et le +** (`chercherNomCode()`) : un pot pas à nous dit son nom de leur site (« Tu n'en as pas — Sept-épices d'Alep »).
   Consommer, Ouvrir, Déplacer : la sorte du pot scanné, comme un code-barres.
-- Essai dans le faux navigateur (jsdom, le vrai `rdg.html`, un faux coffre-fort) : 50 vérifications.
+- Essai dans le faux navigateur (jsdom, le vrai `rdg.html`, un faux coffre-fort qui répond comme leur site vu à l'ordi) : 53 vérifications.
 
 ## 4. Pour le coffre-fort (`api.gs`, à l'ordi)
 

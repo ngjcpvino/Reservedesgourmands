@@ -1337,7 +1337,6 @@ select.champ {
 .cases-coin > .item > :is(.case, .sur-liste) { position: absolute; top: var(--espace-xs); right: var(--espace-xs); }
 [data-plus] { cursor: pointer; }
 [data-plus] .case { pointer-events: none; }   /* la ligne entière se touche : la case suit */
-[data-format-epice] .case { pointer-events: none; }   /* le format d'un pot d'Épices de Cru, sur la carte du scan (RdG-13) : la case entière se touche */
 .sur-liste { position: relative; flex-shrink: 0; width: var(--case-taille); height: var(--case-taille); border-radius: 50%; background: var(--action-oui); }
 .sur-liste::before { content: ''; position: absolute; inset: 0; background: var(--couleur-101);
   -webkit-mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='1.6' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M5 12.5l4.5 4.5L19 7.5'/%3E%3C/svg%3E") center / contain no-repeat;
