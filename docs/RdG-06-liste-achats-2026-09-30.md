@@ -128,3 +128,12 @@ J-C : « Ajouter. Ça prendrait au moins les habituels. » Aujourd'hui, le + de 
 - **À la fin du solde, seul ce qui a été ajouté À CAUSE du solde part tout seul** (J-C : « Oui ») : un aliment déjà sur la liste pour une autre raison (il n'en reste plus) y reste, seul « (Super C) » s'efface.
 - **Le même aliment choisi en solde dans deux épiceries : sa ligne porte celle où il coûte le moins cher au 100 g, l'autre prix en petit dessous** (la règle de « Par épicerie »; J-C : « Oui »).
 - **Le comportement : le tour est fait (2026-10-18).** J-C, le même jour : « faut revoir le visuel de la liste, car là… pas conviviale du tout » — **le look de la Liste d'achats, à revoir** (aperçu d'abord; ce qui dérange : à préciser avec J-C).
+
+## 6. LE LOOK DE LA LISTE, À L'ÉPICERIE — EN RÉFLEXION (J-C, 2026-10-18, zéro code)
+
+J-C, sa capture de « Par épicerie » sur l'iPhone à l'appui : « je suis à l'épicerie, j'ai pas le temps d'analyser toutes ces infos »; « faut travailler avec le format iPhone, c'est avec cet appareil qu'on va travailler à l'épicerie »; « regarder en dehors de la boîte ». **Le modèle : AnyList** (J-C : « Exact ») — par rayon, le nom, une petite note grise au besoin, un toucher raye l'article et l'envoie au bas. **D'abord : ce qu'on a à montrer sur un petit écran, une info à la fois** (J-C : « avant tout, regardons ce que nous avons à montrer »). Le look : un aperçu ensuite, à la largeur de l'iPhone.
+
+**Décidé :**
+1. **Les avantages membres et les cartes (« avec carte Scene+ », « prix membre ») ne s'écrivent plus** (J-C : « je les ai tous pour tous les magasins, donc inutile ») : le prix montré est le prix membre. **Seules restent les conditions de quantité** (« 2 pour 7 $ », « à l'achat de 3 »).
+
+**Questions ouvertes** (une à la fois) : au magasin, le prix de l'autre épicerie (« au Super C : … ») ?
