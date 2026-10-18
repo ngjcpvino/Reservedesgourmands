@@ -122,4 +122,6 @@ J-C : « Ajouter. Ça prendrait au moins les habituels. » Aujourd'hui, le + de 
 - les articles pas encore triés tomberont parfois dans la mauvaise catégorie, de moins en moins avec l'usage (J-C).
 - J-C : « Le tout se confirme quand je quitte la page des soldes de ce magasin » → **choix A** : quitter la page d'une épicerie garde ses choix (on peut aller voir une autre épicerie, ses habituels); **le crochet du mode met tout sur la liste d'un coup**, soldes et habituels ensemble.
 - **Choisir un article pas encore trié = un Oui, mais sans le travail du tri sur le coup** (J-C : « Oui mais je veux pas faire toute la job que je fais au tri tout de suite ») : aucune question (aliment, marque, code) dans la page des soldes.
-- **Question ouverte** : où attend le reste du travail — dans « À trier », le feu déjà au vert, ou dans les Oui avec l'aliment proposé par l'app ?
+- **Le reste du travail attend dans « À trier », le feu déjà au vert** (choix A, J-C : « Oui ») : il se finit à la prochaine séance de tri.
+- **Jamais se fait tout de suite, dans la page des soldes** (J-C : « le jamais peut faire sa job maintenant. Exemple aliment pour chat… j'en ai pas d'animaux ») : un toucher, comme au tri; il vaut partout et l'article ne revient plus.
+- **Question ouverte** : un aliment déjà sur la liste (le lait, il n'en reste plus) et choisi en solde chez Super C : une seule ligne, « Lait (Super C) » ?
