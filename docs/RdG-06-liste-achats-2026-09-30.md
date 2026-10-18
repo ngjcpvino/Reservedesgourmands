@@ -157,4 +157,6 @@ J-C, sa capture de « Par épicerie » sur l'iPhone à l'appui : « je suis à l
 
 12. **« (format ?) » ne s'écrit plus** (J-C : « Oui ») : pas de prix au 100 g sous le prix = on ne peut pas comparer.
 
-**Questions ouvertes** (une à la fois) : un article coché : rayé sur place (aujourd'hui), ou rayé et descendu au bas, comme AnyList ?
+13. **Un article coché, rayé sur place ou descendu au bas comme AnyList : à voir sur l'aperçu** (J-C : « Peut-être, à voir au visuel »).
+
+**Questions ouvertes** (une à la fois) : la photo de l'emballage à côté du nom (la circulaire pour un solde, Open Food Facts sinon) ?
