@@ -124,4 +124,5 @@ J-C : « Ajouter. Ça prendrait au moins les habituels. » Aujourd'hui, le + de 
 - **Choisir un article pas encore trié = un Oui, mais sans le travail du tri sur le coup** (J-C : « Oui mais je veux pas faire toute la job que je fais au tri tout de suite ») : aucune question (aliment, marque, code) dans la page des soldes.
 - **Le reste du travail attend dans « À trier », le feu déjà au vert** (choix A, J-C : « Oui ») : il se finit à la prochaine séance de tri.
 - **Jamais se fait tout de suite, dans la page des soldes** (J-C : « le jamais peut faire sa job maintenant. Exemple aliment pour chat… j'en ai pas d'animaux ») : un toucher, comme au tri; il vaut partout et l'article ne revient plus.
-- **Question ouverte** : un aliment déjà sur la liste (le lait, il n'en reste plus) et choisi en solde chez Super C : une seule ligne, « Lait (Super C) » ?
+- **Un aliment déjà sur la liste et choisi en solde = une seule ligne, « Lait (Super C) »** (J-C : « Oui ») : un aliment, une ligne; dans « Par épicerie », il va chez Super C.
+- **Question ouverte** : à la fin du solde, ce lait-là reste-t-il sur la liste (il n'en reste toujours plus), seulement « (Super C) » effacé ?
