@@ -146,4 +146,6 @@ J-C, sa capture de « Par épicerie » sur l'iPhone à l'appui : « je suis à l
 
 6. **« (pour réserve) » et « (dernier ouvert) » restent** (J-C : « Oui ») : ils disent si c'est pressé.
 
-**Questions ouvertes** (une à la fois) : les marques déjà achetées sous le nom (« Unico », « Selection »), au magasin ?
+7. **Les marques déjà achetées restent sous le nom, en petit** (J-C : « Oui en petit, car il y a des marques que je ne veux plus racheter pour un produit. Faut prendre ça en considération aussi »). Lu dans le code : une sorte « Pas aimé » n'y paraît déjà pas (`lignesAchats()`); les soldes de l'app (`soldesDe()`) ne la filtrent pas eux-mêmes (le coffre-fort est censé l'écarter des spéciaux : à vérifier à la construction).
+
+**Questions ouvertes** (une à la fois) : une marque « Ne pas racheter » cachée partout — sous le nom (déjà), dans les soldes, dans la page des soldes du + ?
