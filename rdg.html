@@ -10,7 +10,7 @@
   <!-- Ecran d'accueil iPad : le meme sac, en PNG (iOS n'accepte pas le SVG ici) -->
   <link rel="apple-touch-icon" href="apple-touch-icon.png?v=2">
 
-<link rel="stylesheet" href="CSS/rdg.css?v=189">
+<link rel="stylesheet" href="CSS/rdg.css?v=190">
 </head>
 <body>
 
@@ -29,7 +29,7 @@
   <div class="contenu menu-contenu">
     <div class="grille" id="menu-principal">
       <button class="bouton bouton-grand" id="menu-ouverture" data-menu="accueil" type="button" aria-label="Accueil"><span class="icone icone-accueil"></span></button>
-      <button class="bouton bouton-grand" id="menu-achats" data-menu="achats" type="button" aria-label="Liste d'achats"><span class="icone icone-chariot"></span></button>
+      <button class="bouton bouton-grand" id="menu-achats" data-menu="achats" type="button" aria-label="Liste d'épicerie"><span class="icone icone-chariot"></span></button>
       <button class="bouton bouton-grand" id="menu-ajouter" data-menu="ajouter" type="button" aria-label="Ajouter"><span class="icone icone-plus"></span></button>
       <button class="bouton bouton-grand" id="menu-deplacer" data-menu="deplacer" type="button" aria-label="Déplacer"><span class="icone icone-deplacer"></span></button>
       <button class="bouton bouton-grand" id="menu-ouvrir" data-menu="ouvrir" type="button" aria-label="Ouvrir"><span class="icone icone-ouvrir"></span></button>
@@ -121,36 +121,47 @@
      « Ajouter à la liste » : l'entonnoir (catégorie → sous-catégorie → aliment) et le scan, à la place de la liste.
 ============================================================ -->
 <div id="vue-achats" hidden>
-  <div class="entete"><div class="titre titre-action"><span class="icone icone-chariot"></span>Liste d'achats</div></div>
+  <div class="entete"><div class="titre titre-action"><span class="icone icone-chariot"></span>Liste d'épicerie</div></div>
   <div class="contenu">
-    <div id="achats-page" class="niveau-2">   <!-- la ligne directrice (RdG-11) : ses boutons d'action au niveau 2 -->
-      <div id="liste-achats"></div>   <!-- les actions (Par catégorie, Par épicerie, le +), puis ce qu'elles ouvrent (remplirAchats) -->
-      <button class="bouton bouton-or bouton-pleine bouton-detache bouton-large" id="achats-retour" type="button" aria-label="Retour"><span class="icone icone-accueil"></span></button>   <!-- rien de choisi : la maison; sinon la flèche (remplirAchats) -->
+    <div class="niveau-2">   <!-- la ligne directrice (RdG-11) : ses boutons d'action au niveau 2 -->
+      <div id="liste-achats"></div>   <!-- tout ouvrir / tout fermer, le +; puis les catégories, toutes ouvertes (remplirAchats) -->
+      <button class="bouton bouton-or bouton-pleine bouton-detache bouton-large" id="achats-retour" type="button" aria-label="Retour"><span class="icone icone-accueil"></span></button>
     </div>
-    <div id="achats-ajout" class="niveau-3" hidden>
-      <div class="bloc">
-        <div class="label">Catégorie</div>
-        <div class="ligne-couleur">
-          <select class="champ" id="achat-cat"></select>
-          <button class="bouton bouton-brun bouton-scanner" id="achat-scan" type="button" aria-label="Scanner"><span class="icone icone-entrer"></span></button>
+  </div>
+</div>
+
+<!-- ============================================================
+     LE + DE LA LISTE D'ÉPICERIE — Ajouter : chercher, ses habituels (le cœur), le scan; le crochet met tout sur la liste.
+============================================================ -->
+<div id="vue-plus" hidden>
+  <div class="entete"><div class="titre titre-action"><span class="icone icone-plus"></span>Ajouter</div></div>
+  <div class="contenu">
+    <div class="niveau-2">
+      <div class="grille choix-vue" id="plus-actions">
+        <button class="bouton bouton-grand" data-action="tout" id="plus-tout" type="button" aria-label="Tout fermer"><span class="icone icone-tout-fermer"></span></button>
+        <button class="bouton bouton-grand" data-action="scanner" id="plus-scan" type="button" aria-label="Scanner"><span class="icone icone-entrer"></span></button>
+      </div>
+      <input class="champ champ-fort" id="plus-cherche" type="search" autocomplete="off" enterkeyhint="search" placeholder="Chercher un aliment">
+      <div id="plus-liste"></div>   <!-- ses habituels, ou ce qui colle à ce qu'on tape (remplirPlus) -->
+      <div id="plus-neuf" hidden>   <!-- « Nouvel aliment : … » : sa catégorie et sa sous-catégorie, sur place -->
+        <div class="liste-blanche">
+          <div class="item nouvel"><span class="ajouter" aria-hidden="true"></span><div class="item-info" id="plus-neuf-nom"></div></div>
+          <div class="form-neuf">
+            <div class="label">Catégorie</div>
+            <select class="champ" id="achat-cat"></select>
+            <div class="saisie-neuve" data-ouvre="neuve" data-ajout="categorie" hidden><input class="champ" id="achat-cat-neuve" autocomplete="off" enterkeyhint="done" placeholder="Nouvelle catégorie…"><button class="retirer" type="button" aria-label="Laisser tomber"></button><button class="ajouter" type="button" aria-label="Ajouter"></button></div>
+            <div id="bloc-achat-souscat" hidden>
+              <div class="label">Sous-catégorie</div>
+              <select class="champ" id="achat-souscat" data-parent="achat-cat"></select>
+              <div class="saisie-neuve" data-ouvre="neuve" data-ajout="categorie" hidden><input class="champ" id="achat-souscat-neuve" autocomplete="off" enterkeyhint="done" placeholder="Nouvelle sous-catégorie…"><button class="retirer" type="button" aria-label="Laisser tomber"></button><button class="ajouter" type="button" aria-label="Ajouter"></button></div>
+            </div>
+          </div>
         </div>
-        <div class="saisie-neuve" data-ouvre="neuve" data-ajout="categorie" hidden><input class="champ" id="achat-cat-neuve" autocomplete="off" enterkeyhint="done" placeholder="Nouvelle catégorie…"><button class="retirer" type="button" aria-label="Laisser tomber"></button><button class="ajouter" type="button" aria-label="Ajouter"></button></div>
+        <button class="bouton bouton-or bouton-pleine bouton-detache bouton-large" id="plus-neuf-retour" type="button" aria-label="Revenir"><span class="icone icone-revenir"></span></button>
       </div>
-      <div class="bloc" id="bloc-achat-souscat" hidden>
-        <div class="label">Sous-catégorie</div>
-        <select class="champ" id="achat-souscat" data-parent="achat-cat"></select>
-        <div class="saisie-neuve" data-ouvre="neuve" data-ajout="categorie" hidden><input class="champ" id="achat-souscat-neuve" autocomplete="off" enterkeyhint="done" placeholder="Nouvelle sous-catégorie…"><button class="retirer" type="button" aria-label="Laisser tomber"></button><button class="ajouter" type="button" aria-label="Ajouter"></button></div>
-      </div>
-      <div class="bloc" id="bloc-achat-aliment" hidden>
-        <div class="label">Aliment</div>
-        <select class="champ champ-fort" id="achat-aliment"></select>
-        <div class="saisie-neuve" id="bloc-achat-nom" data-ouvre="neuf" hidden>
-          <input class="champ" id="achat-nom" autocomplete="off" enterkeyhint="done" placeholder="Nouvel aliment…"><button class="retirer" type="button" aria-label="Laisser tomber"></button><button class="ajouter" type="button" aria-label="Ajouter"></button>
-        </div>
-      </div>
-      <div class="grille bloc-suite">
-        <button class="bouton bouton-grand" data-action="non" id="achat-annuler" type="button" aria-label="Annuler"><span class="icone icone-non"></span></button>
-        <button class="bouton bouton-grand" data-action="oui" id="achat-ok" type="button" aria-label="Mettre sur la liste"><span class="icone icone-oui"></span></button>
+      <div class="grille bloc-detache" id="plus-bas">
+        <button class="bouton bouton-grand" data-action="non" id="plus-non" type="button" aria-label="Annuler"><span class="icone icone-non"></span></button>
+        <button class="bouton bouton-grand" data-action="oui" id="plus-oui" type="button" aria-label="Mettre sur la liste"><span class="icone icone-oui"></span></button>
       </div>
     </div>
   </div>
@@ -545,9 +556,9 @@
 </div><!-- fin du conteneur -->
 
 <script src="JS/coffre.js?v=22"></script>
-<script src="JS/entree.js?v=226"></script>
+<script src="JS/entree.js?v=227"></script>
 <script src="JS/bientot.js?v=6"></script>
-<script src="JS/prix.js?v=9"></script>
+<script src="JS/prix.js?v=10"></script>
 <script src="JS/epicerie.js?v=46"></script>
 <script src="JS/off.js?v=13"></script>
 <script src="JS/scan.js?v=25"></script>
