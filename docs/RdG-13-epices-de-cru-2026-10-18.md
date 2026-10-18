@@ -35,6 +35,7 @@
 7. **Le prix de leur site remplit le prix payé**, comme la circulaire (J-C : « Ok »); il suit le format choisi sur la carte.
 8. **La place, la première fois : Cuisine → Porte d'épices** (J-C : « Toujours cuisine, meuble = porte d'épices »). Ensuite, l'endroit habituel de l'épice, comme tout aliment.
 9. **Posée directement sur la Porte d'épices, jamais sur une tablette** (J-C : « comme elles sont en ordre alphabétique, si j'ajoute, ça décale. Donc pas de tablettes nommées »). Lu dans le code : une carte d'endroit sans espace choisi pose le lot sur le meuble lui-même (`emp: eid || mid`), même si le meuble a des espaces; l'Inventaire le montre « posé sur le meuble ».
+10. **Le format sur la carte = A, deux cases, la case dans le coin** (comme le + de la Liste d'épicerie), **sans photo** (J-C : « A. Sans photo » — compris : pas la photo de l'épice de leur site sur la carte; tous ses pots se ressemblent, la photo d'un tas d'épices n'aide pas). — **Demandé à J-C : je bâtis ?**
 
 ## 3. Questions ouvertes, dans l'ordre (une à la fois)
 
@@ -48,7 +49,7 @@
 4. **Le prix** : celui de leur site remplit-il le prix payé (comme la circulaire) ? — ✅ **J-C : « Ok »** (décision 7).
 5. **Où il est rangé** la première fois : l'Escale, ou l'endroit habituel des épices ? — **demandé à J-C le 2026-10-18.** Proposé par Claude : l'endroit où la plupart de ses autres « Fines herbes, épices » sont rangées (leur endroit 1); aucune encore : l'Escale. — ✅ **J-C : « Toujours cuisine, meuble = porte d'épices »** (décision 8). **Demandé ensuite** : dans l'app, la Porte d'épices a-t-elle des espaces (des tablettes) ? Sinon, l'épice est posée sur le meuble. — ✅ décision 9 : sur le meuble, sans tablette.
 6. **Noté, pas creusé** : la date du lot dit l'âge de l'épice — « À consommer bientôt » pourrait compter de là.
-7. **Le look du format sur la carte** — aperçu envoyé le 2026-10-18 (`scratchpad/apercu-epices/fait.py`) : A deux cases, la case dans le coin · B deux boutons, le choisi brun, l'autre blanc · C un menu déroulant · D une ligne par format, le rond vert. Reco de Claude : B (un toucher, de gros doigts, se lit d'un coup d'œil pendant la rafale). — **son choix à venir.**
+7. **Le look du format sur la carte** — aperçu envoyé le 2026-10-18 (`scratchpad/apercu-epices/fait.py`) : A deux cases, la case dans le coin · B deux boutons, le choisi brun, l'autre blanc · C un menu déroulant · D une ligne par format, le rond vert. Reco de Claude : B (un toucher, de gros doigts, se lit d'un coup d'œil pendant la rafale). — ✅ **J-C : « A. Sans photo »** (décision 10).
 
 ## 4. Pour le coffre-fort (`api.gs`, à l'ordi)
 
