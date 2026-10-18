@@ -148,4 +148,7 @@ nommera. Une épice trouvée une fois est retenue sur l'appareil : le même pot 
   2007, 2020, 2008 — moins plausible). Un numéro de lot qui ne serait pas une date reste utile pour montrer QUEL pot prendre (« prends
   celui du lot 070619 » : il le lit sous le pot), mais pas pour dire lequel est le plus vieux quand deux pots entrent le même jour
   (ses 50 pots, entrés d'un coup). **Demandé à J-C** : un pot acheté il y a peu — ses 6 derniers chiffres donnent-ils une date juste
-  avant l'achat ? — sa réponse à venir.
+  avant l'achat ? — ✅ **J-C : « oui, c'est bien une date »** (vérifié sur un pot acheté il y a peu) : **la fin du Lot = la date de mise
+  en pot, JJMMAA.**
+- **Redemandé à J-C** : c'est dans Ouvrir que ça sert (le scan d'un pot : « Il y en a un plus vieux : mis en pot le 7 juin 2019 ») ? —
+  sa réponse à venir.
