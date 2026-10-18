@@ -153,4 +153,6 @@ J-C, sa capture de « Par épicerie » sur l'iPhone à l'appui : « je suis à l
 
 10. **Un solde d'une marque « Ne pas racheter » est caché** (sous l'aliment et dans la page des soldes du +; J-C : « Ok ») : l'avertissement sous le nom suffit.
 
-**Questions ouvertes** (une à la fois) : la marque et le format du solde (« Old El Paso · 24 g »), pour le trouver sur la tablette ?
+11. **La marque et le format du solde restent** (« Old El Paso · 24 g »; J-C : « Oui ») : c'est ce qui dit quel paquet prendre.
+
+**Questions ouvertes** (une à la fois) : « (format ?) » quand la circulaire ne donne pas de format clair (pas de prix au 100 g possible) ?
