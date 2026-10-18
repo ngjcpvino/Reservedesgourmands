@@ -67,7 +67,7 @@ Principes structurels non négociables (détail dans `RdG-00`) : rien de fixe (l
 > - **Le tour des listes** : 3. Liste d'achats repris aujourd'hui (c'est J-C qui dira si c'est fini); restent 4. Rechercher · 5. l'écran de rayon · 6. Déplacer · 7. Consommer · 8. Gérer les bases → Aliments.
 
 > 🗂 **CE QUI RESTE — LA LISTE NUMÉROTÉE (tous les documents relus EN ENTIER le 2026-10-07, à la demande de J-C : « Numérote afin de ne rien perdre encore ! »)**
-> **Règle : un numéro ne change jamais.** Un point fait est **barré** (~~…~~ ✅ la date), jamais retiré ni renuméroté; un point nouveau prend **le numéro suivant** (le prochain : **93**). C'est J-C qui choisit l'ordre. **Avant de dire à J-C ce qui reste : relire cette liste ET les documents** (une première réponse, faite sans les avoir lus, était fausse).
+> **Règle : un numéro ne change jamais.** Un point fait est **barré** (~~…~~ ✅ la date), jamais retiré ni renuméroté; un point nouveau prend **le numéro suivant** (le prochain : **94**). C'est J-C qui choisit l'ordre. **Avant de dire à J-C ce qui reste : relire cette liste ET les documents** (une première réponse, faite sans les avoir lus, était fausse).
 >
 > **Les actions du départ jamais bâties** (`RdG-01` §2)
 > 1. **Cuisiner** : ai-je tout pour cette recette ? (action 6)
@@ -222,6 +222,8 @@ Principes structurels non négociables (détail dans `RdG-00`) : rien de fixe (l
 > 91. **Un mode d'emploi pour le conjoint** (J-C, 2026-10-18, en riant : « De toute façon tu vas lui écrire un mode d'emploi 😂 ») — les gestes qui ne se voient pas (glisser une ligne de la Liste d'épicerie : mettre de côté, le crayon, le Jamais), et le reste au besoin. Noté, pas creusé : quand J-C le reprendra (une page HTML, court, en images ?).
 >
 > 92. **Retirer le repli « les catégories du tri » du + des soldes** (`categoriesPourSoldes()` de `JS/prix.js`, TEMPORAIRE, 2026-10-18) quand `circulaireMagasin` donnera la catégorie de chaque ligne (`RdG-06`, section 7, point 4) : d'ici là, l'app lit `lireTri` en arrière-plan, une fois, pour ranger les articles pas encore triés.
+>
+> 93. **Les épices : un code QR, pas de code-barres** (J-C, 2026-10-18 : « quand tu as plus de 50 cas… ça vaut la peine de regarder les possibilités. Ce sont des épices. Je les utilise beaucoup »; ses photos : un pot de métal, « Curcuma Lakadong moulu (Inde 40 g) », « Lot: 10262 - 081123 » et un code QR sous le pot, d'autres pots pareils sur la tablette) — **EN RÉFLEXION, zéro code.** Lu dans le code : la caméra lit déjà les codes QR (`readBarcodes` sans `formats` : tous les genres); décodé dans sa photo, le QR contient **« 10262 - 081123 »**, le Lot écrit au-dessus, tel quel. Aujourd'hui l'app le prendrait comme un code-barres entier : un pot racheté (une autre date) serait un code neuf, pas reconnu (`CODES` : le code exact). **Hypothèse de Claude, pas vérifiée** : 10262 = l'épice, 081123 = la date de mise en pot (8 nov. 2023) → reconnaître chaque épice par son premier nombre, comme la viande pesée (point 57). **Demandé à J-C** : deux pots de la même épice, achetés à des moments différents, ont-ils le même premier nombre ? — sa réponse à venir.
 >
 > ⚠️ `docs/collection territoire.md` n'est **pas** de la Réserve (une collection de savons, Univers Caresse) : rangé là par erreur, n'y rien toucher.
 
