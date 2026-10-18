@@ -144,4 +144,6 @@ J-C, sa capture de « Par épicerie » sur l'iPhone à l'appui : « je suis à l
 
 5. **Le prix régulier entre parenthèses : pas tranché** (J-C : « Oui et non, car un régulier chez l'un est un solde chez l'autre. Pas évident à trancher, j'avoue ») → **l'aperçu le montrera avec et sans**, et peut-être une petite marque « solde » à la place du chiffre.
 
-**Questions ouvertes** (une à la fois) : « (pour réserve) » et « (dernier ouvert) », au magasin ?
+6. **« (pour réserve) » et « (dernier ouvert) » restent** (J-C : « Oui ») : ils disent si c'est pressé.
+
+**Questions ouvertes** (une à la fois) : les marques déjà achetées sous le nom (« Unico », « Selection »), au magasin ?
