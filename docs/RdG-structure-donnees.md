@@ -85,6 +85,7 @@ endroits en même temps).*
 | O | Complete | Compléter (2026-10-04) : le jour du OK — la ligne quitte la liste de son épicerie (placée et sa catégorie donnée). Vide = encore à compléter. Écrit par l'app (action `deplacer`, la ligne entière) |
 | P | Horloge | À consommer bientôt (2026-10-06) : le jour où le lot est entré au congélo ou en est sorti — l'horloge repart de là. Vide = la date d'entrée (E). Écrit par Déplacer (action `deplacer`, la ligne entière) |
 | Q | Ouvert | « Entamé » (2026-10-08, RdG-09) : le jour où ce contenant a été ouvert (le bouton « Ouvrir » du menu). Vide = fermé. Un contenant ouvert parmi plusieurs : la ligne se coupe, la part ouverte devient une ligne à elle qui garde tout le reste. Écrit par l'action `deplacer` (la ligne entière) |
+| R | Lot | Un pot d'Épices de Cru (2026-10-19, RdG-13, section 5) : son Lot tel qu'écrit sous le pot, « 10722 - 070619 » — la fin = la date de mise en pot (JJMMAA). En texte. Vide = pas de Lot (tout autre produit, un pot tapé à la main) : compté du jour de son entrée. Sert à la rotation : le plus vieux d'abord (Consommer, Ouvrir) |
 
 > **La quantité mesurable** se lit dans le **Format** : « 1 L », « 500 g », « 0,54 kg ».
 > L'app additionne (un 4 L + deux 1 L = 6 L) quand les unités s'accordent; sinon elle

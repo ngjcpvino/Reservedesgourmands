@@ -147,8 +147,9 @@ function retourAuMenu()      { montrerAccueil(); ouvrirMenu(); }
 function iconeRetour(id, auMenu) { const i = $(id).firstElementChild; if (i) i.className = 'icone ' + (auMenu ? 'icone-accueil' : 'icone-revenir'); }
 function majRetourListes() { iconeRetour('btn-retour-listes', !$('vue-listes').querySelector('.contenu > .accordeon > .accordeon-tete.ouvert')); }   // une liste ouverte : elle se referme (la flèche)
 var annulerFiche = null;   // où ramène Annuler de la fiche ('null' : la caméra du sac seul); posé APRÈS l'avoir ouverte (le sac seul, Sans code)
+var LOT_FICHE = null;      // { cle, lot } : le pot d'Épices de Cru scanné pour la fiche (le point 94)
 function montrerFormulaire(avecCode) {
-  annulerFiche = null;
+  annulerFiche = null; LOT_FICHE = null;
   toutCacher(); $('vue-app').hidden = false;
   preparerFiche(avecCode);
   chargerReferences();                        // catégories + liste des produits
@@ -200,6 +201,8 @@ async function surCode() {
   let code = $('codebarres').value.trim();
   const cle = code && lireEpice(lirePese(code));    // un paquet pesé au magasin : sa clé (le prix lu, à côté); un pot d'Épices de Cru : la sienne (RdG-13)
   if (cle && cle !== code) { $('codebarres').value = cle; code = cle; }
+  const lot = estEpice(code) && prendreLot(code);   // un pot d'Épices de Cru : son Lot, sa date de mise en pot (le point 94)
+  if (lot) LOT_FICHE = { cle: code, lot: lot };
   codeScan = code;
   $('msg-code').textContent = '';
   offFicheRaz();
@@ -1501,6 +1504,8 @@ async function enregistrer() {
   const plu = pluChoisi();
   if (plu && !estPlu(plu)) { statut('Un PLU a 4 ou 5 chiffres.', 'erreur'); $('plu-tape').focus(); return; }
   const format = formatSaisi(), code = $('codebarres').value.trim() || plu, prix = $('prix').value.trim();   // un PLU : la même colonne que le code-barres
+  const lot = LOT_FICHE && LOT_FICHE.cle === code ? LOT_FICHE.lot : '';   // un pot d'Épices de Cru : son Lot (STOCK col. R, le point 94)
+  if (lot) endroits.forEach(x => { x.lot = lot; });
   const nouveaux = LISTES_NEUVES.filter(x => [marque, saveur].indexOf(x.id) !== -1);   // les noms neufs que l'entrée porte : créés par le même appel
   const qui = localStorage.getItem(QUI) || '';        // posé une fois dans Outils, gardé sur l'appareil
   if (!opCourant) opCourant = 'op-' + Date.now() + '-' + Math.random().toString(36).slice(2, 8);
@@ -1532,12 +1537,15 @@ async function enregistrer() {
       const c = lireCache(); if (c) { (c.prods = c.prods || []).push([produitId, nom, scid, '', 'O', '', '']); ecrireCache(c); }
       remplirProduitsDatalist();                          // le nouveau nom devient suggérable tout de suite
     }
-    const dateJour = dateDuJour();
+    const dateJour = dateDuJour(), pots = [];
     endroits.forEach((x, i) => {                              // l'inventaire est à jour sans recharger
-      const ligne = [ids[i] || '', produitId, x.emp, x.qte, dateJour, marque, x.format || format, opCourant, code, saveur, qui, magasin, prix];
+      const ligne = avecLot([ids[i] || '', produitId, x.emp, x.qte, dateJour, marque, x.format || format, opCourant, code, saveur, qui, magasin, prix], lot);
       STOCK.push(ligne);
       const c2 = lireCache(); if (c2) { (c2.stock = c2.stock || []).push(ligne.slice()); ecrireCache(c2); }
+      if (lot && ligne[0]) pots.push(ligne);
     });
+    if (pots.length && !(r && r.lot))                         // un coffre-fort qui n'écrit pas encore le Lot (entrerAvecLot) : la ligne entière, réécrite
+      poserGeste({ action: 'deplacer', opId: opCourant + '-lot', modifs: pots.map(l => ({ id: String(l[0]), ligne: l.slice() })), ajouts: [] });
     memoriserVariante(produitId, marque, format, endroits, saveur);   // marque/saveur/format/emplacements à jour tout de suite
     if (code) {                                            // son code est à nous tout de suite : le scanner de Consommer le reconnaît sans relire
       CODES[String(code)] = produitId;
@@ -2852,7 +2860,7 @@ function boutonOuvrir(cle) {
    plus vieux; plusieurs formats : le plus vieux. fin : l'écran qui se redessine. */
 function ouvrirDeLaLigne(lots, fin) {
   const pid = lots.length ? lots[0].pid : '', prod = PRODUITS.find(p => String(p.id) === String(pid));
-  const vieux = parts => parts.flatMap(p => p.rows).map(r => String(dateCourte(r[4]) || '')).sort()[0] || '';
+  const vieux = parts => parts.flatMap(p => p.rows).map(agePot).sort()[0] || '';   // un pot d'Épices de Cru : sa mise en pot (le point 94)
   const avec = lots.filter(l => partsAOuvrir(prod, l).length);
   if (!avec.length) return;
   const premier = endroitsHabituels(pid)[0];
@@ -3373,9 +3381,8 @@ function htmlPasAimes(prod) {
     '<div class="item-detail">Ne pas racheter</div></div></div>').join('');
 }
 /* Ce que devient STOCK quand on sort k de la part p : les lignes réécrites, et un reste de pack s'il faut une ligne de plus. */
-function planSortie(p, k) {
-  const date = r => String(dateCourte(r[4]) || '');
-  const rows = p.rows.slice().sort((a, b) => (p.unites ? nbUnites(a[6]) - nbUnites(b[6]) : 0) || date(a).localeCompare(date(b)));
+function planSortie(p, k, vise) {                    // vise : le Lot du pot qu'on tient (scanné) — c'est lui qui sort (le point 94)
+  const rows = p.rows.slice().sort((a, b) => (p.unites ? nbUnites(a[6]) - nbUnites(b[6]) : 0) || plusVieuxDabord(vise)(a, b));
   const modifs = [], ajouts = [];
   let reste = k;
   for (const row of rows) {
@@ -3472,7 +3479,8 @@ function ouvrirOuverture(cle) {
   if (p) ouvrirPart(lot, p, 1);
 }
 function ouvrirPart(lot, part, q, fin) {   // fin : qui reprend la main après (l'Inventaire, À consommer bientôt); sans : l'écran Ouvrir
-  const rows = part.rows.slice().sort((a, b) => String(dateCourte(a[4]) || '').localeCompare(String(dateCourte(b[4]) || '')));   // le plus vieux d'abord
+  const vise = lotVise(lot.pid);
+  const rows = part.rows.slice().sort(plusVieuxDabord(vise));   // le pot qu'on tient (scanné), sinon le plus vieux d'abord (le point 94)
   if (!(q > 0) || q > part.qte || rows.some(r => !r[0])) { avis('Pas ouvert — réessaie', 'erreur'); if (fin) fin(); else montrerRayon(lot.pid, true); return; }
   const op = 'ouv-' + Date.now() + '-' + Math.random().toString(36).slice(2, 8), jour = dateDuJour(), modifs = [], ajouts = [];
   let reste = q;
@@ -3493,11 +3501,48 @@ function ouvrirPart(lot, part, q, fin) {   // fin : qui reprend la main après (
     modifs.push({ id: String(row[0]), ligne: ligne });
   }
   poserGeste({ action: 'deplacer', opId: op, modifs: modifs, ajouts: ajouts });
-  avis('Ouvert', 'succes');
+  avis(texteOuvert(lot, rows[0], vise), 'succes');
   if (fin) { fin(); return; }
   $('recherche-texte').value = '';
   montrerRecherche(false);                             // le champ vide : on enchaîne avec le suivant
   $('recherche-texte').focus();
+}
+/* LA ROTATION DES ÉPICES (le point 94, RdG-13, section 5 — J-C : « je vais aller chercher le plus vieux afin de faire une rotation ») */
+/* Le Lot du pot qu'on tient : scanné dans Consommer ou Ouvrir, cet aliment-là, encore à l'écran (l'Inventaire : '' — le plus vieux). */
+function lotVise(pid) {
+  return !$('vue-recherche').hidden && sorteScannee && sorteScannee.pid === String(pid) ? sorteScannee.lot || '' : '';
+}
+/* Ce qui reste d'un aliment, rangé ou pas (sans les lignes retirées). */
+const restePots = pid => STOCK.filter(l => String(l[1]) === String(pid) && (Number(l[3]) || 0) > 0 && !ligneRetiree(l));
+/* « (200 g) » si ce n'est pas le format de celui-ci; « , Réserve, Tablette 1 » s'il est ailleurs. */
+function ouEstPot(l, format, emp) {
+  const f = String(l[6] || '').trim();
+  return { format: f && format && !memeFormat(f, format) ? ' (' + f + ')' : '',
+           lieu: emp !== undefined && String(l[2] || '') !== String(emp) ? ', ' + endroitMeuble(l[2]) : '' };
+}
+/* Un pot d'Épices de Cru fini (consommé, jeté) : s'il en reste un autre (le 200 g compris), le prochain — le déjà ouvert d'abord,
+   sinon le plus vieux (J-C : « Oui »). */
+function texteSortie(mot, lot, p) {
+  if (!p.rows.some(r => estEpice(r[8]))) return mot;
+  const l = restePots(lot.pid).sort((a, b) => estOuvert(b) - estOuvert(a) || plusVieuxDabord('')(a, b))[0];
+  if (!l) return mot;
+  const o = ouEstPot(l, p.format, lot.emp);
+  return mot + '. Le prochain' + o.format + ' : ' + quandPot(l) + (estOuvert(l) ? ', déjà ouvert' : '') + o.lieu;
+}
+/* Ouvrir sans scanner (le nom tapé, l'Inventaire) : le plus vieux s'ouvre — on dit lequel, s'il en reste d'autres fermés. */
+function texteOuvert(lot, l, vise) {
+  if (vise || !l || !estEpice(l[8]) || !restePots(lot.pid).some(x => !estOuvert(x))) return 'Ouvert';
+  return 'Ouvert : celui ' + quandPot(l);
+}
+/* Ouvrir, au scan d'un pot : un plus vieux attend, encore fermé — on le dit (il ouvre quand même celui qu'il tient). */
+function avertirPlusVieux(pid, lot, format) {
+  const d = dateLot(lot);
+  if (!d) return;
+  const tenu = restePots(pid).find(l => lotPot(l) === lot);
+  const l = restePots(pid).filter(x => !estOuvert(x) && lotPot(x) !== lot && agePot(x) < d).sort(plusVieuxDabord(''))[0];
+  if (!l) return;
+  const o = ouEstPot(l, format, tenu ? tenu[2] : undefined);
+  avis('Il y en a un plus vieux' + o.format + ' : ' + quandPot(l) + o.lieu);
 }
 /* La sortie est INSTANTANÉE à l'écran (J-C : « si j'attends pour chaque aliment d'une recette… ») :
    la mémoire et le cache changent tout de suite, et l'envoi part en arrière-plan, gardé en attente (localStorage)
@@ -3516,7 +3561,7 @@ async function consommerPart(lot, cleP, q, pasAime, fin, jete) {   // fin : qui 
   }
   if (!p || !(q > 0) || q > p.qte) { avis('Pas consommé — réessaie', 'erreur'); if (fin) fin(false); else montrerRayon(lot.pid, true); return; }
   const op = 'conso-' + Date.now() + '-' + Math.random().toString(36).slice(2, 8);
-  const plan = planSortie(p, q);
+  const plan = planSortie(p, q, lotVise(lot.pid));
   const qui = localStorage.getItem(QUI) || '', date = dateDuJour();
   plan.ajouts.forEach(a => { a[0] = idLocal(); a[7] = op + '-reste'; });
   poserGeste({
@@ -3527,7 +3572,7 @@ async function consommerPart(lot, cleP, q, pasAime, fin, jete) {   // fin : qui 
     ajouts: plan.ajouts,
     pasAime: pasAime && !estPasAime(lot.pid, lot.marque, lot.saveur) ? ['', lot.pid, lot.marque, lot.saveur, date, qui] : null
   });
-  avis(jete ? 'Jeté' : 'Consommé', 'succes');
+  avis(texteSortie(jete ? 'Jeté' : 'Consommé', lot, p), 'succes');
   if (fin) { fin(true); return; }
   $('recherche-texte').value = '';
   montrerRecherche(false);                             // le champ vide : on enchaîne avec le suivant
@@ -3622,13 +3667,22 @@ async function envoyerGeste(e) {
   if (e.action === 'consommer') return Coffre.consommer(e);
   if (e.action === 'creer') return Coffre.ajouter(e.table, e.ligne);   // l'ID vient de l'app : déjà créé = dejaFait, rien d'écrit
   if (e.action === 'trier') return Coffre.trier(e);                    // la même réponse renvoyée = rien d'écrit
-  if (e.action === 'entrer') return Coffre.entrerArticle(e.charge);    // toute l'épicerie : son jeton déjà vu = rien d'écrit
+  if (e.action === 'entrer') return entrerAvecLot(e);                  // toute l'épicerie : son jeton déjà vu = rien d'écrit
   if (e.action === 'reunirProduits') return Coffre.reunirProduits({ garde: e.garde, perdu: e.perdu });   // rejouable : renvoyé, il ne trouve plus rien à déplacer
   for (const l of e.lignes || []) {
     const r = await Coffre.modifier(e.table || 'Emplacements', l[0], l);
     if (!(r && r.ok) && !(r && r.erreur === 'ID introuvable')) return r;
   }
   return { ok: true };
+}
+/* Un pot et son Lot (le point 94) : un coffre-fort qui ne l'écrit pas encore (STOCK col. R; RdG-13, section 6, à l'ordi) — sans « lot »
+   dans sa réponse — le reçoit par ses lignes entières, réécrites (deplacer écrit la ligne telle qu'elle arrive). Rejouable : renvoyé, le
+   même jeton n'écrit rien, la même ligne se réécrit pareille. */
+async function entrerAvecLot(e) {
+  const r = await Coffre.entrerArticle(e.charge);
+  const pots = (e.stock || []).filter(l => lotPot(l));
+  if (!(r && r.ok) || r.lot || !pots.length) return r;
+  return Coffre.deplacer({ opId: e.opId + '-lot', modifs: pots.map(l => ({ id: String(l[0]), ligne: l.slice() })), ajouts: [] });
 }
 /* Un ID fait ici, de la même forme que ceux du coffre-fort (date/heure du Québec) + un tirage : unique sans lui demander. */
 function idLocal() {
@@ -4198,11 +4252,36 @@ function prixPese(cle) { return PESE && PESE.cle === cle ? PESE.prix : ''; }
    jamais proposée à Open Food Facts. Leur site trouve l'épice par son numéro, et CHAQUE FORMAT A LE SIEN (vu à l'ordi : 10722 le 50 g,
    30722 le 200 g) : le coffre-fort le lui demande (`epiceDeCru`), l'appareil retient la réponse (le nom, le format et le prix de ce
    numéro) — le même pot rescanné n'appelle plus personne, et le format se sait au scan, sans le demander. */
-const RE_LOT_EPICE = /^\s*(\d{5})\s*-\s*\d{6}\s*$/;
+const RE_LOT_EPICE = /^\s*(\d{5})\s*-\s*(\d{6})\s*$/;
 const estLotEpice = t => RE_LOT_EPICE.test(String(t || ''));
 const estEpice = c => /^EDC-\d{5}$/.test(String(c || '').trim());
 const numeroEpice = c => estEpice(c) ? String(c).trim().slice(4) : '';
-function lireEpice(code) { const m = String(code || '').match(RE_LOT_EPICE); return m ? 'EDC-' + m[1] : code; }   // une clé déjà faite reste elle-même
+/* LA DATE DU LOT (le point 94, RdG-13, section 5 — J-C : « je vais aller chercher le plus vieux afin de faire une rotation ») : la fin
+   du Lot = la date de mise en pot, JJMMAA. Chaque pot garde son Lot (STOCK col. R, « 10722 - 070619 » : du texte, le Sheet n'y voit ni
+   nombre ni date); deux pots de la même épice ont la même clé, seul lui les distingue. Le dernier Lot lu reste à côté (LOT_LU), comme
+   le prix d'un paquet pesé : qui le prend (l'entrée, la recherche) le prend une fois. */
+let LOT_LU = null;                                 // { cle, lot } : le dernier pot lu
+function lireEpice(code) {
+  const m = String(code || '').match(RE_LOT_EPICE);
+  if (!m) return code;                             // une clé déjà faite reste elle-même
+  LOT_LU = { cle: 'EDC-' + m[1], lot: m[1] + ' - ' + m[2] };
+  return LOT_LU.cle;
+}
+function prendreLot(cle) { const l = LOT_LU && LOT_LU.cle === cle ? LOT_LU.lot : ''; if (l) LOT_LU = null; return l; }
+function dateLot(lot) {                            // « 10722 - 070619 » → « 2019-06-07 »; pas une vraie date : ''
+  const m = String(lot || '').match(/^\s*\d{5}\s*-\s*(\d{2})(\d{2})(\d{2})\s*$/);
+  if (!m) return '';
+  const j = +m[1], mo = +m[2], a = 2000 + +m[3], d = new Date(a, mo - 1, j);
+  return d.getMonth() === mo - 1 && d.getDate() === j ? a + '-' + m[2] + '-' + m[1] : '';
+}
+const lotPot = l => String(l[17] == null ? '' : l[17]).trim();
+/* L'âge d'une ligne : sa mise en pot (son Lot), sinon le jour de son entrée (J-C : les pots entrés sans date, comptés de là). */
+const agePot = l => dateLot(lotPot(l)) || String(dateCourte(l[4]) || '').slice(0, 10);
+/* Le plus vieux d'abord — vise : le Lot du pot qu'on tient (scanné), lui avant tous. */
+const plusVieuxDabord = vise => (a, b) => (vise ? (lotPot(b) === vise) - (lotPot(a) === vise) : 0) || agePot(a).localeCompare(agePot(b));
+function avecLot(ligne, lot) { if (lot) { while (ligne.length < 17) ligne.push(''); ligne[17] = lot; } return ligne; }
+const jourAnnee = v => { const t = String(dateCourte(v) || '').slice(0, 10); return t ? jourLong(t) + ' ' + t.slice(0, 4) : ''; };   // « 7 juin 2019 »
+const quandPot = l => dateLot(lotPot(l)) ? 'mis en pot le ' + jourAnnee(dateLot(lotPot(l))) : 'entré le ' + jourAnnee(l[4]);
 const MARQUE_EPICES = 'Épices de Cru';
 const CACHE_EPICES = 'rdg_epices';
 var EPICES_CRU = (() => { try { return JSON.parse(localStorage.getItem(CACHE_EPICES) || '{}') || {}; } catch (e) { return {}; } })();   // { numéro: { nom, format, prix } }
@@ -5270,12 +5349,15 @@ function scannerPourChercher() {
 }
 async function chercherParCode(code) {
   code = String(code || '').trim();
+  const lot = prendreLot(code);                    // un pot d'Épices de Cru : son Lot — Consommer et Ouvrir visent CE pot (le point 94)
   $('recherche-texte').value = '';
   montrerRecherche(false);
   const pid = CODES[code];
   if (pid && PRODUITS.some(p => String(p.id) === String(pid))) {
-    if (modeRecherche) sorteScannee = { pid: String(pid), sortes: sortesDuCode(code) };   // Consommer, Déplacer : la boîte qu'on tient
-    montrerRayon(pid); return;
+    if (modeRecherche) sorteScannee = { pid: String(pid), sortes: sortesDuCode(code), lot: lot };   // Consommer, Déplacer : la boîte qu'on tient
+    montrerRayon(pid);
+    if (modeRecherche === 'ouvrir' && lot) avertirPlusVieux(pid, lot, (sortesDuCode(code)[0] || {}).format);
+    return;
   }
   const jeton = ++rechercheJeton;
   $('recherche-resultats').innerHTML = htmlVide('', 'Recherche du produit…');

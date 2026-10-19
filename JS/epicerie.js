@@ -187,25 +187,27 @@ function poserCarte(html) {
 async function surCodeEpicerie(code) {
   code = lireEpice(lirePese(String(code || '').trim()));   // un paquet pesé au magasin : sa clé (le prix lu, à côté); un pot d'Épices de Cru : la sienne
   if (!code || !EPI) return;
+  const lot = prendreLot(code);                          // un pot d'Épices de Cru : son Lot (sa date de mise en pot), gardé avec lui (le point 94)
+  const carte = a => { if (lot) a.lot = lot; montrerCarte(a); };
   const jeton = ++epiJeton;
   const connu = articleConnu(code);
-  if (connu) { montrerCarte(connu); return; }
-  if (estPese(code)) { montrerCarte(articleNouveau(code, null)); return; }   // un code de magasin : personne d'autre ne le connaît
+  if (connu) { carte(connu); return; }
+  if (estPese(code)) { carte(articleNouveau(code, null)); return; }   // un code de magasin : personne d'autre ne le connaît
   if (estPlu(code)) {                                    // 4 ou 5 chiffres tapés (« Taper le code ») : un PLU, comme dans Sans code
     await chargerPlu();
     if (jeton !== epiJeton || $('epi-scan').hidden) return;
     const nom = nomPlu(code);
-    if (nom) { montrerCarte(articlePlu(code, nom)); return; }
+    if (nom) { carte(articlePlu(code, nom)); return; }
   }
   const local = codeCirculaire(code);                    // dans une circulaire d'IGA : tout de suite, sans réseau
-  if (local) { montrerCarte(articleNouveau(code, local)); return; }
+  if (local) { carte(articleNouveau(code, local)); return; }
   poserCarte('<div class="carte bloc-suite carte-scan niveau-3"><div class="message">Recherche du produit…</div>' +
     '<div class="grille bloc-suite">' + annulerCarteHtml() + '</div></div>');
   const recherche = identifierCode(code);
   chariotPendant(recherche, 'Recherche du produit…');   // le chariot : on voit qu'elle travaille (5 s au plus, elle continue derrière)
   const r = await recherche;
   if (jeton !== epiJeton || $('epi-scan').hidden) return;   // annulé, ou parti ailleurs entre-temps
-  montrerCarte(articleNouveau(code, r));
+  carte(articleNouveau(code, r));
 }
 /* Un code qui n'est pas à nous : UN appel au coffre-fort (les circulaires d'IGA, puis Open Food Facts) — un coffre-fort pas encore
    à jour : Open Food Facts directement. La même recherche pour les deux sacs et pour Ajouter (J-C, 2026-10-09). */
@@ -455,10 +457,13 @@ function validerCarte(rep) {
   const emp = premierEndroit(pid) || (a.epice ? meubleEpices() : ''), id = idLocal(), opId = 'epi-' + id, qui = localStorage.getItem(QUI) || '', code = a.code || '';
   const format = champPoids ? (poids ? poids + ' kg' : '') : a.format || '';
   // Stock : ID · ProduitID · Emp · Qte · Date · Marque · Format · OpId · CodeBarres · Saveur · QuiEntre · Magasin · Prix · Epicerie
-  const ligne = [id, pid, emp, qte, dateDuJour(), marque, format, opId, code, saveur, qui, EPI.magasin, prix, EPI.id];
+  // (… · R Lot : un pot d'Épices de Cru, sa date de mise en pot — le point 94)
+  const ligne = avecLot([id, pid, emp, qte, dateDuJour(), marque, format, opId, code, saveur, qui, EPI.magasin, prix, EPI.id], a.lot);
+  const endroit = { id: id, emp: emp, qte: qte };
+  if (a.lot) endroit.lot = a.lot;
   poserGeste({ action: 'entrer', opId: opId, stock: [ligne],
     charge: { produitId: pid, marque: marque, format: format, saveur: saveur, code: code, magasin: EPI.magasin, prix: prix, qui: qui,
-              opId: opId, epicerie: EPI.id, endroits: [{ id: id, emp: emp, qte: qte }] } });
+              opId: opId, epicerie: EPI.id, endroits: [endroit] } });
   if (l && rep === 'O') relierCirculaire(l, pid, marque, saveur, code);
   if (l && avecCirc) nettoyerAchatsCle(l.cle);         // choisi au + des soldes sans être trié : acheté, il quitte la liste
   if (l && rep === 'N') EPI_REFUS[l.cle + '|' + String(a.pid || a.code || '')] = true;

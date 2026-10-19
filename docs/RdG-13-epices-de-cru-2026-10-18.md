@@ -1,7 +1,8 @@
 # RdG-13 — Les épices d'Épices de Cru : un code QR, leur numéro (2026-10-18)
 
 > Le point 93 de la liste numérotée (`CLAUDE.md`). **Réflexion finie, l'app bâtie le 2026-10-18** (J-C : « oui »), pas encore testée en
-> ligne (T127 à T132). Reste au coffre-fort : la section 4, à l'ordi.
+> ligne (T127 à T132). Reste au coffre-fort : la section 4, à l'ordi. **La date du lot (le point 94, section 5) : bâtie le 2026-10-19**
+> (J-C : « Ok »), pas encore testée en ligne (T133 à T137); au coffre-fort : la section 6, à l'ordi.
 
 ## 1. Ce qu'on a vu
 
@@ -124,7 +125,7 @@ qui rend `references.codes` et `stock`) doit la rendre **telle quelle** — elle
 entre quand même — nommée par son numéro (« 10722 »), Épices de Cru, dans Fines herbes, épices, sur la Porte d'épices; Compléter la
 nommera. Une épice trouvée une fois est retenue sur l'appareil : le même pot rescanné n'appelle plus personne.
 
-## 5. La date du lot (le point 94) — EN RÉFLEXION, zéro code
+## 5. La date du lot (le point 94) — réflexion finie, ✅ BÂTIE le 2026-10-19 (pas encore testée en ligne, T133 à T137)
 
 - La fin du Lot = **la date de mise en pot, JJMMAA** (« 10722 - 070619 » = le 7 juin 2019; « 10722 - 201025 » = le 20 octobre 2025).
   Aujourd'hui l'app ne la garde pas : la clé ne retient que les 5 premiers chiffres.
@@ -159,4 +160,42 @@ nommera. Une épice trouvée une fois est retenue sur l'appareil : le même pot 
   colonne de plus à STOCK, `api.gs` à l'ordi); (2) **Consommer au scan sort CE pot** (sa date le désigne); par le nom tapé : le plus
   vieux; (3) puis, s'il reste un pot de cette épice (le 200 g compris) : « Le prochain : mis en pot le 7 juin 2019 »; (4) **Ouvrir**,
   au scan d'un pot alors qu'un plus vieux attend : « Il y en a un plus vieux : mis en pot le 7 juin 2019 » (il ouvre quand même celui
-  qu'il tient). Les pots entrés sans date : comptés du jour de leur entrée. — sa réponse à venir.
+  qu'il tient). Les pots entrés sans date : comptés du jour de leur entrée. — ✅ **J-C : « Ok »**.
+
+**Ce qui est bâti (2026-10-19)** :
+- **Chaque pot garde son Lot** : la caméra le lit (`lireEpice()` le retient à côté de la clé, `LOT_LU`, pris une fois : `prendreLot()`),
+  la ligne de STOCK le porte en **col. R**, tel qu'écrit sous le pot (« 10722 - 070619 » : du texte, le Sheet n'y voit ni nombre ni
+  date) — les deux sacs (`validerCarte()`) et le sac seul (`enregistrer()`); sa date : `dateLot()` (JJMMAA; pas une vraie date : rien).
+  Un pot tapé à la main (sa clé) ou choisi parmi les habituels : pas de Lot, compté du jour de son entrée (`agePot()`).
+- **D'ici le collage** (section 6) : le coffre-fort n'écrit pas la col. R à l'entrée — sans « lot » dans sa réponse, l'app lui renvoie
+  la ligne entière, réécrite (`entrerAvecLot()`, et un geste `deplacer` au sac seul) : `deplacer` écrit déjà la ligne telle qu'elle
+  arrive. Un appel de plus par pot, seulement pour un pot à Lot; après le collage, plus rien de plus.
+- **Le plus vieux d'abord** (`plusVieuxDabord()`) : le pot scanné avant tous (`lotVise()` : son Lot, dans Consommer et Ouvrir), puis la
+  mise en pot, sinon l'entrée — Consommer (`planSortie()`), Ouvrir (`ouvrirPart()`), la conserve de l'Inventaire (`ouvrirDeLaLigne()`).
+  Un aliment sans Lot : comme avant (l'entrée).
+- **Consommer** (aussi la fourchette de l'Inventaire), un pot fini, consommé ou jeté : « **Consommé. Le prochain : mis en pot le 7 juin
+  2019** » (`texteSortie()`) — s'il en reste un (le 200 g compris), le déjà ouvert d'abord, sinon le plus vieux; « (200 g) » si ce
+  n'est pas le même format, « , Garde-manger » s'il est ailleurs (la réserve); sans Lot : « entré le … ». Le dernier : « Consommé » seul.
+- **Ouvrir**, au scan d'un pot alors qu'un plus vieux attend, fermé : « **Il y en a un plus vieux : mis en pot le 7 juin 2019** »
+  (`avertirPlusVieux()`); la conserve ouvre quand même celui qu'il tient. **Sans scanner** (le nom tapé, l'Inventaire) : le plus vieux
+  s'ouvre, et le message dit lequel, s'il en reste d'autres fermés : « **Ouvert : celui mis en pot le 7 juin 2019** » (`texteOuvert()`).
+- Essai dans le faux navigateur : 34 vérifications (et les 53 des épices, toujours bonnes).
+
+## 6. Pour le coffre-fort (`api.gs`, à l'ordi) — la date du lot (le point 94)
+
+Une colonne au bout, rien ne bouge (comme Q `Ouvert`, `RdG-09`, section 4) :
+
+1. **STOCK col. R `Lot`** : l'en-tête (`assurerEntetes()` / `poserEntetes()`), **la colonne en texte** (`@`, comme `TOUT_TEXTE` :
+   « 10722 - 070619 » doit rester tel quel — jamais un nombre, jamais une date).
+2. **`entrerArticle`** : chaque endroit peut porter **`lot`** (`endroits: [{ id, emp, qte, lot: '10722 - 070619' }]`, les deux sacs et le
+   sac seul) → l'écrire en col. R de sa ligne (vide sinon); **répondre `lot: true`** quand il sait l'écrire (l'app ne renvoie plus la
+   ligne : `entrerAvecLot()`). Rejouable comme avant (le même jeton : rien d'écrit, `lot: true` quand même).
+3. **`references.stock` et `lire('Stock')`** rendent la col. R telle quelle (du texte). `deplacer`, `consommer`, `modifier` : rien à
+   changer (ils écrivent la ligne telle qu'elle arrive; `assurerLargeur()` élargit l'onglet).
+4. `reunirProduits` : rien (la col. R suit sa ligne).
+
+**Essayer à blanc** : une entrée avec un `lot` (col. R écrite, en texte), sans `lot` (vide), le même jeton renvoyé; une ligne de 18
+colonnes réécrite par `deplacer` (le Lot reste du texte).
+
+**L'app est bâtie** : d'ici là, le Lot arrive quand même au Sheet (la ligne réécrite par `deplacer`, voir plus haut) — le collage
+retire seulement cet appel de plus.
