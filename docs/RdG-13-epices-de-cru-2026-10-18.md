@@ -151,4 +151,7 @@ nommera. Une épice trouvée une fois est retenue sur l'appareil : le même pot 
   avant l'achat ? — ✅ **J-C : « oui, c'est bien une date »** (vérifié sur un pot acheté il y a peu) : **la fin du Lot = la date de mise
   en pot, JJMMAA.**
 - **Redemandé à J-C** : c'est dans Ouvrir que ça sert (le scan d'un pot : « Il y en a un plus vieux : mis en pot le 7 juin 2019 ») ? —
-  sa réponse à venir.
+  **J-C : « je vais aller chercher le plus vieux afin de faire une rotation. Les épices sont à la même place, mais quelques-unes ont
+  des réserves »** : une rotation (le plus vieux d'abord); tous les pots au même endroit (la Porte d'épices) — seule la date dit lequel
+  prendre. **Demandé ensuite (Claude)** : le moment = le pot fini, dans Consommer — l'app dit aussitôt « Le prochain : mis en pot le
+  7 juin 2019 » (seulement s'il en reste un autre de cette épice) ? — sa réponse à venir.
