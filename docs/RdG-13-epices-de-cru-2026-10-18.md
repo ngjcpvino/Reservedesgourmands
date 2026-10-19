@@ -197,5 +197,7 @@ Une colonne au bout, rien ne bouge (comme Q `Ouvert`, `RdG-09`, section 4) :
 **Essayer à blanc** : une entrée avec un `lot` (col. R écrite, en texte), sans `lot` (vide), le même jeton renvoyé; une ligne de 18
 colonnes réécrite par `deplacer` (le Lot reste du texte).
 
+**✅ `api.gs` ÉCRIT À L'ORDI le 2026-10-19, essayé à blanc (18 vérifications) — ⚠️ À COLLER par J-C (Nouvelle version), à l'ordi** : STOCK col. R `Lot` (l'en-tête, à la prochaine entrée : `assurerEntetes`); `entrerArticle` écrit `endroits[i].lot` en col. R, **la case au format texte avant d'écrire** (« 070619 » garde son 0), O, P, Q vides; sans lot, la ligne est **identique à celle d'avant**, à la cellule près; il répond **`lot: true`** (aussi au jeton rejoué, rien d'écrit); `deplacer` / `consommer` : une ligne de 18 colonnes garde son Lot en texte (réécrite, ou ajoutée au bout : sa case en texte d'abord), une ligne plus courte réécrite ne l'efface pas; `references.stock` et `lire('Stock')` le rendent. **Après le collage, l'app n'envoie plus l'appel de plus** (`entrerAvecLot()` voit `lot: true`).
+
 **L'app est bâtie** : d'ici là, le Lot arrive quand même au Sheet (la ligne réécrite par `deplacer`, voir plus haut) — le collage
 retire seulement cet appel de plus.
