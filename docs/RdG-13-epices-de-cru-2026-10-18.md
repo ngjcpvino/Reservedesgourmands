@@ -154,4 +154,9 @@ nommera. Une épice trouvée une fois est retenue sur l'appareil : le même pot 
   **J-C : « je vais aller chercher le plus vieux afin de faire une rotation. Les épices sont à la même place, mais quelques-unes ont
   des réserves »** : une rotation (le plus vieux d'abord); tous les pots au même endroit (la Porte d'épices) — seule la date dit lequel
   prendre. **Demandé ensuite (Claude)** : le moment = le pot fini, dans Consommer — l'app dit aussitôt « Le prochain : mis en pot le
-  7 juin 2019 » (seulement s'il en reste un autre de cette épice) ? — sa réponse à venir.
+  7 juin 2019 » (seulement s'il en reste un autre de cette épice) ? — ✅ **J-C : « Oui »**.
+- **Proposé ensuite (Claude), demandé à J-C : je bâtis ?** — (1) chaque pot garde sa date (lue dans son code QR à l'entrée; une
+  colonne de plus à STOCK, `api.gs` à l'ordi); (2) **Consommer au scan sort CE pot** (sa date le désigne); par le nom tapé : le plus
+  vieux; (3) puis, s'il reste un pot de cette épice (le 200 g compris) : « Le prochain : mis en pot le 7 juin 2019 »; (4) **Ouvrir**,
+  au scan d'un pot alors qu'un plus vieux attend : « Il y en a un plus vieux : mis en pot le 7 juin 2019 » (il ouvre quand même celui
+  qu'il tient). Les pots entrés sans date : comptés du jour de leur entrée. — sa réponse à venir.
