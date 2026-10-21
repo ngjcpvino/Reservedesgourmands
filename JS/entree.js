@@ -4283,7 +4283,8 @@ function chercherEpice(code) {
    entrée) : chaque pot est reconnu TOUT DE SUITE, même la première fois. Un numéro qu'il n'a pas (une nouveauté) : leur site, par son
    numéro, comme avant. Tant que le coffre-fort ne connaît pas l'action, ou que leur site ne répond pas : un essai par jour, sans bruit.
    Un solde du catalogue vaut jusqu'à sa fin (leur site la donne) — sans fin connue, la semaine du catalogue. */
-const CACHE_CAT_EPICES = 'rdg_epices_cat';         // { jour : lu ce jour-là, essai : le dernier essai, soldes : { numéro: [prix, fin] } }
+const CACHE_CAT_EPICES = 'rdg_epices_catalogue';  // { jour : lu ce jour-là, essai : le dernier essai, soldes : { numéro: [prix, fin] } }
+                                                  // (nouveau nom le 2026-10-21 : un essai d'avant le collage ne bloque pas jusqu'à demain)
 const SEMAINE_EPICES = 7;                          // jours entre deux lectures du catalogue
 let catalogueEpicesEnRoute = false;
 const lireCatEpices = () => { try { return JSON.parse(localStorage.getItem(CACHE_CAT_EPICES) || '{}') || {}; } catch (e) { return {}; } };
