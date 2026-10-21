@@ -824,6 +824,18 @@ function choisirHabituel(i) {
 var SEUL_SANS = null;        // le sac seul : null (la caméra), '' (les deux boutons), 'habituels'
 var SEUL_MAGASIN = '';       // le sac seul : l'épicerie touchée au début (son ID, pour la fiche); '' : aucune (« L'ajouter » de Rechercher)
 const titreSeul = () => nomListe(SEUL_MAGASIN) || 'Entrer un article';   // la caméra du sac seul : le nom de l'épicerie, comme aux deux sacs
+/* « TAPER LE CODE » CHEZ ÉPICES DE CRU (J-C, 2026-10-20 : « si j'inscris le code de l'épice, ça devrait aller chercher l'épice » — avant,
+   5 chiffres étaient pris pour un PLU, pas reconnu) : l'épicerie touchée (les deux sacs, le sac seul) est Épices de Cru (par son nom) →
+   leur numéro, 5 chiffres, = l'épice; le Lot au complet, 11 chiffres (le numéro, puis la date, sans le tiret), = l'épice et sa date de
+   mise en pot (le point 94). Ailleurs, rien ne change. */
+const estEpicesDeCru = mag => !!mag && cleNom(nomListe(mag)).indexOf('epicesdecru') !== -1;
+function codeTapeEpice(c, deuxSacs) {
+  c = String(c || '').trim();
+  if (!estEpicesDeCru(deuxSacs ? (EPI && EPI.magasin) : SEUL_MAGASIN)) return c;
+  if (/^\d{5}$/.test(c)) return 'EDC-' + c;
+  const m = c.match(/^(\d{5})(\d{6})$/);
+  return m ? lireEpice(m[1] + ' - ' + m[2]) : c;
+}
 function montrerSansSeul(quoi) {
   if (window.stopScanner) window.stopScanner();
   if ($('vue-scan').hidden) {                            // revenu de la fiche (Annuler)

@@ -74,6 +74,11 @@
 - **Rechercher et le +** (`chercherNomCode()`) : un pot pas à nous dit son nom de leur site (« Tu n'en as pas — Sept-épices d'Alep »).
   Consommer, Ouvrir, Déplacer : la sorte du pot scanné, comme un code-barres.
 - Essai dans le faux navigateur (jsdom, le vrai `rdg.html`, un faux coffre-fort qui répond comme leur site vu à l'ordi) : 53 vérifications.
+- **Taper le code chez Épices de Cru** (J-C, 2026-10-20 : « si j'inscris le code de l'épice, ça devrait aller chercher l'épice. Là ça
+  fait PLU non reconnu ») : à la tuile Épices de Cru (les deux sacs, le sac seul), « Taper le code » prend **leur numéro, 5 chiffres** =
+  l'épice (« EDC-10722 »), et **le Lot au complet, 11 chiffres** (sans le tiret) = l'épice et sa date (`codeTapeEpice()` d'`epicerie.js`,
+  l'épicerie reconnue par son nom : `estEpicesDeCru()`). Ailleurs, 4 ou 5 chiffres restent un PLU. Pas encore testé en ligne, T138.
+  Essai dans le faux navigateur : 12 vérifications.
 
 ## 4. Pour le coffre-fort (`api.gs`, à l'ordi)
 

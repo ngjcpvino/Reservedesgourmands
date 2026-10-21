@@ -199,7 +199,7 @@ function ouvrirFicheScan(code) {
    (J-C, 2026-10-09 : avant, rien ne le disait — le code s'inscrivait, c'est tout). */
 async function surCode() {
   let code = $('codebarres').value.trim();
-  const cle = code && lireEpice(lirePese(code));    // un paquet pesé au magasin : sa clé (le prix lu, à côté); un pot d'Épices de Cru : la sienne (RdG-13)
+  const cle = code && lireEpice(lirePese(codeTapeEpice(code, false)));   // un paquet pesé au magasin : sa clé (le prix lu, à côté); un pot d'Épices de Cru : la sienne — chez eux, leur numéro tapé aussi (RdG-13)
   if (cle && cle !== code) { $('codebarres').value = cle; code = cle; }
   const lot = estEpice(code) && prendreLot(code);   // un pot d'Épices de Cru : son Lot, sa date de mise en pot (le point 94)
   if (lot) LOT_FICHE = { cle: code, lot: lot };

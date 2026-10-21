@@ -193,7 +193,8 @@
 
   /* « TAPER LE CODE » (J-C, 2026-10-12 : « des codes-barres illisibles par le scan, mais les chiffres sont lisibles »; le sac seul et
      les deux sacs) : le champ prend la place du bouton (la ligne « .saisie-neuve » d'un « Nouveau… »); le + (ou Entrée) fait comme
-     un code lu par la caméra — la caméra du sac seul se ferme, celle des deux sacs attend l'article suivant. 4 ou 5 chiffres : un PLU. */
+     un code lu par la caméra — la caméra du sac seul se ferme, celle des deux sacs attend l'article suivant. 4 ou 5 chiffres : un PLU
+     (chez Épices de Cru : leur numéro, codeTapeEpice). */
   function fermerTaper() {
     document.querySelectorAll('.saisie-neuve[data-ajout="code"]').forEach(function (l) { l.hidden = true; l.querySelector('input').value = ''; });
   }
@@ -204,6 +205,7 @@
       l.querySelector('input').focus(); return;
     }
     fermerTaper();
+    if (typeof codeTapeEpice === 'function') c = codeTapeEpice(c, !!l.closest('#vue-epicerie'));   // chez Épices de Cru : leur numéro, ou le Lot au complet (RdG-13)
     if (!continu && l.closest('#vue-epicerie') && typeof surCodeEpicerie === 'function') { surCodeEpicerie(c); return; }   // les deux sacs, la caméra fermée (un article attendait son OK pendant que l'app dormait) : la carte quand même
     trouve(c);
   }
