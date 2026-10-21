@@ -226,7 +226,7 @@ de la section 6 (un appel de moins par pot); (3) leur catalogue au complet sur l
   seulement si on achète chez eux (l'épicerie Épices de Cru, ou une épice déjà entrée); il remplit la mémoire des épices
   (`EPICES_CRU`, `rdg_epices`) : chaque pot est reconnu tout de suite, même la première fois. Un numéro qu'il n'a pas (une nouveauté) :
   leur site, par son numéro, comme avant. Un coffre-fort qui ne connaît pas l'action, ou leur site muet : **un essai par jour**, sans
-  bruit (`rdg_epices_cat` : le jour lu, le dernier essai). **Un solde du catalogue** vaut jusqu'à sa fin si leur site la donne, sinon la
+  bruit (`rdg_epices_catalogue` : le jour lu, le dernier essai). **Un solde du catalogue** vaut jusqu'à sa fin si leur site la donne, sinon la
   semaine du catalogue.
 - Essai dans le faux navigateur : 26 vérifications (et les 53 + 34 + 12 d'avant, toujours bonnes).
 
