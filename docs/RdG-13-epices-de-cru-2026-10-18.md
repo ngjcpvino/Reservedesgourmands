@@ -174,9 +174,8 @@ nommera. Une épice trouvée une fois est retenue sur l'appareil : le même pot 
   la ligne de STOCK le porte en **col. R**, tel qu'écrit sous le pot (« 10722 - 070619 » : du texte, le Sheet n'y voit ni nombre ni
   date) — les deux sacs (`validerCarte()`) et le sac seul (`enregistrer()`); sa date : `dateLot()` (JJMMAA; pas une vraie date : rien).
   Un pot tapé à la main (sa clé) ou choisi parmi les habituels : pas de Lot, compté du jour de son entrée (`agePot()`).
-- **D'ici le collage** (section 6) : le coffre-fort n'écrit pas la col. R à l'entrée — sans « lot » dans sa réponse, l'app lui renvoie
-  la ligne entière, réécrite (`entrerAvecLot()`, et un geste `deplacer` au sac seul) : `deplacer` écrit déjà la ligne telle qu'elle
-  arrive. Un appel de plus par pot, seulement pour un pot à Lot; après le collage, plus rien de plus.
+- **Le coffre-fort écrit la col. R à l'entrée** (section 6, collée le 2026-10-21). D'ici là, l'app renvoyait la ligne entière par
+  `deplacer` (un appel de plus par pot) : ce repli est retiré le même jour.
 - **Le plus vieux d'abord** (`plusVieuxDabord()`) : le pot scanné avant tous (`lotVise()` : son Lot, dans Consommer et Ouvrir), puis la
   mise en pot, sinon l'entrée — Consommer (`planSortie()`), Ouvrir (`ouvrirPart()`), la conserve de l'Inventaire (`ouvrirDeLaLigne()`).
   Un aliment sans Lot : comme avant (l'entrée).
@@ -196,7 +195,7 @@ Une colonne au bout, rien ne bouge (comme Q `Ouvert`, `RdG-09`, section 4) :
    « 10722 - 070619 » doit rester tel quel — jamais un nombre, jamais une date).
 2. **`entrerArticle`** : chaque endroit peut porter **`lot`** (`endroits: [{ id, emp, qte, lot: '10722 - 070619' }]`, les deux sacs et le
    sac seul) → l'écrire en col. R de sa ligne (vide sinon); **répondre `lot: true`** quand il sait l'écrire (l'app ne renvoie plus la
-   ligne : `entrerAvecLot()`). Rejouable comme avant (le même jeton : rien d'écrit, `lot: true` quand même).
+   ligne : son repli est retiré depuis le collage). Rejouable comme avant (le même jeton : rien d'écrit, `lot: true` quand même).
 3. **`references.stock` et `lire('Stock')`** rendent la col. R telle quelle (du texte). `deplacer`, `consommer`, `modifier` : rien à
    changer (ils écrivent la ligne telle qu'elle arrive; `assurerLargeur()` élargit l'onglet).
 4. `reunirProduits` : rien (la col. R suit sa ligne).
@@ -204,7 +203,7 @@ Une colonne au bout, rien ne bouge (comme Q `Ouvert`, `RdG-09`, section 4) :
 **Essayer à blanc** : une entrée avec un `lot` (col. R écrite, en texte), sans `lot` (vide), le même jeton renvoyé; une ligne de 18
 colonnes réécrite par `deplacer` (le Lot reste du texte).
 
-**✅ `api.gs` ÉCRIT À L'ORDI le 2026-10-19, essayé à blanc (18 vérifications) — ✅ COLLÉ ET DÉPLOYÉ par J-C le 2026-10-21** : STOCK col. R `Lot` (l'en-tête, à la prochaine entrée : `assurerEntetes`); `entrerArticle` écrit `endroits[i].lot` en col. R, **la case au format texte avant d'écrire** (« 070619 » garde son 0), O, P, Q vides; sans lot, la ligne est **identique à celle d'avant**, à la cellule près; il répond **`lot: true`** (aussi au jeton rejoué, rien d'écrit); `deplacer` / `consommer` : une ligne de 18 colonnes garde son Lot en texte (réécrite, ou ajoutée au bout : sa case en texte d'abord), une ligne plus courte réécrite ne l'efface pas; `references.stock` et `lire('Stock')` le rendent. **Après le collage, l'app n'envoie plus l'appel de plus** (`entrerAvecLot()` voit `lot: true`).
+**✅ `api.gs` ÉCRIT À L'ORDI le 2026-10-19, essayé à blanc (18 vérifications) — ✅ COLLÉ ET DÉPLOYÉ par J-C le 2026-10-21** : STOCK col. R `Lot` (l'en-tête, à la prochaine entrée : `assurerEntetes`); `entrerArticle` écrit `endroits[i].lot` en col. R, **la case au format texte avant d'écrire** (« 070619 » garde son 0), O, P, Q vides; sans lot, la ligne est **identique à celle d'avant**, à la cellule près; il répond **`lot: true`** (aussi au jeton rejoué, rien d'écrit); `deplacer` / `consommer` : une ligne de 18 colonnes garde son Lot en texte (réécrite, ou ajoutée au bout : sa case en texte d'abord), une ligne plus courte réécrite ne l'efface pas; `references.stock` et `lire('Stock')` le rendent. **Après le collage, l'appel de plus est retiré de l'app** (le ménage du 2026-10-21).
 
 **L'app est bâtie** : d'ici là, le Lot arrive quand même au Sheet (la ligne réécrite par `deplacer`, voir plus haut) — le collage
 retire seulement cet appel de plus.

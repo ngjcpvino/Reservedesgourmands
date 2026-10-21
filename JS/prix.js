@@ -270,16 +270,14 @@ function genresJamais() {                              // un Jamais vaut dans to
   return g;
 }
 const jamaisCirc = (l, jg) => !!(l.tri && (l.tri.reponse === 'J' || l.tri.reponse === 'M')) || !!SOLDES_JAMAIS.cles[l.cle] || !!(l.genre && jg[l.genre]);
-/* Sa catégorie : corrigée au crayon, sinon celle de son aliment (trié), sinon celle que le coffre-fort a devinée (la circulaire, ou ce qui
-   reste à trier), sinon « Autres ». */
+/* Sa catégorie : corrigée au crayon, sinon celle de son aliment (trié), sinon celle que le coffre-fort a devinée (sa ligne de la
+   circulaire), sinon « Autres ». */
 function catSolde(l) {
   const o = catCirc(l.cle);
   if (o) return o;
   const pid = pidCirc(l), p = pid && PRODUITS.find(x => String(x.id) === pid);
   if (p && rayonDe(p.catId)) return rayonDe(p.catId);
-  if (l.categorie) return String(l.categorie);
-  const a = TRI && TRI.aTrier.find(x => String(x.cle) === String(l.cle) || (x.cles || []).map(String).indexOf(String(l.cle)) !== -1);
-  return a && a.categorie ? String(a.categorie) : 'autres';
+  return l.categorie ? String(l.categorie) : 'autres';
 }
 /* « Maître Saladier · 1 kg · 9,99 », dessous « 1,00 / 100 g »; « 2 pour 7 $ » : la condition, et le prix d'un seul. */
 function detailSolde(l) {
@@ -328,18 +326,10 @@ async function ouvrirEpicerieSoldes(mag) {
   remplirSoldes();
   window.scrollTo(0, 0);
   if (EPI_CIRC_RELUE) EPI_CIRC_RELUE.then(() => redessinerSoldes(mag));
-  categoriesPourSoldes(mag);
 }
 function redessinerSoldes(mag) {
   if ($('vue-soldes').hidden || SOLDES.mag !== String(mag) || $('soldes-liste').querySelector('.glisse.glissee, .glisse.glissant, [data-solde-cat-de]')) return;
   remplirSoldes();
-}
-/* TEMPORAIRE — tant que la circulaire d'une épicerie ne dit pas la catégorie de ses articles (api.gs, RdG-06, section 7) : celle que le
-   tri connaît (lireTri, en arrière-plan, une fois), sinon « Autres ». À retirer quand ses lignes portent `categorie`. */
-function categoriesPourSoldes(mag) {
-  if (TRI || !EPI_CIRC.some(l => l && l.categorie === undefined)) return;
-  lireTriEnFond();
-  if (lectureTri) lectureTri.then(() => redessinerSoldes(mag));
 }
 function choisirSolde(cle) {
   const k = SOLDES.mag + '|' + cle, l = lignesCircDe(SOLDES.mag).find(x => String(x.cle) === String(cle));

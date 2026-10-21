@@ -589,7 +589,7 @@ function appliquer(d) {
   STOCK = d.stock || [];
   COULEURS = d.couleurs || [];                        // [ID, SecteurID, Nom, Valeur]
   PAS_AIMES = d.pasAimes || [];
-  ACHATS = completerAchats(d.achats || []);          // un solde choisi : ce que le coffre-fort n'a pas gardé, l'appareil le sait
+  ACHATS = d.achats || [];
   CAT_CIRC = d.categoriesCirc || {};
   if (typeof reposerCatCirc === 'function') reposerCatCirc();   // une correction pas encore partie l'emporte (JS/prix.js)
   SPECIAUX = d.speciaux || [];
@@ -1539,15 +1539,12 @@ async function enregistrer() {
       const c = lireCache(); if (c) { (c.prods = c.prods || []).push([produitId, nom, scid, '', 'O', '', '']); ecrireCache(c); }
       remplirProduitsDatalist();                          // le nouveau nom devient suggérable tout de suite
     }
-    const dateJour = dateDuJour(), pots = [];
+    const dateJour = dateDuJour();
     endroits.forEach((x, i) => {                              // l'inventaire est à jour sans recharger
       const ligne = avecLot([ids[i] || '', produitId, x.emp, x.qte, dateJour, marque, x.format || format, opCourant, code, saveur, qui, magasin, prix], lot);
       STOCK.push(ligne);
       const c2 = lireCache(); if (c2) { (c2.stock = c2.stock || []).push(ligne.slice()); ecrireCache(c2); }
-      if (lot && ligne[0]) pots.push(ligne);
     });
-    if (pots.length && !(r && r.lot))                         // un coffre-fort qui n'écrit pas encore le Lot (entrerAvecLot) : la ligne entière, réécrite
-      poserGeste({ action: 'deplacer', opId: opCourant + '-lot', modifs: pots.map(l => ({ id: String(l[0]), ligne: l.slice() })), ajouts: [] });
     memoriserVariante(produitId, marque, format, endroits, saveur);   // marque/saveur/format/emplacements à jour tout de suite
     if (code) {                                            // son code est à nous tout de suite : le scanner de Consommer le reconnaît sans relire
       CODES[String(code)] = produitId;
@@ -3669,22 +3666,13 @@ async function envoyerGeste(e) {
   if (e.action === 'consommer') return Coffre.consommer(e);
   if (e.action === 'creer') return Coffre.ajouter(e.table, e.ligne);   // l'ID vient de l'app : déjà créé = dejaFait, rien d'écrit
   if (e.action === 'trier') return Coffre.trier(e);                    // la même réponse renvoyée = rien d'écrit
-  if (e.action === 'entrer') return entrerAvecLot(e);                  // toute l'épicerie : son jeton déjà vu = rien d'écrit
+  if (e.action === 'entrer') return Coffre.entrerArticle(e.charge);    // toute l'épicerie : son jeton déjà vu = rien d'écrit
   if (e.action === 'reunirProduits') return Coffre.reunirProduits({ garde: e.garde, perdu: e.perdu });   // rejouable : renvoyé, il ne trouve plus rien à déplacer
   for (const l of e.lignes || []) {
     const r = await Coffre.modifier(e.table || 'Emplacements', l[0], l);
     if (!(r && r.ok) && !(r && r.erreur === 'ID introuvable')) return r;
   }
   return { ok: true };
-}
-/* Un pot et son Lot (le point 94) : un coffre-fort qui ne l'écrit pas encore (STOCK col. R; RdG-13, section 6, à l'ordi) — sans « lot »
-   dans sa réponse — le reçoit par ses lignes entières, réécrites (deplacer écrit la ligne telle qu'elle arrive). Rejouable : renvoyé, le
-   même jeton n'écrit rien, la même ligne se réécrit pareille. */
-async function entrerAvecLot(e) {
-  const r = await Coffre.entrerArticle(e.charge);
-  const pots = (e.stock || []).filter(l => lotPot(l));
-  if (!(r && r.ok) || r.lot || !pots.length) return r;
-  return Coffre.deplacer({ opId: e.opId + '-lot', modifs: pots.map(l => ({ id: String(l[0]), ligne: l.slice() })), ajouts: [] });
 }
 /* Un ID fait ici, de la même forme que ceux du coffre-fort (date/heure du Québec) + un tirage : unique sans lui demander. */
 function idLocal() {
@@ -3913,7 +3901,6 @@ async function relireAchats() {
     if (!r || !r.ok || !Array.isArray(r.lignes)) { if (r && !r.ok) { clearInterval(minuterieAchats); minuterieAchats = null; } return; }
     const rows = r.lignes.filter(l => Array.isArray(l) && l[0] && String(l[0]) !== 'ID' && achatActif(l)).map(l => l.map(v => v == null ? '' : v));
     lireAttenteAchats().forEach(e => { if (e.lignes) poserLignesAchats(e.lignes, rows); });   // le geste d'ici pas encore parti l'emporte
-    completerAchats(rows);
     if (signatureAchats(rows) === signatureAchats(ACHATS)) return;
     ACHATS = rows;
     const c = lireCache(); if (c) { c.achats = rows.slice(); ecrireCache(c); }
@@ -4013,33 +4000,10 @@ function poserLignesAchats(lignes, rows) {             // par ID, en valeurs fin
 }
 function poserAchats(lignes) {
   if (!lignes.length) return;
-  retenirAchats(lignes);
   ecrireAttenteAchats(lireAttenteAchats().concat([{ lignes: lignes }]));   // gardé AVANT tout : un appareil éteint en route ne perd rien
   poserLignesAchats(lignes, ACHATS);
   const c = lireCache(); if (c) { poserLignesAchats(lignes, c.achats = c.achats || []); ecrireCache(c); }
   expedierAchats();
-}
-/* UN SOLDE CHOISI A DES COLONNES DE PLUS (son épicerie, la fin du solde, l'article : I à Q). Gardées aussi sur l'appareil, par l'ID de sa
-   ligne : un coffre-fort qui ne les garde pas encore (api.gs, RdG-06, section 7) ne les efface pas ici à la relecture. Un solde fini : oublié. */
-const ACHATS_SOLDES = 'rdg_achats_soldes';
-function lireMemoAchats() { try { return JSON.parse(localStorage.getItem(ACHATS_SOLDES) || '{}') || {}; } catch (e) { return {}; } }
-function retenirAchats(lignes) {
-  const longues = lignes.filter(l => l.length > 8);
-  if (!longues.length) return;
-  const m = lireMemoAchats(), auj = dateDuJour();
-  Object.keys(m).forEach(id => { const f = String(dateCourte(m[id][1]) || '').slice(0, 10); if (f && f < auj) delete m[id]; });
-  longues.forEach(l => { m[l[0]] = l.slice(8); });
-  try { localStorage.setItem(ACHATS_SOLDES, JSON.stringify(m)); } catch (e) {}
-}
-function completerAchats(rows) {
-  const m = lireMemoAchats();
-  rows.forEach(r => {
-    const x = Array.isArray(r) && m[r[0]];
-    if (!x || String(r[8] == null ? '' : r[8])) return;
-    while (r.length < 8) r.push('');
-    r.splice(8, x.length, ...x);
-  });
-  return rows;
 }
 async function expedierAchats() {
   if (envoiAchats) return;
@@ -4050,9 +4014,6 @@ async function expedierAchats() {
       let r = null;
       if (!e.lignes) r = { ok: true };                  // une vieille réponse « C'est le bon aliment ? » (retirée le 2026-10-02 : le tri la remplace)
       else try { r = await Coffre.achats({ lignes: e.lignes }); } catch (x) {}
-      if (r && !r.ok && !r.definitif && e.lignes.some(l => l.length > 8)) {   // les colonnes d'un solde refusées (coffre-fort pas encore à jour) :
-        try { r = await Coffre.achats({ lignes: e.lignes.map(l => l.slice(0, 8)) }); } catch (x) { r = null; }   // les 8 d'avant partent, l'appareil garde le reste
-      }
       if (!(r && (r.ok || r.definitif))) break;         // réseau, ou coffre-fort pas encore à jour : tout reste, ça repartira
       ecrireAttenteAchats(lireAttenteAchats().slice(1));
     }

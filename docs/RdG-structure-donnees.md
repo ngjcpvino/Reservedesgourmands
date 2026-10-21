@@ -265,8 +265,7 @@ saveur s'écrivent vides (une vieille ligne par sorte compte pour son aliment). 
 | P | Unite | … ce qui entoure le prix (« 2/ », « /lb ») |
 | Q | Format | … le format (« 454 g ») — pour le prix au 100 g |
 
-*Un solde choisi : C = sa marque (ID dans MARQUES, sinon le texte de Flipp). (`api.gs` : ✅ collé le 2026-10-21 — `achats` écrit la ligne entière, en texte.) Tant que le coffre-fort ne garde pas I à Q, l'app les
-garde sur l'appareil (par l'ID de la ligne, `rdg_achats_soldes`).*
+*Un solde choisi : C = sa marque (ID dans MARQUES, sinon le texte de Flipp). (`api.gs` : ✅ collé le 2026-10-21 — `achats` écrit la ligne entière, en texte.)*
 
 ### CATEGORIESCIRC — la catégorie d'un article de circulaire, corrigée au crayon (2026-10-18, RdG-06 section 7)
 *(`api.gs` : ✅ collé le 2026-10-21 : l'onglet connu d'`ajouter`, tout en texte; `references.categoriesCirc`.) Écrit par l'app (`ajouter`, l'ID de l'app : rejouable), par sa propre file. Une ligne par correction; la plus récente d'une clé
