@@ -28,6 +28,7 @@ const Coffre = {
   // l'entrée tournerait sans fin, et la file resterait bloquée derrière. Jamais pour une
   // écriture : le coffre-fort pourrait l'avoir faite quand même.
   DELAI_LECTURE: 12000,
+  DELAI_CATALOGUE: 30000,   // le catalogue d'Épices de Cru au complet : une lecture plus longue, en arrière-plan, une fois par semaine
 
   // Un échec dit POURQUOI (J-C, 2026-10-07 : « Circulaires pas lues », sans raison, et on devinait) — trois cas que l'app
   // confondait : e.delai (pas de réponse à temps), e.reseau (la communication
@@ -94,6 +95,7 @@ const Coffre = {
   identifier(code)          { return this.appel({ action: 'identifier', code: code }, this.DELAI_LECTURE); },                 // toute l'épicerie : un code inconnu → les circulaires d'IGA, puis Open Food Facts (une lecture)
   circulaireMagasin(mag)    { return this.appel({ action: 'circulaireMagasin', magasin: mag }, this.DELAI_LECTURE); },        // toute l'épicerie : la circulaire de la semaine d'une épicerie (une lecture)
   epiceDeCru(numero)        { return this.appel({ action: 'epiceDeCru', numero: numero }, this.DELAI_LECTURE); },               // un pot d'Épices de Cru : son numéro → le nom et les formats de leur site (RdG-13; une lecture)
+  catalogueEpices()         { return this.appel({ action: 'catalogueEpices' }, this.DELAI_CATALOGUE); },                    // tout le catalogue d'Épices de Cru : { numéro: [nom, format, prix, solde, fin] } (RdG-13, section 7; une lecture, en arrière-plan)
   codesCirculaires()        { return this.appel({ action: 'codesCirculaires' }, this.DELAI_LECTURE); },                      // tous les codes des circulaires (la semaine + l'archive d'un an), en une liste compacte (une lecture, en arrière-plan)
   envoyerOFF(charge)        { return this.appel(Object.assign({}, charge, { action: 'envoyerOFF' })); },   // Open Food Facts : une photo, ou le texte qui lui manque, au nom du compte de J-C (JS/off.js; une écriture : jamais abandonnée)
   garderPhoto(charge)       { return this.appel(Object.assign({}, charge, { action: 'garderPhoto' })); },  // la photo de l'emballage d'un produit pas reconnu → le Google Drive de J-C, privé (RdG-12; une écriture : jamais abandonnée)

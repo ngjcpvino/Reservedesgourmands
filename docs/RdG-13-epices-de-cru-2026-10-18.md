@@ -3,6 +3,8 @@
 > Le point 93 de la liste numérotée (`CLAUDE.md`). **Réflexion finie, l'app bâtie le 2026-10-18** (J-C : « oui »), pas encore testée en
 > ligne (T127 à T132). Reste au coffre-fort : la section 4, à l'ordi. **La date du lot (le point 94, section 5) : bâtie le 2026-10-19**
 > (J-C : « Ok »), pas encore testée en ligne (T133 à T137); au coffre-fort : la section 6, à l'ordi.
+> **Le scan d'un pot, plus vite (section 7, 2026-10-21)** : le chariot attend le nom, leur catalogue sur l'appareil — l'app bâtie
+> (T139, T140); au coffre-fort : l'action `catalogueEpices`, à écrire à l'ordi.
 
 ## 1. Ce qu'on a vu
 
@@ -206,3 +208,41 @@ colonnes réécrite par `deplacer` (le Lot reste du texte).
 
 **L'app est bâtie** : d'ici là, le Lot arrive quand même au Sheet (la ligne réécrite par `deplacer`, voir plus haut) — le collage
 retire seulement cet appel de plus.
+
+## 7. Le scan d'un pot, plus vite : le chariot, et leur catalogue sur l'appareil (2026-10-21)
+
+**Vu par J-C** : « quand je scan un pot, le spinner part mais il disparaît avant que le nom de l'épice arrive ». Lu dans le code :
+rien de brisé — le chariot d'une recherche dure **5 s au plus** depuis le 2026-10-13 (J-C : « 12 secondes c'est trop long »), la
+recherche continue derrière. Une épice dépasse les 5 s : la première fois, Google demande le numéro à leur site; et dans une série de
+pots, la demande attend son tour derrière l'entrée du pot d'avant (une seule file pour tous les appels), plus, d'ici le collage de la
+section 6, l'appel de plus pour son Lot. Proposé par Claude : (1) le chariot attend le nom d'une épice, 12 s au plus; (2) le collage
+de la section 6 (un appel de moins par pot); (3) leur catalogue au complet sur l'appareil. — **J-C : « 1-2-3 »**.
+
+**✅ Bâti dans l'app le 2026-10-21** (pas encore testé en ligne, T139, T140) :
+- **Le chariot d'une épice l'attend, 12 s au plus** (`CHARIOT_EPICE`, `chariotPendant(…, max)`; les deux sacs et le sac seul); un
+  code-barres ordinaire : 5 s, comme avant.
+- **Une épice déjà lue entre tout de suite, sans chariot ni réseau** (`epiceLocale()` : leur site une fois, ou le catalogue) — avant,
+  le chariot clignait même quand le nom était déjà sur l'appareil.
+- **Leur catalogue sur l'appareil** (`chargerCatalogueEpices()`) : lu en arrière-plan après la réserve, **une fois par semaine**,
+  seulement si on achète chez eux (l'épicerie Épices de Cru, ou une épice déjà entrée); il remplit la mémoire des épices
+  (`EPICES_CRU`, `rdg_epices`) : chaque pot est reconnu tout de suite, même la première fois. Un numéro qu'il n'a pas (une nouveauté) :
+  leur site, par son numéro, comme avant. Un coffre-fort qui ne connaît pas l'action, ou leur site muet : **un essai par jour**, sans
+  bruit (`rdg_epices_cat` : le jour lu, le dernier essai). **Un solde du catalogue** vaut jusqu'à sa fin si leur site la donne, sinon la
+  semaine du catalogue.
+- Essai dans le faux navigateur : 26 vérifications (et les 53 + 34 + 12 d'avant, toujours bonnes).
+
+**Pour le coffre-fort (`api.gs`, à l'ordi) — ⚠️ À ÉCRIRE** :
+1. **D'abord l'essai** (le conteneur du nuage ne joint pas leur site : 403) : leur site donne-t-il **toute la liste** d'un coup, ou par
+   pages ? Pistes, à vérifier : `epicesdecru.com/api/search` sans mot (ou `query=` vide, ou un mot très court) et sa pagination
+   (`page`, `limit`…), une autre route de leur API (celle de leur page de toutes les épices), le plan du site (`sitemap.xml`). Noter ici
+   ce qui marche, et combien de produits et de numéros. **Pas de liste complète possible** = l'inscrire ici : on reste à la recherche par
+   numéro (`epiceDeCru`), rien à changer côté app (elle essaie une fois par jour, sans bruit).
+2. **L'action `catalogueEpices`** (une lecture, sans verrou) → `{ ok: true, epices: { "10722": [nom, format, prix, solde, soldeFin],
+   "30722": [...] } }` — **pour chaque numéro, ce qu'`epiceDeCru` rend déjà** : le nom (français), le format de CE numéro, son prix
+   régulier, le prix en solde s'il y en a un (`''` sinon), la fin du solde en AAAA-MM-JJ si leur site la donne (`''` sinon). Seulement
+   les numéros de 5 chiffres. Leur site qui refuse ou ne répond pas = `ok: false` (jamais définitif).
+3. **La durée** : l'app attend **30 s** (`DELAI_CATALOGUE`). Si tout lire est plus long (beaucoup de pages), garder la copie côté
+   coffre-fort (CacheService, en morceaux de 100 Ko, une journée) et rendre la copie gardée.
+4. **Essayer à blanc**, comme `essayerEpicesDeCru` : 10722 → Sept-épices d'Alep, 50 g, 13,75; 30722 → le même, 200 g, 41,25; 10262 →
+   Curcuma Lakadong moulu, 40 g, 13; et la taille de la réponse (en Ko). Puis J-C colle (Nouvelle version) — **le même collage que la
+   section 6**, s'il n'est pas encore fait.

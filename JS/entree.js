@@ -238,11 +238,11 @@ async function surCode() {
     if (nomPlu(code)) { $('nom').value = nomPlu(code); surNom(); }   // J-C confirme, ou choisit « Serait-ce plutôt celui-ci ? »
     return;
   }
-  const local = codeCirculaire(code);                 // dans une circulaire d'IGA : tout de suite, sans réseau
+  const local = codeCirculaire(code) || epiceLocale(code);   // dans une circulaire d'IGA, ou une épice déjà lue : tout de suite, sans réseau
   $('msg-code').textContent = local ? '' : 'Recherche du produit…';
   const nomAvant = $('nom').value;
   const recherche = local || identifierCode(code);
-  if (!local) chariotPendant(recherche, 'Recherche du produit…');   // le chariot : on voit qu'elle travaille (5 s au plus, elle continue derrière)
+  if (!local) chariotPendant(recherche, 'Recherche du produit…', estEpice(code) ? CHARIOT_EPICE : 0);   // le chariot : on voit qu'elle travaille (5 s au plus — une épice : jusqu'à son nom, 12 s au plus —, elle continue derrière)
   const a = articleNouveau(code, await recherche);
   if (ailleurs()) return;
   offFiche(code);                                   // la recherche finie : ce qui manque à Open Food Facts (JS/off.js)
@@ -408,12 +408,13 @@ function montrerVoile(on){ $('voile').hidden = !on; $('voile-texte').textContent
 /* Le chariot PENDANT une recherche (J-C, 2026-10-13 : « on ne sait pas s'il travaille ou pas »; « 12 secondes c'est trop long ») :
    au plus CHARIOT_MAX; ensuite il part et la recherche continue derrière — sa réponse remplit encore, si rien n'a été tapé entre-temps. */
 const CHARIOT_MAX = 5000;
+const CHARIOT_EPICE = 12000;   // un pot d'Épices de Cru (J-C, 2026-10-21 : « le spinner disparaît avant que le nom de l'épice arrive ») : son nom vient de leur site, par Google — le chariot l'attend, 12 s au plus
 let chariotJeton = 0;
-function chariotPendant(promesse, texte) {
+function chariotPendant(promesse, texte, max) {
   const j = ++chariotJeton;
   montrerVoile(true); $('voile-texte').textContent = texte || '';
-  const fin = () => { if (j === chariotJeton) { chariotJeton++; montrerVoile(false); } };   // une seule fois : la réponse, ou les 5 s
-  setTimeout(fin, CHARIOT_MAX);
+  const fin = () => { if (j === chariotJeton) { chariotJeton++; montrerVoile(false); } };   // une seule fois : la réponse, ou le temps écoulé
+  setTimeout(fin, max || CHARIOT_MAX);
   Promise.resolve(promesse).catch(() => {}).then(fin);
 }
 
@@ -660,6 +661,7 @@ async function chargerReferences() {
     if (typeof expedierPhotos === 'function') expedierPhotos();   // les photos d'emballage pas encore au coffre-fort (leur propre file)
     expedierErreurs();                            // et le journal des erreurs (en dernier : rien ne l'attend)
     if (typeof chargerCodesCirculaires === 'function') chargerCodesCirculaires();   // les codes des circulaires sur l'appareil (une fois par jour, en arrière-plan)
+    chargerCatalogueEpices();                     // le catalogue d'Épices de Cru sur l'appareil (une fois par semaine, en arrière-plan; RdG-13)
     return true;
   } catch (e) {
     if (e.message === 'non autorisé') { marquerPasAJour(false); Coffre.oublier(); revenirConnexion('Mot de passe refusé.'); return false; }
@@ -4285,8 +4287,14 @@ const quandPot = l => dateLot(lotPot(l)) ? 'mis en pot le ' + jourAnnee(dateLot(
 const MARQUE_EPICES = 'Épices de Cru';
 const CACHE_EPICES = 'rdg_epices';
 var EPICES_CRU = (() => { try { return JSON.parse(localStorage.getItem(CACHE_EPICES) || '{}') || {}; } catch (e) { return {}; } })();   // { numéro: { nom, format, prix } }
-const EPICES_SOLDE = {};                           // { numéro: prix en solde } : vu à ce scan-ci seulement (un solde finit; l'appareil garde le régulier)
+const EPICES_SOLDE = {};                           // { numéro: prix en solde } : vu à ce scan-ci, ou dans leur catalogue tant que le solde dure (l'appareil garde le régulier)
 const epicesEnRoute = {};
+const nombreEpice = v => Number(String(v == null ? '' : v).replace(',', '.')) || '';
+/* Une épice déjà lue (leur site, ou leur catalogue) : tout de suite, sans réseau ni chariot — la forme de la réponse d'identifierCode. */
+function epiceLocale(code) {
+  const x = estEpice(code) && EPICES_CRU[numeroEpice(code)];
+  return x ? { source: 'epices', epice: true, texte: x.nom, marque: MARQUE_EPICES, format: x.format } : null;
+}
 /* Leur site, par le coffre-fort : { nom, format, prix } de CE numéro, ou null (pas trouvé, leur site ou le coffre-fort qui ne répond
    pas — l'épice prend alors son numéro pour nom, comme un produit pas reconnu). Une réponse trouvée est gardée sur l'appareil. */
 function chercherEpice(code) {
@@ -4299,9 +4307,8 @@ function chercherEpice(code) {
     try { r = await Coffre.epiceDeCru(n); } catch (e) {}
     delete epicesEnRoute[n];
     if (!(r && r.ok && r.trouve && String(r.nom || '').trim())) return null;
-    const nb = v => Number(String(v == null ? '' : v).replace(',', '.')) || '';
     const f = (r.formats || []).find(y => String(y.numero || '') === n) || {};   // son format parmi ceux de l'épice (chacun son numéro)
-    const prix = nb(r.prix != null ? r.prix : f.prix), solde = nb(r.solde != null ? r.solde : f.solde);
+    const prix = nombreEpice(r.prix != null ? r.prix : f.prix), solde = nombreEpice(r.solde != null ? r.solde : f.solde);
     const x = { nom: adoucir(r.nom), format: formatStock(r.format || f.format || ''), prix: prix };
     if (solde && (!prix || solde < prix)) EPICES_SOLDE[n] = solde;
     EPICES_CRU[n] = x;
@@ -4309,7 +4316,52 @@ function chercherEpice(code) {
     return x;
   })();
 }
-/* Le prix de leur site pour ce numéro ('' : pas connu) — en solde à ce scan-ci : le prix du solde. */
+/* LEUR CATALOGUE SUR L'APPAREIL (J-C, 2026-10-21 : « le spinner disparaît avant que le nom de l'épice arrive » — « 1-2-3 ») : le
+   coffre-fort donne tout leur catalogue d'un coup (`catalogueEpices` : chaque numéro, son nom, son format, son prix, son solde; RdG-13,
+   section 7), lu en arrière-plan une fois par semaine, seulement si on achète chez eux (l'épicerie Épices de Cru, ou une épice déjà
+   entrée) : chaque pot est reconnu TOUT DE SUITE, même la première fois. Un numéro qu'il n'a pas (une nouveauté) : leur site, par son
+   numéro, comme avant. Tant que le coffre-fort ne connaît pas l'action, ou que leur site ne répond pas : un essai par jour, sans bruit.
+   Un solde du catalogue vaut jusqu'à sa fin (leur site la donne) — sans fin connue, la semaine du catalogue. */
+const CACHE_CAT_EPICES = 'rdg_epices_cat';         // { jour : lu ce jour-là, essai : le dernier essai, soldes : { numéro: [prix, fin] } }
+const SEMAINE_EPICES = 7;                          // jours entre deux lectures du catalogue
+let catalogueEpicesEnRoute = false;
+const lireCatEpices = () => { try { return JSON.parse(localStorage.getItem(CACHE_CAT_EPICES) || '{}') || {}; } catch (e) { return {}; } };
+function garderCatEpices(m) { try { localStorage.setItem(CACHE_CAT_EPICES, JSON.stringify(m)); } catch (e) {} }
+function poserSoldesCat(m) {
+  const auj = dateDuJour(), frais = m.jour && joursEntre(m.jour, auj) < SEMAINE_EPICES;
+  Object.keys(m.soldes || {}).forEach(n => {
+    const s = m.soldes[n] || [];
+    if (s[1] ? s[1] >= auj : frais) EPICES_SOLDE[n] = s[0];
+  });
+}
+async function chargerCatalogueEpices() {
+  const m = lireCatEpices(), auj = dateDuJour();
+  poserSoldesCat(m);                                                            // les soldes du dernier catalogue lu, s'ils durent encore
+  if (catalogueEpicesEnRoute || m.essai === auj) return;                       // un essai par jour, au plus
+  if (m.jour && joursEntre(m.jour, auj) < SEMAINE_EPICES) return;              // lu cette semaine
+  if (!LISTES.Magasins.some(x => estEpicesDeCru(x.id)) && !STOCK.some(l => estEpice(l[8]))) return;   // on n'achète pas chez eux
+  catalogueEpicesEnRoute = true;
+  garderCatEpices(Object.assign(m, { essai: auj }));
+  try {
+    let r = null;
+    try { r = await Coffre.catalogueEpices(); } catch (e) {}
+    if (!(r && r.ok && r.epices)) return;
+    const soldes = {};
+    Object.keys(r.epices).forEach(n => {
+      const v = r.epices[n] || [];
+      if (!/^\d{5}$/.test(n) || !String(v[0] || '').trim()) return;
+      const prix = nombreEpice(v[2]), solde = nombreEpice(v[3]);
+      EPICES_CRU[n] = { nom: adoucir(v[0]), format: formatStock(v[1] || ''), prix: prix };
+      if (solde && (!prix || solde < prix)) soldes[n] = [solde, String(v[4] || '').slice(0, 10)];
+      else delete EPICES_SOLDE[n];
+    });
+    try { localStorage.setItem(CACHE_EPICES, JSON.stringify(EPICES_CRU)); } catch (e) {}
+    const lu = { jour: auj, essai: auj, soldes: soldes };
+    garderCatEpices(lu);
+    poserSoldesCat(lu);
+  } finally { catalogueEpicesEnRoute = false; }
+}
+/* Le prix de leur site pour ce numéro ('' : pas connu) — en solde (à ce scan-ci, ou dans leur catalogue) : le prix du solde. */
 function prixEpice(code) {
   const n = numeroEpice(code), x = EPICES_CRU[n];
   return EPICES_SOLDE[n] || (x && x.prix !== '' ? x.prix : '');
