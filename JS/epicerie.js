@@ -199,12 +199,12 @@ async function surCodeEpicerie(code) {
     const nom = nomPlu(code);
     if (nom) { carte(articlePlu(code, nom)); return; }
   }
-  const local = codeCirculaire(code);                    // dans une circulaire d'IGA : tout de suite, sans réseau
+  const local = codeCirculaire(code) || epiceLocale(code);   // dans une circulaire d'IGA, ou une épice déjà lue (leur catalogue) : tout de suite, sans réseau
   if (local) { carte(articleNouveau(code, local)); return; }
   poserCarte('<div class="carte bloc-suite carte-scan niveau-3"><div class="message">Recherche du produit…</div>' +
     '<div class="grille bloc-suite">' + annulerCarteHtml() + '</div></div>');
   const recherche = identifierCode(code);
-  chariotPendant(recherche, 'Recherche du produit…');   // le chariot : on voit qu'elle travaille (5 s au plus, elle continue derrière)
+  chariotPendant(recherche, 'Recherche du produit…', estEpice(code) ? CHARIOT_EPICE : 0);   // le chariot : on voit qu'elle travaille (5 s au plus — une épice : jusqu'à son nom, 12 s au plus —, elle continue derrière)
   const r = await recherche;
   if (jeton !== epiJeton || $('epi-scan').hidden) return;   // annulé, ou parti ailleurs entre-temps
   carte(articleNouveau(code, r));
@@ -214,8 +214,8 @@ async function surCodeEpicerie(code) {
 async function identifierCode(code) {
   if (estPese(code)) return { source: '' };              // un code de magasin (la viande) : ni IGA ni Open Food Facts
   if (estEpice(code)) {                                  // un pot d'Épices de Cru : leur site, par le coffre-fort (RdG-13) — ni IGA ni Open Food Facts
-    const x = await chercherEpice(code);
-    return { source: x ? 'epices' : '', epice: true, texte: x ? x.nom : '', marque: MARQUE_EPICES, format: x ? x.format : '' };
+    await chercherEpice(code);
+    return epiceLocale(code) || { source: '', epice: true, texte: '', marque: MARQUE_EPICES, format: '' };   // pas trouvée : son numéro pour nom
   }
   let r = null;
   if (!CODES_CIRC.complet) {                             // l'archive d'IGA pas encore sur l'appareil : le coffre-fort la lit
