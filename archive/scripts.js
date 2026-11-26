@@ -1,8 +1,8 @@
 // ============================================================
   //  CONFIGURATION
   // ============================================================
-  var SHEET_ID = '***retiré***';
-  var API_KEY  = '***retiré***';
+  var SHEET_ID = '';   // retiré le 2026-11-26 : le vieux Sheet est à la corbeille
+  var API_KEY  = '';    // retirée le 2026-11-26 : la clé est supprimée chez Google
   var API_BASE = 'https://sheets.googleapis.com/v4/spreadsheets/';
 
   var actionCourante    = null;

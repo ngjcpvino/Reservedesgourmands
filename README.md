@@ -95,8 +95,7 @@ Application web hébergée sur GitHub Pages. Deux utilisateurs partageant le mê
 - Dépôt public (GitHub Pages gratuit)
 
 ### 4.3 Données — Google Sheets API
-- ID Sheet : ***retiré***
-- Clé API lecture : dans scripts-config.js — ⚠️ À régénérer avant production
+- ID Sheet et clé API lecture : retirés le 2026-11-26 (le vieux Sheet à la corbeille, la clé supprimée chez Google)
 - Client ID OAuth2 : 1052424777819-vipdir50gal3d6ht1ob4bd1tmbk6v5hv.apps.googleusercontent.com
 - Origine JavaScript autorisée : https://ngjcpvino.github.io
 - Lecture : clé API simple ✅

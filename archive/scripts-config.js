@@ -1,8 +1,8 @@
 // ============================================================
 //  CONFIGURATION GLOBALE
 // ============================================================
-var SHEET_ID   = '***retiré***';
-var API_KEY    = '***retiré***';
+var SHEET_ID   = '';   // retiré le 2026-11-26 : le vieux Sheet est à la corbeille
+var API_KEY    = '';    // retirée le 2026-11-26 : la clé est supprimée chez Google
 var API_BASE   = 'https://sheets.googleapis.com/v4/spreadsheets/';
 var CLIENT_ID  = '1052424777819-vipdir50gal3d6ht1ob4bd1tmbk6v5hv.apps.googleusercontent.com';
 var SCOPE      = 'https://www.googleapis.com/auth/spreadsheets';
