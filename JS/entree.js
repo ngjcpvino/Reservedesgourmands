@@ -235,7 +235,7 @@ async function surCode() {
     await chargerPlu();
     if (ailleurs()) return;
     $('msg-code').textContent = nomPlu(code) ? '' : 'Inconnu';
-    if (nomPlu(code)) { $('nom').value = nomPlu(code); surNom(); }   // l'utilisateur confirme, ou choisit « Serait-ce plutôt celui-ci ? »
+    if (nomPlu(code)) { $('nom').value = nomPlu(code); surNom(); }   // L'utilisateur confirme, ou choisit « Serait-ce plutôt celui-ci ? »
     return;
   }
   const local = codeCirculaire(code) || epiceLocale(code);   // dans une circulaire d'IGA, ou une épice déjà lue : tout de suite, sans réseau
