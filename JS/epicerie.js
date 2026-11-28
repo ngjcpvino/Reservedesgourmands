@@ -228,34 +228,21 @@ async function identifierCode(code) {
 }
 /* ---------- LES CODES DES CIRCULAIRES, SUR L'APPAREIL (l'utilisateur, 2026-10-13 : « on ne sait pas s'il travaille »; « lire un Sheet, ça devrait
    pas être si long, surtout si ça roule en arrière du temps que je fasse des choix d'action ») ----------
-   Chargés en arrière-plan à l'ouverture (sans chariot), gardés sur l'appareil, refaits une fois par jour (tant que seule la semaine
-   d'IGA est là, à chaque chargement : l'archive arrive dès que le coffre-fort la donne) : un produit qu'IGA a eu en
-   circulaire est reconnu TOUT DE SUITE au scan, sans réseau. Le coffre-fort les donne en une liste compacte (`codesCirculaires` : la
-   semaine et l'archive d'un an — `complet`); tant qu'il ne connaît pas cette action, la circulaire d'IGA de la semaine seulement
-   (`circulaireMagasin`) — et `identifier` lit encore l'archive. Ne reste au réseau qu'Open Food Facts (le chariot, 5 s au plus). */
+   Chargés en arrière-plan à l'ouverture (sans chariot), gardés sur l'appareil, refaits une fois par jour : un produit qu'une épicerie a eu
+   en circulaire est reconnu TOUT DE SUITE au scan, sans réseau. Le coffre-fort les donne en une liste compacte (`codesCirculaires` : la
+   semaine et l'archive d'un an). Ne reste au réseau qu'Open Food Facts (le chariot, 5 s au plus). Un raté : la liste gardée sert encore,
+   on réessaie au prochain chargement. */
 const CACHE_CODES_CIRC = 'rdg_codes_circ';
 var CODES_CIRC = (() => { try { return JSON.parse(localStorage.getItem(CACHE_CODES_CIRC) || 'null') || { codes: {} }; } catch (e) { return { codes: {} }; } })();
 let chargementCodesCirc = false;
 async function chargerCodesCirculaires() {
-  if (chargementCodesCirc || (CODES_CIRC.complet && CODES_CIRC.jour === dateDuJour())) return;   // pas encore l'archive : on réessaie à chaque chargement
+  if (chargementCodesCirc || (CODES_CIRC.complet && CODES_CIRC.jour === dateDuJour())) return;   // déjà lus aujourd'hui
   chargementCodesCirc = true;
   try {
-    let r = null, complet = true;
+    let r = null;
     try { r = await Coffre.codesCirculaires(); } catch (e) {}
-    if (!(r && r.ok && r.codes)) {                       // le coffre-fort ne la connaît pas encore : la semaine d'IGA (TEMPORAIRE, jusqu'au collage)
-      complet = false;
-      const iga = LISTES.Magasins.find(m => cleNom(m.nom) === 'iga' && m.circ !== false);
-      if (!iga) return;
-      try { r = await Coffre.circulaireMagasin(String(iga.id)); } catch (e) { return; }
-      if (!(r && r.ok)) return;
-      const codes = {};
-      (r.lignes || []).forEach(l => {
-        const k = formeCode(l.code);
-        if (k) codes[k] = [l.texte || '', l.marque ? nomListe(l.marque) : (l.marqueFlipp || ''), String(l.format || '').split(' + ')[0], l.photo || ''];
-      });
-      r = { codes: codes };
-    }
-    CODES_CIRC = { jour: dateDuJour(), complet: complet, codes: r.codes };
+    if (!(r && r.ok && r.codes)) return;                 // pas de réponse : la liste gardée sert encore
+    CODES_CIRC = { jour: dateDuJour(), complet: true, codes: r.codes };
     try { localStorage.setItem(CACHE_CODES_CIRC, JSON.stringify(CODES_CIRC)); } catch (e) {}
   } finally { chargementCodesCirc = false; }
 }
@@ -1313,8 +1300,7 @@ async function suivantEtape() {
   const P = PANNEAU, msg = t => avis(t, 'erreur');   // au centre, comme tous les messages
   if (!P) return;
   if (P.etape === 2) {
-    const t = $('cp-prix').value.trim(), n = Number(t.replace(/\s*\$\s*/, '').replace(',', '.'));
-    if (t && !(isFinite(n) && n >= 0)) { P.corriger = true; montrerEtape2(); msg('Le prix : un nombre (« 2,49 »).'); return; }
+    if (Number.isNaN(lireMontant($('cp-prix').value))) { P.corriger = true; montrerEtape2(); msg('Le prix : un nombre (« 2,49 »).'); return; }
     allerEtape(3);
     return;
   }
@@ -1542,8 +1528,8 @@ async function validerProduit() {
   const manque = manqueEntonnoir($('cp-cat').value, scid);
   if (manque) { msg(manque); return; }
   if (!v || (v === 'nouveau' && !nom)) { msg('Choisis l\'aliment, ou nomme le nouveau.'); return; }
-  const prixTxt = $('cp-prix').value.trim(), prixNb = Number(prixTxt.replace(/\s*\$\s*/, '').replace(',', '.'));
-  if (prixTxt && !(isFinite(prixNb) && prixNb >= 0)) { msg('Le prix : un nombre (« 2,49 »).'); return; }
+  const prixNb = lireMontant($('cp-prix').value);
+  if (Number.isNaN(prixNb)) { msg('Le prix : un nombre (« 2,49 »).'); return; }
   const marque = choixPanneau('marque'), saveur = choixPanneau('saveur'), format = formatPanneau();
   const endroits = [...document.querySelectorAll('#cp-endroits .endroit')].map(c => ({ emp: c.querySelector('.espace').value || c.querySelector('.meuble').value,
     q: parseInt(c.querySelector('.qte').value, 10) || 0 })).filter(e => e.q > 0);
@@ -1570,7 +1556,7 @@ async function validerProduit() {
   const op = 'prodl-' + idLocal();
   const lignes = lot.lignes.map(id => STOCK.find(r => String(r[0]) === id)).filter(Boolean).map(r => {
     const l = r.slice(); while (l.length < 14) l.push('');
-    l[1] = cible; l[4] = dateCourte(l[4]); l[5] = marque; l[6] = format; l[9] = saveur; l[12] = prixTxt ? Math.round(prixNb * 100) / 100 : '';
+    l[1] = cible; l[4] = dateCourte(l[4]); l[5] = marque; l[6] = format; l[9] = saveur; l[12] = prixNb === '' ? '' : Math.round(prixNb * 100) / 100;
     return l;
   });
   const ajouts = [];                                     // répartir : chaque endroit prend sa quantité, ligne par ligne; une ligne coupée en deux

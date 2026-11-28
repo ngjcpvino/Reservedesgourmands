@@ -19,8 +19,6 @@ var LISTES = { Magasins: [], Marques: [], Saveurs: [] };   // les listes gérée
 var UNITES_LISTE = [];     // les unités ajoutées dans Gérer les bases → Unités (onglet Unites, actives) : [{ id, nom }] — un format garde le TEXTE de l'unité
                                                             // (un magasin : + circ, sa circulaire lue le jeudi; introuvable, Flipp ne la connaît pas)
 var NOMS_LISTES = {};        // { id: nom } des trois listes : STOCK retient l'ID, on lit le nom
-var NUMEROS = {};            // TEMPORAIRE (2026-10-08) : { faux : vrai } — une marque nommée d'après l'ID d'une autre (voir appliquer)
-const RE_NUMERO = /^\d{17}-[a-z0-9]{1,8}$/;   // un ID (de l'app ou du coffre-fort) écrit comme un nom
 var LISTES_NEUVES = [];      // noms ajoutés à la fiche, pas encore au coffre-fort : partent avec la prochaine entrée
 const UNITES_BASE = ['unité', 'g', 'kg', 'ml', 'L'];   // le départ; toute unité déjà utilisée s'y ajoute
 const QUI = 'rdg_qui';      // qui se sert de l'app sur CET appareil
@@ -450,13 +448,14 @@ function avis(txt, type) {                 // type : 'avis' (défaut) · 'succes
   let t = document.querySelector('.toast');
   if (!t) {
     t = document.createElement('div'); document.body.appendChild(t);
-    t.addEventListener('click', () => t.classList.remove('visible'));   // une erreur reste jusqu'à ce qu'on la touche
+    t.addEventListener('click', () => t.classList.remove('visible'));   // une erreur part aussi au toucher
+    t.addEventListener('animationend', () => t.classList.remove('visible'));   // effacé : il ne bloque plus le toucher au centre
   }
   t.className = 'toast toast-' + (type || 'avis');   // sans « visible » : un message qui arrive par-dessus l'autre repart de zéro
   t.textContent = txt;
   void t.offsetWidth;                                 // le navigateur prend acte de l'arrêt…
   t.classList.add('visible');                         // …puis le message paraît au centre, --toast-duree (au root), et s'efface seul
-  if (type === 'erreur') noterErreur(txt);            // (une erreur, elle, reste : l'utilisateur, 2026-10-12 — et elle va au journal)
+  if (type === 'erreur') noterErreur(txt);            // une erreur reste plus longtemps (--toast-duree-erreur) et va au journal
 }
 /* Ce qu'une carte a à dire pendant qu'on la remplit (« Il y en a 3. », « Il y est déjà. ») : au centre, comme tous les messages
    (l'utilisateur, 2026-10-16 : « C'est une règle de base ») — une fois quand ça change, pas à chaque chiffre tapé. */
@@ -570,16 +569,6 @@ function appliquer(d) {
     LISTES[n].push(x);
   }));
   LISTES_NEUVES.forEach(x => { if (!NOMS_LISTES[x.id]) { NOMS_LISTES[x.id] = x.nom; LISTES[x.liste].push({ id: x.id, nom: x.nom }); } });   // pas encore envoyés : gardés
-  // LES NOMS-NUMÉROS (TEMPORAIRE, 2026-10-08) : du 4 au 8 octobre, le tri créait une marque (une saveur) NOMMÉE d'après l'ID d'une
-  // vraie (« 20261004082900169-28ddy » : voir idListeOuNeuve, epicerie.js). Elle se lit sous le nom de la vraie et n'est plus
-  // proposée; le coffre-fort la répare à la lecture (reparerNumeros, api.gs). À retirer quand la page Marques n'en montre plus.
-  NUMEROS = {};
-  Object.keys(LISTES).forEach(n => { LISTES[n] = LISTES[n].filter(x => !RE_NUMERO.test(x.nom)); });
-  Object.keys(NOMS_LISTES).forEach(id => {
-    let t = id, k = 0;
-    while (RE_NUMERO.test(NOMS_LISTES[t] || '') && NOMS_LISTES[NOMS_LISTES[t]] !== undefined && k++ < 5) t = NOMS_LISTES[t];   // son nom est l'ID d'un autre : lui (un faux d'un faux : jusqu'au vrai)
-    if (t !== id) NUMEROS[id] = t;
-  });
   Object.keys(LISTES).forEach(n => LISTES[n].sort((a, b) => a.nom.localeCompare(b.nom, 'fr')));
   UNITES_LISTE = (L.Unites || []).filter(r => String(r[2]) !== 'N' && String(r[1] || '').trim()).map(r => ({ id: String(r[0]), nom: String(r[1]).trim() }));   // [ID, Nom, Actif]
   VARIANTES = d.variantes || {};                      // { produitId: { marques:[], formats:[] } }
@@ -651,7 +640,6 @@ async function chargerReferences() {
     data.nbATrier = Math.max(0, (Number(data.nbATrier) || 0) - triesEnRoute());   // idem : un tri en route n'est plus « à trier »
     appliquer(data); ecrireCache(data); remplirListes(); statut('');
     marquerPasAJour(false);                       // relue : le bandeau rouge part
-    try { poserLogosDepart(); sans102(); sansInconnu(); } catch (e) {}   // TEMPORAIRE (les 5 logos de l'utilisateur; la 102 devient la 101; « Inconnu » quitte les noms) : un raté ici ne dit pas « pas à jour »
     expedierOrdre();                              // le réseau répond : on en profite pour renvoyer l'attente
     expedierCouleurs();                           // idem pour les couleurs (sinon un appareil garde les siennes)
     expedierGestes();                             // idem pour les consommations
@@ -1030,7 +1018,7 @@ function sortesVues(pid, champ) {
   return vus;
 }
 /* Ce que STOCK retient (un ID) -> ce qu'on lit. Une vieille valeur écrite en texte se lit telle quelle. */
-function nomListe(v) { let k = String(v == null ? '' : v).trim(); k = NUMEROS[k] || k; return NOMS_LISTES[k] || k; }   // un faux nom-numéro : le nom du vrai (TEMPORAIRE)
+function nomListe(v) { const k = String(v == null ? '' : v).trim(); return NOMS_LISTES[k] || k; }
 /* Deux noms « pareils » : sans accent, sans majuscule, sans espace ni ponctuation (« Super C » = « SuperC »). Même règle que le coffre-fort. */
 function cleNom(n) { return String(n || '').normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase().replace(/[^a-z0-9]/g, ''); }
 /* Une durée lue du Sheet (Categories col. E, Produits col. K) : '' (rien d'écrit) ou un nombre de jours (0 = Aucune).
@@ -1363,16 +1351,23 @@ function unitesConnues() {
   });
   return vues;
 }
-/* « 2 L » -> « L » ; et l'inverse : le même nombre, une autre unité (« 2 Lt » -> « 2 L »). */
-function uniteDe(format) { return String(format || '').trim().replace(/^[0-9]+([.,][0-9]+)?\s*/, ''); }
+/* « 2 L » -> « L » ; et l'inverse : le même nombre, une autre unité (« 2 Lt » -> « 2 L »). Un paquet (« 12 x 100 g ») : l'unité de
+   chacun de ses pots (« g », jamais « x 100 g »), et il garde sa forme quand son unité change (« 12 x 100 gr » -> « 12 x 100 g »). */
+function uniteDe(format) {
+  const t = tailleUnite(format);
+  return t ? uniteDe(t) : String(format || '').trim().replace(/^[0-9]+([.,][0-9]+)?\s*/, '');
+}
 function formatAvec(format, unite) {
+  const t = tailleUnite(format);
+  if (t) return nbUnites(format) + ' x ' + formatAvec(t, unite);
   const m = String(format || '').trim().match(/^([0-9]+(?:[.,][0-9]+)?)\s*/);
   return (m ? m[1] + ' ' : '') + unite;
 }
 function remplirUnites() {
-  const garde = $('format-unite').value;
+  const garde = $('format-unite').value, us = unitesConnues();
+  if (garde && garde !== 'autre' && us.indexOf(garde) === -1) us.push(garde);   // le reste d'un format de paquet (« x 100 g ») : gardé pour cette fiche
   $('format-unite').innerHTML = '<option value="">— Choisir —</option>' +
-    unitesConnues().map(u => '<option value="' + esc(u) + '">' + esc(u) + '</option>').join('') +
+    us.map(u => '<option value="' + esc(u) + '">' + esc(u) + '</option>').join('') +
     '<option value="autre">Autre…</option>';
   if (garde) $('format-unite').value = garde;
   reposerNeuf($('format-unite'));               // une nouvelle unité déjà ajoutée le reste
@@ -1505,7 +1500,10 @@ async function enregistrer() {
   const magasin = SEUL_MAGASIN;                       // la tuile touchée au début du sac seul; « L'ajouter » de Rechercher : aucun
   const plu = pluChoisi();
   if (plu && !estPlu(plu)) { statut('Un PLU a 4 ou 5 chiffres.', 'erreur'); $('plu-tape').focus(); return; }
-  const format = formatSaisi(), code = $('codebarres').value.trim() || plu, prix = $('prix').value.trim();   // un PLU : la même colonne que le code-barres
+  const prixLu = lireMontant($('prix').value);
+  if (Number.isNaN(prixLu)) { statut('Le prix : un nombre (« 2,49 »).', 'erreur'); $('prix').focus(); return; }
+  const prix = prixLu === '' ? '' : prixLu.toFixed(2).replace('.', ',');   // écrit comme avant : « 4,99 »
+  const format = formatSaisi(), code = $('codebarres').value.trim() || plu;   // un PLU : la même colonne que le code-barres
   const lot = LOT_FICHE && LOT_FICHE.cle === code ? LOT_FICHE.lot : '';   // un pot d'Épices de Cru : son Lot (STOCK col. R, le point 94)
   if (lot) endroits.forEach(x => { x.lot = lot; });
   const nouveaux = LISTES_NEUVES.filter(x => [marque, saveur].indexOf(x.id) !== -1);   // les noms neufs que l'entrée porte : créés par le même appel
@@ -1698,53 +1696,6 @@ function choisirLogoMagasin(id, champ) {
   poserGeste({ action: 'lignes', table: 'Magasins', opId: 'logo-' + Date.now() + '-' + Math.random().toString(36).slice(2, 8), lignes: [l] });
   x.logo = v;
   avis(v ? 'Logo enregistré' : 'Logo retiré', 'succes');
-}
-/* TEMPORAIRE (2026-10-05) : les 5 logos envoyés par l'utilisateur, posés une fois sur ses épiceries (par leur nom), si elles n'en ont pas.
-   À RETIRER quand l'utilisateur les voit sur ses deux appareils (ils seront dans le Sheet). */
-const LOGOS_DEPART = {
-  iga: 'https://res.cloudinary.com/dym93w23h/image/upload/v1791238838/IMG_iga.jpg',
-  superc: 'https://res.cloudinary.com/dym93w23h/image/upload/v1791238838/IMG_superc.png',
-  jeancoutu: 'https://res.cloudinary.com/dym93w23h/image/upload/v1791238838/IMG_jc.jpg',
-  metro: 'https://res.cloudinary.com/dym93w23h/image/upload/v1791238838/IMG_m.png',
-  dollarama: 'https://res.cloudinary.com/dym93w23h/image/upload/v1791238837/IMG_dolla.png'
-};
-function poserLogosDepart() {
-  const c = lireCache(), rows = c && c.listes && c.listes.Magasins;
-  if (!rows) return;
-  const cleLogo = n => Object.keys(LOGOS_DEPART).find(k => cleNom(n).indexOf(k) === 0);   // « IGA », « IGA extra » → iga
-  const lignes = rows.filter(r => String(r[2]) !== 'N' && !String(r[6] || '').trim() && cleLogo(r[1])).map(r => {
-    const l = r.slice(); while (l.length < 7) l.push(''); l[6] = LOGOS_DEPART[cleLogo(r[1])]; return l;
-  });
-  if (!lignes.length) return;
-  poserGeste({ action: 'lignes', table: 'Magasins', opId: 'logos-depart-' + Date.now(), lignes: lignes });
-  lignes.forEach(l => { const x = LISTES.Magasins.find(y => String(y.id) === String(l[0])); if (x) x.logo = l[6]; });
-}
-/* TEMPORAIRE (2026-10-05) : la couleur 102 est retirée (l'utilisateur : « une couleur est une couleur et a son hex » — c'était le double exact de
-   la 101, #ffffff). Une pièce, un meuble, une catégorie ou une épicerie qui l'avait choisie passe à la 101 (le même blanc), une fois.
-   À RETIRER avec LOGOS_DEPART. */
-function sans102() {
-  const c = lireCache();
-  if (!c) return;
-  const lieux = PIECES.concat(MEUBLES).filter(x => numeroCouleur(x.couleur) === '102');
-  lieux.forEach(x => { x.couleur = '101'; couleursModif.meubles[x.id] = '101'; });
-  if (lieux.length) envoyerCouleurs();
-  const cats = (c.cats || []).filter(r => String(r[7] || '').trim() === '102').map(r => { const l = r.slice(); l[7] = '101'; return l; });
-  if (cats.length) poserGeste({ action: 'lignes', table: 'Categories', opId: 'sans102-c-' + Date.now(), lignes: cats });
-  RAYONS.forEach(r => { if (numeroCouleur(r.couleur) === '102') r.couleur = '101'; });
-  const mags = ((c.listes || {}).Magasins || []).filter(r => String(r[5] || '').trim() === '102').map(r => { const l = r.slice(); l[5] = '101'; return l; });
-  if (mags.length) poserGeste({ action: 'lignes', table: 'Magasins', opId: 'sans102-g-' + Date.now(), lignes: mags });
-  LISTES.Magasins.forEach(x => { if (x.couleur === '102') x.couleur = '101'; });
-}
-/* TEMPORAIRE (2026-10-17) : un produit pas reconnu au scan s'appelait « Inconnu 0059749940146 »; désormais son code seul (l'utilisateur : « ça fuck
-   le mot inconnu dans ça »). Les vieux perdent « Inconnu » une fois (Produits col. B). À RETIRER avec LOGOS_DEPART. */
-function sansInconnu() {
-  const c = lireCache();
-  if (!c) return;
-  const lignes = (c.prods || []).filter(r => /^Inconnu \d{4,14}$/.test(String(r[1] || '').trim())).map(r => { const l = r.slice(); l[1] = String(r[1]).trim().slice(8); return l; });
-  if (!lignes.length) return;
-  poserGeste({ action: 'lignes', table: 'Produits', opId: 'sans-inconnu-' + Date.now(), lignes: lignes });
-  lignes.forEach(l => { const p = PRODUITS.find(x => String(x.id) === String(l[0])); if (p) p.nom = l[1]; });
-  remplirProduitsDatalist();
 }
 /* Une pastille touchée (Gérer les bases → Catégories) = la couleur de la catégorie, partout tout de suite;
    envoyée en arrière-plan (geste « lignes » : la ligne de Categories réécrite, col. H). */
@@ -4040,6 +3991,15 @@ function soldesDe(pid) {
   return SPECIAUX.filter(r => soldeEnCours(r) && String(r[2]) === String(pid))
     .sort((a, b) => prixSolde(a) === prixSolde(b) ? 0 : prixSolde(a) < prixSolde(b) ? -1 : 1);
 }
+/* UN MONTANT TAPÉ (la règle commune du 2026-11-26, le français du Canada) : la virgule ou le point pour les cents, le $ et « 1 234,56 »
+   permis → le nombre; rien d'écrit → ''; un montant pas clair (« 1.234,56 », « 12..50 », « 4,999 », « abc ») → NaN : refusé avec un
+   message, jamais deviné. Sert à la fiche et à Compléter. */
+function lireMontant(v) {
+  const t = String(v == null ? '' : v).replace(/\$/g, '').replace(/[\s\u00a0\u202f]+/g, ' ').trim();
+  if (!t) return '';
+  const m = t.match(/^(\d{1,3}(?: \d{3})+|\d+)?(?:[.,](\d{1,2}))?$/);
+  return m && (m[1] || m[2]) ? Number((m[1] || '0').replace(/ /g, '') + '.' + (m[2] || '0')) : NaN;
+}
 function textePrix(v) {                               // « 4,99 » (l'utilisateur l'écrit sans le $)
   const t = String(v == null ? '' : v).trim(), n = Number(t.replace(',', '.'));
   return !t ? '' : isFinite(n) ? n.toLocaleString('fr-CA', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) : t;
@@ -4638,7 +4598,7 @@ async function montrerProduitCode(code) {
 }
 /* Une marque ou une saveur proposée (un ID, ou un nom) → l'ID d'un nom actif de la liste; sinon rien. */
 function idListe(liste, v) {
-  v = String(v || '').trim(); v = NUMEROS[v] || v;   // un faux nom-numéro : le vrai (TEMPORAIRE)
+  v = String(v || '').trim();
   if (!v) return '';
   const x = LISTES[liste].find(y => y.id === v) || LISTES[liste].find(y => cleNom(y.nom) === cleNom(v));
   return x ? x.id : '';

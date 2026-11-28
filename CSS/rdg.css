@@ -191,6 +191,7 @@
   --titre-monte:      0px;       /* de combien le titre du site monte pour rester au-dessus de ce qui se pose sur la photo (le script le calcule) */
   --transition-menu:  0.8s;      /* la page qui glisse vers le haut pour montrer le menu */
   --toast-duree:      3s;        /* un message reste 3 s au centre de l'écran (l'utilisateur, 2026-09-30, choix A sur aperçu parmi 3 / 4 / 5 — avant : 1,6 s en bas) */
+  --toast-duree-erreur: 8s;      /* une erreur, plus longtemps : le temps de la lire au complet (la règle commune du 2026-11-26 : elle part seule, ou au toucher) */
   --toast-large:      calc(min(100vw, var(--largeur-max)) - 2 * (var(--espace-l) + var(--espace-xl)));   /* un message : aussi large que le Retour sous une grille (l'utilisateur, 2026-10-14, C sur aperçu) */
   --toast-haut:       max(var(--bouton-grand-haut), calc(var(--toast-large) * var(--bouton-forme-h) / (2 * var(--bouton-forme-l))));   /* …et aussi haut : un long message s'étire */
   --spinner-lueur:    drop-shadow(0 0 10px color-mix(in srgb, var(--couleur-101) 28%, transparent));
@@ -1485,7 +1486,7 @@ select.champ {
 /* ============================================================
    TOAST — l'avis flottant (confirmation / à venir / erreur), aussi gros qu'un bouton (l'utilisateur, 2026-10-14)
    Au CENTRE de l'écran, --toast-duree (l'utilisateur, 2026-09-30 : en bas et 1,6 s, on n'avait pas le temps de le lire); une erreur, elle,
-   reste jusqu'à ce qu'on la touche (2026-10-12).
+   reste --toast-duree-erreur (8 s; jusqu'au toucher du 2026-10-12 au 2026-11-27), et part aussi au toucher.
    La durée vit ici : le script ne fait que relancer l'animation.
 ============================================================ */
 .toast {
@@ -1510,7 +1511,7 @@ select.champ {
   pointer-events: none;
 }
 .toast.visible { animation: toast-montre var(--toast-duree) ease forwards; }
-.toast-erreur.visible { animation: none; opacity: 1; pointer-events: auto; cursor: pointer; }   /* une erreur RESTE jusqu'à ce qu'on la touche (l'utilisateur, 2026-10-12 : « je n'ai pas pu le lire au complet ») */
+.toast-erreur.visible { animation-duration: var(--toast-duree-erreur); pointer-events: auto; cursor: pointer; }   /* une erreur reste plus longtemps, et part aussi au toucher */
 @keyframes toast-montre { 0% { opacity: 0; } 5%, 90% { opacity: 1; } 100% { opacity: 0; } }
 .toast-avis   { background: var(--couleur-306); }
 .toast-succes { background: var(--couleur-703); }
